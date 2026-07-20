@@ -18,8 +18,8 @@
     "postgresql",
     "handlebars"
   ],
-  "author": "",
-  "license": "ISC",
+  "author": "Ihago Martins",
+  "license": "MIT",
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "connect-pg-simple": "^9.0.1",

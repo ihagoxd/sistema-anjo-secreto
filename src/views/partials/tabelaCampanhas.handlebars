@@ -1,0 +1,37 @@
+<div class="tabela-wrap">
+  <table class="tabela">
+    <thead>
+      <tr>
+        <th>Campanha</th>
+        <th>Status</th>
+        <th>Criada em</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each campanhas}}
+        <tr>
+          <td data-label="Campanha">{{this.nome}}</td>
+          <td data-label="Status">
+            {{#if (eq this.status "RASCUNHO")}}<span class="badge rascunho">Rascunho</span>{{/if}}
+            {{#if (eq this.status "EM_ANDAMENTO")}}<span class="badge andamento">Em andamento</span>{{/if}}
+            {{#if (eq this.status "ENCERRADA")}}<span class="badge encerrada">Encerrada</span>{{/if}}
+          </td>
+          <td data-label="Criada em">{{formatarData this.criado_em}}</td>
+          <td data-label="Ações" class="td-acoes">
+            <div class="tab-acoes">
+              <a href="/admin/campanhas/{{this.id_campanha}}" class="btn btn-secundario btn-sm">Abrir</a>
+              <form action="/admin/campanhas/{{this.id_campanha}}/apagar" method="POST"
+                    data-confirmar="Apagar a campanha &quot;{{this.nome}}&quot;? Isso remove o sorteio, os participantes e as mensagens do jogo. Não dá para desfazer.">
+                {{#if @root.csrfToken}}<input type="hidden" name="_csrf" value="{{@root.csrfToken}}">{{/if}}
+                <button type="submit" class="btn btn-perigo btn-sm">Apagar</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+      {{else}}
+        <tr><td colspan="4" class="texto-suave">Nenhuma campanha ainda. Crie a do mês acima.</td></tr>
+      {{/each}}
+    </tbody>
+  </table>
+</div>

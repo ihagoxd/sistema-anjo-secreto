@@ -1,0 +1,64 @@
+<div class="pagina-cabecalho">
+  <div>
+    <h1>Mensagens</h1>
+    {{#if campanhaAtiva}}<p class="subtitulo">Campanha · {{campanhaAtiva.nome}}</p>{{/if}}
+  </div>
+  <a href="/participante" class="btn btn-secundario btn-sm">Voltar</a>
+</div>
+
+{{#if semCampanha}}
+  <div class="card"><p style="margin:0;">Nenhuma campanha em andamento. Quando o sorteio acontecer, o chat abre aqui. ✨</p></div>
+{{else}}
+  {{#if naoParticipa}}
+    <div class="card"><p style="margin:0;">Você não está participando da campanha <strong>{{campanhaAtiva.nome}}</strong>.</p></div>
+  {{else}}
+
+    <!-- Conversa com o protegido (você é o anjo dele) -->
+    <div class="card" style="margin-bottom:18px;">
+      <h3>Conversa com seu protegido <span class="texto-suave">({{protegidoNome}})</span></h3>
+      <div class="chat">
+        {{#each comProtegido}}
+          <div class="msg {{#if this.minha}}minha{{else}}deles{{/if}}">
+            <div class="quem">{{#if this.minha}}Você{{else}}{{@root.protegidoNome}}{{/if}}</div>
+            <div>{{this.texto}}</div>
+            <span class="quando">{{formatarData this.criado_em}}</span>
+          </div>
+        {{else}}
+          <div class="chat-vazio">Nenhuma mensagem ainda. Mande um oi anônimo. 🎁</div>
+        {{/each}}
+      </div>
+      <form class="chat-form" action="/participante/mensagens/protegido" method="POST" novalidate>
+        <input type="hidden" name="_csrf" value="{{csrfToken}}">
+        <div class="campo">
+          <textarea name="mensagem" maxlength="{{limite}}" placeholder="Escreva para seu protegido…" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primario">Enviar</button>
+      </form>
+    </div>
+
+    <!-- Conversa com o anjo (anônimo) -->
+    <div class="card">
+      <h3>Conversa com seu anjo</h3>
+      <p class="texto-suave" style="margin-top:0;">Você não sabe quem é — e tudo bem. 😇</p>
+      <div class="chat">
+        {{#each comAnjo}}
+          <div class="msg {{#if this.minha}}minha{{else}}deles{{/if}}">
+            <div class="quem">{{#if this.minha}}Você{{else}}Seu anjo{{/if}}</div>
+            <div>{{this.texto}}</div>
+            <span class="quando">{{formatarData this.criado_em}}</span>
+          </div>
+        {{else}}
+          <div class="chat-vazio">Nenhuma mensagem ainda. Seu anjo está por aí. 👀</div>
+        {{/each}}
+      </div>
+      <form class="chat-form" action="/participante/mensagens/anjo" method="POST" novalidate>
+        <input type="hidden" name="_csrf" value="{{csrfToken}}">
+        <div class="campo">
+          <textarea name="mensagem" maxlength="{{limite}}" placeholder="Escreva para seu anjo…" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primario">Enviar</button>
+      </form>
+    </div>
+
+  {{/if}}
+{{/if}}

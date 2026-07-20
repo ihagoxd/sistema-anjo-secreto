@@ -1,0 +1,28 @@
+<div class="pagina-cabecalho">
+  <div>
+    <h1>Logs do sistema</h1>
+    <p class="subtitulo">Últimas {{logs.length}} ações registradas (mais recentes primeiro).</p>
+  </div>
+  <a href="/admin" class="btn btn-secundario btn-sm">Voltar</a>
+</div>
+
+<div class="tabela-wrap">
+  <table class="tabela">
+    <thead>
+      <tr><th>Quando</th><th>Usuário</th><th>Ação</th><th>Detalhe</th><th>IP</th></tr>
+    </thead>
+    <tbody>
+      {{#each logs}}
+        <tr>
+          <td data-label="Quando">{{formatarData this.criado_em}}</td>
+          <td data-label="Usuário">{{#if this.nome_usuario}}{{this.nome_usuario}}{{else}}<span class="texto-suave">—</span>{{/if}}</td>
+          <td data-label="Ação">{{rotuloAcao this.acao}}</td>
+          <td data-label="Detalhe">{{#if this.descricao}}{{this.descricao}}{{else}}<span class="texto-suave">—</span>{{/if}}</td>
+          <td data-label="IP"><span class="texto-suave">{{this.ip}}</span></td>
+        </tr>
+      {{else}}
+        <tr><td colspan="5" class="texto-suave">Nenhum log ainda.</td></tr>
+      {{/each}}
+    </tbody>
+  </table>
+</div>

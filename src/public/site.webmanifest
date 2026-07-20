@@ -1,0 +1,14 @@
+{
+  "name": "Anjo Secreto",
+  "short_name": "Anjo Secreto",
+  "description": "Sistema interno da brincadeira do Anjo Secreto.",
+  "icons": [
+    { "src": "/img/apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any" },
+    { "src": "/img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "theme_color": "#0d1117",
+  "background_color": "#0d1117",
+  "display": "standalone",
+  "start_url": "/",
+  "scope": "/"
+}

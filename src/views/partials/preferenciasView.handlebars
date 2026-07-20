@@ -1,0 +1,14 @@
+{{#if preferencias}}
+  <div class="painel">
+    {{#if preferencias.lanche_favorito}}<div class="bloco"><div class="rotulo-campo">Lanche favorito</div><div>{{preferencias.lanche_favorito}}</div></div>{{/if}}
+    {{#if preferencias.bebida_favorita}}<div class="bloco"><div class="rotulo-campo">Bebida favorita</div><div>{{preferencias.bebida_favorita}}</div></div>{{/if}}
+    {{#if preferencias.chocolate_favorito}}<div class="bloco"><div class="rotulo-campo">Chocolate favorito</div><div>{{preferencias.chocolate_favorito}}</div></div>{{/if}}
+    {{#if preferencias.hobbies}}<div class="bloco"><div class="rotulo-campo">Hobbies</div><div>{{preferencias.hobbies}}</div></div>{{/if}}
+    {{#if preferencias.restricoes_alimentares}}<div class="bloco"><div class="rotulo-campo">Restrições alimentares</div><div>{{preferencias.restricoes_alimentares}}</div></div>{{/if}}
+    {{#if preferencias.coisas_que_gosta}}<div class="bloco"><div class="rotulo-campo">Coisas que gosta</div><div>{{preferencias.coisas_que_gosta}}</div></div>{{/if}}
+    {{#if preferencias.coisas_que_nao_gosta}}<div class="bloco"><div class="rotulo-campo">Coisas que não gosta</div><div>{{preferencias.coisas_que_nao_gosta}}</div></div>{{/if}}
+    {{#if preferencias.observacoes}}<div class="bloco"><div class="rotulo-campo">Observações</div><div>{{preferencias.observacoes}}</div></div>{{/if}}
+  </div>
+{{else}}
+  <p class="texto-suave">Esta pessoa ainda não preencheu as preferências.</p>
+{{/if}}

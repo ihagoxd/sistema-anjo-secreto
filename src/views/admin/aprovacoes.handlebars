@@ -1,0 +1,48 @@
+<div class="pagina-cabecalho">
+  <div>
+    <h1>Cadastros pendentes</h1>
+    <p class="subtitulo">Aprove apenas pessoas que você reconhece como funcionários.</p>
+  </div>
+  <a href="/admin" class="btn btn-secundario btn-sm">Voltar</a>
+</div>
+
+{{#if pendentes.length}}
+  <div class="tabela-wrap">
+    <table class="tabela">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Usuário</th>
+          <th>Solicitado em</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each pendentes}}
+          <tr>
+            <td data-label="Nome">{{this.nome}}</td>
+            <td data-label="Usuário">{{this.usuario}}</td>
+            <td data-label="Solicitado em">{{formatarData this.criado_em}}</td>
+            <td data-label="Ações" class="td-acoes">
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <form action="/admin/aprovacoes/{{this.id_usuario}}/aprovar" method="POST">
+                  {{#if ../csrfToken}}<input type="hidden" name="_csrf" value="{{../csrfToken}}">{{/if}}
+                  <button type="submit" class="btn btn-primario btn-sm">Aprovar</button>
+                </form>
+                <form action="/admin/aprovacoes/{{this.id_usuario}}/recusar" method="POST"
+                  data-confirmar="Recusar o cadastro de {{this.nome}}?">
+                  {{#if ../csrfToken}}<input type="hidden" name="_csrf" value="{{../csrfToken}}">{{/if}}
+                  <button type="submit" class="btn btn-perigo btn-sm">Recusar</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+{{else}}
+  <div class="card card-centro">
+    <p class="texto-suave" style="margin:0;">Nenhum cadastro aguardando aprovação no momento. 🎉</p>
+  </div>
+{{/if}}

@@ -1,0 +1,34 @@
+'use strict';
+
+const express = require('express');
+const ctrl = require('../controllers/feed.controller');
+const { exigeAutenticacao, exigeSenhaDefinitiva, bloquearAdmin } = require('../middlewares/auth.middleware');
+const { verifyCsrfAposUpload } = require('../middlewares/csrf.middleware');
+const { upload, conferirAssinaturas } = require('../config/upload');
+
+const router = express.Router();
+const guard = [exigeAutenticacao, exigeSenhaDefinitiva, bloquearAdmin];
+
+// Imagem opcional do post
+const receberImagem = (req, res, next) => {
+  upload.single('imagem')(req, res, function (err) {
+    if (err) { req.session.flash = { erro: err.message || 'Falha no envio da imagem.' }; return res.redirect('/feed'); }
+    next();
+  });
+};
+
+router.get('/feed', guard, ctrl.getFeed);
+router.post('/feed', guard, receberImagem, conferirAssinaturas, verifyCsrfAposUpload, ctrl.postCriar);
+router.post('/feed/:id_post/curtir', guard, ctrl.postCurtir);
+router.post('/feed/:id_post/repostar', guard, ctrl.postRepost);
+router.post('/feed/:id_post/comentar', guard, ctrl.postComentar);
+router.post('/feed/:id_post/remover', guard, ctrl.postRemover);
+router.post('/feed/comentarios/:id_comentario/remover', guard, ctrl.postRemoverComentario);
+
+router.get('/mencoes', guard, ctrl.getMencoes);
+router.get('/p/:id_post', guard, ctrl.getPost);
+router.get('/u/:usuario', guard, ctrl.getPerfil);
+router.get('/u/:usuario/reposts', guard, ctrl.getPerfilReposts);
+router.get('/u/:usuario/gostos', guard, ctrl.getPerfilGostos);
+
+module.exports = router;

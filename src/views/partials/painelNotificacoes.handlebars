@@ -1,0 +1,32 @@
+<div class="modal notif-modal" id="painelNotif" hidden aria-hidden="true">
+  <div class="modal-card notif-card">
+    <div class="notif-cab">
+      <h2>Notificações</h2>
+      <button type="button" class="btn-icone" data-fechar-modal="painelNotif" aria-label="Fechar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="notif-lista">
+      {{#each notifRecentes}}
+        <a class="notif-item {{#unless this.lida}}nova{{/unless}}" href="/notificacoes/{{this.id}}/abrir">
+          <span class="notif-av {{#unless this.temAtor}}so-emoji{{/unless}}">
+            {{#if this.temAtor}}
+              {{#if this.ator_foto}}<img src="{{this.ator_foto}}" alt="">{{else}}{{inicial this.ator_nome}}{{/if}}
+              <span class="notif-emoji">{{this.emoji}}</span>
+            {{else}}{{this.emoji}}{{/if}}
+          </span>
+          <div class="notif-txt">
+            <span class="notif-linha">{{this.texto}}</span>
+            <span class="notif-tempo">{{tempoRel this.criado_em}}</span>
+          </div>
+          {{#unless this.lida}}<span class="notif-dot"></span>{{/unless}}
+        </a>
+      {{else}}
+        <div class="notif-vazio">🔔<div>Nenhuma notificação ainda.</div></div>
+      {{/each}}
+    </div>
+
+    <a class="notif-vertodas" href="/notificacoes">Ver todas</a>
+  </div>
+</div>

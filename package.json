@@ -1,0 +1,40 @@
+{
+  "name": "sistema-anjo-secreto",
+  "version": "0.1.0",
+  "description": "Sistema web interno para a brincadeira corporativa Anjo Secreto",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "db:setup": "node src/db/setup.js",
+    "db:seed": "node src/db/seed.js",
+    "migrate": "node scripts/migrate.js up",
+    "migrate:down": "node scripts/migrate.js down",
+    "test": "node --test"
+  },
+  "keywords": [
+    "anjo-secreto",
+    "express",
+    "postgresql",
+    "handlebars"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "connect-pg-simple": "^9.0.1",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "express-handlebars": "^7.1.3",
+    "express-rate-limit": "^7.4.0",
+    "express-session": "^1.18.1",
+    "express-validator": "^7.2.0",
+    "helmet": "^7.1.0",
+    "multer": "^1.4.5-lts.1",
+    "node-pg-migrate": "^8.0.4",
+    "pg": "^8.13.0"
+  },
+  "devDependencies": {
+    "supertest": "^7.0.0"
+  }
+}

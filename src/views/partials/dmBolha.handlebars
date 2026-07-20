@@ -1,0 +1,11 @@
+<div class="dm-bolha {{#if this.minha}}minha{{else}}deles{{/if}}{{#if this.imagem}} tem-img{{/if}}" data-id="{{this.id_mensagem}}">
+  {{#if this.imagem}}<div class="dm-bolha-img tw-post-midia" data-img="{{this.imagem}}" role="button" tabindex="0" aria-label="Ampliar imagem"><img src="{{this.imagem}}" alt="Foto" draggable="false"></div>{{/if}}
+  {{#if this.texto}}<div class="dm-bolha-txt">{{this.texto}}</div>{{/if}}
+  <div class="dm-bolha-meta">
+    <span class="dm-hora">{{tempoRel this.criado_em}}</span>
+    <span class="dm-editada"{{#unless this.editado_em}} hidden{{/unless}}>(editada)</span>
+    {{#if (ou this.minha false)}}{{#if this.texto}}<button type="button" class="dm-editar" data-editar-msg data-id="{{this.id_mensagem}}" data-escopo="{{@root.conversa.escopo}}" title="Editar mensagem" aria-label="Editar mensagem">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+    </button>{{/if}}{{/if}}
+  </div>
+</div>

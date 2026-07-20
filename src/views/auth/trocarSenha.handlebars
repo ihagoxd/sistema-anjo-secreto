@@ -1,0 +1,23 @@
+<div class="auth-form-cab">
+  <span class="et">Primeiro acesso</span>
+  <h1>Defina sua senha</h1>
+  <p>Crie uma senha pessoal para continuar.</p>
+</div>
+
+<form class="form" action="/trocar-senha" method="POST" novalidate>
+  {{#if csrfToken}}<input type="hidden" name="_csrf" value="{{csrfToken}}">{{/if}}
+
+  <div class="campo">
+    <label for="senha">Nova senha</label>
+    <input type="password" id="senha" name="senha" autocomplete="new-password"
+      placeholder="••••••••" required autofocus>
+  </div>
+
+  <div class="campo">
+    <label for="confirmarSenha">Confirmar senha</label>
+    <input type="password" id="confirmarSenha" name="confirmarSenha" autocomplete="new-password"
+      placeholder="••••••••" required>
+  </div>
+
+  <button type="submit" class="btn btn-primario btn-bloco">Salvar senha</button>
+</form>

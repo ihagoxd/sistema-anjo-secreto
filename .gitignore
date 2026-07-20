@@ -1,0 +1,30 @@
+# Dependências
+node_modules/
+
+# Variáveis de ambiente
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Cobertura de testes
+coverage/
+
+# Sistema operacional / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+# Uploads (manter a pasta, ignorar conteúdo)
+src/public/uploads/*
+!src/public/uploads/.gitkeep
+
+# Documentos internos de planejamento (não publicar)
+PROGRESSO.md
+PLANO_DE_CONSTRUCAO.md
+requisito sistema anjo.txt
+requisito sistema anjo v2.md

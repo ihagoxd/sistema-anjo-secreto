@@ -1,0 +1,26 @@
+<div class="pagina-cabecalho">
+  <div>
+    <h1>Notificações</h1>
+    <p class="subtitulo">Tudo o que rolou por aqui</p>
+  </div>
+</div>
+
+<div class="card notif-pagina">
+  {{#each itens}}
+    <a class="notif-item {{#unless this.lida}}nova{{/unless}}" href="/notificacoes/{{this.id}}/abrir">
+      <span class="notif-av {{#unless this.temAtor}}so-emoji{{/unless}}">
+        {{#if this.temAtor}}
+          {{#if this.ator_foto}}<img src="{{this.ator_foto}}" alt="">{{else}}{{inicial this.ator_nome}}{{/if}}
+          <span class="notif-emoji">{{this.emoji}}</span>
+        {{else}}{{this.emoji}}{{/if}}
+      </span>
+      <div class="notif-txt">
+        <span class="notif-linha">{{this.texto}}</span>
+        <span class="notif-tempo">{{tempoRel this.criado_em}}</span>
+      </div>
+      {{#unless this.lida}}<span class="notif-dot"></span>{{/unless}}
+    </a>
+  {{else}}
+    <div class="notif-vazio">🔔<div>Nenhuma notificação por enquanto.<br>Quando alguém curtir, comentar ou te mandar mensagem, aparece aqui.</div></div>
+  {{/each}}
+</div>

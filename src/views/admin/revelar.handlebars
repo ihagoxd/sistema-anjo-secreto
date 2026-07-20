@@ -1,0 +1,29 @@
+<div class="pagina-cabecalho">
+  <div>
+    <h1>Sorteio revelado</h1>
+    <p class="subtitulo">{{campanha.nome}}</p>
+  </div>
+  <a href="/admin/campanhas/{{campanha.id_campanha}}" class="btn btn-secundario btn-sm">Voltar</a>
+</div>
+
+<div class="alerta alerta-erro" role="alert" style="margin-bottom:18px;">
+  <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+  <span>Este acesso foi registrado em log. Use a informação com responsabilidade.</span>
+</div>
+
+<div class="tabela-wrap">
+  <table class="tabela">
+    <thead><tr><th>Anjo</th><th></th><th>Protegido</th></tr></thead>
+    <tbody>
+      {{#each pares}}
+        <tr>
+          <td data-label="Anjo">{{this.anjo_nome}} <span class="texto-suave">({{this.anjo_usuario}})</span></td>
+          <td class="texto-suave rev-seta">→</td>
+          <td data-label="Protegido">{{this.protegido_nome}} <span class="texto-suave">({{this.protegido_usuario}})</span></td>
+        </tr>
+      {{else}}
+        <tr><td colspan="3" class="texto-suave">Sem pares.</td></tr>
+      {{/each}}
+    </tbody>
+  </table>
+</div>

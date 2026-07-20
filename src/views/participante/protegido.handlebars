@@ -1,0 +1,44 @@
+<div class="pagina-cabecalho">
+  <div>
+    <h1>Seu protegido</h1>
+    <p class="subtitulo">Campanha · {{campanhaAtiva.nome}}</p>
+  </div>
+  <a href="/participante" class="btn btn-secundario btn-sm">Voltar</a>
+</div>
+
+<div class="prot-wrap">
+  <div class="painel-hero">
+    <div class="painel-hero-rot">Você tirou 🎁</div>
+    <div class="painel-hero-av">{{#if protegido.foto_perfil}}<img src="{{protegido.foto_perfil}}" alt="">{{else}}{{inicial protegido.nome}}{{/if}}</div>
+    <h2 class="painel-hero-nome">{{protegido.nome}}</h2>
+    <p class="painel-hero-dica">Presenteie em segredo este mês — ele(a) não sabe que é você. 🤫</p>
+    <a href="/mensagens/protegido" class="btn btn-primario">🎭 Mandar mensagem anônima</a>
+  </div>
+
+  {{#if (ou gostos.length fotos.length)}}
+    <div class="card prot-gostos-card">
+      <div class="tw-gostos">
+        <div class="tw-gostos-intro">💡 O que faz {{protegido.nome}} feliz — use pra acertar no presente!</div>
+        {{#each gostos}}
+          <div class="tw-gosto">
+            <span class="tw-gosto-emoji">{{this.emoji}}</span>
+            <div class="tw-gosto-txt">
+              <div class="tw-gosto-rotulo">{{this.rotulo}}</div>
+              <div class="tw-gosto-valor">{{this.valor}}</div>
+            </div>
+          </div>
+        {{/each}}
+        {{#if fotos.length}}
+          <div class="tw-fotos-tit">📸 Fotos de ideias</div>
+          {{> galeriaGosta}}
+        {{/if}}
+      </div>
+    </div>
+  {{else}}
+    <div class="card card-centro">
+      <p class="texto-suave" style="margin:0;">{{protegido.nome}} ainda não contou o que gosta. Que tal puxar papo no chat anônimo? 😉</p>
+    </div>
+  {{/if}}
+
+  <p class="prot-rodape">Use essas dicas para presentear ao longo do mês — sempre em segredo. 🤫🎁</p>
+</div>

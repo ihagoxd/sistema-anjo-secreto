@@ -1,0 +1,41 @@
+<div class="auth-form-cab">
+  <span class="et">Novo cadastro</span>
+  <h1>Criar conta</h1>
+  <p>Preencha seus dados. Um administrador vai conferir e liberar seu acesso.</p>
+</div>
+
+<form class="form" action="/registrar" method="POST" novalidate>
+  {{#if csrfToken}}<input type="hidden" name="_csrf" value="{{csrfToken}}">{{/if}}
+
+  <div class="campo">
+    <label for="nome">Nome completo</label>
+    <input type="text" id="nome" name="nome" autocomplete="name"
+      placeholder="Seu nome" value="{{nome}}" required autofocus>
+  </div>
+
+  <div class="campo">
+    <label for="usuario">Usuário (login)</label>
+    <input type="text" id="usuario" name="usuario" autocomplete="username"
+      placeholder="apelido ou nome de usuário" value="{{usuario}}" required
+      autocapitalize="none" spellcheck="false">
+    <p class="ajuda">3 a 80 caracteres: letras, números, ponto, hífen ou _.</p>
+  </div>
+
+  <div class="campo">
+    <label for="senha">Senha</label>
+    <input type="password" id="senha" name="senha" autocomplete="new-password"
+      placeholder="••••••••" required>
+  </div>
+
+  <div class="campo">
+    <label for="confirmarSenha">Confirmar senha</label>
+    <input type="password" id="confirmarSenha" name="confirmarSenha" autocomplete="new-password"
+      placeholder="••••••••" required>
+  </div>
+
+  <button type="submit" class="btn btn-primario btn-bloco">Enviar cadastro</button>
+
+  <p class="auth-troca">
+    Já tem acesso? <a href="/login">Entrar</a>
+  </p>
+</form>

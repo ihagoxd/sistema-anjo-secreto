@@ -1,0 +1,47 @@
+<div class="pagina-cabecalho">
+  <div>
+    <h1>Usuários</h1>
+    <p class="subtitulo">Crie, edite, ative/inative e resete a senha dos usuários.</p>
+  </div>
+  <a href="/admin" class="btn btn-secundario btn-sm">Voltar</a>
+</div>
+
+<details class="criar" style="margin-bottom:18px;">
+  <summary class="btn btn-primario">+ Novo usuário</summary>
+  <form class="form card" action="/admin/usuarios" method="POST" style="margin-top:14px;" novalidate>
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+    <div class="linha-campos">
+      <div class="campo">
+        <label for="nome">Nome completo</label>
+        <input type="text" id="nome" name="nome" required>
+      </div>
+      <div class="campo">
+        <label for="usuario">Usuário (login)</label>
+        <input type="text" id="usuario" name="usuario" autocapitalize="none" spellcheck="false" required>
+      </div>
+    </div>
+    <div class="linha-campos">
+      <div class="campo">
+        <label for="tipo_usuario">Tipo</label>
+        <select id="tipo_usuario" name="tipo_usuario">
+          <option value="PARTICIPANTE">Participante</option>
+          <option value="ADMINISTRADOR">Administrador</option>
+        </select>
+      </div>
+      <div class="campo">
+        <label for="senha">Senha inicial</label>
+        <input type="text" id="senha" name="senha" required>
+        <p class="ajuda">Será provisória: o usuário troca no primeiro acesso.</p>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primario">Criar usuário</button>
+  </form>
+</details>
+
+<form class="filtros" action="/admin/usuarios" method="GET">
+  <div class="campo busca-campo" style="margin:0; max-width:360px;">
+    <input type="search" name="q" value="{{busca}}" placeholder="Buscar por nome ou usuário…">
+  </div>
+</form>
+
+{{> tabelaUsuarios}}

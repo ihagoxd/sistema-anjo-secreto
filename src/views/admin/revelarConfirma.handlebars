@@ -1,0 +1,27 @@
+<div class="pagina-cabecalho">
+  <div>
+    <h1>Revelar sorteio</h1>
+    <p class="subtitulo">{{campanha.nome}}</p>
+  </div>
+  <a href="/admin/campanhas/{{campanha.id_campanha}}" class="btn btn-secundario btn-sm">Voltar</a>
+</div>
+
+<div class="card">
+  <h3>⚠️ Tela emergencial</h3>
+  {{#if realizado}}
+    <p>
+      Esta tela mostra <strong>quem é anjo de quem</strong> — o que normalmente é secreto.
+      Use apenas em caso de necessidade real (ex.: alguém saiu da empresa).
+    </p>
+    <p class="texto-suave">
+      <strong>O acesso será registrado em log</strong> (seu usuário, data/hora e a campanha).
+    </p>
+    <form action="/admin/campanhas/{{campanha.id_campanha}}/revelar" method="POST"
+      data-confirmar="Revelar os pares desta campanha? Esta ação ficará registrada em log.">
+      <input type="hidden" name="_csrf" value="{{csrfToken}}">
+      <button type="submit" class="btn btn-perigo">Revelar e registrar</button>
+    </form>
+  {{else}}
+    <p class="texto-suave" style="margin:0;">Esta campanha ainda não teve sorteio — não há pares para revelar.</p>
+  {{/if}}
+</div>

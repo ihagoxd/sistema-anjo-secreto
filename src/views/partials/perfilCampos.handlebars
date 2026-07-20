@@ -1,0 +1,88 @@
+<div class="perfil-topo">
+  <label class="avatar-editor" for="foto_perfil" title="Escolher foto">
+    <span class="avatar-editor-img" id="avatarPreview">
+      {{#if usuario.foto_perfil}}
+        <img src="{{usuario.foto_perfil}}" alt="Foto de perfil">
+      {{else}}
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      {{/if}}
+    </span>
+    <span class="avatar-editor-cam" aria-hidden="true">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+    </span>
+  </label>
+  <input type="file" id="foto_perfil" name="foto_perfil" accept="image/png,image/jpeg,image/gif,image/webp" class="visualmente-oculto" data-preview="avatarPreview">
+  <div class="perfil-nome">{{usuario.nome}}</div>
+  <div class="perfil-user">@{{usuario.usuario}}</div>
+  <span class="perfil-troca-dica">Toque na foto para trocar</span>
+</div>
+
+<div class="campo">
+  <label for="bio">Bio</label>
+  <input type="text" id="bio" name="bio" value="{{bio}}" maxlength="200" placeholder="Uma frase sobre você ✨">
+</div>
+
+<div class="campo">
+  <label for="data_nascimento"><span class="lbl-ic">🎂</span> Data de nascimento</label>
+  <input type="date" id="data_nascimento" name="data_nascimento" value="{{dataISO dataNascimento}}" max="{{maxData}}">
+  <small class="ajuda">No seu aniversário, o escritório inteiro comemora com você. 🎉</small>
+</div>
+
+<div class="pf-secao">
+  <div class="pf-secao-cab"><span class="pf-secao-ic">🍽️</span> Gostos & sabores</div>
+  <p class="pf-secao-dica">Quanto mais você contar, mais fácil o seu anjo acertar. 🎁</p>
+
+  <div class="linha-campos">
+    <div class="campo">
+      <label for="lanche_favorito"><span class="lbl-ic">🍿</span> Lanche favorito</label>
+      <input type="text" id="lanche_favorito" name="lanche_favorito" value="{{prefs.lanche_favorito}}" placeholder="Ex.: Coxinha, pipoca…">
+    </div>
+    <div class="campo">
+      <label for="bebida_favorita"><span class="lbl-ic">🥤</span> Bebida favorita</label>
+      <input type="text" id="bebida_favorita" name="bebida_favorita" value="{{prefs.bebida_favorita}}" placeholder="Ex.: Guaraná, café…">
+    </div>
+    <div class="campo">
+      <label for="chocolate_favorito"><span class="lbl-ic">🍫</span> Chocolate favorito</label>
+      <input type="text" id="chocolate_favorito" name="chocolate_favorito" value="{{prefs.chocolate_favorito}}" placeholder="Ex.: Kit Kat, Lacta…">
+    </div>
+  </div>
+
+  <div class="campo">
+    <label for="coisas_que_gosta"><span class="lbl-ic">💛</span> Coisas que gosta</label>
+    <textarea id="coisas_que_gosta" name="coisas_que_gosta" rows="2" placeholder="Cores, marcas, personagens, estilos…">{{prefs.coisas_que_gosta}}</textarea>
+  </div>
+  <div class="campo">
+    <label for="hobbies"><span class="lbl-ic">🎨</span> Hobbies</label>
+    <textarea id="hobbies" name="hobbies" rows="2" placeholder="O que você curte fazer no tempo livre?">{{prefs.hobbies}}</textarea>
+  </div>
+</div>
+
+<div class="pf-secao">
+  <div class="pf-secao-cab"><span class="pf-secao-ic">🎁</span> Pra acertar no presente</div>
+
+  <div class="linha-campos-2">
+    <div class="campo">
+      <label for="coisas_que_nao_gosta"><span class="lbl-ic">🚫</span> Coisas que não gosta</label>
+      <textarea id="coisas_que_nao_gosta" name="coisas_que_nao_gosta" rows="2" placeholder="Pra evitar na hora do presente">{{prefs.coisas_que_nao_gosta}}</textarea>
+    </div>
+    <div class="campo">
+      <label for="restricoes_alimentares"><span class="lbl-ic">🥗</span> Restrições alimentares</label>
+      <textarea id="restricoes_alimentares" name="restricoes_alimentares" rows="2" placeholder="Alergias, intolerâncias, dieta…">{{prefs.restricoes_alimentares}}</textarea>
+    </div>
+  </div>
+  <div class="campo">
+    <label for="observacoes"><span class="lbl-ic">📝</span> Observações</label>
+    <textarea id="observacoes" name="observacoes" rows="2" placeholder="Qualquer dica extra pro seu anjo">{{prefs.observacoes}}</textarea>
+  </div>
+</div>
+
+<div class="pf-secao">
+  <div class="pf-secao-cab"><span class="pf-secao-ic">📸</span> Fotos de ideias</div>
+  <p class="pf-secao-dica">Suba fotos do que você curte — seu anjo vê essas fotos. Até {{maxFotos}} no total. 🎁</p>
+  <div class="galeria-editor" id="galeriaPreview">
+    <label class="galeria-add" for="fotos" title="Adicionar fotos">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </label>
+  </div>
+  <input type="file" id="fotos" name="fotos" accept="image/png,image/jpeg,image/gif,image/webp" multiple class="visualmente-oculto" data-galeria="galeriaPreview">
+</div>

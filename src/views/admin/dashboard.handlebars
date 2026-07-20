@@ -1,0 +1,75 @@
+<div class="pagina-cabecalho">
+  <div>
+    <h1>Painel do administrador</h1>
+    <p class="subtitulo">Olá, {{usuario.nome}} 👋</p>
+  </div>
+</div>
+
+<div class="painel-stats">
+  <a class="stat" href="/admin/usuarios">
+    <span class="stat-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+    <div><div class="numero">{{totalUsuarios}}</div><div class="stat-lbl">Usuários cadastrados</div></div>
+  </a>
+  <a class="stat {{#if pendentes}}stat-alerta{{/if}}" href="/admin/aprovacoes">
+    <span class="stat-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg></span>
+    <div><div class="numero">{{pendentes}}</div><div class="stat-lbl">Aguardando aprovação</div></div>
+  </a>
+  <a class="stat" href="/admin/campanhas">
+    <span class="stat-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span>
+    <div><div class="numero">{{totalCampanhas}}</div><div class="stat-lbl">Campanhas</div></div>
+  </a>
+</div>
+
+<div class="painel-grid">
+  <div class="card">
+    <h3>🎁 Campanha do mês</h3>
+    {{#if campanhaAtiva}}
+      <p class="texto-suave" style="margin-top:0;"><span class="badge andamento">Em andamento</span> &nbsp;{{campanhaAtiva.nome}}</p>
+      <p class="texto-suave">O sorteio já rolou — acompanhe a rodada e as mensagens dos participantes.</p>
+      <a href="/admin/campanhas/{{campanhaAtiva.id_campanha}}" class="btn btn-primario">Abrir campanha</a>
+    {{else}}
+      <p class="texto-suave" style="margin-top:0;">Nenhuma campanha em andamento. Crie a rodada do mês e faça o sorteio. ✨</p>
+      <a href="/admin/campanhas" class="btn btn-primario">Criar campanha</a>
+    {{/if}}
+  </div>
+
+  <div class="card">
+    <h3>Atividade recente</h3>
+    {{#if logs.length}}
+      <ul class="atividade">
+        {{#each logs}}
+          <li class="atv-item">
+            <span class="atv-dot"></span>
+            <div class="atv-txt">
+              <span class="atv-acao">{{rotuloAcao this.acao}}</span>
+              {{#if this.nome_usuario}}<span class="atv-quem">· {{this.nome_usuario}}</span>{{/if}}
+              <span class="atv-tempo">{{tempoRel this.criado_em}}</span>
+            </div>
+          </li>
+        {{/each}}
+      </ul>
+      <a href="/admin/logs" class="atv-vertodos">Ver todos os logs →</a>
+    {{else}}
+      <p class="texto-suave" style="margin:0;">Nenhuma atividade registrada ainda.</p>
+    {{/if}}
+  </div>
+</div>
+
+<div class="acoes-rapidas">
+  <a class="acao-card" href="/admin/aprovacoes">
+    <span class="acao-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg></span>
+    <div><strong>Aprovações</strong><small>{{#if pendentes}}{{pendentes}} aguardando{{else}}Tudo em dia ✅{{/if}}</small></div>
+  </a>
+  <a class="acao-card" href="/admin/usuarios">
+    <span class="acao-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></span>
+    <div><strong>Usuários</strong><small>Gerenciar acessos</small></div>
+  </a>
+  <a class="acao-card" href="/admin/campanhas">
+    <span class="acao-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/></svg></span>
+    <div><strong>Campanhas</strong><small>Sorteios do mês</small></div>
+  </a>
+  <a class="acao-card" href="/admin/logs">
+    <span class="acao-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg></span>
+    <div><strong>Logs</strong><small>Auditoria do sistema</small></div>
+  </a>
+</div>

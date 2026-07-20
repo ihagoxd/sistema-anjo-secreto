@@ -1,0 +1,126 @@
+<div class="tw-perfil">
+  <div class="tw-topbar">
+    <a href="/feed" class="tw-back" aria-label="Voltar ao mural">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    </a>
+    <div class="tw-topbar-txt">
+      <div class="tw-topbar-nome">{{alvo.nome}}</div>
+      <div class="tw-topbar-count">{{numPublicacoes}} publicaç{{#if (eq numPublicacoes 1)}}ão{{else}}ões{{/if}}</div>
+    </div>
+  </div>
+
+  <div class="tw-banner"></div>
+
+  <div class="tw-head">
+    <div class="tw-avatar-row">
+      <span class="tw-avatar">
+        {{#if alvo.foto_perfil}}<img src="{{alvo.foto_perfil}}" alt="">{{else}}{{inicial alvo.nome}}{{/if}}
+        {{#if alvo.humor}}<span class="tw-humor" title="{{rotuloHumor alvo.humor}}">{{emojiHumor alvo.humor}}</span>{{/if}}
+      </span>
+      <div class="tw-acoes">
+        {{#if (eq alvo.id_usuario usuario.id_usuario)}}
+          <a href="/conta" class="btn btn-secundario">Editar perfil</a>
+        {{else}}
+          <a href="/mensagens/u/{{alvo.id_usuario}}" class="btn btn-primario">Mensagem</a>
+        {{/if}}
+      </div>
+    </div>
+
+    <div class="tw-nome">
+      {{alvo.nome}}
+      {{#if (eq alvo.tipo_usuario "ADMINISTRADOR")}}<span class="badge admin">Admin</span>{{/if}}
+    </div>
+    <div class="tw-user">@{{alvo.usuario}}</div>
+
+    {{#if alvo.bio}}<div class="tw-bio">{{alvo.bio}}</div>{{/if}}
+
+    <div class="tw-meta">
+      {{#if alvo.data_nascimento}}
+        <span class="tw-meta-item">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M7 8v3M12 8v3M17 8v3M7 4h.01M12 4h.01M17 4h.01"/></svg>
+          Nasceu em {{diaMesExtenso alvo.data_nascimento}}
+        </span>
+      {{/if}}
+      <span class="tw-meta-item">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Entrou em {{mesAnoExtenso alvo.criado_em}}
+      </span>
+    </div>
+
+    <div class="tw-stats">
+      <span><strong>{{numPublicacoes}}</strong> Publicaç{{#if (eq numPublicacoes 1)}}ão{{else}}ões{{/if}}</span>
+    </div>
+  </div>
+
+  <div class="tw-tabs">
+    <a href="/u/{{alvo.usuario}}" class="tw-tab {{#if (eq aba "publicacoes")}}ativo{{/if}}">Publicações</a>
+    <a href="/u/{{alvo.usuario}}/reposts" class="tw-tab {{#if (eq aba "reposts")}}ativo{{/if}}">Reposts</a>
+    <a href="/u/{{alvo.usuario}}/gostos" class="tw-tab {{#if (eq aba "gostos")}}ativo{{/if}}">Gostos</a>
+  </div>
+
+  {{#if (eq aba "gostos")}}
+    {{#if (ou gostos.length fotosGosta.length)}}
+      <div class="tw-gostos">
+        <div class="tw-gostos-intro">💡 O que faz {{alvo.nome}} feliz — ótimo pra acertar num presente!</div>
+        {{#each gostos}}
+          <div class="tw-gosto">
+            <span class="tw-gosto-emoji">{{this.emoji}}</span>
+            <div class="tw-gosto-txt">
+              <div class="tw-gosto-rotulo">{{this.rotulo}}</div>
+              <div class="tw-gosto-valor">{{this.valor}}</div>
+            </div>
+          </div>
+        {{/each}}
+        {{#if fotosGosta.length}}
+          <div class="tw-fotos-tit">📸 Fotos de ideias</div>
+          {{> galeriaGosta fotos=fotosGosta}}
+        {{/if}}
+      </div>
+    {{else}}
+      <div class="tw-vazio">
+        {{#if (eq alvo.id_usuario usuario.id_usuario)}}
+          <div class="tw-vazio-tit">Conte o que você gosta 🎁</div>
+          <p>Preencha suas preferências pra galera acertar no seu presente.</p>
+          <a href="/participante/preferencias" class="btn btn-primario btn-sm">Preencher preferências</a>
+        {{else}}
+          <div class="tw-vazio-tit">Ainda é um mistério 🤔</div>
+          <p>{{alvo.nome}} ainda não contou o que gosta.</p>
+        {{/if}}
+      </div>
+    {{/if}}
+
+  {{else if (eq aba "reposts")}}
+    {{#if posts.length}}
+      <div class="feed feed-perfil">
+        {{#each posts}}{{> postCard}}{{/each}}
+      </div>
+    {{else}}
+      <div class="tw-vazio">
+        <div class="tw-vazio-tit">Nenhum repost ainda 🔁</div>
+        {{#if (eq alvo.id_usuario usuario.id_usuario)}}
+          <p>Ao repostar uma publicação, ela aparece aqui.</p>
+        {{else}}
+          <p>{{alvo.nome}} ainda não repostou nada.</p>
+        {{/if}}
+      </div>
+    {{/if}}
+
+  {{else}}
+    {{#if posts.length}}
+      <div class="feed feed-perfil">
+        {{#each posts}}{{> postCard}}{{/each}}
+      </div>
+    {{else}}
+      <div class="tw-vazio">
+        {{#if (eq alvo.id_usuario usuario.id_usuario)}}
+          <div class="tw-vazio-tit">Você ainda não publicou nada</div>
+          <p>Quando você compartilhar algo no mural, aparece aqui no seu perfil.</p>
+          <a href="/feed" class="btn btn-primario btn-sm">Publicar no mural</a>
+        {{else}}
+          <div class="tw-vazio-tit">Nada por aqui ainda</div>
+          <p>{{alvo.nome}} ainda não publicou nada.</p>
+        {{/if}}
+      </div>
+    {{/if}}
+  {{/if}}
+</div>

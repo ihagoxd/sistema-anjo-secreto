@@ -1,0 +1,79 @@
+<div class="tabela-wrap">
+  <table class="tabela">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Usuário</th>
+        <th>Tipo</th>
+        <th>Status</th>
+        <th>Ativo</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each usuarios}}
+        <tr>
+          <td data-label="Nome">{{this.nome}}</td>
+          <td data-label="Usuário">{{this.usuario}}</td>
+          <td data-label="Tipo">
+            {{#if (eq this.tipo_usuario "ADMINISTRADOR")}}
+              <span class="badge admin">Administrador</span>
+            {{else}}
+              <span class="badge">Participante</span>
+            {{/if}}
+          </td>
+          <td data-label="Status">
+            {{#if (eq this.status "APROVADO")}}<span class="badge aprovado">Aprovado</span>{{/if}}
+            {{#if (eq this.status "PENDENTE")}}<span class="badge pendente">Pendente</span>{{/if}}
+            {{#if (eq this.status "RECUSADO")}}<span class="badge recusado">Recusado</span>{{/if}}
+          </td>
+          <td data-label="Ativo">{{#if this.ativo}}Sim{{else}}<span class="badge inativo">Não</span>{{/if}}</td>
+          <td data-label="Ações" class="td-acoes">
+            <div class="acoes-linha">
+              {{#if (eq this.status "PENDENTE")}}
+                <form action="/admin/aprovacoes/{{this.id_usuario}}/aprovar" method="POST">
+                  <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
+                  <button type="submit" class="btn btn-primario btn-sm">Aprovar</button>
+                </form>
+                <form action="/admin/aprovacoes/{{this.id_usuario}}/recusar" method="POST" data-confirmar="Recusar o cadastro de {{this.nome}}?">
+                  <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
+                  <button type="submit" class="btn btn-perigo btn-sm">Recusar</button>
+                </form>
+              {{/if}}
+
+              <a href="/admin/usuarios/{{this.id_usuario}}/editar" class="btn btn-secundario btn-sm">Editar</a>
+
+              {{#unless (eq this.id_usuario @root.usuario.id_usuario)}}
+                {{#if this.ativo}}
+                  <form action="/admin/usuarios/{{this.id_usuario}}/inativar" method="POST" data-confirmar="Inativar {{this.nome}}?">
+                    <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
+                    <button type="submit" class="btn btn-secundario btn-sm">Inativar</button>
+                  </form>
+                {{else}}
+                  <form action="/admin/usuarios/{{this.id_usuario}}/ativar" method="POST">
+                    <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
+                    <button type="submit" class="btn btn-secundario btn-sm">Ativar</button>
+                  </form>
+                {{/if}}
+              {{/unless}}
+
+              <form action="/admin/usuarios/{{this.id_usuario}}/resetar-senha" method="POST" data-confirmar="Gerar nova senha provisória para {{this.nome}}?">
+                <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
+                <button type="submit" class="btn btn-secundario btn-sm">Resetar senha</button>
+              </form>
+
+              {{#unless (eq this.id_usuario @root.usuario.id_usuario)}}
+                <form action="/admin/usuarios/{{this.id_usuario}}/excluir" method="POST" data-confirmar="EXCLUIR permanentemente {{this.nome}}? Isso apaga posts, mensagens e todos os dados dele(a). Não dá para desfazer.">
+                  <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
+                  <button type="submit" class="btn btn-perigo btn-sm">Excluir</button>
+                </form>
+              {{/unless}}
+            </div>
+          </td>
+        </tr>
+      {{else}}
+        <tr><td colspan="6" class="texto-suave">Nenhum usuário encontrado.</td></tr>
+      {{/each}}
+    </tbody>
+  </table>
+</div>

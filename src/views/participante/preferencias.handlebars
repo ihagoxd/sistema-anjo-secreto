@@ -1,0 +1,52 @@
+<div class="pf-wrap">
+  <div class="pagina-cabecalho">
+    <div>
+      <h1>Meu perfil</h1>
+      <p class="subtitulo">Sua foto e suas preferências — para o anjo te presentear melhor.</p>
+    </div>
+    <a href="/participante" class="btn btn-secundario btn-sm">Voltar</a>
+  </div>
+
+  <form class="form card pf-form" action="/participante/perfil" method="POST" enctype="multipart/form-data" novalidate>
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+    {{> perfilCampos}}
+    <div class="pf-salvar">
+      <button type="submit" class="btn btn-primario btn-bloco">Salvar perfil</button>
+    </div>
+  </form>
+
+  {{#if fotoPerfil}}
+    <form action="/participante/perfil/foto/remover" method="POST" data-confirmar="Remover sua foto de perfil?" class="pf-remover">
+      <input type="hidden" name="_csrf" value="{{csrfToken}}">
+      <button type="submit" class="btn-link" style="color:var(--st-vermelho);">Remover foto de perfil</button>
+    </form>
+  {{/if}}
+
+  {{#if fotos.length}}
+    <div class="card pf-fotos-card">
+      <h3>Suas fotos <span class="texto-suave">({{fotos.length}})</span></h3>
+      <p class="texto-suave" style="margin-top:0;">Escreva o que é cada foto — assim quem for te presentear entende a ideia. ✍️</p>
+      <div class="fotos-lista">
+        {{#each fotos}}
+          <div class="foto-item">
+            <div class="foto-thumb">
+              <img src="{{this.caminho}}" alt="Foto">
+              <form action="/participante/perfil/fotos/{{this.id_foto}}/remover" method="POST" data-confirmar="Remover esta foto?">
+                <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
+                <button type="submit" class="galeria-remover" aria-label="Remover foto">&times;</button>
+              </form>
+            </div>
+            <form class="foto-legenda-form" action="/participante/perfil/fotos/{{this.id_foto}}/legenda" method="POST">
+              <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
+              <label class="foto-legenda-lbl">Legenda</label>
+              <div class="foto-legenda-linha">
+                <input type="text" name="legenda" maxlength="120" value="{{this.legenda}}" placeholder="O que é essa foto?">
+                <button type="submit" class="btn btn-secundario btn-sm">Salvar</button>
+              </div>
+            </form>
+          </div>
+        {{/each}}
+      </div>
+    </div>
+  {{/if}}
+</div>

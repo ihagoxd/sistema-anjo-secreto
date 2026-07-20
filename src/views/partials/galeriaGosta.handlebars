@@ -1,0 +1,10 @@
+<div class="gg-galeria">
+  {{#each fotos}}
+    <figure class="gg-foto">
+      <div class="gg-img" data-img="{{this.caminho}}" role="button" tabindex="0" aria-label="Ampliar imagem">
+        <img src="{{this.caminho}}" alt="{{#if this.legenda}}{{this.legenda}}{{else}}Ideia de presente{{/if}}" draggable="false">
+      </div>
+      <figcaption>{{#if this.legenda}}{{this.legenda}}{{else}}<span class="gg-sem">Sem descrição</span>{{/if}}</figcaption>
+    </figure>
+  {{/each}}
+</div>

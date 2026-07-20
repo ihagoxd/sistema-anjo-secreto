@@ -1,0 +1,19 @@
+<div class="cropper" id="cropper" hidden aria-hidden="true">
+  <div class="cropper-box">
+    <div class="cropper-titulo">Ajuste sua foto</div>
+    <div class="cropper-palco" id="cropperPalco">
+      <img id="cropperImg" alt="" draggable="false">
+      <div class="cropper-circulo"></div>
+    </div>
+    <div class="cropper-zoom">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="range" id="cropperZoom" min="1" max="3" step="0.01" value="1" aria-label="Zoom">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </div>
+    <p class="cropper-dica">Arraste para posicionar · use o zoom para aproximar</p>
+    <div class="cropper-acoes">
+      <button type="button" class="btn btn-secundario btn-sm" id="cropperCancelar">Cancelar</button>
+      <button type="button" class="btn btn-primario btn-sm" id="cropperConfirmar">Usar foto</button>
+    </div>
+  </div>
+</div>

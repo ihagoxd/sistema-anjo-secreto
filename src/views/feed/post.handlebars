@@ -1,0 +1,12 @@
+<div class="pagina-cabecalho">
+  <div>
+    <h1>Publicação</h1>
+  </div>
+  <a href="/feed" class="btn btn-secundario btn-sm">Voltar ao mural</a>
+</div>
+
+<div class="feed feed-unico">
+  {{#each posts}}
+    {{> postCard}}
+  {{/each}}
+</div>

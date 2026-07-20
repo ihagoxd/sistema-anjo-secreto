@@ -1,0 +1,28 @@
+<div class="auth-form-cab">
+  <span class="et">Acesso restrito</span>
+  <h1>Entre na campanha</h1>
+  <p>Veja seu protegido, suas preferências e as mensagens — tudo em sigilo.</p>
+</div>
+
+<form class="form" action="/login" method="POST" novalidate>
+  {{#if csrfToken}}<input type="hidden" name="_csrf" value="{{csrfToken}}">{{/if}}
+
+  <div class="campo">
+    <label for="usuario">Usuário</label>
+    <input type="text" id="usuario" name="usuario" autocomplete="username"
+      placeholder="seu usuário" value="{{usuario}}" required autofocus
+      autocapitalize="none" spellcheck="false">
+  </div>
+
+  <div class="campo">
+    <label for="senha">Senha</label>
+    <input type="password" id="senha" name="senha" autocomplete="current-password"
+      placeholder="••••••••" required>
+  </div>
+
+  <button type="submit" class="btn btn-primario btn-bloco">Entrar</button>
+
+  <p class="auth-troca">
+    Ainda não tem acesso? <a href="/registrar">Criar conta</a>
+  </p>
+</form>

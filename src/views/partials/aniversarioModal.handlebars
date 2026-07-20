@@ -1,0 +1,46 @@
+{{#if aniversariantes}}
+<div class="modal aniversario-modal" id="modalAniversario" hidden aria-hidden="true" data-dia="{{hojeISO}}">
+  <div class="modal-card aniv-card">
+    <div class="aniv-confete" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <button type="button" class="btn-icone aniv-fechar" data-fechar-modal="modalAniversario" aria-label="Fechar">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+
+    {{#each aniversariantes}}
+      <div class="aniv-pessoa">
+        <div class="aniv-avatar">
+          {{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="">{{else}}{{inicial this.nome}}{{/if}}
+          <span class="aniv-bolo">🎂</span>
+        </div>
+
+        {{#if this.souEu}}
+          <h2 class="aniv-titulo">Feliz aniversário, {{this.nome}}! 🎉</h2>
+          <p class="aniv-sub">O escritório inteiro está sabendo. Tenha um dia incrível! 🥳</p>
+        {{else}}
+          <h2 class="aniv-titulo">Hoje é aniversário de<br>{{this.nome}}! 🎂</h2>
+          <p class="aniv-sub">Que tal alegrar o dia dele(a)?</p>
+          <div class="aniv-acoes">
+            <a class="btn btn-primario" href="/mensagens/u/{{this.id_usuario}}?texto={{this.msgParabens}}">🎉 Mandar parabéns</a>
+            {{#if this.gostos.length}}<button type="button" class="btn btn-secundario" data-toggle-gostos>🎁 Presentear</button>{{/if}}
+          </div>
+          {{#if this.gostos.length}}
+            <div class="aniv-gostos" hidden>
+              <div class="aniv-gostos-tit">🎁 Ideias de presente — o que {{this.nome}} gosta:</div>
+              {{#each this.gostos}}
+                <div class="aniv-gosto">
+                  <span class="aniv-gosto-emoji">{{this.emoji}}</span>
+                  <div class="aniv-gosto-txt"><strong>{{this.rotulo}}</strong><span>{{this.valor}}</span></div>
+                </div>
+              {{/each}}
+            </div>
+          {{/if}}
+        {{/if}}
+      </div>
+    {{/each}}
+  </div>
+</div>
+{{/if}}

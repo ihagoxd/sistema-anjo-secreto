@@ -1,0 +1,133 @@
+<div class="direct {{#if conversa}}tem-conversa{{/if}}">
+
+  <aside class="direct-lista">
+    <div class="direct-lista-topo">
+      <h1>Mensagens</h1>
+      <span class="direct-lista-sub">Direct do escritório</span>
+    </div>
+
+    <div class="direct-scroll">
+      {{#if participaJogo}}
+        <div class="direct-secao secao-secreta">
+          <span>🎭 Anjo Secreto</span>
+          <span class="secao-hint">anônimo · só você vê</span>
+        </div>
+
+        <a class="conv fixado conv-secreto {{#if (eq conversa.tipo "anjo")}}ativa{{/if}}" href="/mensagens/anjo">
+          <span class="conv-av anjo-av">😇</span>
+          <div class="conv-txt">
+            <div class="conv-nome">Seu anjo <span class="tag-secreto">anônimo</span></div>
+            <div class="conv-sub">você não sabe quem é 🤫</div>
+          </div>
+          {{#if unread.anjo}}<span class="conv-badge">{{unread.anjo}}</span>{{/if}}
+        </a>
+
+        <a class="conv fixado conv-secreto sigilo {{#if (eq conversa.tipo "protegido")}}ativa{{/if}}" href="/mensagens/protegido" data-sigilo>
+          <span class="conv-av">
+            <span class="sig-emoji" aria-hidden="true">👀</span>
+            <span class="sig-foto">{{#if protegido.foto_perfil}}<img src="{{protegido.foto_perfil}}" alt="">{{else}}{{inicial protegido.nome}}{{/if}}</span>
+            <span class="conv-mascara">🎭</span>
+          </span>
+          <div class="conv-txt">
+            <div class="conv-nome"><span class="sig-generico">Seu protegido</span><span class="sig-real">{{protegido.nome}}</span></div>
+            <div class="conv-sub">você é o anjo secreto dele(a)</div>
+          </div>
+          <span class="sigilo-olho" data-sigilo-toggle role="button" tabindex="0" aria-label="Mostrar ou ocultar quem é" title="Mostrar/ocultar quem é">
+            <svg class="olho-ver" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="olho-ocultar" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </span>
+          {{#if unread.protegido}}<span class="conv-badge">{{unread.protegido}}</span>{{/if}}
+        </a>
+
+        <div class="direct-secao">💬 Escritório <span class="secao-hint">com o seu nome</span></div>
+      {{else}}
+        <div class="direct-secao">💬 Escritório</div>
+      {{/if}}
+
+      {{#each equipe}}
+        <a class="conv {{#if (eq @root.conversa.id this.id_usuario)}}ativa{{/if}}" href="/mensagens/u/{{this.id_usuario}}">
+          <span class="conv-av">{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</span>
+          <div class="conv-txt">
+            <div class="conv-nome">{{this.nome}}{{#if this.souProtegido}} <span class="tag-tirei">você tirou 🎁</span>{{/if}}</div>
+            <div class="conv-sub">{{#if this.ultima}}{{#if this.ultima.minha}}Você: {{/if}}{{this.ultima.texto}}{{else}}@{{this.usuario}}{{/if}}</div>
+          </div>
+          {{#if this.naoLidas}}<span class="conv-badge">{{this.naoLidas}}</span>{{/if}}
+        </a>
+      {{else}}
+        <div class="direct-vazio-lista">Ninguém aprovado por aqui ainda.</div>
+      {{/each}}
+    </div>
+  </aside>
+
+  <section class="direct-conversa {{#if conversa.secreto}}dm-secreto{{/if}}{{#if (eq conversa.tipo "protegido")}} sigilo{{/if}}"{{#if (eq conversa.tipo "protegido")}} data-sigilo{{/if}}>
+    {{#if conversa}}
+      <header class="dm-cab">
+        <a href="/mensagens" class="dm-voltar" aria-label="Voltar para a lista">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </a>
+        <span class="conv-av {{#if conversa.anonimo}}anjo-av{{/if}}">
+          {{#if (eq conversa.tipo "protegido")}}
+            <span class="sig-emoji" aria-hidden="true">👀</span>
+            <span class="sig-foto">{{#if conversa.foto}}<img src="{{conversa.foto}}" alt="">{{else}}{{inicial conversa.titulo}}{{/if}}</span>
+            <span class="conv-mascara">🎭</span>
+          {{else}}
+            {{#if conversa.anonimo}}😇{{else}}{{#if conversa.foto}}<img src="{{conversa.foto}}" alt="">{{else}}{{inicial conversa.titulo}}{{/if}}{{/if}}
+          {{/if}}
+        </span>
+        <div class="dm-cab-txt">
+          <div class="dm-cab-nome">{{#if (eq conversa.tipo "protegido")}}<span class="sig-generico">Seu protegido</span><span class="sig-real">{{conversa.titulo}}</span>{{else}}{{conversa.titulo}}{{/if}}{{#if conversa.secreto}} <span class="tag-secreto">🎭 anjo secreto</span>{{/if}}</div>
+          <div class="dm-cab-sub">{{conversa.rotulo}}</div>
+        </div>
+        {{#if (eq conversa.tipo "protegido")}}
+          <span class="sigilo-olho" data-sigilo-toggle role="button" tabindex="0" aria-label="Mostrar ou ocultar quem é" title="Mostrar/ocultar quem é">
+            <svg class="olho-ver" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="olho-ocultar" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </span>
+        {{/if}}
+        {{#unless conversa.secreto}}{{#if conversa.usuario}}<a href="/u/{{conversa.usuario}}" class="btn btn-secundario btn-sm dm-verperfil">Ver perfil</a>{{/if}}{{/unless}}
+      </header>
+
+      <div class="dm-msgs" id="dmMsgs" data-editar-url="/mensagens/editar">
+        {{#if conversa.secreto}}
+          {{#if (eq conversa.tipo "anjo")}}
+            <div class="dm-aviso dm-aviso-secreto">🔒 <strong>Conversa anônima.</strong> Você não sabe quem é o seu anjo — curta o mistério! 😇</div>
+          {{else}}
+            <div class="dm-aviso dm-aviso-secreto">🎭 <strong>Modo Anjo Secreto.</strong> <span class="sig-generico">Seu protegido</span><span class="sig-real">{{conversa.titulo}}</span> recebe estas mensagens como <strong>"Seu anjo"</strong> e não sabe que é você.</div>
+          {{/if}}
+        {{/if}}
+        {{#each conversa.mensagens}}
+          {{> dmBolha}}
+        {{else}}
+          <div class="dm-inicio">Ainda não há mensagens. Diga olá! 👋</div>
+        {{/each}}
+      </div>
+
+      <form class="dm-composer" action="{{conversa.action}}" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="_csrf" value="{{csrfToken}}">
+        <div class="composer-anexo" data-preview hidden></div>
+        <div class="dm-composer-linha">
+          <button type="button" class="dm-acao btn-emoji" data-emoji aria-label="Emoji">😊</button>
+          <button type="button" class="dm-acao" data-foto-btn aria-label="Enviar foto" title="Enviar foto">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </button>
+          <button type="button" class="dm-acao" data-camera aria-label="Tirar foto" title="Tirar foto">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          </button>
+          <textarea name="mensagem" maxlength="{{limite}}" rows="1" placeholder="{{conversa.placeholder}}" data-enter-envia data-texto>{{conversa.prefill}}</textarea>
+          <button type="submit" class="btn btn-primario dm-enviar" aria-label="Enviar">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+        <input type="file" name="imagem" accept="image/png,image/jpeg,image/gif,image/webp" class="visualmente-oculto" data-foto>
+      </form>
+    {{else}}
+      <div class="direct-placeholder">
+        <div class="direct-placeholder-ic">
+          <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        </div>
+        <h2>Suas mensagens</h2>
+        <p class="texto-suave">Escolha uma conversa ao lado para começar.{{#if semCampanha}}<br>O canal do Anjo aparece quando há uma campanha ativa.{{/if}}</p>
+      </div>
+    {{/if}}
+  </section>
+</div>

@@ -1,0 +1,74 @@
+<div class="pagina-cabecalho">
+  <div>
+    <h1>Editar perfil</h1>
+    <p class="texto-suave">Sua foto e informações aparecem no mural para toda a equipe.</p>
+  </div>
+  <a href="/u/{{u.usuario}}" class="btn btn-secundario btn-sm">Ver meu perfil</a>
+</div>
+
+<div class="conta-grid">
+  <form class="conta-form card" action="/conta" method="POST" enctype="multipart/form-data" novalidate>
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+
+    <div class="conta-avatar-bloco">
+      <div class="avatar-editor">
+        <div class="avatar-editor-img" id="avatarPreview">
+          {{#if u.foto_perfil}}<img src="{{u.foto_perfil}}" alt="Foto de perfil">{{else}}{{inicial u.nome}}{{/if}}
+        </div>
+        <label class="avatar-editor-cam" for="foto_perfil" title="Trocar foto">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </label>
+        <input type="file" id="foto_perfil" name="foto_perfil" accept="image/png,image/jpeg,image/webp" class="visualmente-oculto" data-preview="avatarPreview">
+      </div>
+      <div class="conta-avatar-lado">
+        <div class="conta-user">@{{u.usuario}}</div>
+        <label class="conta-troca" for="foto_perfil">Trocar foto</label>
+        {{#if u.foto_perfil}}
+          <button type="submit" form="formRemoverFoto" class="conta-remove-link">Remover foto atual</button>
+        {{/if}}
+      </div>
+    </div>
+
+    <div class="campo">
+      <label for="nome">Nome</label>
+      <input type="text" id="nome" name="nome" value="{{u.nome}}" maxlength="80" minlength="2" required autocomplete="name">
+    </div>
+
+    <div class="campo">
+      <label for="usuario">Nome de usuário</label>
+      <input type="text" id="usuario" value="{{u.usuario}}" disabled>
+      <small class="texto-suave">O nome de usuário não pode ser alterado.</small>
+    </div>
+
+    <div class="campo">
+      <label for="data_nascimento">Data de nascimento 🎂</label>
+      <input type="date" id="data_nascimento" name="data_nascimento" value="{{dataISO u.data_nascimento}}" max="{{maxData}}">
+      <small class="texto-suave">No seu aniversário, o escritório inteiro comemora com você. 🎉</small>
+    </div>
+
+    <div class="campo">
+      <label for="bio">Bio</label>
+      <textarea id="bio" name="bio" maxlength="150" rows="3" placeholder="Conte um pouco sobre você...">{{u.bio}}</textarea>
+      <small class="texto-suave">Até 150 caracteres.</small>
+    </div>
+
+    <div class="conta-acoes">
+      <a href="/feed" class="btn btn-secundario">Cancelar</a>
+      <button type="submit" class="btn btn-primario">Salvar alterações</button>
+    </div>
+  </form>
+
+  {{#if ehParticipante}}
+    <aside class="conta-extra card">
+      <h2 class="conta-extra-titulo">Preferências do Anjo</h2>
+      <p class="texto-suave">Cadastre seus gostos (lanche favorito, cores, etc.) para ajudar quem tirou você.</p>
+      <a href="/participante/preferencias" class="btn btn-secundario btn-sm">Editar preferências</a>
+    </aside>
+  {{/if}}
+</div>
+
+{{#if u.foto_perfil}}
+<form id="formRemoverFoto" action="/conta/foto/remover" method="POST" class="visualmente-oculto" data-confirmar="Remover sua foto de perfil?">
+  <input type="hidden" name="_csrf" value="{{csrfToken}}">
+</form>
+{{/if}}

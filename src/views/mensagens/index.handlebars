@@ -110,6 +110,15 @@
 
       <form class="dm-composer" action="{{conversa.action}}" method="POST" enctype="multipart/form-data">
         <input type="hidden" name="_csrf" value="{{csrfToken}}">
+        {{#if (eq conversa.tipo "protegido")}}
+          <div class="dm-filtro" data-filtro-voz>
+            <span class="dm-filtro-rot" title="O áudio é gravado já com a voz disfarçada — seu protegido não reconhece você">🎭 Voz:</span>
+            <button type="button" class="dm-filtro-op sel" data-voz="grave">Grave</button>
+            <button type="button" class="dm-filtro-op" data-voz="aguda">Aguda</button>
+            <button type="button" class="dm-filtro-op" data-voz="robo">Robô</button>
+            <button type="button" class="dm-filtro-op" data-voz="normal">Normal</button>
+          </div>
+        {{/if}}
         <div class="composer-anexo" data-preview hidden></div>
         <div class="dm-composer-linha" data-linha-normal>
           <div class="dm-campo">

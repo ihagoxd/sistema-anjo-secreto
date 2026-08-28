@@ -795,6 +795,83 @@
       for (var i = 0; i < 26; i++) onda.appendChild(document.createElement('span'));
     }
 
+    // ----- Filtro de voz (chat secreto do protegido): disfarça a voz JÁ na gravação -----
+    var filtroBox = form.querySelector('[data-filtro-voz]');
+    var vozSel = 'grave';
+    if (filtroBox) filtroBox.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-voz]');
+      if (!b) return;
+      vozSel = b.getAttribute('data-voz');
+      filtroBox.querySelectorAll('.dm-filtro-op').forEach(function (o) { o.classList.toggle('sel', o === b); });
+    });
+
+    // Pitch shift granular ("Jungle"): dois ramos de delay varridos por rampas
+    // defasadas com crossfade — só nós nativos do Web Audio, roda em tempo real.
+    function criarPitch(ctx, fator) {
+      var T = 0.25, n = Math.round(ctx.sampleRate * T * 2);
+      var rampa = [], fade = [];
+      for (var k = 0; k < 2; k++) {
+        rampa.push(ctx.createBuffer(1, n, ctx.sampleRate));
+        fade.push(ctx.createBuffer(1, n, ctx.sampleRate));
+      }
+      for (var i = 0; i < n; i++) {
+        var t = (i / n) * 2;
+        for (var j = 0; j < 2; j++) {
+          var fase = (t + j) % 2; // cada ramo ativo em metade do ciclo, defasados
+          var ativo = fase < 1;
+          rampa[j].getChannelData(0)[i] = ativo ? fase : 0;
+          var f = 0;
+          if (ativo) {
+            var borda = 0.12;
+            f = fase < borda ? fase / borda : fase > 1 - borda ? (1 - fase) / borda : 1;
+          }
+          fade[j].getChannelData(0)[i] = f;
+        }
+      }
+      var ent = ctx.createGain(), sai = ctx.createGain();
+      var prof = (1 - fator) * T; // varredura do delay durante o grão (negativa = agudo)
+      for (var k2 = 0; k2 < 2; k2++) {
+        var del = ctx.createDelay(1);
+        del.delayTime.value = 0.05 + Math.max(0, -prof);
+        var sR = ctx.createBufferSource(); sR.buffer = rampa[k2]; sR.loop = true;
+        var gR = ctx.createGain(); gR.gain.value = prof;
+        sR.connect(gR); gR.connect(del.delayTime);
+        var sF = ctx.createBufferSource(); sF.buffer = fade[k2]; sF.loop = true;
+        var gF = ctx.createGain(); gF.gain.value = 0;
+        sF.connect(gF.gain);
+        ent.connect(del); del.connect(gF); gF.connect(sai);
+        sR.start(0); sF.start(0);
+      }
+      return { entrada: ent, saida: sai };
+    }
+
+    // Devolve o stream que o gravador deve usar: processado (voz disfarçada) ou o original.
+    var vozCtx = null;
+    function prepararVoz(s) {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!filtroBox || vozSel === 'normal' || !AC) return s;
+      try {
+        vozCtx = new AC();
+        var src = vozCtx.createMediaStreamSource(s);
+        var dest = vozCtx.createMediaStreamDestination();
+        if (vozSel === 'robo') {
+          // Modulador em anel (~45 Hz) + banda de "rádio": voz de robô clássica
+          var osc = vozCtx.createOscillator(); osc.frequency.value = 45; osc.start();
+          var anel = vozCtx.createGain(); anel.gain.value = 0;
+          osc.connect(anel.gain);
+          var bp = vozCtx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 900; bp.Q.value = 0.5;
+          src.connect(anel); anel.connect(bp); bp.connect(dest);
+        } else {
+          var p = criarPitch(vozCtx, vozSel === 'grave' ? 0.74 : 1.34);
+          src.connect(p.entrada); p.saida.connect(dest);
+        }
+        return dest.stream;
+      } catch (x) {
+        if (vozCtx) { try { vozCtx.close(); } catch (e2) {} vozCtx = null; }
+        return s;
+      }
+    }
+
     var rec = null, pedacos = [], stream = null, timer = null, t0 = 0, decorrido = 0, enviarAoParar = false;
     function fmt(s) { var m = Math.floor(s / 60), ss = Math.floor(s % 60); return m + ':' + (ss < 10 ? '0' : '') + ss; }
     function tempoTotal() { return decorrido + (rec && rec.state === 'recording' ? Date.now() - t0 : 0); }
@@ -838,6 +915,7 @@
       if (timer) clearInterval(timer);
       timer = null;
       desligarOnda();
+      if (vozCtx) { try { vozCtx.close(); } catch (x) {} vozCtx = null; }
       if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
       stream = null;
       linhaGrav.classList.remove('pausada');
@@ -855,7 +933,7 @@
         var opts = {};
         if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) opts.mimeType = 'audio/webm;codecs=opus';
         else if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported('audio/mp4')) opts.mimeType = 'audio/mp4';
-        rec = new MediaRecorder(s, opts);
+        rec = new MediaRecorder(prepararVoz(s), opts); // no chat secreto, grava já com a voz disfarçada
         var base = (rec.mimeType || 'audio/webm').split(';')[0];
         rec.ondataavailable = function (ev) { if (ev.data && ev.data.size) pedacos.push(ev.data); };
         rec.onstop = function () {

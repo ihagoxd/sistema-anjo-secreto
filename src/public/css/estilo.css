@@ -1970,6 +1970,17 @@ html.mini #loader .anjo .anjo-traco { display: none; }
 }
 .bi-badge { border-color: transparent; }
 
+/* --- Filtro de voz do anjo secreto (chips acima do composer) --- */
+.dm-filtro { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 0 2px; }
+.dm-filtro-rot { font-size: 12px; font-weight: 700; color: color-mix(in srgb, var(--ouro) 80%, var(--text)); cursor: help; }
+.dm-filtro-op {
+  border: 1px solid var(--line); background: var(--surface-2); color: var(--text-soft);
+  font: inherit; font-size: 12px; font-weight: 600; padding: 3px 11px; border-radius: 999px;
+  cursor: pointer; transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.dm-filtro-op:hover { border-color: var(--line-strong); color: var(--text); }
+.dm-filtro-op.sel { background: var(--ouro); border-color: transparent; color: var(--on-ouro); }
+
 /* --- Mensagem de voz no Direct: gravação + player nas bolhas --- */
 .dm-gravando { align-items: center; gap: 10px; }
 .dm-grav-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--st-vermelho); flex-shrink: 0; animation: grav-pisca 1s ease-in-out infinite; }

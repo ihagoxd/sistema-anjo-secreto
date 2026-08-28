@@ -12,6 +12,7 @@
  */
 const mensagemModel = require('../models/mensagem.model');
 const campanhaModel = require('../models/campanha.model');
+const { apagarUpload } = require('../config/upload');
 const sorteioService = require('./sorteio.service');
 const notificacaoService = require('./notificacao.service');
 
@@ -62,7 +63,7 @@ function classificarMensagens(rows, idUsuario) {
   const comAnjo = [];
   for (const r of rows) {
     const minha = r.id_usuario_origem === idUsuario;
-    const item = { id_mensagem: r.id_mensagem, minha, texto: r.mensagem, imagem: r.imagem, audio: r.audio, video: r.video, editado_em: r.editado_em, criado_em: r.criado_em };
+    const item = { id_mensagem: r.id_mensagem, minha, texto: r.mensagem, imagem: r.imagem, audio: r.audio, video: r.video, apagada: !!r.apagada_em, editado_em: r.editado_em, criado_em: r.criado_em };
     if (r.tipo_mensagem === 'ANJO_PARA_PROTEGIDO') {
       (minha ? comProtegido : comAnjo).push(item);
     } else {
@@ -109,6 +110,18 @@ async function editarMensagem(idUsuario, idMensagem, texto) {
   return { ok: true, texto: linha.mensagem, editada: true };
 }
 
+/**
+ * Apaga PARA TODOS uma mensagem do jogo que EU enviei (a mídia sai do disco).
+ */
+async function apagarMensagem(idUsuario, idMensagem) {
+  const antiga = await mensagemModel.apagar(Number(idMensagem), idUsuario);
+  if (!antiga) return { ok: false, motivo: 'NAO_PERMITIDO' };
+  apagarUpload(antiga.imagem);
+  apagarUpload(antiga.audio);
+  apagarUpload(antiga.video);
+  return { ok: true };
+}
+
 module.exports = {
   enviarMensagemAnonima,
   listarConversa,
@@ -118,5 +131,6 @@ module.exports = {
   contarNaoLidas,
   contarNaoLidasPorTipo,
   editarMensagem,
+  apagarMensagem,
   LIMITE,
 };

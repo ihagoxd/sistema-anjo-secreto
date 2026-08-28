@@ -198,4 +198,18 @@ async function postEditar(req, res, next) {
   } catch (err) { next(err); }
 }
 
-module.exports = { getInbox, getAnjo, getProtegido, getDireta, postAnjo, postProtegido, postDireta, postEditar };
+// ---------- Apagar para todos (AJAX → JSON) ----------
+async function postApagar(req, res, next) {
+  try {
+    const me = req.session.usuario.id_usuario;
+    const escopo = req.body.escopo;
+    const id = Number(req.body.id);
+    let r;
+    if (escopo === 'dm') r = await dmService.apagar(me, id);
+    else r = await mensagemService.apagarMensagem(me, id);
+    if (!r.ok) return res.status(400).json({ erro: 'Não foi possível apagar a mensagem.' });
+    res.json({ ok: true });
+  } catch (err) { next(err); }
+}
+
+module.exports = { getInbox, getAnjo, getProtegido, getDireta, postAnjo, postProtegido, postDireta, postEditar, postApagar };

@@ -7,6 +7,7 @@
 const dmModel = require('../models/mensagemDireta.model');
 const usuarioModel = require('../models/usuario.model');
 const notificacaoService = require('./notificacao.service');
+const { apagarUpload } = require('../config/upload');
 
 const LIMITE = 1000;
 
@@ -45,6 +46,7 @@ async function listarConversaCom(idUsuario, idOutro) {
     imagem: r.imagem,
     audio: r.audio,
     video: r.video,
+    apagada: !!r.apagada_em,
     editado_em: r.editado_em,
     criado_em: r.criado_em,
   }));
@@ -81,6 +83,18 @@ async function editar(idUsuario, idMensagem, texto) {
   return { ok: true, texto: linha.texto, editada: true };
 }
 
+/**
+ * Apaga PARA TODOS uma mensagem que EU enviei (a mídia sai do disco).
+ */
+async function apagar(idUsuario, idMensagem) {
+  const antiga = await dmModel.apagar(Number(idMensagem), idUsuario);
+  if (!antiga) return { ok: false, motivo: 'NAO_PERMITIDO' };
+  apagarUpload(antiga.imagem);
+  apagarUpload(antiga.audio);
+  apagarUpload(antiga.video);
+  return { ok: true };
+}
+
 function contarNaoLidasTotal(idUsuario) {
   return dmModel.contarNaoLidasTotal(idUsuario);
 }
@@ -91,6 +105,7 @@ module.exports = {
   marcarLidas,
   resumoConversas,
   editar,
+  apagar,
   contarNaoLidasTotal,
   LIMITE,
 };

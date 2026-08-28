@@ -32,7 +32,8 @@ router.post('/anjo', midiaMsg, ctrl.postAnjo);
 router.post('/protegido', midiaMsg, ctrl.postProtegido);
 router.post('/u/:id', midiaMsg, ctrl.postDireta);
 
-// Edição (AJAX)
+// Edição e exclusão (AJAX)
 router.post('/editar', ctrl.postEditar);
+router.post('/apagar', ctrl.postApagar);
 
 module.exports = router;

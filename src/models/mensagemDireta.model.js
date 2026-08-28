@@ -19,7 +19,7 @@ async function inserir({ idRemetente, idDestinatario, texto, imagem = null, audi
 // Todas as mensagens entre dois usuários, em ordem cronológica.
 async function listarConversa(idA, idB) {
   const res = await db.query(
-    `SELECT id_mensagem, id_remetente, id_destinatario, texto, imagem, audio, video, lida, editado_em, criado_em
+    `SELECT id_mensagem, id_remetente, id_destinatario, texto, imagem, audio, video, lida, editado_em, apagada_em, criado_em
        FROM mensagens_diretas
       WHERE (id_remetente = $1 AND id_destinatario = $2)
          OR (id_remetente = $2 AND id_destinatario = $1)
@@ -47,14 +47,29 @@ async function buscarPorId(idMensagem) {
   return res.rows[0] || null;
 }
 
-// Edita uma mensagem que EU enviei. Retorna a linha atualizada ou null.
+// Edita uma mensagem que EU enviei (apagadas não voltam). Retorna a linha atualizada ou null.
 async function editar(idMensagem, idRemetente, texto) {
   const res = await db.query(
     `UPDATE mensagens_diretas
         SET texto = $3, editado_em = now()
-      WHERE id_mensagem = $1 AND id_remetente = $2
+      WHERE id_mensagem = $1 AND id_remetente = $2 AND apagada_em IS NULL
       RETURNING id_mensagem, texto, editado_em`,
     [idMensagem, idRemetente, texto]
+  );
+  return res.rows[0] || null;
+}
+
+// Apaga PARA TODOS uma mensagem que EU enviei: zera o conteúdo e marca apagada.
+// Retorna os caminhos de mídia antigos (para tirar do disco) ou null se não é minha.
+async function apagar(idMensagem, idRemetente) {
+  const res = await db.query(
+    `UPDATE mensagens_diretas m
+        SET texto = NULL, imagem = NULL, audio = NULL, video = NULL, apagada_em = now()
+       FROM (SELECT id_mensagem, imagem, audio, video FROM mensagens_diretas
+              WHERE id_mensagem = $1 AND id_remetente = $2 AND apagada_em IS NULL) antiga
+      WHERE m.id_mensagem = antiga.id_mensagem
+      RETURNING antiga.imagem, antiga.audio, antiga.video`,
+    [idMensagem, idRemetente]
   );
   return res.rows[0] || null;
 }
@@ -104,6 +119,7 @@ module.exports = {
   marcarLidas,
   buscarPorId,
   editar,
+  apagar,
   ultimaPorContato,
   naoLidasPorContato,
   contarNaoLidasTotal,

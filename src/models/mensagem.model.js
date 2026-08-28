@@ -19,7 +19,7 @@ async function inserir({ idCampanha, idOrigem, idDestino, tipo, mensagem, imagem
 // Todas as mensagens (não arquivadas) da campanha em que o usuário participa (origem ou destino).
 async function listarConversa(idCampanha, idUsuario) {
   const res = await db.query(
-    `SELECT id_mensagem, id_usuario_origem, id_usuario_destino, tipo_mensagem, mensagem, imagem, audio, video, lida, editado_em, criado_em
+    `SELECT id_mensagem, id_usuario_origem, id_usuario_destino, tipo_mensagem, mensagem, imagem, audio, video, lida, editado_em, apagada_em, criado_em
        FROM mensagens_anonimas
       WHERE id_campanha = $1 AND arquivada = FALSE
         AND ($2 IN (id_usuario_origem, id_usuario_destino))
@@ -81,9 +81,24 @@ async function editar(idMensagem, idUsuario, mensagem) {
   const res = await db.query(
     `UPDATE mensagens_anonimas
         SET mensagem = $3, editado_em = now()
-      WHERE id_mensagem = $1 AND id_usuario_origem = $2 AND arquivada = FALSE
+      WHERE id_mensagem = $1 AND id_usuario_origem = $2 AND arquivada = FALSE AND apagada_em IS NULL
       RETURNING id_mensagem, mensagem, editado_em`,
     [idMensagem, idUsuario, mensagem]
+  );
+  return res.rows[0] || null;
+}
+
+// Apaga PARA TODOS uma mensagem que EU enviei: zera o conteúdo e marca apagada.
+// Retorna os caminhos de mídia antigos (para tirar do disco) ou null se não é minha.
+async function apagar(idMensagem, idUsuario) {
+  const res = await db.query(
+    `UPDATE mensagens_anonimas m
+        SET mensagem = NULL, imagem = NULL, audio = NULL, video = NULL, apagada_em = now()
+       FROM (SELECT id_mensagem, imagem, audio, video FROM mensagens_anonimas
+              WHERE id_mensagem = $1 AND id_usuario_origem = $2 AND arquivada = FALSE AND apagada_em IS NULL) antiga
+      WHERE m.id_mensagem = antiga.id_mensagem
+      RETURNING antiga.imagem, antiga.audio, antiga.video`,
+    [idMensagem, idUsuario]
   );
   return res.rows[0] || null;
 }
@@ -96,4 +111,5 @@ module.exports = {
   contarNaoLidas,
   contarNaoLidasPorTipo,
   editar,
+  apagar,
 };

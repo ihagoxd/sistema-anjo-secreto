@@ -1066,6 +1066,28 @@
         || (document.querySelector('meta[name="csrf-token"]') && document.querySelector('meta[name="csrf-token"]').getAttribute('content')) || '';
       var url = msgs.getAttribute('data-editar-url') || '/mensagens/editar';
 
+      // Apagar para todos (AJAX): a bolha vira "Mensagem apagada" na hora
+      msgs.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-apagar-msg]');
+        if (!btn) return;
+        if (!window.confirm('Apagar esta mensagem para todos? Não dá para desfazer.')) return;
+        btn.disabled = true;
+        fetch('/mensagens/apagar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch' },
+          body: JSON.stringify({ escopo: btn.getAttribute('data-escopo'), id: btn.getAttribute('data-id') }),
+        })
+          .then(function (r) { return r.ok ? r.json() : r.json().then(function (d) { throw new Error(d.erro || 'Falha'); }); })
+          .then(function () {
+            var bolha = btn.closest('.dm-bolha');
+            var hora = bolha.querySelector('.dm-hora');
+            bolha.className = bolha.className.replace(' tem-img', '');
+            bolha.innerHTML = '<div class="dm-bolha-txt dm-apagada">🚫 Mensagem apagada</div>'
+              + '<div class="dm-bolha-meta"><span class="dm-hora">' + (hora ? hora.textContent : '') + '</span></div>';
+          })
+          .catch(function (err) { btn.disabled = false; alert(err.message || 'Não foi possível apagar.'); });
+      });
+
       msgs.addEventListener('click', function (e) {
         var btn = e.target.closest('[data-editar-msg]');
         if (!btn) return;

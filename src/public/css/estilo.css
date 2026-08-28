@@ -1970,6 +1970,14 @@ html.mini #loader .anjo .anjo-traco { display: none; }
 }
 .bi-badge { border-color: transparent; }
 
+/* --- Mensagem apagada para todos (tumba, estilo WhatsApp) --- */
+.dm-bolha .dm-apagada {
+  background: transparent; border: 1px dashed var(--line-strong);
+  color: var(--text-faint); font-style: italic; font-size: 13px;
+}
+.dm-bolha.minha .dm-apagada { background: transparent; color: var(--text-faint); }
+.dm-apagar:hover { color: var(--st-vermelho); }
+
 /* --- Filtro de voz do anjo secreto (chips acima do composer) --- */
 .dm-filtro { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 0 2px; }
 .dm-filtro-rot { font-size: 12px; font-weight: 700; color: color-mix(in srgb, var(--ouro) 80%, var(--text)); cursor: help; }

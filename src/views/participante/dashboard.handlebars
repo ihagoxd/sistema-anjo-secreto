@@ -12,8 +12,8 @@
       <div class="painel-hero-av">{{#if protegido.foto_perfil}}<img src="{{protegido.foto_perfil}}" alt="">{{else}}{{inicial protegido.nome}}{{/if}}</div>
       <p class="painel-hero-sub">Você é o anjo de</p>
       <h2 class="painel-hero-nome">{{protegido.nome}}</h2>
-      <p class="painel-hero-dica">Cuide dele(a) em segredo este mês — ele(a) não sabe que é você. 🤫</p>
-      <a href="/participante/protegido" class="btn btn-primario">Ver o que {{protegido.nome}} gosta 🎁</a>
+      <p class="painel-hero-dica">Cuide dele(a) em segredo até o fim do mês.</p>
+      <a href="/participante/protegido" class="btn btn-primario">Ver o que {{protegido.nome}} gosta</a>
     </div>
 
     <div class="acoes-rapidas">
@@ -61,7 +61,7 @@
   <div class="modal" id="modal-perfil">
     <div class="modal-card">
       <div class="modal-cab">
-        <h2>Bem-vindo(a)! Complete seu perfil ✨</h2>
+        <h2>Complete seu perfil</h2>
         <p class="texto-suave">Adicione uma foto e suas preferências para o seu anjo te presentear melhor.</p>
       </div>
       <form class="form" action="/participante/perfil" method="POST" enctype="multipart/form-data" novalidate>

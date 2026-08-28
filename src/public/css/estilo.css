@@ -1753,6 +1753,12 @@ html.mini #loader .anjo .anjo-traco { display: none; }
 .story-ring { transition: transform 0.2s var(--ease-spring); }
 .story:hover .story-ring, .story:focus-visible .story-ring { transform: scale(1.06); }
 .story:active .story-ring { transform: scale(0.93); }
+/* Anéis dos stories na identidade da casa (dourado), não no gradiente do Instagram */
+.story-ring { background: linear-gradient(45deg, #8a5a00, var(--ouro) 55%, #ffe9a8); }
+.story-ring.eu { background: linear-gradient(45deg, var(--ouro-forte), #ffedb0); }
+/* Links de componente nunca sublinham (o a:hover global não vale aqui) */
+.story:hover, .story:focus, .sug:hover, .lado-eu:hover, .bi-item:hover,
+.bi-perfil:hover, .conv:hover, .acao-card:hover, a.stat:hover, a.contador:hover { text-decoration: none; }
 .compositor-rodape .btn-primario { border-radius: 999px; padding: 6px 20px; }
 .tw-reply button { border-radius: 999px; }
 

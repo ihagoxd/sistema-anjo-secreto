@@ -61,7 +61,7 @@
   {{#if (eq aba "gostos")}}
     {{#if (ou gostos.length fotosGosta.length)}}
       <div class="tw-gostos">
-        <div class="tw-gostos-intro">💡 O que faz {{alvo.nome}} feliz — ótimo pra acertar num presente!</div>
+        <div class="tw-gostos-intro">O que faz {{alvo.nome}} feliz</div>
         {{#each gostos}}
           <div class="tw-gosto">
             <span class="tw-gosto-emoji">{{this.emoji}}</span>
@@ -79,7 +79,7 @@
     {{else}}
       <div class="tw-vazio">
         {{#if (eq alvo.id_usuario usuario.id_usuario)}}
-          <div class="tw-vazio-tit">Conte o que você gosta 🎁</div>
+          <div class="tw-vazio-tit">Conte o que você gosta</div>
           <p>Preencha suas preferências pra galera acertar no seu presente.</p>
           <a href="/participante/preferencias" class="btn btn-primario btn-sm">Preencher preferências</a>
         {{else}}

@@ -26,7 +26,7 @@
       <input type="hidden" name="_csrf" value="{{csrfToken}}">
       <div class="compositor-topo">
         <span class="post-avatar">{{#if usuario.foto_perfil}}<img src="{{usuario.foto_perfil}}" alt="">{{else}}{{inicial usuario.nome}}{{/if}}</span>
-        <textarea name="texto" maxlength="{{limite}}" placeholder="No que você está pensando, {{usuario.nome}}? Use @ para marcar alguém" autocomplete="off" data-mencoes data-texto></textarea>
+        <textarea name="texto" maxlength="{{limite}}" placeholder="No que você está pensando?" autocomplete="off" data-mencoes data-texto></textarea>
       </div>
       <div class="compositor-preview" data-preview hidden></div>
       <div class="compositor-rodape">
@@ -48,7 +48,7 @@
       {{#each posts}}
         {{> postCard}}
       {{else}}
-        <div class="card card-centro"><p class="texto-suave" style="margin:0;">Nenhuma publicação ainda. Seja o primeiro! ✨</p></div>
+        <div class="card card-centro"><p class="texto-suave" style="margin:0;">Nenhuma publicação ainda. Seja o primeiro a postar.</p></div>
       {{/each}}
     </div>
   </div>

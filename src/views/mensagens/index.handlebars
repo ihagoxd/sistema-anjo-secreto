@@ -17,7 +17,7 @@
           <span class="conv-av anjo-av">😇</span>
           <div class="conv-txt">
             <div class="conv-nome">Seu anjo <span class="tag-secreto">anônimo</span></div>
-            <div class="conv-sub">você não sabe quem é 🤫</div>
+            <div class="conv-sub">você não sabe quem é</div>
           </div>
           {{#if unread.anjo}}<span class="conv-badge">{{unread.anjo}}</span>{{/if}}
         </a>
@@ -90,7 +90,7 @@
       <div class="dm-msgs" id="dmMsgs" data-editar-url="/mensagens/editar">
         {{#if conversa.secreto}}
           {{#if (eq conversa.tipo "anjo")}}
-            <div class="dm-aviso dm-aviso-secreto">🔒 <strong>Conversa anônima.</strong> Você não sabe quem é o seu anjo — curta o mistério! 😇</div>
+            <div class="dm-aviso dm-aviso-secreto">🔒 <strong>Conversa anônima.</strong> Seu anjo lê e responde sem se identificar.</div>
           {{else}}
             <div class="dm-aviso dm-aviso-secreto">🎭 <strong>Modo Anjo Secreto.</strong> <span class="sig-generico">Seu protegido</span><span class="sig-real">{{conversa.titulo}}</span> recebe estas mensagens como <strong>"Seu anjo"</strong> e não sabe que é você.</div>
           {{/if}}
@@ -99,9 +99,9 @@
           {{> dmBolha}}
         {{else}}
           {{#if (eq conversa.tipo "protegido")}}
-            <div class="dm-inicio">Ainda não há mensagens. Mande um oi anônimo — ele(a) nunca vai saber que é você. 🎁</div>
+            <div class="dm-inicio">Ainda não há mensagens. Mande um oi anônimo para começar.</div>
           {{else}}{{#if (eq conversa.tipo "anjo")}}
-            <div class="dm-inicio">Ainda não há mensagens. Pergunte algo ao seu anjo — ele responde sem se revelar. 😇</div>
+            <div class="dm-inicio">Ainda não há mensagens. Pergunte algo — seu anjo responde sem se revelar.</div>
           {{else}}
             <div class="dm-inicio">Ainda não há mensagens. Diga olá! 👋</div>
           {{/if}}{{/if}}

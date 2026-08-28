@@ -324,35 +324,20 @@
     window.setTimeout(function () { abrirModal(modal); girar(); }, 700);
   })();
 
-  /* ---------- Recorte circular da foto de perfil ---------- */
-  (function () {
-    var inpFoto = document.getElementById('foto_perfil');
-    if (!inpFoto) return;
+  /* ---------- Cropper genérico: círculo (avatar) ou quadrado (galeria) ----------
+     Um único palco de recorte compartilhado; quem abre passa um callback que
+     recebe o blob recortado (ou null se cancelou). */
+  var Cropper = (function () {
     var cropper = document.getElementById('cropper');
     var palco = document.getElementById('cropperPalco');
     var cimg = document.getElementById('cropperImg');
     var zoom = document.getElementById('cropperZoom');
-
-    function preview(blobOuFile) {
-      var alvo = document.getElementById(inpFoto.getAttribute('data-preview'));
-      if (!alvo) return;
-      alvo.innerHTML = '';
-      var img = document.createElement('img');
-      img.src = URL.createObjectURL(blobOuFile);
-      alvo.appendChild(img);
-    }
-
-    // Sem cropper disponível: preview direto (fallback).
-    if (!cropper || !palco || !cimg || !zoom) {
-      inpFoto.addEventListener('change', function () {
-        var f = this.files && this.files[0];
-        if (f) preview(f);
-      });
-      return;
-    }
+    var mascara = document.querySelector('.cropper-circulo');
+    var titulo = document.querySelector('.cropper-titulo');
+    if (!cropper || !palco || !cimg || !zoom) return null;
 
     var D = 280, natW = 0, natH = 0, base = 1, s = 1, tx = 0, ty = 0;
-    var arrastando = false, px = 0, py = 0, urlAtual = null;
+    var arrastando = false, px = 0, py = 0, urlAtual = null, aoFechar = null;
 
     function aplicar() { cimg.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + s + ')'; }
     function limitar() {
@@ -366,7 +351,11 @@
       s = novo; tx = cx - sx * s; ty = cy - sy * s;
       limitar(); aplicar();
     }
-    function abrir(file) {
+    function abrir(file, opcoes, onDone) {
+      opcoes = opcoes || {};
+      aoFechar = onDone || null;
+      if (mascara) mascara.classList.toggle('quadrado', opcoes.formato === 'quadrado');
+      if (titulo) titulo.textContent = opcoes.titulo || 'Ajuste sua foto';
       if (urlAtual) URL.revokeObjectURL(urlAtual);
       urlAtual = URL.createObjectURL(file);
       cimg.onload = function () {
@@ -379,12 +368,11 @@
       };
       cimg.src = urlAtual;
     }
-    function fechar() { cropper.hidden = true; }
-
-    inpFoto.addEventListener('change', function () {
-      var f = this.files && this.files[0];
-      if (f) abrir(f);
-    });
+    function terminar(blob) {
+      cropper.hidden = true;
+      var cb = aoFechar; aoFechar = null;
+      if (cb) cb(blob);
+    }
 
     palco.addEventListener('pointerdown', function (e) { arrastando = true; px = e.clientX; py = e.clientY; try { palco.setPointerCapture(e.pointerId); } catch (x) {} });
     palco.addEventListener('pointermove', function (e) { if (!arrastando) return; tx += e.clientX - px; ty += e.clientY - py; px = e.clientX; py = e.clientY; limitar(); aplicar(); });
@@ -397,23 +385,46 @@
     }, { passive: false });
     zoom.addEventListener('input', function () { definirZoom(parseFloat(this.value)); });
 
-    document.getElementById('cropperCancelar').addEventListener('click', function () { inpFoto.value = ''; fechar(); });
+    document.getElementById('cropperCancelar').addEventListener('click', function () { terminar(null); });
     document.getElementById('cropperConfirmar').addEventListener('click', function () {
       var out = 400;
       var canvas = document.createElement('canvas'); canvas.width = out; canvas.height = out;
       var ctx = canvas.getContext('2d');
       var sx = (0 - tx) / s, sy = (0 - ty) / s, sSize = D / s;
       ctx.drawImage(cimg, sx, sy, sSize, sSize, 0, 0, out, out);
-      canvas.toBlob(function (blob) {
-        if (!blob) { fechar(); return; }
+      canvas.toBlob(function (blob) { terminar(blob); }, 'image/jpeg', 0.9);
+    });
+
+    return { abrir: abrir };
+  })();
+
+  /* ---------- Foto de perfil: recorte circular ---------- */
+  (function () {
+    var inpFoto = document.getElementById('foto_perfil');
+    if (!inpFoto) return;
+
+    function preview(blobOuFile) {
+      var alvo = document.getElementById(inpFoto.getAttribute('data-preview'));
+      if (!alvo) return;
+      alvo.innerHTML = '';
+      var img = document.createElement('img');
+      img.src = URL.createObjectURL(blobOuFile);
+      alvo.appendChild(img);
+    }
+
+    inpFoto.addEventListener('change', function () {
+      var f = this.files && this.files[0];
+      if (!f) return;
+      if (!Cropper) { preview(f); return; } // sem cropper: preview direto
+      Cropper.abrir(f, { formato: 'circulo', titulo: 'Ajuste sua foto' }, function (blob) {
+        if (!blob) { inpFoto.value = ''; return; }
         try {
           var dt = new DataTransfer();
           dt.items.add(new File([blob], 'foto.jpg', { type: 'image/jpeg' }));
           inpFoto.files = dt.files;
         } catch (x) { /* navegador sem DataTransfer: envia a original */ }
         preview(blob);
-        fechar();
-      }, 'image/jpeg', 0.9);
+      });
     });
   })();
 
@@ -615,23 +626,70 @@
     });
   })();
 
-  var inpGal = document.getElementById('fotos');
-  if (inpGal) {
-    inpGal.addEventListener('change', function () {
-      var cont = document.getElementById(this.getAttribute('data-galeria'));
-      if (!cont) return;
+  /* ---------- Galeria "Fotos de ideias": recorte quadrado + remover antes de salvar ---------- */
+  (function () {
+    var inpGal = document.getElementById('fotos');
+    if (!inpGal) return;
+    var cont = document.getElementById(inpGal.getAttribute('data-galeria'));
+    if (!cont) return;
+    var add = cont.querySelector('.galeria-add');
+    var podeEditar = !!Cropper && typeof DataTransfer !== 'undefined';
+    var acumulado = podeEditar ? new DataTransfer() : null;
+
+    function render() {
       Array.prototype.slice.call(cont.querySelectorAll('.thumb.novo')).forEach(function (t) { t.remove(); });
-      var add = cont.querySelector('.galeria-add');
-      Array.prototype.forEach.call(this.files, function (f) {
+      Array.prototype.forEach.call(inpGal.files, function (f, i) {
         var d = document.createElement('div');
         d.className = 'thumb novo';
         var img = document.createElement('img');
         img.src = URL.createObjectURL(f);
         d.appendChild(img);
+        if (podeEditar) {
+          var x = document.createElement('button');
+          x.type = 'button'; x.className = 'galeria-remover thumb-x';
+          x.setAttribute('aria-label', 'Remover esta foto');
+          x.setAttribute('data-i', i);
+          x.textContent = '×';
+          d.appendChild(x);
+        }
         cont.insertBefore(d, add);
       });
+    }
+
+    // X na miniatura: tira só aquela foto da leva que vai ser enviada.
+    cont.addEventListener('click', function (e) {
+      var b = e.target.closest('.thumb-x');
+      if (!b || !podeEditar) return;
+      var i = +b.getAttribute('data-i');
+      var dt = new DataTransfer();
+      Array.prototype.forEach.call(acumulado.files, function (f, j) { if (j !== i) dt.items.add(f); });
+      acumulado = dt;
+      inpGal.files = acumulado.files;
+      render();
     });
-  }
+
+    inpGal.addEventListener('change', function () {
+      if (!podeEditar) { render(); return; }
+      // O navegador SUBSTITUI a seleção a cada escolha; guardamos as novas,
+      // devolvemos as já recortadas e passamos cada nova pelo recorte quadrado.
+      var novos = Array.prototype.slice.call(inpGal.files);
+      inpGal.files = acumulado.files;
+      (function proximo(i) {
+        if (i >= novos.length) return;
+        Cropper.abrir(novos[i], {
+          formato: 'quadrado',
+          titulo: novos.length > 1 ? 'Ajuste a foto ' + (i + 1) + ' de ' + novos.length : 'Ajuste a foto'
+        }, function (blob) {
+          if (blob) {
+            acumulado.items.add(new File([blob], 'ideia-' + Date.now() + '-' + i + '.jpg', { type: 'image/jpeg' }));
+            inpGal.files = acumulado.files;
+            render();
+          }
+          proximo(i + 1);
+        });
+      })(0);
+    });
+  })();
 
   /* ---------- Direct (mensagens): Enter envia, auto-scroll, editar ---------- */
   (function () {
@@ -1016,6 +1074,53 @@
         montarCamera(); camModal.hidden = false; document.body.classList.add('sem-scroll');
         abrirStream().catch(function () { fecharCamera(); captureFallback(b); });
       } else { captureFallback(b); }
+    });
+  })();
+
+  /* ---------- Data de nascimento: seletores Dia/Mês/Ano (sem o popup nativo do navegador) ---------- */
+  (function () {
+    var MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+                 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+    document.querySelectorAll('[data-data-nasc]').forEach(function (wrap) {
+      var hid = wrap.querySelector('input[type="hidden"]');
+      var sDia = wrap.querySelector('[data-dn-dia]');
+      var sMes = wrap.querySelector('[data-dn-mes]');
+      var sAno = wrap.querySelector('[data-dn-ano]');
+      if (!hid || !sDia || !sMes || !sAno) return;
+
+      var hoje = new Date();
+      var v = /^(\d{4})-(\d{2})-(\d{2})/.exec(hid.value || '');
+      var ano = v ? +v[1] : 0, mes = v ? +v[2] : 0, dia = v ? +v[3] : 0;
+
+      function opt(sel, valor, rotulo, selecionado) {
+        var o = document.createElement('option');
+        o.value = valor; o.textContent = rotulo;
+        if (selecionado) o.selected = true;
+        sel.appendChild(o);
+      }
+      // fevereiro/meses curtos: a lista de dias encolhe conforme mês/ano escolhidos
+      function diasNoMes(m, a) { return m ? new Date(a || 2000, m, 0).getDate() : 31; }
+      function montarDias() {
+        var max = diasNoMes(+sMes.value, +sAno.value);
+        var atual = +sDia.value || dia;
+        if (atual > max) atual = 0;
+        sDia.innerHTML = '';
+        opt(sDia, '', 'Dia', !atual);
+        for (var d = 1; d <= max; d++) opt(sDia, d, d, d === atual);
+      }
+      opt(sMes, '', 'Mês', !mes);
+      MESES.forEach(function (nome, i) { opt(sMes, i + 1, nome, i + 1 === mes); });
+      opt(sAno, '', 'Ano', !ano);
+      for (var a = hoje.getFullYear(); a >= hoje.getFullYear() - 100; a--) opt(sAno, a, a, a === ano);
+      montarDias();
+
+      wrap.addEventListener('change', function (e) {
+        if (e.target === sMes || e.target === sAno) montarDias();
+        var d = +sDia.value, m = +sMes.value, a = +sAno.value;
+        hid.value = (d && m && a)
+          ? a + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0')
+          : '';
+      });
     });
   })();
 

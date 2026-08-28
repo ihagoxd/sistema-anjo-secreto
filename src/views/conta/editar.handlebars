@@ -42,7 +42,12 @@
 
     <div class="campo">
       <label for="data_nascimento">Data de nascimento 🎂</label>
-      <input type="date" id="data_nascimento" name="data_nascimento" value="{{dataISO u.data_nascimento}}" max="{{maxData}}">
+      <div class="linha-data" data-data-nasc>
+        <input type="hidden" id="data_nascimento" name="data_nascimento" value="{{dataISO u.data_nascimento}}">
+        <select data-dn-dia aria-label="Dia"></select>
+        <select data-dn-mes aria-label="Mês"></select>
+        <select data-dn-ano aria-label="Ano"></select>
+      </div>
       <small class="texto-suave">No seu aniversário, o escritório inteiro comemora com você.</small>
     </div>
 

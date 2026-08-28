@@ -97,7 +97,9 @@
             <span class="share-nome">{{this.nome}}</span>
             <span class="share-user">@{{this.usuario}}</span>
           </span>
-          <span class="share-envia">Enviar</span>
+          <span class="share-check" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          </span>
         </button>
       {{else}}
         <div class="texto-suave" style="padding:10px 6px;">Ninguém disponível no Direct ainda.</div>
@@ -109,6 +111,9 @@
       </span>
       <span class="share-txt"><span class="share-nome">Copiar link</span></span>
     </button>
+    <div class="share-rodape" data-share-rodape hidden>
+      <button type="button" class="btn btn-primario share-enviar" data-share-enviar>Enviar</button>
+    </div>
   </div>
 </div>
 

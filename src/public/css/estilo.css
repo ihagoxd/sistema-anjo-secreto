@@ -1936,8 +1936,17 @@ html.mini #loader .anjo .anjo-traco { display: none; }
 .share-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
 .share-nome { font-weight: 600; font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .share-user { font-size: 12.5px; color: var(--text-faint); }
-.share-envia { color: var(--accent); font-weight: 700; font-size: 13px; flex-shrink: 0; }
+/* Círculo de seleção (marca vários destinatários, como no Instagram) */
+.share-check {
+  width: 24px; height: 24px; flex-shrink: 0; border-radius: 50%;
+  border: 2px solid var(--line-strong); display: grid; place-items: center; color: transparent;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.18s var(--ease-spring);
+}
+.share-item.sel { background: color-mix(in srgb, var(--ouro) 8%, transparent); }
+.share-item.sel .share-check { background: var(--ouro); border-color: var(--ouro); color: var(--on-ouro); transform: scale(1.08); }
 .share-copiar { border-top: 1px solid var(--line); border-radius: 0 0 12px 12px; margin-top: 4px; padding-top: 12px; }
+.share-rodape { padding: 12px 2px 2px; border-top: 1px solid var(--line); margin-top: 6px; }
+.share-rodape .share-enviar { width: 100%; border-radius: 999px; min-height: 46px; font-size: 15.5px; font-weight: 700; }
 @media (max-width: 899px) {
   .sheet-share { align-items: end; justify-items: stretch; padding: 0; }
   .sheet-share .modal-card {

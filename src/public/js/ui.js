@@ -658,41 +658,71 @@
         t.remove();
       }
     }
+    function fecharShare() {
+      var m = document.getElementById('modal-share');
+      if (m) { m.setAttribute('hidden', ''); m.setAttribute('aria-hidden', 'true'); }
+    }
+    function atualizarRodapeShare() {
+      var m = document.getElementById('modal-share');
+      if (!m) return;
+      var sels = m.querySelectorAll('[data-share-dm].sel').length;
+      var rod = m.querySelector('[data-share-rodape]');
+      var btn = m.querySelector('[data-share-enviar]');
+      if (rod) rod.hidden = !sels;
+      if (btn) { btn.disabled = false; btn.textContent = sels > 1 ? 'Enviar (' + sels + ')' : 'Enviar'; }
+    }
     document.addEventListener('click', function (e) {
       var s = e.target.closest('[data-share]');
       if (s) {
         shareUrl = location.origin + s.getAttribute('data-share');
         var sheet = document.getElementById('modal-share');
-        if (sheet) { sheet.removeAttribute('hidden'); sheet.setAttribute('aria-hidden', 'false'); }
-        else copiarLink(shareUrl);
+        if (sheet) {
+          // abre limpa: nada selecionado, rodapé escondido
+          sheet.querySelectorAll('[data-share-dm].sel').forEach(function (el) { el.classList.remove('sel'); });
+          atualizarRodapeShare();
+          sheet.removeAttribute('hidden');
+          sheet.setAttribute('aria-hidden', 'false');
+        } else copiarLink(shareUrl);
         return;
       }
-      // Enviar no Direct: manda o post na hora, sem sair do mural (como no Instagram).
-      // No chat, o link vira um cartão de preview da publicação.
+      // Seleciona/desmarca destinatários (pode ser mais de um, como no Instagram)
       var dm = e.target.closest('[data-share-dm]');
-      if (dm && shareUrl) {
-        dm.disabled = true;
-        var corpo = new URLSearchParams();
-        corpo.set('mensagem', shareUrl);
-        fetch('/mensagens/u/' + dm.getAttribute('data-share-dm'), {
-          method: 'POST',
-          headers: { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch' },
-          body: corpo
-        })
-          .then(function (r) { if (!r.ok) throw new Error('falhou'); return r.json(); })
+      if (dm) {
+        dm.classList.toggle('sel');
+        atualizarRodapeShare();
+        return;
+      }
+      // Enviar para TODOS os selecionados de uma vez
+      var env = e.target.closest('[data-share-enviar]');
+      if (env && shareUrl) {
+        var m = document.getElementById('modal-share');
+        var alvos = Array.prototype.slice.call(m.querySelectorAll('[data-share-dm].sel'));
+        if (!alvos.length) return;
+        env.disabled = true;
+        env.textContent = 'Enviando…';
+        Promise.all(alvos.map(function (el) {
+          var corpo = new URLSearchParams();
+          corpo.set('mensagem', shareUrl);
+          return fetch('/mensagens/u/' + el.getAttribute('data-share-dm'), {
+            method: 'POST',
+            headers: { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch' },
+            body: corpo
+          }).then(function (r) { if (!r.ok) throw new Error('falhou'); });
+        }))
           .then(function () {
-            var rot = dm.querySelector('.share-envia');
-            if (rot) rot.textContent = 'Enviado ✓';
-            toast('Post enviado no Direct! ✈️');
+            toast(alvos.length > 1 ? 'Post enviado para ' + alvos.length + ' pessoas! ✈️' : 'Post enviado no Direct! ✈️');
+            fecharShare();
           })
-          .catch(function () { dm.disabled = false; toast('Não foi possível enviar.'); });
+          .catch(function () {
+            atualizarRodapeShare();
+            toast('Não foi possível enviar para todo mundo. Tente de novo.');
+          });
         return;
       }
       var cp = e.target.closest('[data-share-copiar]');
       if (cp) {
         copiarLink(shareUrl);
-        var m = document.getElementById('modal-share');
-        if (m) { m.setAttribute('hidden', ''); m.setAttribute('aria-hidden', 'true'); }
+        fecharShare();
       }
     });
   })();

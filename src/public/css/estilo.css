@@ -1796,6 +1796,49 @@ html.mini #loader .anjo .anjo-traco { display: none; }
 .alerta { animation: alerta-in 0.35s var(--ease-spring) both; border-radius: 14px; }
 @keyframes alerta-in { from { opacity: 0; transform: translateY(-8px) scale(0.98); } to { opacity: 1; transform: none; } }
 
+/* --- Feed com anatomia de Instagram: post de ponta a ponta, mídia protagonista,
+       ações grandes, linha "N curtidas" e legenda com o nome inline --- */
+.tw-post.ig-post {
+  display: block; padding: 4px 0 12px; margin: 0;
+  background: transparent; border: none; border-radius: 0;
+  border-bottom: 1px solid var(--line);
+}
+[data-theme='dark'] .tw-post.ig-post { background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.feed { gap: 6px; }
+.ig-cab { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
+.ig-av {
+  width: 34px; height: 34px; flex-shrink: 0; border-radius: 50%; overflow: hidden;
+  display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-strong);
+  font-weight: 700; font-size: 13px;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ouro) 45%, transparent);
+}
+.ig-av img { width: 100%; height: 100%; object-fit: cover; }
+.ig-cab-txt { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 7px; }
+.ig-user { font-weight: 700; font-size: 14px; color: var(--text); }
+.ig-user:hover { color: var(--text); }
+.ig-tempo { color: var(--text-faint); font-size: 12.5px; }
+.ig-post .tw-post-midia { margin-top: 0; border-radius: 14px; }
+.ig-post .tw-post-midia img { max-height: 560px; }
+.ig-acoes { display: flex; justify-content: flex-start; gap: 8px; max-width: none; margin: 4px 0 0 -6px; padding: 2px 0; }
+.ig-acoes .tw-acao svg { width: 26px; height: 26px; stroke-width: 1.9; }
+.ig-acoes .tw-acao span { display: none; }
+.ig-acoes .share { margin-left: auto; margin-right: -6px; }
+.ig-curtidas { font-size: 14px; margin-top: 2px; }
+.ig-curtidas strong { font-weight: 700; }
+.ig-legenda { margin-top: 3px; font-size: 14.5px; }
+.ig-legenda .ig-user { margin-right: 5px; }
+.ig-vercoments {
+  display: block; background: none; border: none; padding: 6px 0 0;
+  font: inherit; font-size: 13.5px; color: var(--text-faint); cursor: pointer; text-align: left;
+}
+.ig-vercoments:hover { color: var(--text-soft); }
+/* No perfil, os posts vivem dentro do cartão — devolve o respiro lateral */
+.feed-perfil .tw-post.ig-post { padding-inline: 16px; }
+/* Mobile: mídia de ponta a ponta, como no app */
+@media (max-width: 899px) {
+  .ig-post .tw-post-midia { margin-inline: -16px; border-radius: 0; border-left: none; border-right: none; }
+}
+
 /* --- Acessibilidade: nada disso roda para quem prefere menos movimento --- */
 @media (prefers-reduced-motion: reduce) {
   .dm-msgs .dm-bolha, .tw-acao svg, .bi-item.ativo svg, .story-ring,

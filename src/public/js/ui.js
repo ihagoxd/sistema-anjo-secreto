@@ -442,8 +442,14 @@
         .then(function (d) {
           b.classList.toggle('ativo', !!d.curtiu);
           b.setAttribute('aria-pressed', d.curtiu ? 'true' : 'false');
-          var c = b.querySelector('.post-curtidas');
-          if (c) c.textContent = d.total;
+          // Atualiza a linha "N curtidas" (estilo Instagram) do post
+          var art = b.closest('.tw-post');
+          var linha = art && art.querySelector('.ig-curtidas');
+          if (linha) {
+            var n = Number(d.total) || 0;
+            linha.hidden = !n;
+            linha.innerHTML = '<strong>' + n + '</strong> curtida' + (n === 1 ? '' : 's');
+          }
         })
         .catch(function () {})
         .then(function () { b.disabled = false; });

@@ -1,70 +1,73 @@
-<article class="tw-post{{#if @root.detalhe}} tw-post-det{{/if}}" data-id="{{this.id_post}}">
-  <a href="/u/{{this.usuario}}" class="tw-post-av">{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</a>
-
-  <div class="tw-post-main">
-    <div class="tw-post-top">
-      <a href="/u/{{this.usuario}}" class="tw-post-nome">{{this.nome}}</a>
-      <span class="tw-post-meta">@{{this.usuario}}</span>
-      <span class="tw-post-tempo">· {{tempoRel this.criado_em}}</span>
-      {{#if (ou (eq this.id_usuario @root.usuario.id_usuario) (eq @root.usuario.tipo_usuario "ADMINISTRADOR"))}}
-        <form action="/feed/{{this.id_post}}/remover" method="POST" class="tw-post-del" data-confirmar="Remover esta publicação?">
-          <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
-          <button type="submit" class="btn-icone" title="Remover" aria-label="Remover">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-          </button>
-        </form>
-      {{/if}}
+<article class="tw-post ig-post{{#if @root.detalhe}} tw-post-det{{/if}}" data-id="{{this.id_post}}">
+  <header class="ig-cab">
+    <a href="/u/{{this.usuario}}" class="ig-av">{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</a>
+    <div class="ig-cab-txt">
+      <a href="/u/{{this.usuario}}" class="ig-user">{{this.usuario}}</a>
+      <span class="ig-tempo">{{tempoRel this.criado_em}}</span>
     </div>
-
-    {{#if this.texto}}<div class="tw-post-texto">{{comMencoes this.texto}}</div>{{/if}}
-    {{#if this.imagem}}<div class="tw-post-midia" data-post-id="{{this.id_post}}" data-img="{{this.imagem}}" role="button" tabindex="0" aria-label="Ampliar imagem (clique 2x para curtir)"><img src="{{this.imagem}}" alt="Foto" draggable="false"></div>{{/if}}
-
-    <div class="tw-post-acoes">
-      <button type="button" class="tw-acao coment" data-comentarios="{{this.id_post}}" aria-expanded="{{#if @root.detalhe}}true{{else}}false{{/if}}" aria-label="Comentários">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/></svg>
-        <span class="post-coments">{{this.comentarios}}</span>
-      </button>
-      <button type="button" class="tw-acao repost {{#if this.repostou}}ativo{{/if}}" data-repost="{{this.id_post}}" aria-pressed="{{this.repostou}}" aria-label="Repostar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-        <span class="post-reposts">{{this.reposts}}</span>
-      </button>
-      <button type="button" class="tw-acao curtir {{#if this.curtiu}}ativo{{/if}}" data-curtir="{{this.id_post}}" aria-pressed="{{this.curtiu}}" aria-label="Curtir">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-        <span class="post-curtidas">{{this.curtidas}}</span>
-      </button>
-      <button type="button" class="tw-acao share" data-share="/p/{{this.id_post}}" aria-label="Copiar link">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-      </button>
-    </div>
-
-    <div class="tw-comentarios-bloco" data-bloco="{{this.id_post}}"{{#unless @root.detalhe}} hidden{{/unless}}>
-      <div class="tw-comentarios">
-        {{#each this.comentariosLista}}
-          <div class="tw-coment" data-coment="{{this.id_comentario}}">
-            <a href="/u/{{this.usuario}}" class="tw-coment-av">{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</a>
-            <div class="tw-coment-main">
-              <div class="tw-coment-top">
-                <a href="/u/{{this.usuario}}" class="tw-coment-nome">{{this.nome}}</a>
-                <span class="tw-coment-meta">· {{tempoRel this.criado_em}}</span>
-                {{#if (ou (eq this.id_usuario @root.usuario.id_usuario) (eq @root.usuario.tipo_usuario "ADMINISTRADOR"))}}
-                  <form action="/feed/comentarios/{{this.id_comentario}}/remover" method="POST" class="tw-coment-del">
-                    <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
-                    <button type="submit" class="btn-icone" aria-label="Remover">&times;</button>
-                  </form>
-                {{/if}}
-              </div>
-              <div class="tw-coment-texto">{{comMencoes this.texto}}</div>
-            </div>
-          </div>
-        {{/each}}
-      </div>
-
-      <form class="tw-reply" action="/feed/{{this.id_post}}/comentar" method="POST" data-reply>
+    {{#if (ou (eq this.id_usuario @root.usuario.id_usuario) (eq @root.usuario.tipo_usuario "ADMINISTRADOR"))}}
+      <form action="/feed/{{this.id_post}}/remover" method="POST" class="tw-post-del" data-confirmar="Remover esta publicação?">
         <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
-        <span class="tw-reply-av" aria-hidden="true">{{#if @root.usuario.foto_perfil}}<img src="{{@root.usuario.foto_perfil}}" alt="">{{else}}{{inicial @root.usuario.nome}}{{/if}}</span>
-        <input type="text" name="texto" placeholder="Comentar…" maxlength="500" autocomplete="off" data-mencoes required>
-        <button type="submit" class="btn btn-primario btn-sm">Enviar</button>
+        <button type="submit" class="btn-icone" title="Remover" aria-label="Remover">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </button>
       </form>
+    {{/if}}
+  </header>
+
+  {{#if this.imagem}}<div class="tw-post-midia" data-post-id="{{this.id_post}}" data-img="{{this.imagem}}" role="button" tabindex="0" aria-label="Ampliar imagem (clique 2x para curtir)"><img src="{{this.imagem}}" alt="Foto" draggable="false"></div>{{/if}}
+
+  <div class="tw-post-acoes ig-acoes">
+    <button type="button" class="tw-acao curtir {{#if this.curtiu}}ativo{{/if}}" data-curtir="{{this.id_post}}" aria-pressed="{{this.curtiu}}" aria-label="Curtir">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    </button>
+    <button type="button" class="tw-acao coment" data-comentarios="{{this.id_post}}" aria-expanded="{{#if @root.detalhe}}true{{else}}false{{/if}}" aria-label="Comentários">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/></svg>
+    </button>
+    <button type="button" class="tw-acao repost {{#if this.repostou}}ativo{{/if}}" data-repost="{{this.id_post}}" aria-pressed="{{this.repostou}}" aria-label="Repostar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+      <span class="post-reposts">{{this.reposts}}</span>
+    </button>
+    <button type="button" class="tw-acao share" data-share="/p/{{this.id_post}}" aria-label="Copiar link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+    </button>
+  </div>
+
+  <div class="ig-curtidas"{{#unless this.curtidas}} hidden{{/unless}}><strong>{{this.curtidas}}</strong> {{#if (eq this.curtidas 1)}}curtida{{else}}{{#if (eq this.curtidas "1")}}curtida{{else}}curtidas{{/if}}{{/if}}</div>
+
+  {{#if this.texto}}<div class="tw-post-texto ig-legenda"><a href="/u/{{this.usuario}}" class="ig-user">{{this.usuario}}</a> {{comMencoes this.texto}}</div>{{/if}}
+
+  {{#unless @root.detalhe}}
+    <button type="button" class="ig-vercoments" data-comentarios="{{this.id_post}}">Ver comentários (<span class="post-coments">{{this.comentarios}}</span>)</button>
+  {{/unless}}
+
+  <div class="tw-comentarios-bloco" data-bloco="{{this.id_post}}"{{#unless @root.detalhe}} hidden{{/unless}}>
+    <div class="tw-comentarios">
+      {{#each this.comentariosLista}}
+        <div class="tw-coment" data-coment="{{this.id_comentario}}">
+          <a href="/u/{{this.usuario}}" class="tw-coment-av">{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</a>
+          <div class="tw-coment-main">
+            <div class="tw-coment-top">
+              <a href="/u/{{this.usuario}}" class="tw-coment-nome">{{this.nome}}</a>
+              <span class="tw-coment-meta">· {{tempoRel this.criado_em}}</span>
+              {{#if (ou (eq this.id_usuario @root.usuario.id_usuario) (eq @root.usuario.tipo_usuario "ADMINISTRADOR"))}}
+                <form action="/feed/comentarios/{{this.id_comentario}}/remover" method="POST" class="tw-coment-del">
+                  <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
+                  <button type="submit" class="btn-icone" aria-label="Remover">&times;</button>
+                </form>
+              {{/if}}
+            </div>
+            <div class="tw-coment-texto">{{comMencoes this.texto}}</div>
+          </div>
+        </div>
+      {{/each}}
     </div>
+
+    <form class="tw-reply" action="/feed/{{this.id_post}}/comentar" method="POST" data-reply>
+      <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
+      <span class="tw-reply-av" aria-hidden="true">{{#if @root.usuario.foto_perfil}}<img src="{{@root.usuario.foto_perfil}}" alt="">{{else}}{{inicial @root.usuario.nome}}{{/if}}</span>
+      <input type="text" name="texto" placeholder="Adicione um comentário…" maxlength="500" autocomplete="off" data-mencoes required>
+      <button type="submit" class="btn btn-primario btn-sm">Enviar</button>
+    </form>
   </div>
 </article>

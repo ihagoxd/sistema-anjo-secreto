@@ -1743,7 +1743,8 @@ html.mini #loader .anjo .anjo-traco { display: none; }
 .btn-primario:active { box-shadow: 0 2px 8px color-mix(in srgb, var(--ouro) 30%, transparent); }
 
 /* --- Chat: bolhas nascem com física de messenger --- */
-.dm-msgs .dm-bolha { animation: bolha-in 0.3s var(--ease-out) both; }
+/* fill "backwards": com "both" o transform ficaria preso e travaria o efeito de segurar */
+.dm-msgs .dm-bolha { animation: bolha-in 0.3s var(--ease-out) backwards; }
 .dm-bolha.minha .dm-bolha-txt, .dm-bolha.minha .dm-bolha-img { transform-origin: 100% 100%; }
 .dm-bolha.deles .dm-bolha-txt, .dm-bolha.deles .dm-bolha-img { transform-origin: 0 100%; }
 .dm-msgs .dm-bolha:last-child { animation-duration: 0.38s; animation-timing-function: var(--ease-spring); }
@@ -1970,6 +1971,30 @@ html.mini #loader .anjo .anjo-traco { display: none; }
 }
 .bi-badge { border-color: transparent; }
 
+/* --- Segurar a bolha (mobile) abre o menu de ações da mensagem --- */
+.dm-bolha { transition: transform 0.18s var(--ease-out); }
+.dm-bolha.segurando { transform: scale(0.965); }
+@media (hover: none) {
+  .dm-msgs .dm-bolha { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+}
+.msg-menu { position: fixed; inset: 0; z-index: 320; display: grid; align-items: end; }
+.msg-menu-fundo { position: absolute; inset: 0; background: rgba(4, 6, 12, 0.5); animation: modal-bg 0.18s ease both; }
+.msg-menu-box {
+  position: relative; margin: 0 10px calc(12px + env(safe-area-inset-bottom, 0px));
+  background: var(--surface); border: 1px solid var(--line); border-radius: 18px; overflow: hidden;
+  animation: sheet-sobe 0.26s var(--ease-out);
+  box-shadow: 0 -14px 40px rgba(0, 0, 0, 0.4);
+}
+.msg-menu-op {
+  display: flex; align-items: center; gap: 12px; width: 100%; padding: 15px 18px;
+  background: none; border: none; border-bottom: 1px solid var(--line);
+  font: inherit; font-size: 15px; font-weight: 600; color: var(--text); cursor: pointer; text-align: left;
+  transition: background 0.12s;
+}
+.msg-menu-op:active { background: var(--hover); }
+.msg-menu-op:last-child { border-bottom: none; color: var(--text-soft); justify-content: center; }
+.msg-menu-op.perigo { color: var(--st-vermelho); }
+
 /* --- Mensagem apagada para todos (tumba, estilo WhatsApp) --- */
 .dm-bolha .dm-apagada {
   background: transparent; border: 1px dashed var(--line-strong);
@@ -2072,6 +2097,7 @@ html.mini #loader .anjo .anjo-traco { display: none; }
 @media (prefers-reduced-motion: reduce) {
   .dm-msgs .dm-bolha, .tw-acao svg, .bi-item.ativo svg, .story-ring,
   .emoji-painel, .mencao-lista, .notif-dot, .alerta, .dm-grav-dot, .dm-onda span, .cam-rec-dot,
-  .tw-comentarios-bloco, .sheet-share .modal-card, .sheet-emoji { animation: none !important; }
+  .tw-comentarios-bloco, .sheet-share .modal-card, .sheet-emoji,
+  .msg-menu-fundo, .msg-menu-box { animation: none !important; }
   ::view-transition-old(root), ::view-transition-new(root) { animation: none !important; }
 }

@@ -1066,6 +1066,74 @@
         || (document.querySelector('meta[name="csrf-token"]') && document.querySelector('meta[name="csrf-token"]').getAttribute('content')) || '';
       var url = msgs.getAttribute('data-editar-url') || '/mensagens/editar';
 
+      // Mobile: SEGURAR a bolha abre o menu de ações (como WhatsApp/Instagram).
+      // No desktop os botõezinhos continuam aparecendo no hover.
+      (function () {
+        var menu = null, alvo = null;
+        function montarMenu() {
+          if (menu) return;
+          menu = document.createElement('div');
+          menu.className = 'msg-menu';
+          menu.hidden = true;
+          menu.innerHTML =
+            '<div class="msg-menu-fundo" data-mm-fechar></div>'
+            + '<div class="msg-menu-box">'
+            + '<button type="button" class="msg-menu-op" data-mm-editar>✏️ Editar</button>'
+            + '<button type="button" class="msg-menu-op perigo" data-mm-apagar>🗑️ Apagar para todos</button>'
+            + '<button type="button" class="msg-menu-op" data-mm-fechar>Cancelar</button>'
+            + '</div>';
+          document.body.appendChild(menu);
+          menu.addEventListener('click', function (e) {
+            var bolha = alvo;
+            if (e.target.closest('[data-mm-editar]')) {
+              fecharMenu();
+              var ed = bolha && bolha.querySelector('[data-editar-msg]');
+              if (ed) ed.click();
+            } else if (e.target.closest('[data-mm-apagar]')) {
+              fecharMenu();
+              var ap = bolha && bolha.querySelector('[data-apagar-msg]');
+              if (ap) ap.click();
+            } else if (e.target.closest('[data-mm-fechar]') || e.target === menu) {
+              fecharMenu();
+            }
+          });
+        }
+        function abrirMenu(bolha) {
+          montarMenu();
+          alvo = bolha;
+          menu.querySelector('[data-mm-editar]').hidden = !bolha.querySelector('[data-editar-msg]');
+          menu.hidden = false;
+          try { if (navigator.vibrate) navigator.vibrate(25); } catch (x) {}
+        }
+        function fecharMenu() {
+          if (menu) menu.hidden = true;
+          if (alvo) alvo.classList.remove('segurando');
+          alvo = null;
+        }
+
+        var lpTimer = 0, lpBolha = null, lpX = 0, lpY = 0, lpDisparou = false;
+        function cancelarLp() {
+          clearTimeout(lpTimer);
+          if (lpBolha && lpBolha !== alvo) lpBolha.classList.remove('segurando');
+          lpBolha = null;
+        }
+        msgs.addEventListener('pointerdown', function (e) {
+          if (e.pointerType !== 'touch') return;
+          var bolha = e.target.closest('.dm-bolha.minha');
+          if (!bolha || !bolha.querySelector('[data-apagar-msg]')) return; // apagada ou sem ações
+          lpBolha = bolha; lpX = e.clientX; lpY = e.clientY; lpDisparou = false;
+          bolha.classList.add('segurando');
+          lpTimer = setTimeout(function () { lpDisparou = true; abrirMenu(bolha); }, 480);
+        });
+        msgs.addEventListener('pointermove', function (e) {
+          if (lpBolha && (Math.abs(e.clientX - lpX) > 12 || Math.abs(e.clientY - lpY) > 12)) cancelarLp();
+        });
+        msgs.addEventListener('pointerup', cancelarLp);
+        msgs.addEventListener('pointercancel', cancelarLp);
+        msgs.addEventListener('contextmenu', function (e) { if (lpDisparou || lpBolha) e.preventDefault(); });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') fecharMenu(); });
+      })();
+
       // Apagar para todos (AJAX): a bolha vira "Mensagem apagada" na hora
       msgs.addEventListener('click', function (e) {
         var btn = e.target.closest('[data-apagar-msg]');

@@ -44,6 +44,11 @@
   {{/unless}}
 
   <div class="tw-comentarios-bloco" data-bloco="{{this.id_post}}"{{#unless @root.detalhe}} hidden{{/unless}}>
+    <div class="sheet-cab">
+      <span class="sheet-grab" aria-hidden="true"></span>
+      <span class="sheet-titulo">Comentários</span>
+      <button type="button" class="sheet-x" data-comentarios="{{this.id_post}}" aria-label="Fechar">&times;</button>
+    </div>
     <div class="tw-comentarios">
       {{#each this.comentariosLista}}
         <div class="tw-coment" data-coment="{{this.id_comentario}}">
@@ -63,6 +68,17 @@
           </div>
         </div>
       {{/each}}
+    </div>
+
+    <div class="sheet-emojis" aria-hidden="true">
+      <button type="button" class="sheet-emoji" data-emoji-rapido>❤️</button>
+      <button type="button" class="sheet-emoji" data-emoji-rapido>🙌</button>
+      <button type="button" class="sheet-emoji" data-emoji-rapido>🔥</button>
+      <button type="button" class="sheet-emoji" data-emoji-rapido>👏</button>
+      <button type="button" class="sheet-emoji" data-emoji-rapido>😢</button>
+      <button type="button" class="sheet-emoji" data-emoji-rapido>😍</button>
+      <button type="button" class="sheet-emoji" data-emoji-rapido>😮</button>
+      <button type="button" class="sheet-emoji" data-emoji-rapido>😂</button>
     </div>
 
     <form class="tw-reply" action="/feed/{{this.id_post}}/comentar" method="POST" data-reply>

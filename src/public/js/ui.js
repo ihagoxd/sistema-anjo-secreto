@@ -34,6 +34,25 @@
       }
     });
 
+    // Emojis rápidos da folha de comentários: adiciona no campo de resposta
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-emoji-rapido]');
+      if (!b) return;
+      var bloco = b.closest('.tw-comentarios-bloco');
+      var inp = bloco && bloco.querySelector('.tw-reply input[name="texto"]');
+      if (inp) {
+        inp.value += (inp.value && !/\s$/.test(inp.value) ? ' ' : '') + b.textContent.trim();
+        inp.focus();
+      }
+    });
+
+    // Esc fecha a folha de comentários aberta (no feed; na página do post ela é fixa)
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      document.querySelectorAll('.tw-post:not(.tw-post-det) .tw-comentarios-bloco:not([hidden])')
+        .forEach(function (b) { b.setAttribute('hidden', ''); });
+    });
+
     // Responder via AJAX: adiciona o comentário na hora, sem recarregar a página
     document.addEventListener('submit', function (e) {
       var form = e.target.closest('form.tw-reply[data-reply]');
@@ -616,11 +635,9 @@
       abrirLB(g.getAttribute('data-img'), null);
     });
 
-    // Compartilhar: copia o link do post.
-    document.addEventListener('click', function (e) {
-      var s = e.target.closest('[data-share]');
-      if (!s) return;
-      var url = location.origin + s.getAttribute('data-share');
+    // Compartilhar: abre a folha "enviar no Direct" (se existir na página) ou copia o link.
+    var shareUrl = '';
+    function copiarLink(url) {
       function feito() { toast('Link copiado! 🔗'); }
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(url).then(feito).catch(function () { toast(url); });
@@ -628,6 +645,29 @@
         var t = document.createElement('textarea'); t.value = url; document.body.appendChild(t); t.select();
         try { document.execCommand('copy'); feito(); } catch (x) { toast(url); }
         t.remove();
+      }
+    }
+    document.addEventListener('click', function (e) {
+      var s = e.target.closest('[data-share]');
+      if (s) {
+        shareUrl = location.origin + s.getAttribute('data-share');
+        var sheet = document.getElementById('modal-share');
+        if (sheet) { sheet.removeAttribute('hidden'); sheet.setAttribute('aria-hidden', 'false'); }
+        else copiarLink(shareUrl);
+        return;
+      }
+      // Enviar no Direct: abre a conversa com a mensagem já preenchida (a pessoa confirma o envio)
+      var dm = e.target.closest('[data-share-dm]');
+      if (dm && shareUrl) {
+        location.href = '/mensagens/u/' + dm.getAttribute('data-share-dm') +
+          '?texto=' + encodeURIComponent('Olha esse post do mural: ' + shareUrl);
+        return;
+      }
+      var cp = e.target.closest('[data-share-copiar]');
+      if (cp) {
+        copiarLink(shareUrl);
+        var m = document.getElementById('modal-share');
+        if (m) { m.setAttribute('hidden', ''); m.setAttribute('aria-hidden', 'true'); }
       }
     });
   })();

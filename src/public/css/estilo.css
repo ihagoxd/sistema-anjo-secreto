@@ -1842,9 +1842,95 @@ html.mini #loader .anjo .anjo-traco { display: none; }
   .ig-post .tw-post-midia { margin-inline: -16px; border-radius: 0; border-left: none; border-right: none; }
 }
 
+/* --- Folhas de baixo (bottom sheets) — comentários e compartilhar, como no app --- */
+@keyframes sheet-sobe { from { transform: translateY(38%); opacity: 0.4; } to { transform: none; opacity: 1; } }
+.sheet-cab { display: none; position: relative; padding: 2px 0 0; }
+.sheet-cab.sempre { display: block; }
+.sheet-grab { display: block; width: 40px; height: 4px; border-radius: 99px; background: var(--line-strong); margin: 2px auto 10px; }
+.sheet-titulo { display: block; text-align: center; font-weight: 700; font-size: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+.sheet-x {
+  position: absolute; top: 8px; right: 0; width: 34px; height: 34px; border: none; border-radius: 50%;
+  background: none; color: var(--text-faint); font-size: 22px; line-height: 1; cursor: pointer;
+  display: grid; place-items: center;
+}
+.sheet-x:hover { background: var(--hover); color: var(--text); }
+.sheet-emojis { display: none; }
+
+/* Comentários viram gaveta no mobile (na página do post seguem fixos na tela) */
+@media (max-width: 899px) {
+  .tw-post:not(.tw-post-det) .tw-comentarios-bloco:not([hidden]) {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 260;
+    display: flex; flex-direction: column;
+    max-height: 74dvh; min-height: 42dvh;
+    margin: 0; padding: 8px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+    background: var(--surface); border-top: 1px solid var(--line);
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 0 0 100vmax rgba(4, 6, 12, 0.55), 0 -18px 50px rgba(0, 0, 0, 0.4);
+    animation: sheet-sobe 0.32s var(--ease-out);
+  }
+  .tw-post:not(.tw-post-det) .tw-comentarios-bloco:not([hidden]) .sheet-cab { display: block; }
+  .tw-post:not(.tw-post-det) .tw-comentarios-bloco:not([hidden]) .tw-comentarios { flex: 1; overflow-y: auto; min-height: 0; }
+  .tw-post:not(.tw-post-det) .tw-comentarios-bloco:not([hidden]) .sheet-emojis {
+    display: flex; justify-content: space-between; padding: 10px 4px 6px; border-top: 1px solid var(--line);
+  }
+  .sheet-emoji { background: none; border: none; cursor: pointer; font-size: 26px; line-height: 1; padding: 4px; transition: transform 0.15s var(--ease-spring); }
+  .sheet-emoji:active { transform: scale(1.35); }
+}
+
+/* Folha "Compartilhar no Direct" */
+.share-card { max-width: 430px; padding: 10px 16px 14px; }
+.share-lista { max-height: 46dvh; overflow-y: auto; padding: 8px 0 2px; }
+.share-item {
+  display: flex; align-items: center; gap: 12px; width: 100%; padding: 9px 6px;
+  background: none; border: none; border-radius: 12px; cursor: pointer;
+  font: inherit; color: var(--text); text-align: left; transition: background 0.12s;
+}
+.share-item:hover { background: var(--hover); }
+.share-av { width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-strong); font-weight: 700; font-size: 16px; }
+.share-av img { width: 100%; height: 100%; object-fit: cover; }
+.share-av-link { background: var(--surface-2); color: var(--text-soft); }
+.share-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+.share-nome { font-weight: 600; font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.share-user { font-size: 12.5px; color: var(--text-faint); }
+.share-envia { color: var(--accent); font-weight: 700; font-size: 13px; flex-shrink: 0; }
+.share-copiar { border-top: 1px solid var(--line); border-radius: 0 0 12px 12px; margin-top: 4px; padding-top: 12px; }
+@media (max-width: 899px) {
+  .sheet-share { align-items: end; justify-items: stretch; padding: 0; }
+  .sheet-share .modal-card {
+    max-width: none; width: 100%; max-height: 80dvh;
+    border-radius: 20px 20px 0 0; border-left: none; border-right: none; border-bottom: none;
+    padding: 8px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    animation: sheet-sobe 0.32s var(--ease-out);
+  }
+}
+
+/* --- Navegação inferior flutuante, em pílula (como o app do Instagram) --- */
+@media (max-width: 899px) {
+  .barra-inferior {
+    left: 14px; right: 14px; bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    height: 60px; padding-bottom: 0;
+    border: 1px solid var(--line); border-radius: 999px;
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.45);
+  }
+  [data-theme='dark'] .barra-inferior { background: color-mix(in srgb, var(--surface) 82%, transparent); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+  .container { padding-bottom: calc(94px + env(safe-area-inset-bottom, 0px)); }
+  .pf-salvar { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+  .toast-ui { bottom: calc(88px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (max-width: 720px) {
+  .direct { height: calc(100dvh - 168px - env(safe-area-inset-bottom, 0px)); }
+}
+.bi-item.ativo::after {
+  content: ''; position: absolute; left: 50%; top: 50%; width: 46px; height: 46px;
+  transform: translate(-50%, -50%); border-radius: 50%; z-index: -1;
+  background: color-mix(in srgb, var(--ouro) 14%, transparent);
+}
+.bi-badge { border-color: transparent; }
+
 /* --- Acessibilidade: nada disso roda para quem prefere menos movimento --- */
 @media (prefers-reduced-motion: reduce) {
   .dm-msgs .dm-bolha, .tw-acao svg, .bi-item.ativo svg, .story-ring,
-  .emoji-painel, .mencao-lista, .notif-dot, .alerta { animation: none !important; }
+  .emoji-painel, .mencao-lista, .notif-dot, .alerta,
+  .tw-comentarios-bloco, .sheet-share .modal-card, .sheet-emoji { animation: none !important; }
   ::view-transition-old(root), ::view-transition-new(root) { animation: none !important; }
 }

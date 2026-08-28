@@ -1817,6 +1817,7 @@ html.mini #loader .anjo .anjo-traco { display: none; }
 .ig-user { font-weight: 700; font-size: 14px; color: var(--text); }
 .ig-user:hover { color: var(--text); }
 .ig-tempo { color: var(--text-faint); font-size: 12.5px; }
+.ig-tempo::before { content: '· '; }
 .ig-post .tw-post-midia { margin-top: 0; border-radius: 14px; }
 .ig-post .tw-post-midia img { max-height: 560px; }
 .ig-acoes { display: flex; justify-content: flex-start; gap: 8px; max-width: none; margin: 4px 0 0 -6px; padding: 2px 0; }
@@ -1827,6 +1828,8 @@ html.mini #loader .anjo .anjo-traco { display: none; }
 .ig-curtidas strong { font-weight: 700; }
 .ig-legenda { margin-top: 3px; font-size: 14.5px; }
 .ig-legenda .ig-user { margin-right: 5px; }
+/* Post só de texto: o texto é o conteúdo (estilo Threads), não uma legenda miúda */
+.ig-texto { margin: 0 0 2px; font-size: 16px; line-height: 1.5; letter-spacing: -0.005em; }
 .ig-vercoments {
   display: block; background: none; border: none; padding: 6px 0 0;
   font: inherit; font-size: 13.5px; color: var(--text-faint); cursor: pointer; text-align: left;

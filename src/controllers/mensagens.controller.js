@@ -18,6 +18,7 @@ const sorteioService = require('../services/sorteio.service');
 const mensagemService = require('../services/mensagem.service');
 const dmService = require('../services/mensagemDireta.service');
 const usuarioModel = require('../models/usuario.model');
+const postModel = require('../models/post.model');
 
 const MSG = {
   SEM_CAMPANHA: 'Nenhuma campanha em andamento.',
@@ -104,6 +105,8 @@ async function renderInbox(req, res, sel) {
     }
   }
 
+  if (conversa && conversa.mensagens) await anexarPreviasDePost(conversa.mensagens, me);
+
   res.render('mensagens/index', {
     titulo: 'Mensagens',
     semCampanha: !ctx.campanha,
@@ -114,6 +117,25 @@ async function renderInbox(req, res, sel) {
     conversa,
     limite: mensagemService.LIMITE,
   });
+}
+
+// Mensagem com link de publicação do mural (/p/ID) vira um cartão de preview na
+// bolha — como compartilhar post no Direct do Instagram.
+async function anexarPreviasDePost(mensagens, me) {
+  const cache = {};
+  for (const m of mensagens) {
+    const match = /\/p\/(\d+)/.exec(m.texto || '');
+    if (!match) continue;
+    const id = Number(match[1]);
+    if (!(id in cache)) cache[id] = await postModel.buscarFeedUm(id, me).catch(() => null);
+    if (!cache[id]) continue;
+    m.postPrev = cache[id];
+    // O que sobra da mensagem além do link (se só mandou o post, a bolha mostra só o cartão)
+    m.textoSemLink = m.texto
+      .replace(/Olha esse post do mural:\s*/i, '')
+      .replace(/https?:\/\/\S*\/p\/\d+\S*/g, '')
+      .trim();
+  }
 }
 
 const getInbox = (req, res, next) => renderInbox(req, res, null).catch(next);
@@ -142,8 +164,13 @@ async function postDireta(req, res, next) {
     const me = req.session.usuario.id_usuario;
     const id = Number(req.params.id);
     const imagem = req.file ? '/uploads/' + req.file.filename : null;
+    const ajax = (req.get('x-requested-with') || '') === 'fetch';
     const r = await dmService.enviar(me, id, req.body.mensagem, imagem);
-    if (!r.ok) req.session.flash = { erro: MSG[r.motivo] || 'Não foi possível enviar.' };
+    if (!r.ok) {
+      if (ajax) return res.status(400).json({ erro: MSG[r.motivo] || 'Não foi possível enviar.' });
+      req.session.flash = { erro: MSG[r.motivo] || 'Não foi possível enviar.' };
+    }
+    if (ajax) return res.json({ ok: true });
     res.redirect('/mensagens/u/' + id);
   } catch (err) { next(err); }
 }

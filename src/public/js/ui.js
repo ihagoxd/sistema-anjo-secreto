@@ -16,22 +16,33 @@
     function escaparHtml(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
     function comMencoesJs(t) { return escaparHtml(t).replace(/@([a-zA-Z0-9_.]{2,})/g, '<a href="/u/$1" class="mencao">@$1</a>'); }
 
-    // Abrir/fechar o bloco de comentários ao tocar no ícone
+    // Abrir/fechar comentários: no celular vira gaveta (trava o scroll do fundo,
+    // teclado só abre quando a pessoa toca no campo); no desktop segue inline.
+    var mqCel = window.matchMedia('(max-width: 899px)');
+    function ehGaveta(bloco) { return mqCel.matches && !bloco.closest('.tw-post-det'); }
+    function abrirComentarios(bloco, btn) {
+      bloco.removeAttribute('hidden');
+      if (btn) btn.setAttribute('aria-expanded', 'true');
+      if (ehGaveta(bloco)) {
+        document.body.classList.add('sem-scroll');
+      } else {
+        var inp = bloco.querySelector('.tw-reply input[name="texto"]');
+        if (inp) window.setTimeout(function () { inp.focus(); }, 50);
+      }
+    }
+    function fecharComentarios(bloco, btn) {
+      bloco.setAttribute('hidden', '');
+      if (btn) btn.setAttribute('aria-expanded', 'false');
+      document.body.classList.remove('sem-scroll');
+    }
     document.addEventListener('click', function (e) {
       var btn = e.target.closest('[data-comentarios]');
       if (!btn) return;
       var id = btn.getAttribute('data-comentarios');
       var bloco = document.querySelector('.tw-comentarios-bloco[data-bloco="' + id + '"]');
       if (!bloco) return;
-      if (bloco.hasAttribute('hidden')) {
-        bloco.removeAttribute('hidden');
-        btn.setAttribute('aria-expanded', 'true');
-        var inp = bloco.querySelector('.tw-reply input[name="texto"]');
-        if (inp) window.setTimeout(function () { inp.focus(); }, 50);
-      } else {
-        bloco.setAttribute('hidden', '');
-        btn.setAttribute('aria-expanded', 'false');
-      }
+      if (bloco.hasAttribute('hidden')) abrirComentarios(bloco, btn);
+      else fecharComentarios(bloco, btn);
     });
 
     // Emojis rápidos da folha de comentários: adiciona no campo de resposta
@@ -50,7 +61,7 @@
     document.addEventListener('keydown', function (e) {
       if (e.key !== 'Escape') return;
       document.querySelectorAll('.tw-post:not(.tw-post-det) .tw-comentarios-bloco:not([hidden])')
-        .forEach(function (b) { b.setAttribute('hidden', ''); });
+        .forEach(function (b) { fecharComentarios(b); });
     });
 
     // Responder via AJAX: adiciona o comentário na hora, sem recarregar a página
@@ -656,11 +667,25 @@
         else copiarLink(shareUrl);
         return;
       }
-      // Enviar no Direct: abre a conversa com a mensagem já preenchida (a pessoa confirma o envio)
+      // Enviar no Direct: manda o post na hora, sem sair do mural (como no Instagram).
+      // No chat, o link vira um cartão de preview da publicação.
       var dm = e.target.closest('[data-share-dm]');
       if (dm && shareUrl) {
-        location.href = '/mensagens/u/' + dm.getAttribute('data-share-dm') +
-          '?texto=' + encodeURIComponent('Olha esse post do mural: ' + shareUrl);
+        dm.disabled = true;
+        var corpo = new URLSearchParams();
+        corpo.set('mensagem', shareUrl);
+        fetch('/mensagens/u/' + dm.getAttribute('data-share-dm'), {
+          method: 'POST',
+          headers: { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch' },
+          body: corpo
+        })
+          .then(function (r) { if (!r.ok) throw new Error('falhou'); return r.json(); })
+          .then(function () {
+            var rot = dm.querySelector('.share-envia');
+            if (rot) rot.textContent = 'Enviado ✓';
+            toast('Post enviado no Direct! ✈️');
+          })
+          .catch(function () { dm.disabled = false; toast('Não foi possível enviar.'); });
         return;
       }
       var cp = e.target.closest('[data-share-copiar]');

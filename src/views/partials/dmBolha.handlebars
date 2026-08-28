@@ -1,6 +1,19 @@
 <div class="dm-bolha {{#if this.minha}}minha{{else}}deles{{/if}}{{#if this.imagem}} tem-img{{/if}}" data-id="{{this.id_mensagem}}">
   {{#if this.imagem}}<div class="dm-bolha-img tw-post-midia" data-img="{{this.imagem}}" role="button" tabindex="0" aria-label="Ampliar imagem"><img src="{{this.imagem}}" alt="Foto" draggable="false"></div>{{/if}}
-  {{#if this.texto}}<div class="dm-bolha-txt">{{this.texto}}</div>{{/if}}
+  {{#if this.postPrev}}
+    <a class="dm-postprev" href="/p/{{this.postPrev.id_post}}">
+      <span class="dm-postprev-cab">
+        <span class="dm-postprev-av">{{#if this.postPrev.foto_perfil}}<img src="{{this.postPrev.foto_perfil}}" alt="">{{else}}{{inicial this.postPrev.nome}}{{/if}}</span>
+        <span class="dm-postprev-user">{{this.postPrev.usuario}}</span>
+      </span>
+      {{#if this.postPrev.imagem}}<img class="dm-postprev-img" src="{{this.postPrev.imagem}}" alt="">{{/if}}
+      {{#if this.postPrev.texto}}<span class="dm-postprev-txt">{{this.postPrev.texto}}</span>{{/if}}
+      <span class="dm-postprev-ver">Ver publicação</span>
+    </a>
+    {{#if this.textoSemLink}}<div class="dm-bolha-txt">{{this.textoSemLink}}</div>{{/if}}
+  {{else}}
+    {{#if this.texto}}<div class="dm-bolha-txt">{{this.texto}}</div>{{/if}}
+  {{/if}}
   <div class="dm-bolha-meta">
     <span class="dm-hora">{{tempoRel this.criado_em}}</span>
     <span class="dm-editada"{{#unless this.editado_em}} hidden{{/unless}}>(editada)</span>

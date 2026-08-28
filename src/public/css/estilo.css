@@ -1890,11 +1890,13 @@ html.mini #loader .anjo .anjo-traco { display: none; }
     box-shadow: 0 -18px 50px rgba(0, 0, 0, 0.4);
     animation: sheet-sobe 0.32s var(--ease-out);
   }
-  /* Fundo escurecido REAL: bloqueia o feed atrás e fecha a gaveta ao tocar */
-  .tw-post:not(.tw-post-det) .tw-comentarios-bloco:not([hidden]) .sheet-fundo {
-    display: block; position: fixed; inset: 0; z-index: -1;
+  /* Fundo escurecido REAL: bloqueia o feed atrás e fecha a gaveta ao tocar.
+     É IRMÃO da gaveta (não filho) para escurecer na hora — dentro dela, herdaria
+     a animação de subida e o escuro demoraria a cobrir a tela. */
+  .tw-post:not(.tw-post-det) .tw-comentarios-bloco:not([hidden]) + .sheet-fundo {
+    display: block; position: fixed; inset: 0; z-index: 255;
     background: rgba(4, 6, 12, 0.55); cursor: default;
-    animation: modal-bg 0.25s ease both;
+    animation: modal-bg 0.18s ease both;
   }
   .tw-post:not(.tw-post-det) .tw-comentarios-bloco:not([hidden]) .sheet-cab { display: block; }
   .tw-post:not(.tw-post-det) .tw-comentarios-bloco:not([hidden]) .tw-comentarios { flex: 1; overflow-y: auto; min-height: 0; }

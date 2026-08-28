@@ -44,7 +44,6 @@
   {{/unless}}
 
   <div class="tw-comentarios-bloco" data-bloco="{{this.id_post}}"{{#unless @root.detalhe}} hidden{{/unless}}>
-    <div class="sheet-fundo" data-comentarios="{{this.id_post}}" aria-hidden="true"></div>
     <div class="sheet-cab">
       <span class="sheet-grab" aria-hidden="true"></span>
       <span class="sheet-titulo">Comentários</span>
@@ -89,4 +88,5 @@
       <button type="submit" class="btn btn-primario btn-sm">Enviar</button>
     </form>
   </div>
+  <div class="sheet-fundo" data-comentarios="{{this.id_post}}" aria-hidden="true"></div>
 </article>

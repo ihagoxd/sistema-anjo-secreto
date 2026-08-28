@@ -20,13 +20,13 @@ const LIMITE = 1000;
 /**
  * Envia uma mensagem. alvo: 'protegido' | 'anjo'.
  */
-async function enviarMensagemAnonima(idCampanha, idRemetente, alvo, texto, imagem = null) {
+async function enviarMensagemAnonima(idCampanha, idRemetente, alvo, texto, imagem = null, audio = null) {
   const campanha = await campanhaModel.buscarPorId(idCampanha);
   if (!campanha) return { ok: false, motivo: 'SEM_CAMPANHA' };
   if (campanha.status !== 'EM_ANDAMENTO') return { ok: false, motivo: 'NAO_ATIVA' };
 
   const mensagem = String(texto || '').trim() || null;
-  if (!mensagem && !imagem) return { ok: false, motivo: 'VAZIA' };
+  if (!mensagem && !imagem && !audio) return { ok: false, motivo: 'VAZIA' };
   if (mensagem && mensagem.length > LIMITE) return { ok: false, motivo: 'LONGA' };
 
   let destino;
@@ -45,7 +45,7 @@ async function enviarMensagemAnonima(idCampanha, idRemetente, alvo, texto, image
     return { ok: false, motivo: 'ALVO_INVALIDO' };
   }
 
-  await mensagemModel.inserir({ idCampanha, idOrigem: idRemetente, idDestino: destino, tipo, mensagem, imagem });
+  await mensagemModel.inserir({ idCampanha, idOrigem: idRemetente, idDestino: destino, tipo, mensagem, imagem, audio });
   await notificacaoService.notificarMensagemJogo(destino, alvo);
   return { ok: true };
 }
@@ -62,7 +62,7 @@ function classificarMensagens(rows, idUsuario) {
   const comAnjo = [];
   for (const r of rows) {
     const minha = r.id_usuario_origem === idUsuario;
-    const item = { id_mensagem: r.id_mensagem, minha, texto: r.mensagem, imagem: r.imagem, editado_em: r.editado_em, criado_em: r.criado_em };
+    const item = { id_mensagem: r.id_mensagem, minha, texto: r.mensagem, imagem: r.imagem, audio: r.audio, editado_em: r.editado_em, criado_em: r.criado_em };
     if (r.tipo_mensagem === 'ANJO_PARA_PROTEGIDO') {
       (minha ? comProtegido : comAnjo).push(item);
     } else {

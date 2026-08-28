@@ -19,18 +19,18 @@ async function alvoValido(idUsuario) {
 /**
  * Envia uma DM (texto e/ou imagem). Retorna { ok } ou { ok:false, motivo }.
  */
-async function enviar(idRemetente, idDestinatario, texto, imagem = null) {
+async function enviar(idRemetente, idDestinatario, texto, imagem = null, audio = null) {
   idDestinatario = Number(idDestinatario);
   if (!idDestinatario || idDestinatario === idRemetente) return { ok: false, motivo: 'ALVO_INVALIDO' };
 
   const texto2 = String(texto || '').trim() || null;
-  if (!texto2 && !imagem) return { ok: false, motivo: 'VAZIA' };
+  if (!texto2 && !imagem && !audio) return { ok: false, motivo: 'VAZIA' };
   if (texto2 && texto2.length > LIMITE) return { ok: false, motivo: 'LONGA' };
 
   const alvo = await alvoValido(idDestinatario);
   if (!alvo) return { ok: false, motivo: 'ALVO_INVALIDO' };
 
-  await dmModel.inserir({ idRemetente, idDestinatario, texto: texto2, imagem });
+  await dmModel.inserir({ idRemetente, idDestinatario, texto: texto2, imagem, audio });
   await notificacaoService.notificarMensagemDireta(idDestinatario, idRemetente);
   return { ok: true };
 }
@@ -43,6 +43,7 @@ async function listarConversaCom(idUsuario, idOutro) {
     minha: r.id_remetente === idUsuario,
     texto: r.texto,
     imagem: r.imagem,
+    audio: r.audio,
     editado_em: r.editado_em,
     criado_em: r.criado_em,
   }));

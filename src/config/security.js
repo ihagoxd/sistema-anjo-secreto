@@ -33,6 +33,7 @@ function helmetMiddleware() {
         scriptSrc: ["'self'", (req, res) => `'nonce-${res.locals.cspNonce}'`],
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", 'data:', 'blob:'],
+        mediaSrc: ["'self'", 'blob:'],
         connectSrc: ["'self'"],
         fontSrc: ["'self'", 'data:'],
         objectSrc: ["'none'"],

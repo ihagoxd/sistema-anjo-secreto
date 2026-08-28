@@ -6,12 +6,12 @@
  */
 const db = require('../config/db');
 
-async function inserir({ idCampanha, idOrigem, idDestino, tipo, mensagem, imagem = null }) {
+async function inserir({ idCampanha, idOrigem, idDestino, tipo, mensagem, imagem = null, audio = null }) {
   const res = await db.query(
-    `INSERT INTO mensagens_anonimas (id_campanha, id_usuario_origem, id_usuario_destino, tipo_mensagem, mensagem, imagem)
-     VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO mensagens_anonimas (id_campanha, id_usuario_origem, id_usuario_destino, tipo_mensagem, mensagem, imagem, audio)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
      RETURNING id_mensagem, criado_em`,
-    [idCampanha, idOrigem, idDestino, tipo, mensagem, imagem]
+    [idCampanha, idOrigem, idDestino, tipo, mensagem, imagem, audio]
   );
   return res.rows[0];
 }
@@ -19,7 +19,7 @@ async function inserir({ idCampanha, idOrigem, idDestino, tipo, mensagem, imagem
 // Todas as mensagens (não arquivadas) da campanha em que o usuário participa (origem ou destino).
 async function listarConversa(idCampanha, idUsuario) {
   const res = await db.query(
-    `SELECT id_mensagem, id_usuario_origem, id_usuario_destino, tipo_mensagem, mensagem, imagem, lida, editado_em, criado_em
+    `SELECT id_mensagem, id_usuario_origem, id_usuario_destino, tipo_mensagem, mensagem, imagem, audio, lida, editado_em, criado_em
        FROM mensagens_anonimas
       WHERE id_campanha = $1 AND arquivada = FALSE
         AND ($2 IN (id_usuario_origem, id_usuario_destino))

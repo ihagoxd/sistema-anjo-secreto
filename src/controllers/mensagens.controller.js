@@ -144,14 +144,25 @@ const getProtegido = (req, res, next) => renderInbox(req, res, { tipo: 'protegid
 const getDireta = (req, res, next) => renderInbox(req, res, { tipo: 'u', id: Number(req.params.id), prefill: req.query.texto }).catch(next);
 
 // ---------- Envio ----------
+// Mídia opcional da mensagem (multer .fields): imagem e/ou áudio de voz.
+function midiaDaRequisicao(req) {
+  const um = (campo) => (req.files && req.files[campo] && req.files[campo][0]) || null;
+  const img = um('imagem');
+  const aud = um('audio');
+  return {
+    imagem: img ? '/uploads/' + img.filename : null,
+    audio: aud ? '/uploads/' + aud.filename : null,
+  };
+}
+
 async function enviarJogo(req, res, next, alvo) {
   try {
     const me = req.session.usuario.id_usuario;
     const campanha = await campanhaService.buscarCampanhaAtiva();
     const destino = '/mensagens/' + alvo;
-    const imagem = req.file ? '/uploads/' + req.file.filename : null;
+    const { imagem, audio } = midiaDaRequisicao(req);
     if (!campanha) { req.session.flash = { erro: MSG.SEM_CAMPANHA }; return res.redirect(destino); }
-    const r = await mensagemService.enviarMensagemAnonima(campanha.id_campanha, me, alvo, req.body.mensagem, imagem);
+    const r = await mensagemService.enviarMensagemAnonima(campanha.id_campanha, me, alvo, req.body.mensagem, imagem, audio);
     if (!r.ok) req.session.flash = { erro: MSG[r.motivo] || 'Não foi possível enviar.' };
     res.redirect(destino);
   } catch (err) { next(err); }
@@ -163,9 +174,9 @@ async function postDireta(req, res, next) {
   try {
     const me = req.session.usuario.id_usuario;
     const id = Number(req.params.id);
-    const imagem = req.file ? '/uploads/' + req.file.filename : null;
+    const { imagem, audio } = midiaDaRequisicao(req);
     const ajax = (req.get('x-requested-with') || '') === 'fetch';
-    const r = await dmService.enviar(me, id, req.body.mensagem, imagem);
+    const r = await dmService.enviar(me, id, req.body.mensagem, imagem, audio);
     if (!r.ok) {
       if (ajax) return res.status(400).json({ erro: MSG[r.motivo] || 'Não foi possível enviar.' });
       req.session.flash = { erro: MSG[r.motivo] || 'Não foi possível enviar.' };

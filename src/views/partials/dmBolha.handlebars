@@ -1,5 +1,16 @@
 <div class="dm-bolha {{#if this.minha}}minha{{else}}deles{{/if}}{{#if this.imagem}} tem-img{{/if}}" data-id="{{this.id_mensagem}}">
   {{#if this.imagem}}<div class="dm-bolha-img tw-post-midia" data-img="{{this.imagem}}" role="button" tabindex="0" aria-label="Ampliar imagem"><img src="{{this.imagem}}" alt="Foto" draggable="false"></div>{{/if}}
+  {{#if this.audio}}
+    <div class="dm-audio">
+      <button type="button" class="dm-audio-play" data-audio-play aria-label="Ouvir mensagem de voz">
+        <svg class="ic-play" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="6 3 21 12 6 21"/></svg>
+        <svg class="ic-pause" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></svg>
+      </button>
+      <span class="dm-audio-trilha"><span class="dm-audio-prog"></span></span>
+      <span class="dm-audio-tempo" data-audio-tempo>0:00</span>
+      <audio src="{{this.audio}}" preload="metadata"></audio>
+    </div>
+  {{/if}}
   {{#if this.postPrev}}
     <a class="dm-postprev" href="/p/{{this.postPrev.id_post}}">
       <span class="dm-postprev-cab">

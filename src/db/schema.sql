@@ -155,10 +155,11 @@ CREATE TABLE IF NOT EXISTS mensagens_anonimas (
 );
 ALTER TABLE mensagens_anonimas ADD COLUMN IF NOT EXISTS editado_em TIMESTAMPTZ;
 ALTER TABLE mensagens_anonimas ADD COLUMN IF NOT EXISTS imagem TEXT;
+ALTER TABLE mensagens_anonimas ADD COLUMN IF NOT EXISTS audio TEXT;
 ALTER TABLE mensagens_anonimas ALTER COLUMN mensagem DROP NOT NULL;
 ALTER TABLE mensagens_anonimas DROP CONSTRAINT IF EXISTS mensagens_anonimas_mensagem_check;
 ALTER TABLE mensagens_anonimas DROP CONSTRAINT IF EXISTS ma_conteudo;
-ALTER TABLE mensagens_anonimas ADD CONSTRAINT ma_conteudo CHECK (mensagem IS NOT NULL OR imagem IS NOT NULL);
+ALTER TABLE mensagens_anonimas ADD CONSTRAINT ma_conteudo CHECK (mensagem IS NOT NULL OR imagem IS NOT NULL OR audio IS NOT NULL);
 
 -- ---------- MENSAGENS DIRETAS (Direct do escritório — chat normal, com nome) ----------
 -- Conversa 1:1 entre quaisquer usuários aprovados (fora do canal anônimo anjo/protegido).
@@ -177,10 +178,11 @@ CREATE INDEX IF NOT EXISTS idx_dm_par
 CREATE INDEX IF NOT EXISTS idx_dm_nao_lidas
   ON mensagens_diretas (id_destinatario) WHERE lida = FALSE;
 ALTER TABLE mensagens_diretas ADD COLUMN IF NOT EXISTS imagem TEXT;
+ALTER TABLE mensagens_diretas ADD COLUMN IF NOT EXISTS audio TEXT;
 ALTER TABLE mensagens_diretas ALTER COLUMN texto DROP NOT NULL;
 ALTER TABLE mensagens_diretas DROP CONSTRAINT IF EXISTS mensagens_diretas_texto_check;
 ALTER TABLE mensagens_diretas DROP CONSTRAINT IF EXISTS md_conteudo;
-ALTER TABLE mensagens_diretas ADD CONSTRAINT md_conteudo CHECK (texto IS NOT NULL OR imagem IS NOT NULL);
+ALTER TABLE mensagens_diretas ADD CONSTRAINT md_conteudo CHECK (texto IS NOT NULL OR imagem IS NOT NULL OR audio IS NOT NULL);
 
 -- ---------- NOTIFICAÇÕES ----------
 -- tipo: MENSAGEM | MENSAGEM_ANJO | MENSAGEM_PROTEGIDO | CURTIDA | COMENTARIO | ANIVERSARIO

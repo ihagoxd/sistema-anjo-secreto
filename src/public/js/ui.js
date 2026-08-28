@@ -762,6 +762,155 @@
     });
   })();
 
+  /* ---------- Direct: mensagem de voz (mic vira "enviar" ao digitar, como no WhatsApp) ---------- */
+  (function () {
+    var form = document.querySelector('.dm-composer');
+    if (!form) return;
+    var ta = form.querySelector('textarea[data-texto]');
+    var btnEnviar = form.querySelector('[data-btn-enviar]');
+    var btnMic = form.querySelector('[data-gravar]');
+    var foto = form.querySelector('[data-foto]');
+    var linhaNormal = form.querySelector('[data-linha-normal]');
+    var linhaGrav = form.querySelector('[data-linha-gravando]');
+    var tempoEl = form.querySelector('[data-grav-tempo]');
+    var inputAudio = form.querySelector('[data-audio-input]');
+    if (!ta || !btnEnviar || !btnMic || !linhaGrav || !inputAudio) return;
+
+    // Mic quando vazio; botão de enviar quando tem texto ou foto anexada
+    function alternar() {
+      var temAlgo = !!ta.value.trim() || !!(foto && foto.files && foto.files.length);
+      btnEnviar.hidden = !temAlgo;
+      btnMic.hidden = temAlgo;
+    }
+    ta.addEventListener('input', alternar);
+    if (foto) foto.addEventListener('change', alternar);
+    alternar();
+
+    // Forma de onda animada (estilo WhatsApp) — barrinhas criadas uma vez
+    var onda = form.querySelector('.dm-onda');
+    if (onda && !onda.childElementCount) {
+      for (var i = 0; i < 26; i++) onda.appendChild(document.createElement('span'));
+    }
+
+    var rec = null, pedacos = [], stream = null, timer = null, t0 = 0, decorrido = 0, enviarAoParar = false;
+    function fmt(s) { var m = Math.floor(s / 60), ss = Math.floor(s % 60); return m + ':' + (ss < 10 ? '0' : '') + ss; }
+    function tempoTotal() { return decorrido + (rec && rec.state === 'recording' ? Date.now() - t0 : 0); }
+    function pararTudo() {
+      if (timer) clearInterval(timer);
+      timer = null;
+      if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
+      stream = null;
+      linhaGrav.classList.remove('pausada');
+    }
+    function mostrarGravando(mostra) { linhaNormal.hidden = mostra; linhaGrav.hidden = !mostra; }
+
+    btnMic.addEventListener('click', function () {
+      // Sem getUserMedia (ex.: HTTP na rede interna): cai no gravador/arquivo do sistema
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
+        inputAudio.click();
+        return;
+      }
+      navigator.mediaDevices.getUserMedia({ audio: true }).then(function (s) {
+        stream = s; pedacos = []; enviarAoParar = false; decorrido = 0;
+        var opts = {};
+        if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) opts.mimeType = 'audio/webm;codecs=opus';
+        else if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported('audio/mp4')) opts.mimeType = 'audio/mp4';
+        rec = new MediaRecorder(s, opts);
+        var base = (rec.mimeType || 'audio/webm').split(';')[0];
+        rec.ondataavailable = function (ev) { if (ev.data && ev.data.size) pedacos.push(ev.data); };
+        rec.onstop = function () {
+          pararTudo();
+          mostrarGravando(false);
+          if (!enviarAoParar || !pedacos.length) { pedacos = []; return; }
+          var blob = new Blob(pedacos, { type: base });
+          try {
+            var ext = base === 'audio/mp4' ? '.m4a' : base === 'audio/ogg' ? '.ogg' : '.webm';
+            var dt = new DataTransfer();
+            dt.items.add(new File([blob], 'voz' + ext, { type: base }));
+            inputAudio.files = dt.files;
+            form.submit();
+          } catch (x) { toast('Não foi possível preparar o áudio.'); }
+        };
+        rec.start(250);
+        t0 = Date.now();
+        tempoEl.textContent = '0:00';
+        mostrarGravando(true);
+        timer = setInterval(function () {
+          var seg = tempoTotal() / 1000;
+          tempoEl.textContent = fmt(seg);
+          if (seg >= 120 && rec.state !== 'inactive') { enviarAoParar = true; rec.stop(); } // máx. 2 min
+        }, 250);
+      }).catch(function () { toast('Não consegui acessar o microfone.'); });
+    });
+    form.querySelector('[data-grav-cancelar]').addEventListener('click', function () {
+      if (rec && rec.state !== 'inactive') { enviarAoParar = false; rec.stop(); }
+      else { pararTudo(); mostrarGravando(false); }
+    });
+    form.querySelector('[data-grav-enviar]').addEventListener('click', function () {
+      if (rec && rec.state !== 'inactive') { enviarAoParar = true; rec.stop(); }
+    });
+    // Pausar/retomar (como no WhatsApp): a onda congela e o tempo para de contar
+    var btnPausa = form.querySelector('[data-grav-pausa]');
+    if (btnPausa) btnPausa.addEventListener('click', function () {
+      if (!rec) return;
+      if (rec.state === 'recording' && rec.pause) {
+        rec.pause();
+        decorrido += Date.now() - t0;
+        linhaGrav.classList.add('pausada');
+      } else if (rec.state === 'paused' && rec.resume) {
+        rec.resume();
+        t0 = Date.now();
+        linhaGrav.classList.remove('pausada');
+      }
+    });
+    // Fallback sem getUserMedia: o arquivo escolhido/gravado pelo sistema é enviado direto
+    inputAudio.addEventListener('change', function () {
+      if (inputAudio.files && inputAudio.files.length) form.submit();
+    });
+  })();
+
+  /* ---------- Player das mensagens de voz ---------- */
+  (function () {
+    function fmt(s) { var m = Math.floor(s / 60), ss = Math.floor(s % 60); return m + ':' + (ss < 10 ? '0' : '') + ss; }
+    document.querySelectorAll('.dm-audio').forEach(function (box) {
+      var au = box.querySelector('audio');
+      var prog = box.querySelector('.dm-audio-prog');
+      var tempo = box.querySelector('[data-audio-tempo]');
+      var trilha = box.querySelector('.dm-audio-trilha');
+      function dur() { return isFinite(au.duration) && au.duration > 0 ? au.duration : 0; }
+      au.addEventListener('loadedmetadata', function () { if (dur()) tempo.textContent = fmt(dur()); });
+      au.addEventListener('timeupdate', function () {
+        var d = dur();
+        if (d) prog.style.width = (au.currentTime / d) * 100 + '%';
+        tempo.textContent = fmt(au.currentTime);
+      });
+      au.addEventListener('play', function () {
+        document.querySelectorAll('.dm-audio audio').forEach(function (o) { if (o !== au) o.pause(); });
+        box.classList.add('tocando');
+      });
+      au.addEventListener('pause', function () { box.classList.remove('tocando'); });
+      au.addEventListener('ended', function () {
+        box.classList.remove('tocando');
+        prog.style.width = '0%';
+        au.currentTime = 0;
+        if (dur()) tempo.textContent = fmt(dur());
+      });
+      trilha.addEventListener('click', function (ev) {
+        var d = dur();
+        if (!d) return;
+        var r = trilha.getBoundingClientRect();
+        au.currentTime = Math.max(0, Math.min(1, (ev.clientX - r.left) / r.width)) * d;
+      });
+    });
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-audio-play]');
+      if (!b) return;
+      var au = b.closest('.dm-audio').querySelector('audio');
+      if (au.paused) au.play();
+      else au.pause();
+    });
+  })();
+
   /* ---------- Direct (mensagens): Enter envia, auto-scroll, editar ---------- */
   (function () {
     var msgs = document.getElementById('dmMsgs');

@@ -21,11 +21,13 @@
           <td data-label="Ações" class="td-acoes">
             <div class="tab-acoes">
               <a href="/admin/campanhas/{{this.id_campanha}}" class="btn btn-secundario btn-sm">Abrir</a>
-              <form action="/admin/campanhas/{{this.id_campanha}}/apagar" method="POST"
-                    data-confirmar="Apagar a campanha &quot;{{this.nome}}&quot;? Isso remove o sorteio, os participantes e as mensagens do jogo. Não dá para desfazer.">
-                {{#if @root.csrfToken}}<input type="hidden" name="_csrf" value="{{@root.csrfToken}}">{{/if}}
-                <button type="submit" class="btn btn-perigo btn-sm">Apagar</button>
-              </form>
+              {{#unless (eq this.status "EM_ANDAMENTO")}}
+                <form action="/admin/campanhas/{{this.id_campanha}}/apagar" method="POST"
+                      data-confirmar="Apagar a campanha &quot;{{this.nome}}&quot;? Isso remove o sorteio, os participantes e as mensagens do jogo. Não dá para desfazer.">
+                  {{#if @root.csrfToken}}<input type="hidden" name="_csrf" value="{{@root.csrfToken}}">{{/if}}
+                  <button type="submit" class="btn btn-perigo btn-sm">Apagar</button>
+                </form>
+              {{/unless}}
             </div>
           </td>
         </tr>

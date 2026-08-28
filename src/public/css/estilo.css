@@ -2102,6 +2102,16 @@ html.mini #loader .anjo .anjo-traco { display: none; }
 }
 .anexo-item video { max-height: 160px; max-width: 220px; border-radius: 12px; border: 1px solid var(--line); display: block; }
 
+/* --- Admin: campanha do mês em 1 clique + logs compactos --- */
+.camp-mes { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+.camp-mes-txt { flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 3px; }
+.camp-mes-txt strong { font-size: 15.5px; }
+.camp-mes-txt .texto-suave { font-size: 13px; }
+.camp-mes .btn { flex-shrink: 0; }
+@media (max-width: 560px) { .camp-mes .btn { width: 100%; } }
+.log-lista .atv-txt { gap: 4px 8px; }
+.log-det { color: var(--text-soft); font-size: 13px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+
 /* --- Acessibilidade: nada disso roda para quem prefere menos movimento --- */
 @media (prefers-reduced-motion: reduce) {
   .dm-msgs .dm-bolha, .tw-acao svg, .bi-item.ativo svg, .story-ring,

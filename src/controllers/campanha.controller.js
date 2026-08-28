@@ -8,6 +8,7 @@ const { registrarLog } = require('../services/log.service');
 const MSG = {
   NOME: 'Dê um nome à campanha (mínimo 2 caracteres).',
   NAO_ENCONTRADA: 'Campanha não encontrada.',
+  EM_ANDAMENTO: 'A campanha está em andamento — encerre antes de apagar.',
   ENCERRADA: 'Campanha encerrada não pode ser editada.',
   JA_ENCERRADA: 'Esta campanha já está encerrada.',
 };
@@ -29,7 +30,9 @@ function flash(req, tipo, msg) {
 async function getLista(req, res, next) {
   try {
     const campanhas = await campanhaService.listarCampanhas();
-    res.render('admin/campanhas', { titulo: 'Campanhas', campanhas, sugestao: sugestaoNome() });
+    // Campanha "em aberto" (rascunho ou em andamento): o botão de criar dá lugar ao atalho dela.
+    const aberta = campanhas.find((c) => c.status !== 'ENCERRADA') || null;
+    res.render('admin/campanhas', { titulo: 'Campanhas', campanhas, aberta, sugestao: sugestaoNome() });
   } catch (err) {
     next(err);
   }
@@ -37,8 +40,16 @@ async function getLista(req, res, next) {
 
 async function postCriar(req, res, next) {
   try {
-    const r = await campanhaService.criarCampanha({ nome: req.body.nome, descricao: req.body.descricao });
+    // Um clique: sem nome no corpo, a campanha nasce configurada com o nome do mês.
+    const r = await campanhaService.criarCampanha({
+      nome: req.body.nome || sugestaoNome(),
+      descricao: req.body.descricao,
+    });
     if (!r.ok) {
+      if (r.motivo === 'JA_EXISTE') {
+        flash(req, 'erro', `A campanha "${r.campanha.nome}" ainda está em aberto — encerre-a antes de criar a próxima.`);
+        return res.redirect(`/admin/campanhas/${r.campanha.id_campanha}`);
+      }
       flash(req, 'erro', MSG[r.motivo] || 'Não foi possível criar a campanha.');
       return res.redirect('/admin/campanhas');
     }

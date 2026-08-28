@@ -6,23 +6,20 @@
   <a href="/admin" class="btn btn-secundario btn-sm">Voltar</a>
 </div>
 
-<div class="tabela-wrap">
-  <table class="tabela">
-    <thead>
-      <tr><th>Quando</th><th>Usuário</th><th>Ação</th><th>Detalhe</th><th>IP</th></tr>
-    </thead>
-    <tbody>
-      {{#each logs}}
-        <tr>
-          <td data-label="Quando">{{formatarData this.criado_em}}</td>
-          <td data-label="Usuário">{{#if this.nome_usuario}}{{this.nome_usuario}}{{else}}<span class="texto-suave">—</span>{{/if}}</td>
-          <td data-label="Ação">{{rotuloAcao this.acao}}</td>
-          <td data-label="Detalhe">{{#if this.descricao}}{{this.descricao}}{{else}}<span class="texto-suave">—</span>{{/if}}</td>
-          <td data-label="IP"><span class="texto-suave">{{this.ip}}</span></td>
-        </tr>
-      {{else}}
-        <tr><td colspan="5" class="texto-suave">Nenhum log ainda.</td></tr>
-      {{/each}}
-    </tbody>
-  </table>
+<div class="card">
+  <ul class="atividade log-lista">
+    {{#each logs}}
+      <li class="atv-item">
+        <span class="atv-dot"></span>
+        <div class="atv-txt">
+          <span class="atv-acao">{{rotuloAcao this.acao}}</span>
+          {{#if this.nome_usuario}}<span class="atv-quem">{{this.nome_usuario}}</span>{{/if}}
+          {{#if this.descricao}}<span class="log-det">{{this.descricao}}</span>{{/if}}
+        </div>
+        <span class="atv-tempo" title="{{formatarData this.criado_em}} · IP {{this.ip}}">{{tempoRel this.criado_em}}</span>
+      </li>
+    {{else}}
+      <li class="atv-item"><span class="texto-suave">Nenhum log ainda.</span></li>
+    {{/each}}
+  </ul>
 </div>

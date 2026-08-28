@@ -6,8 +6,20 @@ const notificacaoService = require('../services/notificacao.service');
 async function getPagina(req, res, next) {
   try {
     const me = req.session.usuario.id_usuario;
-    const itens = await notificacaoService.listar(me, 60);
+    const brutas = await notificacaoService.listar(me, 60);
     await notificacaoService.marcarTodasLidas(me);
+    // Agrupa notificações consecutivas idênticas (mesmo texto/autor) para não poluir a lista:
+    // "Seu anjo te mandou uma mensagem 8×" em vez de oito linhas repetidas.
+    const itens = [];
+    for (const n of brutas) {
+      const ult = itens[itens.length - 1];
+      if (ult && ult.texto === n.texto && ult.ator_nome === n.ator_nome && ult.emoji === n.emoji) {
+        ult.vezes = (ult.vezes || 1) + 1;
+        ult.lida = ult.lida && n.lida;
+      } else {
+        itens.push(Object.assign({}, n));
+      }
+    }
     res.render('notificacoes/index', { titulo: 'Notificações', itens });
   } catch (err) {
     next(err);

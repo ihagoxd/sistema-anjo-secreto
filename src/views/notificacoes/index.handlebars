@@ -15,7 +15,7 @@
         {{else}}{{this.emoji}}{{/if}}
       </span>
       <div class="notif-txt">
-        <span class="notif-linha">{{this.texto}}</span>
+        <span class="notif-linha">{{this.texto}}{{#if this.vezes}} <span class="notif-vezes">{{this.vezes}}×</span>{{/if}}</span>
         <span class="notif-tempo">{{tempoRel this.criado_em}}</span>
       </div>
       {{#unless this.lida}}<span class="notif-dot"></span>{{/unless}}

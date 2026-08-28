@@ -80,7 +80,7 @@ async function renderInbox(req, res, sel) {
       const c = await mensagemService.listarConversa(ctx.campanha.id_campanha, me);
       conversa = { tipo: 'anjo', escopo: 'game', secreto: true, anonimo: true,
         titulo: 'Seu anjo', rotulo: 'anônimo · você não sabe quem é',
-        mensagens: c.comAnjo, action: '/mensagens/anjo', placeholder: 'Escreva para o seu anjo…' };
+        mensagens: c.comAnjo, action: '/mensagens/anjo', placeholder: 'Mensagem…' };
     } else if (sel.tipo === 'protegido' && ctx.participaJogo) {
       await mensagemService.marcarThreadLida(ctx.campanha.id_campanha, me, 'protegido');
       ctx.unread.protegido = 0;
@@ -88,7 +88,7 @@ async function renderInbox(req, res, sel) {
       conversa = { tipo: 'protegido', escopo: 'game', secreto: true,
         titulo: ctx.protegido.nome, rotulo: 'você é o anjo secreto dele(a) 🎭',
         foto: ctx.protegido.foto_perfil, mensagens: c.comProtegido, action: '/mensagens/protegido',
-        placeholder: 'Escreva como anjo secreto (ele[a] não sabe que é você)…' };
+        placeholder: 'Mensagem anônima…' };
     } else if (sel.tipo === 'u') {
       const outro = await usuarioModel.buscarPorId(sel.id);
       if (outro && outro.status === 'APROVADO' && outro.ativo && outro.id_usuario !== me) {

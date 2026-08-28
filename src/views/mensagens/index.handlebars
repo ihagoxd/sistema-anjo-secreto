@@ -98,7 +98,13 @@
         {{#each conversa.mensagens}}
           {{> dmBolha}}
         {{else}}
-          <div class="dm-inicio">Ainda não há mensagens. Diga olá! 👋</div>
+          {{#if (eq conversa.tipo "protegido")}}
+            <div class="dm-inicio">Ainda não há mensagens. Mande um oi anônimo — ele(a) nunca vai saber que é você. 🎁</div>
+          {{else}}{{#if (eq conversa.tipo "anjo")}}
+            <div class="dm-inicio">Ainda não há mensagens. Pergunte algo ao seu anjo — ele responde sem se revelar. 😇</div>
+          {{else}}
+            <div class="dm-inicio">Ainda não há mensagens. Diga olá! 👋</div>
+          {{/if}}{{/if}}
         {{/each}}
       </div>
 

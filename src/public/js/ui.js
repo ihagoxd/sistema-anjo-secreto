@@ -776,14 +776,17 @@
     var inputAudio = form.querySelector('[data-audio-input]');
     if (!ta || !btnEnviar || !btnMic || !linhaGrav || !inputAudio) return;
 
-    // Mic quando vazio; botão de enviar quando tem texto ou foto anexada
+    // Mic quando vazio; botão de enviar quando tem texto, foto ou vídeo anexado
+    var vid = form.querySelector('[data-video]');
+    function temArq(i) { return !!(i && i.files && i.files.length); }
     function alternar() {
-      var temAlgo = !!ta.value.trim() || !!(foto && foto.files && foto.files.length);
+      var temAlgo = !!ta.value.trim() || temArq(foto) || temArq(vid);
       btnEnviar.hidden = !temAlgo;
       btnMic.hidden = temAlgo;
     }
     ta.addEventListener('input', alternar);
     if (foto) foto.addEventListener('change', alternar);
+    if (vid) vid.addEventListener('change', alternar);
     alternar();
 
     // Forma de onda animada (estilo WhatsApp) — barrinhas criadas uma vez
@@ -968,7 +971,8 @@
           e.preventDefault();
           var form = ta.form;
           var fi = form && form.querySelector('[data-foto]');
-          var temFoto = fi && fi.files && fi.files.length;
+          var vi = form && form.querySelector('[data-video]');
+          var temFoto = (fi && fi.files && fi.files.length) || (vi && vi.files && vi.files.length);
           if (form && (ta.value.trim() || temFoto)) {
             if (form.requestSubmit) form.requestSubmit(); else form.submit();
           }
@@ -1118,24 +1122,35 @@
 
   /* ---------- Compositor: emoji + foto + câmera + preview ---------- */
   (function () {
-    // Preview do anexo (imagem escolhida/capturada)
+    // Preview do anexo (imagem OU vídeo escolhido/capturado)
     function mostrarPreview(form) {
       if (!form) return;
-      var input = form.querySelector('[data-foto]');
       var prev = form.querySelector('[data-preview]');
-      if (!input || !prev) return;
-      var f = input.files && input.files[0];
+      if (!prev) return;
       prev.innerHTML = '';
-      if (!f) { prev.hidden = true; return; }
-      var wrap = document.createElement('div'); wrap.className = 'anexo-item';
-      var img = document.createElement('img'); img.src = URL.createObjectURL(f); wrap.appendChild(img);
-      var rm = document.createElement('button'); rm.type = 'button'; rm.className = 'anexo-remover'; rm.setAttribute('aria-label', 'Remover'); rm.innerHTML = '&times;';
-      rm.addEventListener('click', function () { input.value = ''; prev.innerHTML = ''; prev.hidden = true; });
-      wrap.appendChild(rm);
-      prev.appendChild(wrap); prev.hidden = false;
+      var algum = false;
+      [{ sel: '[data-foto]', tag: 'img' }, { sel: '[data-video]', tag: 'video' }].forEach(function (t) {
+        var input = form.querySelector(t.sel);
+        var f = input && input.files && input.files[0];
+        if (!f) return;
+        algum = true;
+        var wrap = document.createElement('div'); wrap.className = 'anexo-item';
+        var el = document.createElement(t.tag);
+        el.src = URL.createObjectURL(f);
+        if (t.tag === 'video') { el.controls = true; el.muted = true; el.playsInline = true; }
+        wrap.appendChild(el);
+        var rm = document.createElement('button'); rm.type = 'button'; rm.className = 'anexo-remover'; rm.setAttribute('aria-label', 'Remover'); rm.innerHTML = '&times;';
+        rm.addEventListener('click', function () {
+          input.value = '';
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+        wrap.appendChild(rm);
+        prev.appendChild(wrap);
+      });
+      prev.hidden = !algum;
     }
     document.addEventListener('change', function (e) {
-      var input = e.target.closest('[data-foto]');
+      var input = e.target.closest('[data-foto], [data-video]');
       if (input) mostrarPreview(input.form);
     });
 
@@ -1202,13 +1217,34 @@
         + '<button type="button" class="cam-flip" data-cam-flip aria-label="Virar câmera (frontal/traseira)">' + FLIP_SVG + '</button>'
         + '</div>'
         + '<div class="cam-zoom" data-cam-zoom hidden>1.0x</div>'
-        + '<div class="cam-barra"><button type="button" class="cam-shutter" data-cam-capturar aria-label="Tirar foto"></button></div>';
+        + '<div class="cam-rec" data-cam-rec hidden><span class="cam-rec-dot"></span><span data-cam-rec-tempo>0:00</span></div>'
+        + '<div class="cam-dica">Toque para foto · segure para vídeo</div>'
+        + '<div class="cam-barra"><button type="button" class="cam-shutter" data-cam-capturar aria-label="Tirar foto ou segurar para gravar vídeo"></button></div>';
       document.body.appendChild(camModal);
       camVideo = camModal.querySelector('video');
       camZoomEl = camModal.querySelector('[data-cam-zoom]');
       camModal.querySelector('[data-cam-cancelar]').addEventListener('click', fecharCamera);
-      camModal.querySelector('[data-cam-capturar]').addEventListener('click', capturar);
       camModal.querySelector('[data-cam-flip]').addEventListener('click', virarCamera);
+
+      // Obturador estilo WhatsApp: toque = foto, segurar = grava vídeo (solta para enviar)
+      var shutter = camModal.querySelector('[data-cam-capturar]');
+      var holdTimer = 0, viaPointer = false;
+      shutter.addEventListener('pointerdown', function (e) {
+        viaPointer = true;
+        try { shutter.setPointerCapture(e.pointerId); } catch (x) {}
+        holdTimer = setTimeout(iniciarVideo, 350);
+      });
+      shutter.addEventListener('pointerup', function () {
+        clearTimeout(holdTimer);
+        if (camRec) pararVideo(true);
+        else capturar();
+        setTimeout(function () { viaPointer = false; }, 400);
+      });
+      shutter.addEventListener('pointercancel', function () {
+        clearTimeout(holdTimer);
+        if (camRec) pararVideo(false);
+      });
+      shutter.addEventListener('click', function () { if (!viaPointer) capturar(); }); // teclado
       document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && camModal && !camModal.hidden) fecharCamera(); });
 
       // Zoom: pinça (2 dedos) + duplo-toque alterna 1x/2x
@@ -1264,10 +1300,63 @@
       }
       aplicarZoomVisual(); atualizarZoomBadge();
     }
-    // Abre o stream na câmera atual (camFacing). Detecta zoom nativo (hardware).
+    // ----- Gravação de vídeo (segurar o obturador) -----
+    var camRec = null, camRecChunks = [], camRecTimer = 0, camRecT0 = 0, camRecEnviar = false;
+    function iniciarVideo() {
+      if (!window.MediaRecorder || !camStream || camRec) return; // sem suporte: soltar tira foto
+      var opts = {};
+      if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')) opts.mimeType = 'video/webm;codecs=vp8,opus';
+      else if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported('video/webm')) opts.mimeType = 'video/webm';
+      else if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported('video/mp4')) opts.mimeType = 'video/mp4';
+      try { camRec = new MediaRecorder(camStream, opts); } catch (x) { camRec = null; return; }
+      camRecChunks = []; camRecEnviar = false;
+      camRec.ondataavailable = function (ev) { if (ev.data && ev.data.size) camRecChunks.push(ev.data); };
+      camRec.onstop = function () {
+        var base = (camRec.mimeType || 'video/webm').split(';')[0];
+        camRec = null;
+        clearInterval(camRecTimer);
+        camModal.querySelector('[data-cam-rec]').hidden = true;
+        camModal.querySelector('[data-cam-capturar]').classList.remove('gravando');
+        if (!camRecEnviar || !camRecChunks.length) { camRecChunks = []; return; }
+        var blob = new Blob(camRecChunks, { type: base });
+        camRecChunks = [];
+        try {
+          var input = camForm && camForm.querySelector('[data-video]');
+          if (!input) return;
+          var dt = new DataTransfer();
+          dt.items.add(new File([blob], base === 'video/mp4' ? 'video.mp4' : 'video.webm', { type: base }));
+          input.files = dt.files;
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        } catch (x) {}
+        fecharCamera();
+      };
+      camRec.start(250);
+      camRecT0 = Date.now();
+      camModal.querySelector('[data-cam-capturar]').classList.add('gravando');
+      var chip = camModal.querySelector('[data-cam-rec]');
+      var tEl = camModal.querySelector('[data-cam-rec-tempo]');
+      chip.hidden = false;
+      tEl.textContent = '0:00';
+      camRecTimer = setInterval(function () {
+        var s = Math.floor((Date.now() - camRecT0) / 1000);
+        tEl.textContent = Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2);
+        if (s >= 60) pararVideo(true); // máx. 1 min
+      }, 300);
+    }
+    function pararVideo(enviar) {
+      if (!camRec || camRec.state === 'inactive') return;
+      camRecEnviar = enviar;
+      try { camRec.stop(); } catch (x) {}
+    }
+
+    // Abre o stream na câmera atual (camFacing), COM microfone (para o vídeo ter som);
+    // se o mic for negado, segue só com a câmera. Detecta zoom nativo (hardware).
     function abrirStream() {
       pararStream();
-      return navigator.mediaDevices.getUserMedia({ video: { facingMode: camFacing }, audio: false })
+      var pedir = function (comAudio) {
+        return navigator.mediaDevices.getUserMedia({ video: { facingMode: camFacing }, audio: comAudio });
+      };
+      return pedir(true).catch(function () { return pedir(false); })
         .then(function (s) {
           camStream = s; camVideo.srcObject = s; camZoom = 1; camUsaZoomNativo = false; camZoomMax = 5;
           try {
@@ -1287,7 +1376,12 @@
         .catch(function () { camFacing = anterior; return abrirStream().catch(function () {}); }) // sem a outra câmera: volta
         .then(function () { camTrocando = false; });
     }
-    function fecharCamera() { pararStream(); zPtrs = {}; zPinch0 = 0; document.body.classList.remove('sem-scroll'); if (camModal) camModal.hidden = true; }
+    function fecharCamera() {
+      if (camRec && camRec.state !== 'inactive') { camRecEnviar = false; try { camRec.stop(); } catch (x) {} }
+      pararStream(); zPtrs = {}; zPinch0 = 0;
+      document.body.classList.remove('sem-scroll');
+      if (camModal) camModal.hidden = true;
+    }
 
     function capturar() {
       var VW = camVideo.videoWidth, VH = camVideo.videoHeight;

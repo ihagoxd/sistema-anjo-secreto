@@ -26,14 +26,21 @@ const EXT_AUDIO = {
   'audio/ogg': '.ogg',
   'audio/mpeg': '.mp3',
 };
+// Vídeo gravado na câmera (MediaRecorder: webm no Chrome/Android, mp4/mov no iOS)
+const EXT_VIDEO = {
+  'video/webm': '.webm',
+  'video/mp4': '.mp4',
+  'video/quicktime': '.mov',
+};
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, UPLOAD_DIR),
   filename: (req, file, cb) => {
-    const ehAudio = file.fieldname === 'audio';
-    const ext = (ehAudio ? EXT_AUDIO[file.mimetype] : EXT_POR_TIPO[file.mimetype]) || '.bin';
+    const tabela = { audio: EXT_AUDIO, video: EXT_VIDEO };
+    const ext = (tabela[file.fieldname] || EXT_POR_TIPO)[file.mimetype] || '.bin';
+    const prefixo = file.fieldname === 'audio' ? 'aud' : file.fieldname === 'video' ? 'vid' : 'img';
     const unico = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    cb(null, `${ehAudio ? 'aud' : 'img'}-${unico}${ext}`);
+    cb(null, `${prefixo}-${unico}${ext}`);
   },
 });
 
@@ -46,14 +53,18 @@ const upload = multer({
   },
 });
 
-// Mensagens do chat: imagem OU áudio de voz (campos separados, tipos por campo).
+// Mídia do chat e do mural: imagem, áudio de voz OU vídeo (campos separados, tipos por campo).
 const uploadMsg = multer({
   storage,
-  limits: { fileSize: 8 * 1024 * 1024 }, // 8 MB (áudio opus rende ~12 KB/s)
+  limits: { fileSize: 60 * 1024 * 1024 }, // 60 MB (vídeo de 1 min cabe folgado)
   fileFilter: (req, file, cb) => {
     if (file.fieldname === 'audio') {
       if (EXT_AUDIO[file.mimetype]) return cb(null, true);
       return cb(new Error('Áudio em formato não suportado.'));
+    }
+    if (file.fieldname === 'video') {
+      if (EXT_VIDEO[file.mimetype]) return cb(null, true);
+      return cb(new Error('Vídeo em formato não suportado.'));
     }
     if (TIPOS_PERMITIDOS.includes(file.mimetype)) return cb(null, true);
     cb(new Error('Envie apenas imagens (PNG, JPG, GIF ou WEBP).'));
@@ -70,14 +81,16 @@ const ASSINATURAS = {
   'audio/webm': [[0x1a, 0x45, 0xdf, 0xa3]], // contêiner EBML (WebM)
   'audio/ogg': [[0x4f, 0x67, 0x67, 0x53]], // "OggS"
   'audio/mpeg': [[0x49, 0x44, 0x33], [0xff, 0xfb], [0xff, 0xf3], [0xff, 0xf2]],
+  'video/webm': [[0x1a, 0x45, 0xdf, 0xa3]], // contêiner EBML (WebM)
 };
+const TIPOS_FTYP = new Set(['audio/mp4', 'video/mp4', 'video/quicktime']);
 function comecaCom(buf, assinatura) {
   if (buf.length < assinatura.length) return false;
   return assinatura.every((b, i) => buf[i] === b);
 }
 function assinaturaOk(buf, mimetype) {
-  // MP4/M4A: o "ftyp" fica no offset 4 (os 4 primeiros bytes são o tamanho do box)
-  if (mimetype === 'audio/mp4') return buf.length >= 8 && buf.toString('ascii', 4, 8) === 'ftyp';
+  // MP4/M4A/MOV: o "ftyp" fica no offset 4 (os 4 primeiros bytes são o tamanho do box)
+  if (TIPOS_FTYP.has(mimetype)) return buf.length >= 8 && buf.toString('ascii', 4, 8) === 'ftyp';
   const sigs = ASSINATURAS[mimetype];
   if (!sigs || !sigs.some((s) => comecaCom(buf, s))) return false;
   if (mimetype === 'image/webp') return buf.length >= 12 && buf.toString('ascii', 8, 12) === 'WEBP';

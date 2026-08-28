@@ -11,7 +11,7 @@ router.use(exigeAutenticacao, exigeSenhaDefinitiva, bloquearAdmin);
 
 // Recebe a mídia opcional da mensagem: imagem OU áudio de voz (multipart).
 function receberMidia(req, res, next) {
-  uploadMsg.fields([{ name: 'imagem', maxCount: 1 }, { name: 'audio', maxCount: 1 }])(req, res, function (err) {
+  uploadMsg.fields([{ name: 'imagem', maxCount: 1 }, { name: 'audio', maxCount: 1 }, { name: 'video', maxCount: 1 }])(req, res, function (err) {
     if (err) {
       req.session.flash = { erro: err.message || 'Falha no envio do arquivo.' };
       return res.redirect(req.get('Referer') || '/mensagens');

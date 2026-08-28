@@ -18,6 +18,7 @@
   {{#unless this.imagem}}{{#if this.texto}}<div class="tw-post-texto ig-texto">{{comMencoes this.texto}}</div>{{/if}}{{/unless}}
 
   {{#if this.imagem}}<div class="tw-post-midia" data-post-id="{{this.id_post}}" data-img="{{this.imagem}}" role="button" tabindex="0" aria-label="Ampliar imagem (clique 2x para curtir)"><img src="{{this.imagem}}" alt="Foto" draggable="false"></div>{{/if}}
+  {{#if this.video}}<div class="ig-video"><video src="{{this.video}}" controls playsinline preload="metadata"></video></div>{{/if}}
 
   <div class="tw-post-acoes ig-acoes">
     <button type="button" class="tw-acao curtir {{#if this.curtiu}}ativo{{/if}}" data-curtir="{{this.id_post}}" aria-pressed="{{this.curtiu}}" aria-label="Curtir">

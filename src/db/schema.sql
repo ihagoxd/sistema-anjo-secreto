@@ -156,10 +156,11 @@ CREATE TABLE IF NOT EXISTS mensagens_anonimas (
 ALTER TABLE mensagens_anonimas ADD COLUMN IF NOT EXISTS editado_em TIMESTAMPTZ;
 ALTER TABLE mensagens_anonimas ADD COLUMN IF NOT EXISTS imagem TEXT;
 ALTER TABLE mensagens_anonimas ADD COLUMN IF NOT EXISTS audio TEXT;
+ALTER TABLE mensagens_anonimas ADD COLUMN IF NOT EXISTS video TEXT;
 ALTER TABLE mensagens_anonimas ALTER COLUMN mensagem DROP NOT NULL;
 ALTER TABLE mensagens_anonimas DROP CONSTRAINT IF EXISTS mensagens_anonimas_mensagem_check;
 ALTER TABLE mensagens_anonimas DROP CONSTRAINT IF EXISTS ma_conteudo;
-ALTER TABLE mensagens_anonimas ADD CONSTRAINT ma_conteudo CHECK (mensagem IS NOT NULL OR imagem IS NOT NULL OR audio IS NOT NULL);
+ALTER TABLE mensagens_anonimas ADD CONSTRAINT ma_conteudo CHECK (mensagem IS NOT NULL OR imagem IS NOT NULL OR audio IS NOT NULL OR video IS NOT NULL);
 
 -- ---------- MENSAGENS DIRETAS (Direct do escritório — chat normal, com nome) ----------
 -- Conversa 1:1 entre quaisquer usuários aprovados (fora do canal anônimo anjo/protegido).
@@ -179,10 +180,11 @@ CREATE INDEX IF NOT EXISTS idx_dm_nao_lidas
   ON mensagens_diretas (id_destinatario) WHERE lida = FALSE;
 ALTER TABLE mensagens_diretas ADD COLUMN IF NOT EXISTS imagem TEXT;
 ALTER TABLE mensagens_diretas ADD COLUMN IF NOT EXISTS audio TEXT;
+ALTER TABLE mensagens_diretas ADD COLUMN IF NOT EXISTS video TEXT;
 ALTER TABLE mensagens_diretas ALTER COLUMN texto DROP NOT NULL;
 ALTER TABLE mensagens_diretas DROP CONSTRAINT IF EXISTS mensagens_diretas_texto_check;
 ALTER TABLE mensagens_diretas DROP CONSTRAINT IF EXISTS md_conteudo;
-ALTER TABLE mensagens_diretas ADD CONSTRAINT md_conteudo CHECK (texto IS NOT NULL OR imagem IS NOT NULL OR audio IS NOT NULL);
+ALTER TABLE mensagens_diretas ADD CONSTRAINT md_conteudo CHECK (texto IS NOT NULL OR imagem IS NOT NULL OR audio IS NOT NULL OR video IS NOT NULL);
 
 -- ---------- NOTIFICAÇÕES ----------
 -- tipo: MENSAGEM | MENSAGEM_ANJO | MENSAGEM_PROTEGIDO | CURTIDA | COMENTARIO | ANIVERSARIO
@@ -222,6 +224,11 @@ CREATE TABLE IF NOT EXISTS posts (
   criado_em   TIMESTAMPTZ NOT NULL DEFAULT now(),
   CHECK (texto IS NOT NULL OR imagem IS NOT NULL)
 );
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS video TEXT;
+ALTER TABLE posts DROP CONSTRAINT IF EXISTS posts_texto_check;
+ALTER TABLE posts DROP CONSTRAINT IF EXISTS posts_check;
+ALTER TABLE posts DROP CONSTRAINT IF EXISTS posts_conteudo;
+ALTER TABLE posts ADD CONSTRAINT posts_conteudo CHECK (texto IS NOT NULL OR imagem IS NOT NULL OR video IS NOT NULL);
 CREATE INDEX IF NOT EXISTS idx_posts_criado ON posts(criado_em DESC);
 CREATE INDEX IF NOT EXISTS idx_posts_usuario ON posts(id_usuario);
 

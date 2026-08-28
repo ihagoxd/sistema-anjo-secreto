@@ -42,8 +42,11 @@ async function getFeed(req, res, next) {
 
 async function postCriar(req, res, next) {
   try {
-    const imagem = req.file ? '/uploads/' + req.file.filename : null;
-    const r = await postService.criarPost(req.session.usuario.id_usuario, req.body.texto, imagem);
+    const um = (campo) => {
+      const f = (req.files && req.files[campo] && req.files[campo][0]) || null;
+      return f ? '/uploads/' + f.filename : null;
+    };
+    const r = await postService.criarPost(req.session.usuario.id_usuario, req.body.texto, um('imagem'), um('video'));
     if (!r.ok) req.session.flash = { erro: r.motivo === 'LONGO' ? 'Texto longo demais.' : 'Escreva algo ou adicione uma foto.' };
     res.redirect('/feed');
   } catch (err) {

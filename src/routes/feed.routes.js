@@ -4,15 +4,15 @@ const express = require('express');
 const ctrl = require('../controllers/feed.controller');
 const { exigeAutenticacao, exigeSenhaDefinitiva, bloquearAdmin } = require('../middlewares/auth.middleware');
 const { verifyCsrfAposUpload } = require('../middlewares/csrf.middleware');
-const { upload, conferirAssinaturas } = require('../config/upload');
+const { uploadMsg, conferirAssinaturas } = require('../config/upload');
 
 const router = express.Router();
 const guard = [exigeAutenticacao, exigeSenhaDefinitiva, bloquearAdmin];
 
-// Imagem opcional do post
+// Mídia opcional do post: imagem OU vídeo gravado na câmera
 const receberImagem = (req, res, next) => {
-  upload.single('imagem')(req, res, function (err) {
-    if (err) { req.session.flash = { erro: err.message || 'Falha no envio da imagem.' }; return res.redirect('/feed'); }
+  uploadMsg.fields([{ name: 'imagem', maxCount: 1 }, { name: 'video', maxCount: 1 }])(req, res, function (err) {
+    if (err) { req.session.flash = { erro: err.message || 'Falha no envio do arquivo.' }; return res.redirect('/feed'); }
     next();
   });
 };

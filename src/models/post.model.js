@@ -6,7 +6,7 @@
 const db = require('../config/db');
 
 const SELECT_POST = `
-  SELECT p.id_post, p.texto, p.imagem, p.criado_em,
+  SELECT p.id_post, p.texto, p.imagem, p.video, p.criado_em,
          u.id_usuario, u.nome, u.usuario, u.foto_perfil,
          (SELECT COUNT(*) FROM post_curtidas c WHERE c.id_post = p.id_post)::int AS curtidas,
          (SELECT COUNT(*) FROM post_comentarios m WHERE m.id_post = p.id_post)::int AS comentarios,
@@ -16,10 +16,10 @@ const SELECT_POST = `
     FROM posts p
     JOIN usuarios u ON u.id_usuario = p.id_usuario`;
 
-async function criar({ idUsuario, texto, imagem }) {
+async function criar({ idUsuario, texto, imagem, video = null }) {
   const res = await db.query(
-    `INSERT INTO posts (id_usuario, texto, imagem) VALUES ($1, $2, $3) RETURNING id_post`,
-    [idUsuario, texto, imagem]
+    `INSERT INTO posts (id_usuario, texto, imagem, video) VALUES ($1, $2, $3, $4) RETURNING id_post`,
+    [idUsuario, texto, imagem, video]
   );
   return res.rows[0];
 }

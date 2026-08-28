@@ -2023,10 +2023,36 @@ html.mini #loader .anjo .anjo-traco { display: none; }
 .dm-audio-prog { position: absolute; left: 0; top: 0; bottom: 0; width: 0%; border-radius: 99px; background: currentColor; }
 .dm-audio-tempo { flex-shrink: 0; font-size: 11.5px; opacity: 0.85; font-variant-numeric: tabular-nums; }
 
+/* --- Vídeo: gravação na câmera (segurar o obturador) + exibição --- */
+.cam-rec {
+  position: absolute; top: calc(env(safe-area-inset-top, 0px) + 18px); left: 50%; transform: translateX(-50%);
+  z-index: 3; display: flex; align-items: center; gap: 7px;
+  background: rgba(0, 0, 0, 0.52); color: #fff; font-weight: 700; font-size: 13px;
+  font-variant-numeric: tabular-nums; padding: 6px 13px; border-radius: 999px;
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+}
+.cam-rec-dot { width: 9px; height: 9px; border-radius: 50%; background: #ff4545; animation: grav-pisca 1s ease-in-out infinite; }
+.cam-dica {
+  position: absolute; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom, 0px) + 118px);
+  z-index: 3; text-align: center; color: rgba(255, 255, 255, 0.85); font-size: 12px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6); pointer-events: none;
+}
+.cam-shutter { touch-action: none; }
+.cam-shutter.gravando { border-color: #ff4545; }
+.cam-shutter.gravando::after { background: #ff4545; transform: scale(0.6); border-radius: 32%; }
+
+.dm-bolha-video video { display: block; width: 250px; max-width: 100%; max-height: 320px; border-radius: 16px; background: #000; }
+.ig-video { border-radius: 14px; overflow: hidden; background: #000; }
+.ig-video video { display: block; width: 100%; max-height: 560px; }
+@media (max-width: 899px) {
+  .ig-post .ig-video { margin-inline: -16px; border-radius: 0; }
+}
+.anexo-item video { max-height: 160px; max-width: 220px; border-radius: 12px; border: 1px solid var(--line); display: block; }
+
 /* --- Acessibilidade: nada disso roda para quem prefere menos movimento --- */
 @media (prefers-reduced-motion: reduce) {
   .dm-msgs .dm-bolha, .tw-acao svg, .bi-item.ativo svg, .story-ring,
-  .emoji-painel, .mencao-lista, .notif-dot, .alerta, .dm-grav-dot, .dm-onda span,
+  .emoji-painel, .mencao-lista, .notif-dot, .alerta, .dm-grav-dot, .dm-onda span, .cam-rec-dot,
   .tw-comentarios-bloco, .sheet-share .modal-card, .sheet-emoji { animation: none !important; }
   ::view-transition-old(root), ::view-transition-new(root) { animation: none !important; }
 }

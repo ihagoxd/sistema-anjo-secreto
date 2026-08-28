@@ -19,11 +19,11 @@ async function notificarMencoes(texto, idAtor, idPost) {
   for (const u of alvos) await notificacaoService.notificarMencao(u.id_usuario, idAtor, idPost);
 }
 
-async function criarPost(idUsuario, texto, imagemPath) {
+async function criarPost(idUsuario, texto, imagemPath, videoPath = null) {
   const t = String(texto || '').trim();
-  if (!t && !imagemPath) return { ok: false, motivo: 'VAZIO' };
+  if (!t && !imagemPath && !videoPath) return { ok: false, motivo: 'VAZIO' };
   if (t.length > LIMITE_TEXTO) return { ok: false, motivo: 'LONGO' };
-  const novo = await postModel.criar({ idUsuario, texto: t || null, imagem: imagemPath || null });
+  const novo = await postModel.criar({ idUsuario, texto: t || null, imagem: imagemPath || null, video: videoPath || null });
   await notificarMencoes(t, idUsuario, novo.id_post);
   return { ok: true };
 }

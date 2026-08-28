@@ -6,12 +6,12 @@
  */
 const db = require('../config/db');
 
-async function inserir({ idRemetente, idDestinatario, texto, imagem = null, audio = null }) {
+async function inserir({ idRemetente, idDestinatario, texto, imagem = null, audio = null, video = null }) {
   const res = await db.query(
-    `INSERT INTO mensagens_diretas (id_remetente, id_destinatario, texto, imagem, audio)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO mensagens_diretas (id_remetente, id_destinatario, texto, imagem, audio, video)
+     VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING id_mensagem, criado_em`,
-    [idRemetente, idDestinatario, texto, imagem, audio]
+    [idRemetente, idDestinatario, texto, imagem, audio, video]
   );
   return res.rows[0];
 }
@@ -19,7 +19,7 @@ async function inserir({ idRemetente, idDestinatario, texto, imagem = null, audi
 // Todas as mensagens entre dois usuários, em ordem cronológica.
 async function listarConversa(idA, idB) {
   const res = await db.query(
-    `SELECT id_mensagem, id_remetente, id_destinatario, texto, imagem, audio, lida, editado_em, criado_em
+    `SELECT id_mensagem, id_remetente, id_destinatario, texto, imagem, audio, video, lida, editado_em, criado_em
        FROM mensagens_diretas
       WHERE (id_remetente = $1 AND id_destinatario = $2)
          OR (id_remetente = $2 AND id_destinatario = $1)

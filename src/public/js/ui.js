@@ -795,9 +795,46 @@
     var rec = null, pedacos = [], stream = null, timer = null, t0 = 0, decorrido = 0, enviarAoParar = false;
     function fmt(s) { var m = Math.floor(s / 60), ss = Math.floor(s % 60); return m + ':' + (ss < 10 ? '0' : '') + ss; }
     function tempoTotal() { return decorrido + (rec && rec.state === 'recording' ? Date.now() - t0 : 0); }
+
+    // Onda AO VIVO: as barrinhas seguem o volume real do microfone (Web Audio).
+    // Se o navegador não tiver AudioContext, fica a animação decorativa do CSS.
+    var audioCtx = null, analyser = null, rafOnda = 0, barras = [];
+    function desenharOnda() {
+      rafOnda = requestAnimationFrame(desenharOnda);
+      var dados = new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteFrequencyData(dados);
+      for (var i = 0; i < barras.length; i++) {
+        var v = dados[Math.min(i + 2, dados.length - 1)] / 255;
+        barras[i].style.height = Math.max(12, Math.round(v * 100)) + '%';
+      }
+    }
+    function ligarOnda(s) {
+      try {
+        var AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC || !onda) return;
+        audioCtx = new AC();
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 64;
+        analyser.smoothingTimeConstant = 0.55;
+        audioCtx.createMediaStreamSource(s).connect(analyser);
+        barras = Array.prototype.slice.call(onda.children);
+        linhaGrav.classList.add('ao-vivo');
+        desenharOnda();
+      } catch (x) { /* sem Web Audio: onda decorativa */ }
+    }
+    function desligarOnda() {
+      cancelAnimationFrame(rafOnda);
+      rafOnda = 0;
+      if (audioCtx) { try { audioCtx.close(); } catch (x) {} audioCtx = null; }
+      linhaGrav.classList.remove('ao-vivo');
+      barras.forEach(function (b) { b.style.height = ''; });
+      barras = [];
+    }
+
     function pararTudo() {
       if (timer) clearInterval(timer);
       timer = null;
+      desligarOnda();
       if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
       stream = null;
       linhaGrav.classList.remove('pausada');
@@ -835,6 +872,7 @@
         t0 = Date.now();
         tempoEl.textContent = '0:00';
         mostrarGravando(true);
+        ligarOnda(s);
         timer = setInterval(function () {
           var seg = tempoTotal() / 1000;
           tempoEl.textContent = fmt(seg);
@@ -857,10 +895,12 @@
         rec.pause();
         decorrido += Date.now() - t0;
         linhaGrav.classList.add('pausada');
+        cancelAnimationFrame(rafOnda); // congela a onda no lugar
       } else if (rec.state === 'paused' && rec.resume) {
         rec.resume();
         t0 = Date.now();
         linhaGrav.classList.remove('pausada');
+        if (analyser) desenharOnda();
       }
     });
     // Fallback sem getUserMedia: o arquivo escolhido/gravado pelo sistema é enviado direto

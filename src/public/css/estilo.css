@@ -657,13 +657,23 @@ table.tabela tbody tr:hover { background: var(--hover); }
 .dm-acao { flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%; border: none; background: transparent; color: var(--text-soft); display: grid; place-items: center; cursor: pointer; font-size: 19px; line-height: 1; transition: background 0.12s, color 0.12s; }
 .dm-acao:hover { background: var(--hover); color: var(--text); }
 .dm-acao svg { width: 20px; height: 20px; }
+/* Campo em pílula com os ícones DENTRO (foto/câmera à direita), estilo WhatsApp */
+.dm-campo {
+  flex: 1; min-width: 0; display: flex; align-items: flex-end; gap: 0;
+  background: var(--surface-2); border: 1px solid var(--line-strong, var(--line));
+  border-radius: 22px; padding: 0 4px 0 0;
+  transition: border-color 0.14s, box-shadow 0.14s;
+}
+.dm-campo:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
 .dm-composer textarea {
-  flex: 1; resize: none; min-height: 42px; max-height: 130px; padding: 10px 14px;
-  border: 1px solid var(--line-strong, var(--line)); border-radius: 22px; background: var(--surface-2);
+  flex: 1; min-width: 0; resize: none; min-height: 42px; max-height: 130px; padding: 10px 4px 10px 14px;
+  border: none; border-radius: 22px; background: transparent;
   color: var(--text); font: inherit; font-size: 14px; line-height: 1.4;
 }
-.dm-composer textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
-.dm-enviar { border-radius: 50%; width: 42px; height: 42px; padding: 0; flex-shrink: 0; display: grid; place-items: center; }
+.dm-composer textarea:focus { outline: none; box-shadow: none; }
+.dm-acao-in { width: 36px; height: 36px; margin: 3px 0; color: var(--text-faint); }
+.dm-acao-in:hover { background: transparent; color: var(--text); }
+.dm-enviar { border-radius: 50%; width: 42px; height: 42px; min-height: 42px; padding: 0; flex-shrink: 0; display: grid; place-items: center; }
 
 /* Preview de anexo (imagem) no compositor (chat + mural) */
 .composer-anexo, .compositor-preview { margin: 0; }
@@ -1975,6 +1985,8 @@ html.mini #loader .anjo .anjo-traco { display: none; }
 .dm-onda span:nth-child(5n) { animation-delay: 0.38s; }
 @keyframes onda-danca { from { height: 14%; } to { height: 92%; } }
 .dm-gravando.pausada .dm-onda span { animation-play-state: paused; }
+/* Onda ao vivo (mic real): o JS controla a altura; desliga a dança decorativa */
+.dm-gravando.ao-vivo .dm-onda span { animation: none; transition: height 0.09s linear; }
 .dm-gravando.pausada .dm-grav-dot { animation: none; opacity: 0.35; }
 
 /* Botão pausar/retomar — círculo vermelho vazado, como no WhatsApp */

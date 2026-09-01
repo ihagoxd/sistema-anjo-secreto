@@ -1389,16 +1389,19 @@
       var ativo = false, moveu = false, x0 = 0, s0 = 0;
       // sem o "drag nativo" de link/imagem, que engolia o gesto do mouse
       fila.addEventListener('dragstart', function (e) { e.preventDefault(); });
+      // QUALQUER ponteiro (dedo ou mouse): o arrasto horizontal é nosso — não
+      // dependemos do scroll nativo, que vinha sendo engolido no celular.
       fila.addEventListener('pointerdown', function (e) {
-        if (e.pointerType !== 'mouse') return;
         ativo = true; moveu = false; x0 = e.clientX; s0 = fila.scrollLeft;
-        try { fila.setPointerCapture(e.pointerId); } catch (x) {}
       });
       fila.addEventListener('pointermove', function (e) {
         if (!ativo) return;
         var dx = e.clientX - x0;
-        if (Math.abs(dx) > 4) moveu = true;
-        fila.scrollLeft = s0 - dx;
+        if (!moveu && Math.abs(dx) > 6) {
+          moveu = true;
+          try { fila.setPointerCapture(e.pointerId); } catch (x) {}
+        }
+        if (moveu) fila.scrollLeft = s0 - dx;
       });
       ['pointerup', 'pointerleave', 'pointercancel'].forEach(function (ev) {
         fila.addEventListener(ev, function () { ativo = false; });

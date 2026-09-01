@@ -1210,6 +1210,7 @@ button.ig-av { border: none; cursor: pointer; padding: 0; font: inherit; }
   display: flex; gap: 16px; overflow-x: auto; padding: 18px 16px 10px;
   border-bottom: 1px solid var(--line); -webkit-overflow-scrolling: touch;
   cursor: grab; user-select: none;
+  touch-action: pan-y; /* horizontal é do nosso arrasto; vertical segue com a página */
   scrollbar-width: none; /* Firefox: sem barrinha sob as notas */
 }
 .notas::-webkit-scrollbar { height: 0; display: none; }
@@ -1589,6 +1590,7 @@ body.sem-scroll { overflow: hidden; }
 .stories {
   display: flex; gap: 16px; overflow-x: auto; padding: 4px 2px 14px; margin-bottom: 16px;
   border-bottom: 1px solid var(--line); scrollbar-width: thin;
+  touch-action: pan-y; user-select: none; /* horizontal é do nosso arrasto */
 }
 .stories::-webkit-scrollbar { height: 6px; }
 .stories::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 3px; }

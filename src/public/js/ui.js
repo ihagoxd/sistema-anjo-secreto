@@ -228,6 +228,13 @@
     });
 
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !tela.hidden) fechar(); });
+
+    // Clicar fora do painel fecha a busca (no desktop o resto da página fica visível ao lado)
+    document.addEventListener('click', function (e) {
+      if (tela.hidden) return;
+      if (e.target.closest('.busca-tela') || e.target.closest('[data-busca-abrir]')) return;
+      fechar();
+    });
   })();
 
   /* ---------- Toast (aviso curto flutuante) ---------- */

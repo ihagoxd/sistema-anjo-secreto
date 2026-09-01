@@ -2189,11 +2189,17 @@
       setTimeout(function () {
         if (!pedacos.length) return;
         var base = (rec && rec.mimeType ? rec.mimeType : 'audio/webm').split(';')[0];
-        prevUrl = URL.createObjectURL(new Blob(pedacos, { type: base }));
-        prevAudio = new Audio(prevUrl);
-        prevAudio.onended = pararPrevia;
-        btnOuvir.classList.add('tocando');
-        prevAudio.play().catch(pararPrevia);
+        var bruto = new Blob(pedacos, { type: base });
+        // A prévia passa pelo MESMO processamento do envio: você ouve a voz já
+        // disfarçada (se um efeito estiver selecionado), igualzinho ao que chega lá.
+        paraWavProcessado(bruto, function (wav) {
+          if (prevAudio || !rec || rec.state !== 'paused') return; // mudou de ideia no meio
+          prevUrl = URL.createObjectURL(wav || bruto);
+          prevAudio = new Audio(prevUrl);
+          prevAudio.onended = pararPrevia;
+          btnOuvir.classList.add('tocando');
+          prevAudio.play().catch(pararPrevia);
+        });
       }, 80);
     });
 

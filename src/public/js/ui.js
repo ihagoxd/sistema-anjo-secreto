@@ -26,6 +26,19 @@
     function escaparHtml(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
     function comMencoesJs(t) { return escaparHtml(t).replace(/@([a-zA-Z0-9_.]{2,})/g, '<a href="/u/$1" class="mencao">@$1</a>'); }
 
+    // "Responder" num comentário: o campo já vem com o @ da pessoa (estilo Instagram)
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-coment-responder]');
+      if (!b) return;
+      var bloco = b.closest('.tw-comentarios-bloco');
+      var inp = bloco && bloco.querySelector('.tw-reply input[name="texto"]');
+      if (!inp) return;
+      var arroba = '@' + b.getAttribute('data-coment-responder') + ' ';
+      if (inp.value.indexOf(arroba.trim()) !== 0) inp.value = arroba + inp.value.replace(/^@\S+\s*/, '');
+      inp.focus();
+      inp.setSelectionRange(inp.value.length, inp.value.length);
+    });
+
     // Abrir/fechar comentários: no celular vira gaveta (trava o scroll do fundo,
     // teclado só abre quando a pessoa toca no campo); no desktop segue inline.
     var mqCel = window.matchMedia('(max-width: 899px)');
@@ -103,7 +116,8 @@
             '<div class="tw-coment-main"><div class="tw-coment-top">' +
             '<a href="/u/' + encodeURIComponent(c.usuario) + '" class="tw-coment-nome">' + escaparHtml(c.nome) + '</a>' +
             '<span class="tw-coment-meta">· agora</span></div>' +
-            '<div class="tw-coment-texto">' + comMencoesJs(c.texto) + '</div></div>';
+            '<div class="tw-coment-texto">' + comMencoesJs(c.texto) + '</div>' +
+            '<button type="button" class="tw-coment-resp" data-coment-responder="' + escaparHtml(c.usuario) + '">Responder</button></div>';
           if (lista) lista.appendChild(el);
           inp.value = '';
           // incrementa o contador do ícone e o "Ver todos os N comentários"

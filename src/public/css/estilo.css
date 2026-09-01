@@ -2272,6 +2272,13 @@ a.share-item { text-decoration: none; color: inherit; }
 .ig-mais:hover { color: var(--text-soft); }
 /* Post só de texto: o texto é o conteúdo (estilo Threads), não uma legenda miúda */
 .ig-texto { margin: 0 0 2px; font-size: 16px; line-height: 1.5; letter-spacing: -0.005em; }
+/* "Responder" embaixo de cada comentário (preenche o @ da pessoa, como no Instagram) */
+.tw-coment-resp {
+  background: none; border: none; padding: 2px 0 0; font: inherit; font-size: 12px; font-weight: 700;
+  color: var(--text-faint); cursor: pointer; text-align: left; width: max-content;
+}
+.tw-coment-resp:hover { color: var(--text-soft); }
+
 /* Prévia de comentários no card: tom suave e 1 linha, para não confundir com a legenda */
 .ig-prev-coment {
   font-size: 13.5px; line-height: 1.4; color: var(--text-soft); white-space: pre-line;

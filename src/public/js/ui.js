@@ -1406,13 +1406,14 @@
       var ativo = false, moveu = false, x0 = 0, s0 = 0;
       // sem o "drag nativo" de link/imagem, que engolia o gesto do mouse
       fila.addEventListener('dragstart', function (e) { e.preventDefault(); });
-      // MOUSE: arrasto via pointer events
+      // POINTER EVENTS (mouse E toque — redundância: se os touch events não vierem,
+      // este caminho segura o arrasto; se vierem, a camada de toque tem prioridade)
       fila.addEventListener('pointerdown', function (e) {
-        if (e.pointerType !== 'mouse') return;
         ativo = true; moveu = false; x0 = e.clientX; s0 = fila.scrollLeft;
       });
       fila.addEventListener('pointermove', function (e) {
         if (!ativo) return;
+        if (e.pointerType !== 'mouse' && tEixo) return; // a camada de toque assumiu
         var dx = e.clientX - x0;
         if (!moveu && Math.abs(dx) > 6) {
           moveu = true;

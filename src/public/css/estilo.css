@@ -920,6 +920,10 @@ table.tabela tbody tr:hover { background: var(--hover); }
 }
 
 /* Lightbox (ampliar imagem na mesma guia) */
+/* Sensação de app no mobile: pan liberado, pinça/duplo-toque de zoom da página bloqueados
+   (as áreas com zoom próprio — lightbox, câmera, stories — definem o seu touch-action) */
+html { touch-action: pan-x pan-y; }
+
 /* --- Stories (estilo Instagram) --- */
 /* Anel: dourado = tem story não visto; cinza fino = sem story ou já visto */
 button.story, button.story-ring { background: none; border: none; padding: 0; font: inherit; cursor: pointer; }
@@ -965,6 +969,30 @@ button.story, button.story-ring { background: none; border: none; padding: 0; fo
   padding: 8px 14px; border-radius: 999px; font: inherit; font-size: 13.5px;
 }
 .stview-del:hover { background: rgba(255, 255, 255, 0.26); }
+
+/* Carregando: foto some e um spinner gira no centro; a barra de progresso só anda
+   quando a mídia está pronta */
+.stview-media { position: relative; }
+.stview.carregando .stview-media img, .stview.carregando .stview-media video { opacity: 0; }
+.stview-media img, .stview-media video { transition: opacity 0.15s ease; }
+.stview.carregando .stview-media::after {
+  content: ''; position: absolute; top: 50%; left: 50%; width: 34px; height: 34px;
+  margin: -17px 0 0 -17px; border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.25); border-top-color: #fff;
+  animation: st-gira 0.8s linear infinite;
+}
+@keyframes st-gira { to { transform: rotate(360deg); } }
+
+/* Compositor "Novo story": preview em tela cheia + Compartilhar (estilo Instagram) */
+.stcomp { position: fixed; inset: 0; z-index: 650; background: #000; display: flex; flex-direction: column; }
+.stcomp[hidden] { display: none; }
+.stcomp .stview-cab { top: 12px; }
+.stcomp-media { flex: 1; display: grid; place-items: center; overflow: hidden; }
+.stcomp-media img, .stcomp-media video { max-width: 100vw; max-height: calc(100dvh - 110px); width: auto; height: auto; }
+.stcomp-enviar {
+  position: absolute; left: 16px; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  border-radius: 999px; min-height: 48px; font-weight: 700; font-size: 15.5px; z-index: 2;
+}
 
 /* --- Notas no Direct (estilo Instagram: balãozinho acima do avatar) --- */
 .notas { display: flex; gap: 14px; overflow-x: auto; padding: 20px 14px 8px; border-bottom: 1px solid var(--line); }

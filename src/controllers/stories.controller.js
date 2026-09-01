@@ -10,6 +10,10 @@ async function postCriar(req, res, next) {
       return f ? `/uploads/${f.filename}` : null;
     };
     const r = await storyService.publicar(req.session.usuario.id_usuario, um('imagem'), um('video'));
+    if (req.get('X-Requested-With') === 'fetch') {
+      if (!r.ok) return res.status(400).json({ erro: 'Escolha uma foto ou um vídeo para o story.' });
+      return res.json({ ok: true, id_story: r.id_story });
+    }
     if (!r.ok) req.session.flash = { erro: 'Escolha uma foto ou um vídeo para o story.' };
     res.redirect('/feed');
   } catch (err) {

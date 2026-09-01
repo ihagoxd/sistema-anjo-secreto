@@ -10,6 +10,13 @@
   ['gesturestart', 'gesturechange', 'gestureend'].forEach(function (ev) {
     document.addEventListener(ev, function (e) { e.preventDefault(); }, { passive: false });
   });
+  // Pinça com 2 dedos fora das áreas com zoom próprio: bloqueia o zoom DA PÁGINA
+  // (Chrome/Android e iOS que ignoram user-scalable=no no viewport)
+  document.addEventListener('touchmove', function (e) {
+    if (e.touches.length < 2) return;
+    if (e.target.closest('.lightbox, .cam-modal, .stview, .stcomp, .tw-post-midia, .cropper, #cropper')) return;
+    e.preventDefault();
+  }, { passive: false });
 
   /* ---------- Comentários: abrir/fechar inline no feed + responder sem recarregar ---------- */
   (function () {
@@ -254,33 +261,97 @@
     var metaCsrfSt = document.querySelector('meta[name="csrf-token"]');
     var CSRF = metaCsrfSt ? metaCsrfSt.getAttribute('content') : '';
 
-    // --- Publicar: o + abre direto a galeria do celular (foto OU vídeo num seletor só,
-    // como o "Adicionar ao story" do Instagram). O arquivo é roteado para o campo certo
-    // pelo tipo e o form envia na hora — sem perguntas no meio do caminho. ---
+    // --- Publicar: o + abre direto a galeria do celular (foto OU vídeo num seletor só).
+    // Depois de escolher, abre o COMPOSITOR (preview em tela cheia + "Compartilhar no
+    // story", como no Instagram) e publica por AJAX — sem recarregar a página. ---
     document.addEventListener('click', function (e) {
       if (!e.target.closest('[data-add-story]')) return;
       var form = document.getElementById('formStory');
       var picker = form && form.querySelector('[data-story-picker]');
       if (picker) { picker.value = ''; picker.click(); }
     });
+
+    var comp = null, compFile = null, compEhVideo = false, compUrl = '';
+    function montarComposer() {
+      if (comp) return;
+      comp = document.createElement('div');
+      comp.className = 'stcomp';
+      comp.hidden = true;
+      comp.innerHTML =
+        '<div class="stview-cab"><span class="stview-nome">Novo story</span>'
+        + '<button type="button" class="stview-x" data-comp-fechar aria-label="Cancelar">&times;</button></div>'
+        + '<div class="stcomp-media"></div>'
+        + '<button type="button" class="btn btn-primario stcomp-enviar">Compartilhar no story</button>';
+      document.body.appendChild(comp);
+      comp.querySelector('[data-comp-fechar]').addEventListener('click', fecharComposer);
+      comp.querySelector('.stcomp-enviar').addEventListener('click', enviarStory);
+    }
+    function fecharComposer() {
+      if (!comp) return;
+      comp.hidden = true;
+      document.body.classList.remove('sem-scroll');
+      if (compUrl) { URL.revokeObjectURL(compUrl); compUrl = ''; }
+      compFile = null;
+    }
+    function abrirComposer(file, ehVideo) {
+      montarComposer();
+      compFile = file; compEhVideo = ehVideo;
+      if (compUrl) URL.revokeObjectURL(compUrl);
+      compUrl = URL.createObjectURL(file);
+      var box = comp.querySelector('.stcomp-media');
+      box.innerHTML = '';
+      if (ehVideo) {
+        var v = document.createElement('video');
+        v.src = compUrl; v.controls = false; v.autoplay = true; v.muted = true; v.loop = true; v.playsInline = true;
+        box.appendChild(v);
+      } else {
+        var img = document.createElement('img');
+        img.src = compUrl; img.alt = '';
+        box.appendChild(img);
+      }
+      var btn = comp.querySelector('.stcomp-enviar');
+      btn.disabled = false; btn.textContent = 'Compartilhar no story';
+      comp.hidden = false;
+      document.body.classList.add('sem-scroll');
+    }
+    function enviarStory() {
+      if (!compFile) return;
+      var form = document.getElementById('formStory');
+      var btn = comp.querySelector('.stcomp-enviar');
+      btn.disabled = true; btn.textContent = 'Publicando…';
+      var fd = new FormData();
+      var tk = form && form.querySelector('input[name="_csrf"]');
+      if (tk) fd.append('_csrf', tk.value);
+      fd.append(compEhVideo ? 'video' : 'imagem', compFile, compFile.name || (compEhVideo ? 'story.mp4' : 'story.jpg'));
+      fetch('/stories', { method: 'POST', headers: { 'X-Requested-With': 'fetch', 'Accept': 'application/json' }, body: fd })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+        .then(function () {
+          fecharComposer();
+          toast('Story publicado ✨');
+          // Anel "Seu story" vira dourado na hora, sem recarregar
+          var anel = document.querySelector('.story-ring.eu-story');
+          if (anel) {
+            anel.classList.remove('sem'); anel.classList.add('tem');
+            var meuId = anel.getAttribute('data-meu-id');
+            if (meuId) { anel.setAttribute('data-ver-stories', meuId); anel.removeAttribute('data-add-story'); }
+          }
+        })
+        .catch(function () {
+          btn.disabled = false; btn.textContent = 'Compartilhar no story';
+          toast('Não foi possível publicar. Tente de novo.');
+        });
+    }
+
     document.addEventListener('change', function (e) {
       var form = e.target.form;
       if (!form || form.id !== 'formStory') return;
       var file = e.target.files && e.target.files[0];
       if (!file) return;
-      if (e.target.hasAttribute('data-story-picker')) {
-        // roteia para imagem ou vídeo conforme o tipo e publica
-        var alvo = form.querySelector(file.type.indexOf('video/') === 0 ? '[data-video]' : '[data-foto]');
-        try {
-          var dt = new DataTransfer();
-          dt.items.add(file);
-          alvo.files = dt.files;
-        } catch (x) { return; }
-        e.target.value = '';
-        form.submit();
-        return;
-      }
-      form.submit(); // captura vinda da câmera cai direto nos campos nomeados
+      var ehVideo = e.target.hasAttribute('data-story-picker')
+        ? file.type.indexOf('video/') === 0
+        : e.target.hasAttribute('data-video');
+      e.target.value = ''; // libera para escolher de novo depois
+      abrirComposer(file, ehVideo);
     });
 
     // --- Visualizador ---
@@ -288,7 +359,7 @@
       vistosEl = null, delBtn = null, somBtn = null;
     var grupos = [], gi = 0, ii = 0;
     var raf = 0, t0 = 0, decorrido = 0, dur = 5000, pausado = false, videoEl = null;
-    var pressT = 0, swipeY = -1;
+    var pressT = 0, swipeY = -1, mostrarSeq = 0;
 
     function tempoRelJs(iso) {
       var seg = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
@@ -369,7 +440,7 @@
       pausado = sim;
       if (videoEl) { if (sim) videoEl.pause(); else videoEl.play().catch(function () {}); }
       else if (sim) { decorrido += performance.now() - t0; cancelAnimationFrame(raf); }
-      else { t0 = performance.now(); raf = requestAnimationFrame(tick); }
+      else if (!view.classList.contains('carregando')) { t0 = performance.now(); raf = requestAnimationFrame(tick); }
     }
 
     function barrasHtml(n) {
@@ -411,10 +482,13 @@
       somBtn.hidden = !item.video;
 
       mediaBox.innerHTML = '';
+      var seq = ++mostrarSeq;
+      view.classList.add('carregando');
       if (item.video) {
         videoEl = document.createElement('video');
         videoEl.src = item.video; videoEl.playsInline = true; videoEl.autoplay = true;
         videoEl.addEventListener('loadedmetadata', function () { dur = Math.max(1000, (videoEl.duration || 10) * 1000); });
+        videoEl.addEventListener('playing', function () { if (seq === mostrarSeq) view.classList.remove('carregando'); });
         videoEl.addEventListener('timeupdate', function () { if (videoEl && videoEl.duration) setBarra(ii, videoEl.currentTime / videoEl.duration); });
         videoEl.addEventListener('ended', proximo);
         mediaBox.appendChild(videoEl);
@@ -429,14 +503,31 @@
         var img = document.createElement('img');
         img.src = item.imagem; img.alt = '';
         mediaBox.appendChild(img);
-        dur = 5000; t0 = performance.now();
-        raf = requestAnimationFrame(tick);
+        dur = 5000;
+        // A barra SÓ começa quando a foto está decodificada (nada de contar no escuro)
+        var iniciar = function () {
+          if (seq !== mostrarSeq) return; // já navegou para outro story
+          view.classList.remove('carregando');
+          decorrido = 0; t0 = performance.now();
+          raf = requestAnimationFrame(tick);
+        };
+        if (img.decode) img.decode().then(iniciar).catch(iniciar);
+        else if (img.complete) iniciar();
+        else { img.onload = iniciar; img.onerror = iniciar; }
       }
+      preCarregar(); // próximo story baixa em segundo plano (transição instantânea)
 
       if (!g.eu && !item.visto) {
         item.visto = true;
         fetch('/stories/' + item.id_story + '/visto', { method: 'POST', headers: { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch' } }).catch(function () {});
       }
+    }
+
+    // Pré-carrega a próxima mídia (do mesmo grupo ou o 1º do grupo seguinte)
+    function preCarregar() {
+      var g = grupos[gi];
+      var prox = (g && g.itens[ii + 1]) || (grupos[gi + 1] && grupos[gi + 1].itens[0]);
+      if (prox && prox.imagem) { var im = new Image(); im.src = prox.imagem; }
     }
 
     function proximo() {

@@ -8,7 +8,7 @@
           {{#if tenhoStory}}
             <button type="button" class="story-ring tem eu-story" data-ver-stories="{{usuario.id_usuario}}" title="Ver seu story"><span class="story-ring-in">{{#if usuario.foto_perfil}}<img src="{{usuario.foto_perfil}}" alt="">{{else}}{{inicial usuario.nome}}{{/if}}</span></button>
           {{else}}
-            <button type="button" class="story-ring sem eu-story" data-add-story title="Publicar um story"><span class="story-ring-in">{{#if usuario.foto_perfil}}<img src="{{usuario.foto_perfil}}" alt="">{{else}}{{inicial usuario.nome}}{{/if}}</span></button>
+            <button type="button" class="story-ring sem eu-story" data-add-story data-meu-id="{{usuario.id_usuario}}" title="Publicar um story"><span class="story-ring-in">{{#if usuario.foto_perfil}}<img src="{{usuario.foto_perfil}}" alt="">{{else}}{{inicial usuario.nome}}{{/if}}</span></button>
           {{/if}}
           <button type="button" class="story-badge mais" data-add-story title="Adicionar ao story" aria-label="Adicionar ao story"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
         </div>

@@ -71,7 +71,9 @@ async function carregarContextoApp(req, res, next) {
         const pf = await usuarioModel.buscarPorId(protegido.id_usuario);
         const eq = await participanteService.listarPorCampanha(campanha.id_campanha);
         res.locals.roleta = {
-          campId: campanha.id_campanha,
+          // A chave inclui o PROTEGIDO: se o sorteio for refeito, a roleta aparece
+          // de novo para todo mundo revelando o novo par.
+          campId: `${campanha.id_campanha}-${protegido.id_usuario}`,
           nomes: eq.filter((x) => x.nome).map((x) => x.nome).join('|'),
           nome: protegido.nome,
           foto_perfil: pf ? pf.foto_perfil : null,

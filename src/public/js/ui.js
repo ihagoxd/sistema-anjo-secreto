@@ -357,7 +357,8 @@
     // --- Visualizador ---
     var view = null, barras = null, mediaBox = null, avEl = null, nomeEl = null, tempoEl = null,
       vistosEl = null, delBtn = null, somBtn = null;
-    var rodapeEl = null, respEl = null, enviarEl = null, likeEl = null, fwdEl = null, fwdModal = null, vistosModal = null;
+    var rodapeEl = null, respEl = null, enviarEl = null, likeEl = null, fwdEl = null, fwdModal = null, vistosModal = null, delModal = null;
+    var swipeX = null;
     var grupos = [], gi = 0, ii = 0;
     var raf = 0, t0 = 0, decorrido = 0, dur = 5000, pausado = false, videoEl = null;
     var pressT = 0, swipeY = -1, mostrarSeq = 0;
@@ -475,6 +476,7 @@
         + '<div class="stview-cab">'
         + '  <span class="stview-av"></span>'
         + '  <span class="stview-nome"></span><span class="stview-tempo"></span>'
+        + '  <span class="stview-esp" aria-hidden="true"></span>'
         + '  <button type="button" class="stview-som" hidden aria-label="Som">🔊</button>'
         + '  <button type="button" class="stview-x" aria-label="Fechar">&times;</button>'
         + '</div>'
@@ -482,7 +484,9 @@
         + '<div class="stview-tap prev" aria-hidden="true"></div>'
         + '<div class="stview-tap next" aria-hidden="true"></div>'
         + '<button type="button" class="stview-vistos" hidden></button>'
-        + '<button type="button" class="stview-del" hidden>Apagar story</button>'
+        + '<button type="button" class="stview-del" hidden title="Apagar story" aria-label="Apagar story">'
+        + '  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>'
+        + '</button>'
         + '<div class="stview-rodape" hidden>'
         + '  <input class="stview-resp" type="text" placeholder="Responder…" maxlength="500" autocomplete="off">'
         + '  <button type="button" class="stview-enviar" hidden>Enviar</button>'
@@ -586,19 +590,36 @@
         videoEl.muted = !videoEl.muted;
         somBtn.textContent = videoEl.muted ? '🔇' : '🔊';
       });
+      // Lixeira → cardzinho de confirmação (pausa o story enquanto decide)
       delBtn.addEventListener('click', function () {
-        var item = grupos[gi] && grupos[gi].itens[ii];
-        if (!item) return;
-        if (delBtn.dataset.confirmando !== '1') {
-          delBtn.dataset.confirmando = '1';
-          delBtn.textContent = 'Apagar mesmo?';
-          setTimeout(function () { delBtn.dataset.confirmando = ''; delBtn.textContent = 'Apagar story'; }, 2600);
-          return;
+        if (!(grupos[gi] && grupos[gi].itens[ii])) return;
+        pausar(true);
+        if (!delModal) {
+          delModal = document.createElement('div');
+          delModal.className = 'modal stview-fwd-modal';
+          delModal.hidden = true;
+          delModal.setAttribute('aria-hidden', 'true');
+          delModal.innerHTML = '<div class="modal-card stdel-card">'
+            + '<h3>Apagar este story?</h3>'
+            + '<p class="texto-suave">Ele some para todo mundo agora.</p>'
+            + '<div class="modal-acoes">'
+            + '<button type="button" class="btn btn-secundario btn-sm" data-fechar-modal>Cancelar</button>'
+            + '<button type="button" class="btn btn-sm stdel-confirma">Apagar</button>'
+            + '</div></div>';
+          document.body.appendChild(delModal);
+          delModal.addEventListener('click', function (e) {
+            if (e.target.closest('[data-fechar-modal]') || e.target === delModal) { pausar(false); return; }
+            if (!e.target.closest('.stdel-confirma')) return;
+            var item = grupos[gi] && grupos[gi].itens[ii];
+            if (!item) return;
+            fetch('/stories/' + item.id_story + '/remover', { method: 'POST', headers: { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch' } })
+              .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+              .then(function () { window.location.reload(); })
+              .catch(function () { toast('Não foi possível apagar.'); });
+          });
         }
-        fetch('/stories/' + item.id_story + '/remover', { method: 'POST', headers: { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch' } })
-          .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
-          .then(function () { window.location.reload(); })
-          .catch(function () { toast('Não foi possível apagar.'); });
+        delModal.hidden = false;
+        delModal.setAttribute('aria-hidden', 'false');
       });
 
       // Toque: soltar rápido = navega; segurar = pausa. Arrastar para baixo fecha.
@@ -606,15 +627,20 @@
         var zona = view.querySelector('.stview-tap.' + lado);
         zona.addEventListener('pointerdown', function (e) {
           if (view.classList.contains('respondendo')) return; // digitando: toque só fecha o teclado
-          pressT = Date.now(); swipeY = e.clientY; pausar(true);
+          pressT = Date.now(); swipeY = e.clientY; swipeX = e.clientX; pausar(true);
         });
         zona.addEventListener('pointerup', function (e) {
-          if (view.classList.contains('respondendo')) { respEl.blur(); swipeY = -1; return; }
+          if (view.classList.contains('respondendo')) { respEl.blur(); swipeY = -1; swipeX = null; return; }
           var segurou = Date.now() - pressT > 260;
-          var desceu = swipeY >= 0 && (e.clientY - swipeY) > 80;
-          swipeY = -1;
-          if (desceu) { fecharView(); return; }
+          var dy = swipeY >= 0 ? e.clientY - swipeY : 0;
+          var dx = swipeX !== null ? e.clientX - swipeX : 0;
+          swipeY = -1; swipeX = null;
+          if (dy > 80 && dy > Math.abs(dx)) { fecharView(); return; } // arrastou pra baixo: fecha
           pausar(false);
+          if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) { // arrastou pro lado: troca de story
+            if (dx < 0) proximo(); else anterior();
+            return;
+          }
           if (!segurou) (lado === 'prev' ? anterior() : proximo());
         });
         zona.addEventListener('pointercancel', function () { swipeY = -1; pausar(false); });
@@ -674,13 +700,18 @@
       }
 
       mediaBox.innerHTML = '';
+      mediaBox.classList.remove('st-anim'); // a animação de entrada só roda quando a mídia está pronta
       var seq = ++mostrarSeq;
       view.classList.add('carregando');
       if (item.video) {
         videoEl = document.createElement('video');
         videoEl.src = item.video; videoEl.playsInline = true; videoEl.autoplay = true;
         videoEl.addEventListener('loadedmetadata', function () { dur = Math.max(1000, (videoEl.duration || 10) * 1000); });
-        videoEl.addEventListener('playing', function () { if (seq === mostrarSeq) view.classList.remove('carregando'); });
+        videoEl.addEventListener('playing', function () {
+          if (seq !== mostrarSeq) return;
+          view.classList.remove('carregando');
+          mediaBox.classList.remove('st-anim'); void mediaBox.offsetWidth; mediaBox.classList.add('st-anim');
+        });
         videoEl.addEventListener('timeupdate', function () { if (videoEl && videoEl.duration) setBarra(ii, videoEl.currentTime / videoEl.duration); });
         videoEl.addEventListener('ended', proximo);
         mediaBox.appendChild(videoEl);
@@ -700,6 +731,7 @@
         var iniciar = function () {
           if (seq !== mostrarSeq) return; // já navegou para outro story
           view.classList.remove('carregando');
+          mediaBox.classList.remove('st-anim'); void mediaBox.offsetWidth; mediaBox.classList.add('st-anim');
           decorrido = 0; t0 = performance.now();
           raf = requestAnimationFrame(tick);
         };
@@ -775,7 +807,7 @@
       if (!view || view.hidden) return;
       if (e.key === 'Escape') {
         // Esc com folha aberta (encaminhar/visualizações): o modal fecha (handler genérico) e o story volta
-        if ((fwdModal && !fwdModal.hidden) || (vistosModal && !vistosModal.hidden)) { pausar(false); return; }
+        if ((fwdModal && !fwdModal.hidden) || (vistosModal && !vistosModal.hidden) || (delModal && !delModal.hidden)) { pausar(false); return; }
         if (document.activeElement === respEl) { respEl.blur(); return; }
         fecharView();
       } else if (e.key === 'ArrowRight' && document.activeElement !== respEl) proximo();

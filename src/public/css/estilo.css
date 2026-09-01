@@ -954,9 +954,8 @@ button.story, button.story-ring { background: none; border: none; padding: 0; fo
 .stview-nome { font-weight: 700; font-size: 14px; }
 .stview-tempo { color: rgba(255, 255, 255, 0.72); font-size: 13px; }
 .stview-x, .stview-som { background: none; border: none; color: #fff; cursor: pointer; padding: 8px; font-size: 17px; }
-.stview-x { margin-left: auto; font-size: 28px; line-height: 1; }
-.stview-som { margin-left: auto; }
-.stview-som + .stview-x { margin-left: 0; }
+.stview-x { font-size: 28px; line-height: 1; }
+.stview-esp { flex: 1; } /* empurra som e X para a DIREITA, sempre */
 .stview-media { flex: 1; display: grid; place-items: center; overflow: hidden; }
 .stview-media img, .stview-media video { max-width: 100vw; max-height: 100vh; max-height: 100dvh; width: auto; height: auto; }
 .stview-tap { position: absolute; top: 72px; bottom: 76px; width: 30%; z-index: 3; }
@@ -969,12 +968,22 @@ button.story, button.story-ring { background: none; border: none; padding: 0; fo
   color: #fff; font: inherit; font-size: 13.5px; padding: 8px 14px; cursor: pointer;
 }
 .stview-vistos:hover { background: rgba(255, 255, 255, 0.26); }
+/* Lixeira do próprio story (abre o cardzinho de confirmação) */
 .stview-del {
   position: absolute; bottom: 12px; right: 14px; z-index: 4;
-  background: rgba(255, 255, 255, 0.14); border: none; color: #fff; cursor: pointer;
-  padding: 8px 14px; border-radius: 999px; font: inherit; font-size: 13.5px;
+  width: 42px; height: 42px; display: grid; place-items: center;
+  background: rgba(255, 255, 255, 0.14); border: none; color: #fff; cursor: pointer; border-radius: 50%;
 }
 .stview-del:hover { background: rgba(255, 255, 255, 0.26); }
+.stdel-card { max-width: 320px; text-align: center; }
+.stdel-card h3 { margin: 0 0 6px; font-size: 17px; }
+.stdel-card p { margin: 0 0 14px; font-size: 13.5px; }
+.stdel-card .modal-acoes { justify-content: center; }
+.stdel-confirma { background: var(--st-vermelho, #d1242f); color: #fff; border: none; }
+.stdel-confirma:hover { filter: brightness(1.1); }
+/* Troca de story: a mídia entra com um respiro suave (fluido, sem "pulo seco") */
+.stview-media.st-anim > img, .stview-media.st-anim > video { animation: st-entra 0.2s ease both; }
+@keyframes st-entra { from { opacity: 0.4; transform: scale(0.985); } to { opacity: 1; transform: none; } }
 
 /* Rodapé de interação (stories dos outros): Responder + coração + avião, como no IG */
 .stview-rodape {

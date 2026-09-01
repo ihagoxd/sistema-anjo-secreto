@@ -2114,10 +2114,38 @@
       var input = b.form && b.form.querySelector('[data-foto]');
       if (input) { input.setAttribute('capture', 'environment'); input.click(); }
     }
+    // Celular: abre a CÂMERA NATIVA do aparelho (app de câmera de verdade — HDR,
+    // resolução total do sensor, foto ou vídeo). É a mesma qualidade do Instagram.
+    // O arquivo volta e cai no campo certo (imagem/vídeo) do form de origem.
+    function capturaNativa(form) {
+      if (!form) return;
+      var tmp = document.createElement('input');
+      tmp.type = 'file';
+      tmp.accept = 'image/png,image/jpeg,video/mp4,video/quicktime,video/webm';
+      tmp.setAttribute('capture', 'environment');
+      tmp.className = 'visualmente-oculto';
+      document.body.appendChild(tmp);
+      tmp.addEventListener('change', function () {
+        var f = tmp.files && tmp.files[0];
+        tmp.remove();
+        if (!f) return;
+        var alvo = form.querySelector(f.type.indexOf('video/') === 0 ? '[data-video]' : '[data-foto]');
+        if (!alvo) return;
+        try {
+          var dt = new DataTransfer();
+          dt.items.add(f);
+          alvo.files = dt.files;
+        } catch (x) { return; }
+        alvo.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      tmp.click();
+    }
     document.addEventListener('click', function (e) {
       var b = e.target.closest('[data-camera]');
       if (!b) return;
       camForm = b.form;
+      // Aparelho de toque (celular/tablet): câmera nativa. Desktop: webcam do navegador.
+      if (window.matchMedia('(pointer: coarse)').matches) { capturaNativa(b.form); return; }
       camFacing = 'environment'; // começa na traseira; usuário pode virar
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         montarCamera(); camModal.hidden = false; document.body.classList.add('sem-scroll');

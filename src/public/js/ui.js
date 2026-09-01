@@ -1373,9 +1373,12 @@
   (function () {
     document.querySelectorAll('.notas, .stories').forEach(function (fila) {
       var ativo = false, moveu = false, x0 = 0, s0 = 0;
+      // sem o "drag nativo" de link/imagem, que engolia o gesto do mouse
+      fila.addEventListener('dragstart', function (e) { e.preventDefault(); });
       fila.addEventListener('pointerdown', function (e) {
         if (e.pointerType !== 'mouse') return;
         ativo = true; moveu = false; x0 = e.clientX; s0 = fila.scrollLeft;
+        try { fila.setPointerCapture(e.pointerId); } catch (x) {}
       });
       fila.addEventListener('pointermove', function (e) {
         if (!ativo) return;

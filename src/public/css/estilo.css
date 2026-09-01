@@ -960,7 +960,8 @@ button.story, button.story-ring { background: none; border: none; padding: 0; fo
 .stview-palco { flex: 1; position: relative; overflow: hidden; perspective: 1200px; }
 .stview-cubo { position: absolute; inset: 0; transform-style: preserve-3d; will-change: transform; }
 .stview-media { position: absolute; inset: 0; display: grid; place-items: center; overflow: hidden; backface-visibility: hidden; }
-.stview-face { position: absolute; inset: 0; display: grid; place-items: center; overflow: hidden; backface-visibility: hidden; background: #000; }
+/* A face lateral só aparece DURANTE o giro (parada, ela cobriria a mídia de preto) */
+.stview-face { position: absolute; inset: 0; display: none; place-items: center; overflow: hidden; backface-visibility: hidden; background: #000; }
 .stview-face img { width: 100%; height: 100%; object-fit: cover; }
 .fviz-video { font-size: 44px; }
 .stview-media img, .stview-media video { max-width: 100vw; max-height: 100vh; max-height: 100dvh; width: auto; height: auto; }

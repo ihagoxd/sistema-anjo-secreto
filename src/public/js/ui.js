@@ -374,6 +374,7 @@
       cuboEl.style.transition = 'none';
       cuboEl.style.transform = 'translateZ(' + (-w / 2) + 'px)';
       mediaBox.style.transform = 'rotateY(0deg) translateZ(' + (w / 2) + 'px)';
+      faceEl.style.display = 'grid'; // a face só existe durante o giro
       faceEl.style.transform = 'rotateY(' + (dir * 90) + 'deg) translateZ(' + (w / 2) + 'px)';
       faceEl.innerHTML = '';
       var viz = vizinhoDe(dir);
@@ -388,7 +389,7 @@
     function limparCubo() {
       cuboEl.style.transition = ''; cuboEl.style.transform = '';
       mediaBox.style.transform = '';
-      faceEl.style.transform = ''; faceEl.innerHTML = '';
+      faceEl.style.transform = ''; faceEl.style.display = ''; faceEl.innerHTML = '';
       cuboDir = 0; cuboW = 0; gesto = '';
     }
     var grupos = [], gi = 0, ii = 0;

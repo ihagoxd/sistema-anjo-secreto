@@ -2439,9 +2439,10 @@ a.share-item { text-decoration: none; color: inherit; }
 .dm-bolha.deles .dm-audio-trilha { background: var(--line-strong); }
 .dm-audio-prog { position: absolute; left: 0; top: 0; bottom: 0; width: 0%; border-radius: 99px; background: currentColor; }
 /* Onda de voz real (picos do próprio áudio, como no WhatsApp) */
-.dm-audio-trilha.com-onda { height: 24px; background: none; }
+.dm-audio-trilha.com-onda { height: 24px; background: none; overflow: hidden; }
 .onda-base, .onda-cheia { position: absolute; inset: 0; display: flex; align-items: center; gap: 2px; }
-.onda-base i, .onda-cheia i { flex: 1 1 0; min-width: 2px; border-radius: 2px; background: currentColor; }
+.onda-base i, .onda-cheia i { flex: 1 1 0; min-width: 0; border-radius: 2px; background: currentColor; }
+.dm-audio-tempo { flex-shrink: 0; }
 .onda-base i { opacity: 0.32; }
 .dm-audio-trilha.com-onda .dm-audio-prog { background: none; overflow: hidden; border-radius: 0; }
 /* Hora da mensagem alinhada com a bolha (direita nas minhas, esquerda nas deles) */

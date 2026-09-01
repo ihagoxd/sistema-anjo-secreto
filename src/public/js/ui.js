@@ -2319,7 +2319,9 @@
             return ctx.decodeAudioData(buf).then(function (dec) { try { ctx.close(); } catch (e) {} return dec; });
           })
           .then(function (dec) {
-            var N = 30, dados = dec.getChannelData(0);
+            // nº de barras proporcional ao espaço real (senão vazam por cima do timer)
+            var N = Math.max(14, Math.min(40, Math.floor((trilha.clientWidth || 100) / 5)));
+            var dados = dec.getChannelData(0);
             var passo = Math.max(1, Math.floor(dados.length / N));
             var picos = [], max = 0;
             for (var i = 0; i < N; i++) {

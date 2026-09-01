@@ -1836,19 +1836,30 @@ html.mini #loader .anjo .anjo-traco { display: none; }
 .ig-tempo::before { content: '· '; }
 .ig-post .tw-post-midia { margin-top: 0; border-radius: 14px; }
 .ig-post .tw-post-midia img { max-height: 560px; }
-.ig-acoes { display: flex; justify-content: flex-start; gap: 8px; max-width: none; margin: 4px 0 0 -6px; padding: 2px 0; }
+.ig-acoes { display: flex; justify-content: flex-start; gap: 6px; max-width: none; margin: 5px 0 0 -6px; padding: 2px 0; }
+.ig-acoes .tw-acao { gap: 5px; color: var(--text); }
 .ig-acoes .tw-acao svg { width: 26px; height: 26px; stroke-width: 1.9; }
-.ig-acoes .tw-acao span { display: none; }
+/* Contador ao lado do ícone (comentários / reposts), como no Instagram; zero fica vazio e some */
+.ig-acoes .tw-acao span { font-size: 14px; font-weight: 600; line-height: 1; }
+.ig-acoes .tw-acao span:empty { display: none; }
 .ig-acoes .share { margin-left: auto; margin-right: -6px; }
-.ig-curtidas { font-size: 14px; margin-top: 2px; }
+/* Rodapé do post: curtidas → legenda → "Ver todos os N comentários", tudo colado e alinhado */
+.ig-rodape { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; }
+.ig-curtidas { font-size: 14px; }
 .ig-curtidas strong { font-weight: 700; }
-.ig-legenda { margin-top: 3px; font-size: 14.5px; }
-.ig-legenda .ig-user { margin-right: 5px; }
+.ig-legenda { margin: 0; font-size: 14px; line-height: 1.4; white-space: pre-line; } /* pre-line: mantém as quebras do autor, mas engole espaços soltos que bagunçavam o alinhamento */
+.ig-legenda .ig-user { margin-right: 6px; }
+.ig-legenda.clampada { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ig-mais {
+  background: none; border: none; padding: 0; margin: -1px 0 0;
+  font: inherit; font-size: 14px; color: var(--text-faint); cursor: pointer; text-align: left; width: max-content;
+}
+.ig-mais:hover { color: var(--text-soft); }
 /* Post só de texto: o texto é o conteúdo (estilo Threads), não uma legenda miúda */
 .ig-texto { margin: 0 0 2px; font-size: 16px; line-height: 1.5; letter-spacing: -0.005em; }
 .ig-vercoments {
-  display: block; background: none; border: none; padding: 6px 0 0;
-  font: inherit; font-size: 13.5px; color: var(--text-faint); cursor: pointer; text-align: left;
+  display: block; background: none; border: none; padding: 0;
+  font: inherit; font-size: 14px; color: var(--text-faint); cursor: pointer; text-align: left;
 }
 .ig-vercoments:hover { color: var(--text-soft); }
 /* No perfil, os posts vivem dentro do cartão — devolve o respiro lateral */

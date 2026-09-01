@@ -96,12 +96,30 @@
             '<div class="tw-coment-texto">' + comMencoesJs(c.texto) + '</div></div>';
           if (lista) lista.appendChild(el);
           inp.value = '';
-          // incrementa o contador do ícone
-          var span = document.querySelector('[data-comentarios="' + bloco.getAttribute('data-bloco') + '"] .post-coments');
-          if (span) span.textContent = (parseInt(span.textContent, 10) || 0) + 1;
+          // incrementa o contador do ícone e o "Ver todos os N comentários"
+          var art = bloco.closest('.tw-post');
+          if (art) {
+            var span = art.querySelector('.tw-acao .post-coments');
+            var n = (parseInt(span && span.textContent, 10) || 0) + 1;
+            if (span) span.textContent = n;
+            var ver = art.querySelector('.ig-vercoments');
+            if (ver) { ver.hidden = false; ver.textContent = n === 1 ? 'Ver 1 comentário' : 'Ver todos os ' + n + ' comentários'; }
+          }
         })
         .catch(function () { toast('Não foi possível comentar.'); })
         .finally(function () { if (btn) btn.disabled = false; });
+    });
+  })();
+
+  /* ---------- Legenda longa: corta em 2 linhas com "mais" (estilo Instagram) ---------- */
+  (function () {
+    document.querySelectorAll('.ig-legenda').forEach(function (leg) {
+      leg.classList.add('clampada');
+      if (leg.scrollHeight <= leg.clientHeight + 2) { leg.classList.remove('clampada'); return; }
+      var mais = document.createElement('button');
+      mais.type = 'button'; mais.className = 'ig-mais'; mais.textContent = 'mais';
+      mais.addEventListener('click', function () { leg.classList.remove('clampada'); mais.remove(); });
+      leg.insertAdjacentElement('afterend', mais);
     });
   })();
 
@@ -497,7 +515,7 @@
           b.classList.toggle('ativo', !!d.repostou);
           b.setAttribute('aria-pressed', d.repostou ? 'true' : 'false');
           var c = b.querySelector('.post-reposts');
-          if (c) c.textContent = d.total;
+          if (c) c.textContent = (Number(d.total) || 0) ? d.total : ''; // zero: some, como no Instagram
           if (d.repostou) toast('Repostado! 🔁');
         })
         .catch(function () {})

@@ -33,6 +33,11 @@ const helpers = {
     return a || b;
   },
 
+  // Número inteiro (COUNT do pg chega como string; 0 vira falsy para {{#if}})
+  num(n) {
+    return parseInt(n, 10) || 0;
+  },
+
   // Inicial do nome (avatar)
   inicial(nome) {
     return (String(nome || '').trim()[0] || '?').toUpperCase();

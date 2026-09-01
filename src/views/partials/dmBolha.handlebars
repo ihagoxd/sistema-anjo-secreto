@@ -2,8 +2,18 @@
   {{#if this.apagada}}
     <div class="dm-bolha-txt dm-apagada">🚫 Mensagem apagada</div>
   {{else}}
+  {{#if this.storyPrev}}
+    {{! Cartão de story (resposta/encaminhamento): clica e abre o story enquanto estiver no ar }}
+    <div class="dm-storyprev{{#unless this.storyPrev.ativo}} expirado{{/unless}}"{{#if this.storyPrev.ativo}} data-abrir-story="{{this.storyPrev.id_autor}}" data-story-id="{{this.storyPrev.id_story}}" role="button" tabindex="0"{{/if}}>
+      <span class="dm-storyprev-rotulo">{{#if (eq this.storyPrev.tipo "resposta")}}💬 Respondeu ao story de{{else}}📤 Story de{{/if}} <strong>@{{this.storyPrev.usuario}}</strong></span>
+      {{#if this.imagem}}<img class="dm-storyprev-img" src="{{this.imagem}}" alt="" draggable="false">{{/if}}
+      {{#if this.video}}<video class="dm-storyprev-img" src="{{this.video}}" preload="metadata" muted playsinline></video>{{/if}}
+      <span class="dm-storyprev-hint">{{#if this.storyPrev.ativo}}Ver story ›{{else}}Story indisponível{{/if}}</span>
+    </div>
+  {{else}}
   {{#if this.imagem}}<div class="dm-bolha-img tw-post-midia" data-img="{{this.imagem}}" role="button" tabindex="0" aria-label="Ampliar imagem"><img src="{{this.imagem}}" alt="Foto" draggable="false"></div>{{/if}}
   {{#if this.video}}<div class="dm-bolha-video"><video src="{{this.video}}" controls playsinline preload="metadata"></video></div>{{/if}}
+  {{/if}}
   {{#if this.audio}}
     <div class="dm-audio">
       <button type="button" class="dm-audio-play" data-audio-play aria-label="Ouvir mensagem de voz">
@@ -27,7 +37,8 @@
     </a>
     {{#if this.textoSemLink}}<div class="dm-bolha-txt">{{this.textoSemLink}}</div>{{/if}}
   {{else}}
-    {{#if this.texto}}<div class="dm-bolha-txt">{{this.texto}}</div>{{/if}}
+    {{! No encaminhamento de story o rótulo já está no cartão — não repete o texto }}
+    {{#if this.texto}}{{#unless (eq this.storyPrev.tipo "encaminhado")}}<div class="dm-bolha-txt">{{this.texto}}</div>{{/unless}}{{/if}}
   {{/if}}
   {{/if}}
   <div class="dm-bolha-meta">

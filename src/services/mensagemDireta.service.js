@@ -20,7 +20,7 @@ async function alvoValido(idUsuario) {
 /**
  * Envia uma DM (texto e/ou imagem). Retorna { ok } ou { ok:false, motivo }.
  */
-async function enviar(idRemetente, idDestinatario, texto, imagem = null, audio = null, video = null) {
+async function enviar(idRemetente, idDestinatario, texto, imagem = null, audio = null, video = null, story = null) {
   idDestinatario = Number(idDestinatario);
   if (!idDestinatario || idDestinatario === idRemetente) return { ok: false, motivo: 'ALVO_INVALIDO' };
 
@@ -31,7 +31,7 @@ async function enviar(idRemetente, idDestinatario, texto, imagem = null, audio =
   const alvo = await alvoValido(idDestinatario);
   if (!alvo) return { ok: false, motivo: 'ALVO_INVALIDO' };
 
-  await dmModel.inserir({ idRemetente, idDestinatario, texto: texto2, imagem, audio, video });
+  await dmModel.inserir({ idRemetente, idDestinatario, texto: texto2, imagem, audio, video, story });
   await notificacaoService.notificarMensagemDireta(idDestinatario, idRemetente);
   return { ok: true };
 }

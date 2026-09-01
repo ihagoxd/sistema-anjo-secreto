@@ -187,6 +187,11 @@ ALTER TABLE mensagens_diretas ALTER COLUMN texto DROP NOT NULL;
 ALTER TABLE mensagens_diretas DROP CONSTRAINT IF EXISTS mensagens_diretas_texto_check;
 ALTER TABLE mensagens_diretas DROP CONSTRAINT IF EXISTS md_conteudo;
 ALTER TABLE mensagens_diretas ADD CONSTRAINT md_conteudo CHECK (apagada_em IS NOT NULL OR texto IS NOT NULL OR imagem IS NOT NULL OR audio IS NOT NULL OR video IS NOT NULL);
+-- Cartão de story na DM (responder/encaminhar story, estilo Instagram): guarda a
+-- referência para abrir o story enquanto estiver no ar (a mídia copiada fica na msg)
+ALTER TABLE mensagens_diretas ADD COLUMN IF NOT EXISTS story_ref INTEGER;
+ALTER TABLE mensagens_diretas ADD COLUMN IF NOT EXISTS story_autor INTEGER REFERENCES usuarios(id_usuario) ON DELETE SET NULL;
+ALTER TABLE mensagens_diretas ADD COLUMN IF NOT EXISTS story_tipo VARCHAR(12);
 
 -- ---------- NOTIFICAÇÕES ----------
 -- tipo: MENSAGEM | MENSAGEM_ANJO | MENSAGEM_PROTEGIDO | CURTIDA | COMENTARIO | ANIVERSARIO

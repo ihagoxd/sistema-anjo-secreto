@@ -19,6 +19,7 @@ const mensagemService = require('../services/mensagem.service');
 const dmService = require('../services/mensagemDireta.service');
 const usuarioModel = require('../models/usuario.model');
 const postModel = require('../models/post.model');
+const storyModel = require('../models/story.model');
 const { HUMORES } = require('../config/humores');
 
 const MSG = {
@@ -106,7 +107,10 @@ async function renderInbox(req, res, sel) {
     }
   }
 
-  if (conversa && conversa.mensagens) await anexarPreviasDePost(conversa.mensagens, me);
+  if (conversa && conversa.mensagens) {
+    await anexarPreviasDePost(conversa.mensagens, me);
+    await anexarCartoesDeStory(conversa.mensagens);
+  }
 
   // Notas (estilo Instagram): "Sua nota" + quem definiu o status hoje.
   // Identidade PÚBLICA do escritório — nada aqui toca nos canais secretos do jogo.
@@ -126,6 +130,33 @@ async function renderInbox(req, res, sel) {
     humores: HUMORES,
     notas,
   });
+}
+
+// Mensagem que referencia um story (resposta/encaminhamento) vira um CARTÃO na
+// bolha — clicável enquanto o story estiver no ar (24 h), como no Instagram.
+async function anexarCartoesDeStory(mensagens) {
+  const cacheAutor = {};
+  const cacheAtivo = {};
+  for (const m of mensagens) {
+    if (!m.story_autor || m.apagada_em) continue;
+    if (!(m.story_autor in cacheAutor)) cacheAutor[m.story_autor] = await usuarioModel.buscarPorId(m.story_autor);
+    let ativo = false;
+    if (m.story_ref) {
+      if (!(m.story_ref in cacheAtivo)) {
+        const s = await storyModel.buscarPorId(m.story_ref);
+        cacheAtivo[m.story_ref] = !!(s && Date.now() - new Date(s.criado_em).getTime() < 24 * 3600 * 1000);
+      }
+      ativo = cacheAtivo[m.story_ref];
+    }
+    const autor = cacheAutor[m.story_autor];
+    m.storyPrev = {
+      tipo: m.story_tipo || 'encaminhado',
+      id_story: m.story_ref,
+      id_autor: m.story_autor,
+      usuario: autor ? autor.usuario : '?',
+      ativo,
+    };
+  }
 }
 
 // Mensagem com link de publicação do mural (/p/ID) vira um cartão de preview na

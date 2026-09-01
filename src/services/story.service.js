@@ -104,8 +104,8 @@ async function responder(meId, idStory, texto) {
       imagem = `/uploads/${copia}`;
     } catch (e) { imagem = null; }
   }
-  const rotulo = s.video ? '💬 Respondeu ao seu story 🎬' : '💬 Respondeu ao seu story';
-  const r = await dmService.enviar(meId, s.id_usuario, `${rotulo}\n${t.slice(0, 500)}`, imagem);
+  const r = await dmService.enviar(meId, s.id_usuario, t.slice(0, 500), imagem, null, null,
+    { ref: s.id_story, autor: s.id_usuario, tipo: 'resposta' });
   if (!r.ok && imagem) apagarUpload(imagem);
   return r;
 }
@@ -122,8 +122,9 @@ async function encaminhar(meId, idStory, paraId) {
   const copia = `fwd-${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
   await fs.promises.copyFile(path.join(UPLOAD_DIR, path.basename(origem)), path.join(UPLOAD_DIR, copia));
   const caminho = `/uploads/${copia}`;
-  const texto = `📤 Encaminhou o story de @${autor ? autor.usuario : '?'}`;
-  const r = await dmService.enviar(meId, Number(paraId), texto, s.imagem ? caminho : null, null, s.video ? caminho : null);
+  const texto = `📤 Story de @${autor ? autor.usuario : '?'}`;
+  const r = await dmService.enviar(meId, Number(paraId), texto, s.imagem ? caminho : null, null, s.video ? caminho : null,
+    { ref: s.id_story, autor: s.id_usuario, tipo: 'encaminhado' });
   if (!r.ok) apagarUpload(caminho); // DM falhou: não deixa a cópia órfã no disco
   return r;
 }

@@ -933,6 +933,22 @@ table.tabela tbody tr:hover { background: var(--hover); }
    (as áreas com zoom próprio — lightbox, câmera, stories — definem o seu touch-action) */
 html { touch-action: pan-x pan-y; }
 
+/* Cartão de story na DM (resposta/encaminhamento) — clica e abre o story */
+.dm-storyprev {
+  display: block; max-width: 230px; border: 1px solid var(--line); border-radius: 16px;
+  overflow: hidden; background: var(--surface-2); cursor: pointer;
+}
+.dm-storyprev-rotulo { display: block; padding: 9px 11px 7px; font-size: 12px; color: var(--text-soft); }
+.dm-storyprev-rotulo strong { color: var(--text); }
+.dm-storyprev-img { display: block; width: 100%; max-height: 300px; object-fit: cover; }
+.dm-storyprev-hint { display: block; padding: 8px 11px 9px; font-size: 12.5px; font-weight: 700; color: var(--ouro-forte, var(--ouro)); }
+.dm-storyprev:hover .dm-storyprev-hint { text-decoration: underline; }
+.dm-storyprev.expirado { cursor: default; }
+.dm-storyprev.expirado .dm-storyprev-img { opacity: 0.55; }
+.dm-storyprev.expirado .dm-storyprev-hint { color: var(--text-faint); font-weight: 500; }
+.dm-storyprev.expirado:hover .dm-storyprev-hint { text-decoration: none; }
+.dm-bolha .dm-storyprev + .dm-bolha-txt, .dm-bolha .dm-storyprev ~ .dm-bolha-txt { margin-top: 5px; }
+
 /* Pílula "novas publicações" do feed ao vivo (aparece sem F5, como no Instagram) */
 .feed-novas {
   position: fixed; top: 66px; left: 50%; transform: translateX(-50%); z-index: 60;

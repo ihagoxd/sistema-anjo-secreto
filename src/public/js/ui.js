@@ -922,27 +922,47 @@
       atualizarAneis();
     }
 
-    document.addEventListener('click', function (e) {
-      var b = e.target.closest('[data-ver-stories]');
-      if (!b) return;
-      e.preventDefault(); // um <a> promovido a "tem story" abre o viewer, não navega
-      var idAlvo = parseInt(b.getAttribute('data-ver-stories'), 10);
+    // Abre o visualizador num usuário (idAlvo); com idStory, cai NAQUELE story exato.
+    function abrirViewer(idAlvo, idStory, aoFalhar) {
       montarView();
       fetch('/stories/dados', { headers: { 'Accept': 'application/json' } })
         .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
         .then(function (gs) {
-          if (!gs.length) return;
           grupos = gs;
-          gi = Math.max(0, grupos.findIndex(function (g) { return g.id_usuario === idAlvo; }));
-          // começa no primeiro não visto (como no Instagram); se viu todos, do início
+          gi = grupos.findIndex(function (g) { return g.id_usuario === idAlvo; });
+          if (gi < 0) { gi = 0; if (!gs.length || (idStory && aoFalhar)) { aoFalhar ? aoFalhar() : null; return; } }
           var g = grupos[gi];
-          ii = g.itens.findIndex(function (it) { return !it.visto && !g.eu; });
-          if (ii < 0) ii = 0;
+          if (!g) return;
+          if (idStory) {
+            ii = g.itens.findIndex(function (it) { return it.id_story === idStory; });
+            if (ii < 0) { if (aoFalhar) { aoFalhar(); return; } ii = 0; }
+          } else {
+            // começa no primeiro não visto (como no Instagram); se viu todos, do início
+            ii = g.itens.findIndex(function (it) { return !it.visto && !g.eu; });
+            if (ii < 0) ii = 0;
+          }
           document.body.classList.add('sem-scroll');
           view.hidden = false;
           mostrar();
         })
         .catch(function () { toast('Não foi possível abrir os stories.'); });
+    }
+
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-ver-stories]');
+      if (b) {
+        e.preventDefault(); // um <a> promovido a "tem story" abre o viewer, não navega
+        abrirViewer(parseInt(b.getAttribute('data-ver-stories'), 10), null, null);
+        return;
+      }
+      // Cartão de story na DM: abre o visualizador naquele story exato
+      var c = e.target.closest('[data-abrir-story]');
+      if (!c) return;
+      abrirViewer(
+        parseInt(c.getAttribute('data-abrir-story'), 10),
+        parseInt(c.getAttribute('data-story-id'), 10) || null,
+        function () { toast('Esse story não está mais disponível 😅'); }
+      );
     });
 
     document.addEventListener('keydown', function (e) {

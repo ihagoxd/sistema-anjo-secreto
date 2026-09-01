@@ -2293,7 +2293,7 @@
     });
   })();
 
-  /* ---------- Player das mensagens de voz ---------- */
+  /* ---------- Player das mensagens de voz (arrastar busca, velocidade 1x/1,5x/2x) ---------- */
   (function () {
     function fmt(s) { var m = Math.floor(s / 60), ss = Math.floor(s % 60); return m + ':' + (ss < 10 ? '0' : '') + ss; }
     document.querySelectorAll('.dm-audio').forEach(function (box) {
@@ -2301,29 +2301,61 @@
       var prog = box.querySelector('.dm-audio-prog');
       var tempo = box.querySelector('[data-audio-tempo]');
       var trilha = box.querySelector('.dm-audio-trilha');
+      var vel = box.querySelector('[data-audio-vel]');
       function dur() { return isFinite(au.duration) && au.duration > 0 ? au.duration : 0; }
-      au.addEventListener('loadedmetadata', function () { if (dur()) tempo.textContent = fmt(dur()); });
+      function mostrarDur() { if (dur()) tempo.textContent = fmt(dur()); }
+      au.addEventListener('loadedmetadata', function () {
+        if (isFinite(au.duration)) { mostrarDur(); return; }
+        // WebM antigo sem duração nos metadados: força o navegador a calcular
+        au.currentTime = 1e7;
+        au.addEventListener('durationchange', function arruma() {
+          if (!isFinite(au.duration)) return;
+          au.removeEventListener('durationchange', arruma);
+          au.currentTime = 0;
+          mostrarDur();
+        });
+      });
+      if (au.readyState >= 1) mostrarDur(); // metadados já estavam prontos antes do listener
       au.addEventListener('timeupdate', function () {
         var d = dur();
         if (d) prog.style.width = (au.currentTime / d) * 100 + '%';
-        tempo.textContent = fmt(au.currentTime);
+        if (!au.paused || au.currentTime > 0) tempo.textContent = fmt(au.currentTime);
       });
       au.addEventListener('play', function () {
         document.querySelectorAll('.dm-audio audio').forEach(function (o) { if (o !== au) o.pause(); });
         box.classList.add('tocando');
+        if (vel) vel.hidden = false;
       });
       au.addEventListener('pause', function () { box.classList.remove('tocando'); });
       au.addEventListener('ended', function () {
         box.classList.remove('tocando');
         prog.style.width = '0%';
         au.currentTime = 0;
-        if (dur()) tempo.textContent = fmt(dur());
+        mostrarDur();
+        if (vel) vel.hidden = true;
       });
-      trilha.addEventListener('click', function (ev) {
+      // Velocidade: 1x → 1,5x → 2x (como no WhatsApp)
+      if (vel) vel.addEventListener('click', function () {
+        var prox = au.playbackRate >= 2 ? 1 : au.playbackRate >= 1.5 ? 2 : 1.5;
+        au.playbackRate = prox;
+        vel.textContent = (prox === 1.5 ? '1,5' : prox) + 'x';
+      });
+      // Buscar: clique OU arrasto na trilha
+      var buscando = false;
+      function buscar(ev) {
         var d = dur();
         if (!d) return;
         var r = trilha.getBoundingClientRect();
         au.currentTime = Math.max(0, Math.min(1, (ev.clientX - r.left) / r.width)) * d;
+      }
+      trilha.addEventListener('pointerdown', function (ev) {
+        buscando = true;
+        try { trilha.setPointerCapture(ev.pointerId); } catch (x) {}
+        buscar(ev);
+      });
+      trilha.addEventListener('pointermove', function (ev) { if (buscando) buscar(ev); });
+      ['pointerup', 'pointercancel'].forEach(function (evn) {
+        trilha.addEventListener(evn, function () { buscando = false; });
       });
     });
     document.addEventListener('click', function (e) {
@@ -2333,6 +2365,87 @@
       if (au.paused) au.play();
       else au.pause();
     });
+  })();
+
+  /* ---------- Responder mensagem (citação estilo WhatsApp) ----------
+     Mobile: arrastar a bolha para a DIREITA responde. Desktop: botão ↩ na bolha.
+     A barra "Respondendo a…" aparece sobre o compositor; a citação vai junto. ---------- */
+  (function () {
+    var msgs = document.getElementById('dmMsgs');
+    var form = document.querySelector('.dm-composer');
+    if (!msgs || !form) return;
+    var bar = form.querySelector('[data-resp-bar]');
+    var inpId = form.querySelector('[data-resp-id]');
+    var elAutor = form.querySelector('[data-resp-autor]');
+    var elTrecho = form.querySelector('[data-resp-trecho]');
+    var ta = form.querySelector('textarea');
+    if (!bar || !inpId) return;
+
+    function trechoDe(bolha) {
+      var t = bolha.querySelector('.dm-bolha-txt');
+      if (t && t.textContent.trim()) return t.textContent.trim().slice(0, 90);
+      if (bolha.querySelector('.dm-audio')) return '🎤 Mensagem de voz';
+      if (bolha.querySelector('.dm-bolha-img, .dm-storyprev-img')) return '📷 Foto';
+      if (bolha.querySelector('.dm-bolha-video')) return '🎬 Vídeo';
+      return 'Mensagem';
+    }
+    function iniciarResposta(bolha) {
+      if (!bolha || bolha.querySelector('.dm-apagada')) return;
+      inpId.value = bolha.getAttribute('data-id') || '';
+      if (!inpId.value) return;
+      elAutor.textContent = bolha.classList.contains('minha') ? 'Você' : (form.getAttribute('data-resp-rotulo') || 'Mensagem');
+      elTrecho.textContent = trechoDe(bolha);
+      bar.hidden = false;
+      if (ta) ta.focus();
+    }
+    function cancelarResposta() { inpId.value = ''; bar.hidden = true; }
+    form.querySelector('[data-resp-cancelar]').addEventListener('click', cancelarResposta);
+
+    // Desktop: botão ↩ | Mobile também tem o botão dentro do menu de segurar (via clique nele)
+    msgs.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-responder-msg]');
+      if (b) iniciarResposta(b.closest('.dm-bolha'));
+      var cita = e.target.closest('[data-ir-msg]');
+      if (cita) {
+        var alvo = msgs.querySelector('.dm-bolha[data-id="' + cita.getAttribute('data-ir-msg') + '"]');
+        if (alvo) {
+          alvo.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          alvo.classList.add('destacada');
+          setTimeout(function () { alvo.classList.remove('destacada'); }, 1400);
+        }
+      }
+    });
+
+    // Mobile: arrastar a bolha pra direita (a bolha acompanha o dedo e volta com mola)
+    var swB = null, swX = 0, swY = 0, swOn = false;
+    msgs.addEventListener('pointerdown', function (e) {
+      var b = e.target.closest('.dm-bolha');
+      if (!b || e.pointerType === 'mouse') return;
+      swB = b; swX = e.clientX; swY = e.clientY; swOn = false;
+    });
+    msgs.addEventListener('pointermove', function (e) {
+      if (!swB) return;
+      var dx = e.clientX - swX, dy = e.clientY - swY;
+      if (!swOn && dx > 14 && Math.abs(dx) > Math.abs(dy) * 1.4) swOn = true;
+      if (swOn) {
+        swB.style.transition = 'none';
+        swB.style.transform = 'translateX(' + Math.min(72, dx) + 'px)';
+      }
+    });
+    function swFim(e) {
+      if (!swB) return;
+      var dx = e ? e.clientX - swX : 0;
+      var b = swB; swB = null;
+      if (swOn) {
+        b.style.transition = 'transform 0.2s cubic-bezier(0.22, 1, 0.36, 1)';
+        b.style.transform = '';
+        setTimeout(function () { b.style.transition = ''; }, 220);
+        if (dx > 48) iniciarResposta(b);
+      }
+      swOn = false;
+    }
+    msgs.addEventListener('pointerup', swFim);
+    msgs.addEventListener('pointercancel', function () { swFim(null); });
   })();
 
   /* ---------- Direct (mensagens): Enter envia, auto-scroll, editar ---------- */
@@ -2381,6 +2494,7 @@
           menu.innerHTML =
             '<div class="msg-menu-fundo" data-mm-fechar></div>'
             + '<div class="msg-menu-box">'
+            + '<button type="button" class="msg-menu-op" data-mm-responder>↩️ Responder</button>'
             + '<button type="button" class="msg-menu-op" data-mm-editar>✏️ Editar</button>'
             + '<button type="button" class="msg-menu-op perigo" data-mm-apagar>🗑️ Apagar para todos</button>'
             + '<button type="button" class="msg-menu-op" data-mm-fechar>Cancelar</button>'
@@ -2388,6 +2502,12 @@
           document.body.appendChild(menu);
           menu.addEventListener('click', function (e) {
             var bolha = alvo;
+            if (e.target.closest('[data-mm-responder]')) {
+              fecharMenu();
+              var rb = bolha && bolha.querySelector('[data-responder-msg]');
+              if (rb) rb.click();
+              return;
+            }
             if (e.target.closest('[data-mm-editar]')) {
               fecharMenu();
               var ed = bolha && bolha.querySelector('[data-editar-msg]');

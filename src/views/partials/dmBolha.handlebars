@@ -2,6 +2,13 @@
   {{#if this.apagada}}
     <div class="dm-bolha-txt dm-apagada">🚫 Mensagem apagada</div>
   {{else}}
+  {{#if this.quote}}
+    {{! Citação (responder estilo WhatsApp): clica e rola até a mensagem original }}
+    <div class="dm-cita" data-ir-msg="{{this.respondendo_a}}" role="button" tabindex="0" title="Ir para a mensagem original">
+      <span class="dm-cita-autor">{{#if this.quote.minha}}Você{{else}}{{@root.conversa.rotuloResposta}}{{/if}}</span>
+      <span class="dm-cita-texto">{{this.quote.texto}}</span>
+    </div>
+  {{/if}}
   {{#if this.storyPrev}}
     {{! Cartão de story (resposta/encaminhamento): clica e abre o story enquanto estiver no ar }}
     <div class="dm-storyprev{{#unless this.storyPrev.ativo}} expirado{{/unless}}"{{#if this.storyPrev.ativo}} data-abrir-story="{{this.storyPrev.id_autor}}" data-story-id="{{this.storyPrev.id_story}}" role="button" tabindex="0"{{/if}}>
@@ -22,6 +29,7 @@
       </button>
       <span class="dm-audio-trilha"><span class="dm-audio-prog"></span></span>
       <span class="dm-audio-tempo" data-audio-tempo>0:00</span>
+      <button type="button" class="dm-audio-vel" data-audio-vel hidden aria-label="Velocidade">1x</button>
       <audio src="{{this.audio}}" preload="metadata"></audio>
     </div>
   {{/if}}
@@ -44,6 +52,11 @@
   <div class="dm-bolha-meta">
     <span class="dm-hora">{{tempoRel this.criado_em}}</span>
     <span class="dm-editada"{{#unless this.editado_em}} hidden{{/unless}}>(editada)</span>
+    {{#unless this.apagada}}
+      <button type="button" class="dm-editar" data-responder-msg title="Responder" aria-label="Responder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+      </button>
+    {{/unless}}
     {{#if this.minha}}{{#unless this.apagada}}
       {{#if this.texto}}<button type="button" class="dm-editar" data-editar-msg data-id="{{this.id_mensagem}}" data-escopo="{{@root.conversa.escopo}}" title="Editar mensagem" aria-label="Editar mensagem">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>

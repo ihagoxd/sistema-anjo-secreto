@@ -125,8 +125,14 @@
         {{/each}}
       </div>
 
-      <form class="dm-composer" action="{{conversa.action}}" method="POST" enctype="multipart/form-data">
+      <form class="dm-composer" action="{{conversa.action}}" method="POST" enctype="multipart/form-data" data-resp-rotulo="{{conversa.rotuloResposta}}">
         <input type="hidden" name="_csrf" value="{{csrfToken}}">
+        <input type="hidden" name="responder_a" value="" data-resp-id>
+        {{! Barra "Respondendo a…" (aparece ao arrastar a bolha / botão responder) }}
+        <div class="dm-respondendo" data-resp-bar hidden>
+          <div class="dm-respondendo-txt"><strong data-resp-autor></strong><span data-resp-trecho></span></div>
+          <button type="button" class="dm-resp-x" data-resp-cancelar aria-label="Cancelar resposta">&times;</button>
+        </div>
         {{! Filtro de voz em TODOS os chats. No canal do protegido o padrão é Grave
             (anonimato primeiro); nos demais, Normal — o efeito é brincadeira opcional. }}
         {{#if (eq conversa.tipo "protegido")}}

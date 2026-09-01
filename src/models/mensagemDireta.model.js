@@ -6,22 +6,28 @@
  */
 const db = require('../config/db');
 
-async function inserir({ idRemetente, idDestinatario, texto, imagem = null, audio = null, video = null, story = null }) {
+async function inserir({ idRemetente, idDestinatario, texto, imagem = null, audio = null, video = null, story = null, respondendoA = null }) {
   const res = await db.query(
-    `INSERT INTO mensagens_diretas (id_remetente, id_destinatario, texto, imagem, audio, video, story_ref, story_autor, story_tipo)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    `INSERT INTO mensagens_diretas (id_remetente, id_destinatario, texto, imagem, audio, video, story_ref, story_autor, story_tipo, respondendo_a)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
      RETURNING id_mensagem, criado_em`,
     [idRemetente, idDestinatario, texto, imagem, audio, video,
-      story ? story.ref : null, story ? story.autor : null, story ? story.tipo : null]
+      story ? story.ref : null, story ? story.autor : null, story ? story.tipo : null, respondendoA]
   );
   return res.rows[0];
+}
+
+// Uma mensagem pelo id (validação do "responder": tem que ser da mesma conversa).
+async function buscarPorId(idMensagem) {
+  const res = await db.query(`SELECT * FROM mensagens_diretas WHERE id_mensagem = $1`, [idMensagem]);
+  return res.rows[0] || null;
 }
 
 // Todas as mensagens entre dois usuários, em ordem cronológica.
 async function listarConversa(idA, idB) {
   const res = await db.query(
     `SELECT id_mensagem, id_remetente, id_destinatario, texto, imagem, audio, video, lida, editado_em, apagada_em, criado_em,
-            story_ref, story_autor, story_tipo
+            story_ref, story_autor, story_tipo, respondendo_a
        FROM mensagens_diretas
       WHERE (id_remetente = $1 AND id_destinatario = $2)
          OR (id_remetente = $2 AND id_destinatario = $1)

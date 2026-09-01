@@ -21,7 +21,7 @@ const LIMITE = 1000;
 /**
  * Envia uma mensagem. alvo: 'protegido' | 'anjo'.
  */
-async function enviarMensagemAnonima(idCampanha, idRemetente, alvo, texto, imagem = null, audio = null, video = null) {
+async function enviarMensagemAnonima(idCampanha, idRemetente, alvo, texto, imagem = null, audio = null, video = null, respondendoA = null) {
   const campanha = await campanhaModel.buscarPorId(idCampanha);
   if (!campanha) return { ok: false, motivo: 'SEM_CAMPANHA' };
   if (campanha.status !== 'EM_ANDAMENTO') return { ok: false, motivo: 'NAO_ATIVA' };
@@ -46,7 +46,17 @@ async function enviarMensagemAnonima(idCampanha, idRemetente, alvo, texto, image
     return { ok: false, motivo: 'ALVO_INVALIDO' };
   }
 
-  await mensagemModel.inserir({ idCampanha, idOrigem: idRemetente, idDestino: destino, tipo, mensagem, imagem, audio, video });
+  // "Responder": só cita mensagem DESTA mesma thread (mesma campanha, mesmo par).
+  let citada = null;
+  if (respondendoA) {
+    const q = await mensagemModel.buscarMensagem(Number(respondendoA));
+    const doPar = q && q.id_campanha === idCampanha && !q.arquivada
+      && ((q.id_usuario_origem === idRemetente && q.id_usuario_destino === destino)
+        || (q.id_usuario_origem === destino && q.id_usuario_destino === idRemetente));
+    if (doPar) citada = q.id_mensagem;
+  }
+
+  await mensagemModel.inserir({ idCampanha, idOrigem: idRemetente, idDestino: destino, tipo, mensagem, imagem, audio, video, respondendoA: citada });
   await notificacaoService.notificarMensagemJogo(destino, alvo);
   return { ok: true };
 }
@@ -63,7 +73,7 @@ function classificarMensagens(rows, idUsuario) {
   const comAnjo = [];
   for (const r of rows) {
     const minha = r.id_usuario_origem === idUsuario;
-    const item = { id_mensagem: r.id_mensagem, minha, texto: r.mensagem, imagem: r.imagem, audio: r.audio, video: r.video, apagada: !!r.apagada_em, editado_em: r.editado_em, criado_em: r.criado_em };
+    const item = { id_mensagem: r.id_mensagem, minha, texto: r.mensagem, imagem: r.imagem, audio: r.audio, video: r.video, apagada: !!r.apagada_em, editado_em: r.editado_em, criado_em: r.criado_em, respondendo_a: r.respondendo_a };
     if (r.tipo_mensagem === 'ANJO_PARA_PROTEGIDO') {
       (minha ? comProtegido : comAnjo).push(item);
     } else {

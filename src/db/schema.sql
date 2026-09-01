@@ -162,6 +162,8 @@ ALTER TABLE mensagens_anonimas ALTER COLUMN mensagem DROP NOT NULL;
 ALTER TABLE mensagens_anonimas DROP CONSTRAINT IF EXISTS mensagens_anonimas_mensagem_check;
 ALTER TABLE mensagens_anonimas DROP CONSTRAINT IF EXISTS ma_conteudo;
 ALTER TABLE mensagens_anonimas ADD CONSTRAINT ma_conteudo CHECK (apagada_em IS NOT NULL OR mensagem IS NOT NULL OR imagem IS NOT NULL OR audio IS NOT NULL OR video IS NOT NULL);
+-- Responder com citação (estilo WhatsApp): id da mensagem citada, da MESMA thread
+ALTER TABLE mensagens_anonimas ADD COLUMN IF NOT EXISTS respondendo_a INTEGER;
 
 -- ---------- MENSAGENS DIRETAS (Direct do escritório — chat normal, com nome) ----------
 -- Conversa 1:1 entre quaisquer usuários aprovados (fora do canal anônimo anjo/protegido).
@@ -189,6 +191,7 @@ ALTER TABLE mensagens_diretas DROP CONSTRAINT IF EXISTS md_conteudo;
 ALTER TABLE mensagens_diretas ADD CONSTRAINT md_conteudo CHECK (apagada_em IS NOT NULL OR texto IS NOT NULL OR imagem IS NOT NULL OR audio IS NOT NULL OR video IS NOT NULL);
 -- Cartão de story na DM (responder/encaminhar story, estilo Instagram): guarda a
 -- referência para abrir o story enquanto estiver no ar (a mídia copiada fica na msg)
+ALTER TABLE mensagens_diretas ADD COLUMN IF NOT EXISTS respondendo_a INTEGER; -- responder com citação
 ALTER TABLE mensagens_diretas ADD COLUMN IF NOT EXISTS story_ref INTEGER;
 ALTER TABLE mensagens_diretas ADD COLUMN IF NOT EXISTS story_autor INTEGER REFERENCES usuarios(id_usuario) ON DELETE SET NULL;
 ALTER TABLE mensagens_diretas ADD COLUMN IF NOT EXISTS story_tipo VARCHAR(12);

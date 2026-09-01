@@ -20,7 +20,7 @@ async function alvoValido(idUsuario) {
 /**
  * Envia uma DM (texto e/ou imagem). Retorna { ok } ou { ok:false, motivo }.
  */
-async function enviar(idRemetente, idDestinatario, texto, imagem = null, audio = null, video = null, story = null) {
+async function enviar(idRemetente, idDestinatario, texto, imagem = null, audio = null, video = null, story = null, respondendoA = null) {
   idDestinatario = Number(idDestinatario);
   if (!idDestinatario || idDestinatario === idRemetente) return { ok: false, motivo: 'ALVO_INVALIDO' };
 
@@ -31,7 +31,16 @@ async function enviar(idRemetente, idDestinatario, texto, imagem = null, audio =
   const alvo = await alvoValido(idDestinatario);
   if (!alvo) return { ok: false, motivo: 'ALVO_INVALIDO' };
 
-  await dmModel.inserir({ idRemetente, idDestinatario, texto: texto2, imagem, audio, video, story });
+  // "Responder": só cita mensagem DESTA conversa; qualquer outra é ignorada.
+  let citada = null;
+  if (respondendoA) {
+    const q = await dmModel.buscarPorId(Number(respondendoA));
+    const doPar = q && ((q.id_remetente === idRemetente && q.id_destinatario === idDestinatario)
+      || (q.id_remetente === idDestinatario && q.id_destinatario === idRemetente));
+    if (doPar) citada = q.id_mensagem;
+  }
+
+  await dmModel.inserir({ idRemetente, idDestinatario, texto: texto2, imagem, audio, video, story, respondendoA: citada });
   await notificacaoService.notificarMensagemDireta(idDestinatario, idRemetente);
   return { ok: true };
 }
@@ -49,6 +58,10 @@ async function listarConversaCom(idUsuario, idOutro) {
     apagada: !!r.apagada_em,
     editado_em: r.editado_em,
     criado_em: r.criado_em,
+    respondendo_a: r.respondendo_a,
+    story_ref: r.story_ref,
+    story_autor: r.story_autor,
+    story_tipo: r.story_tipo,
   }));
 }
 

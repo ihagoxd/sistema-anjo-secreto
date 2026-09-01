@@ -6,20 +6,26 @@
  */
 const db = require('../config/db');
 
-async function inserir({ idCampanha, idOrigem, idDestino, tipo, mensagem, imagem = null, audio = null, video = null }) {
+async function inserir({ idCampanha, idOrigem, idDestino, tipo, mensagem, imagem = null, audio = null, video = null, respondendoA = null }) {
   const res = await db.query(
-    `INSERT INTO mensagens_anonimas (id_campanha, id_usuario_origem, id_usuario_destino, tipo_mensagem, mensagem, imagem, audio, video)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    `INSERT INTO mensagens_anonimas (id_campanha, id_usuario_origem, id_usuario_destino, tipo_mensagem, mensagem, imagem, audio, video, respondendo_a)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
      RETURNING id_mensagem, criado_em`,
-    [idCampanha, idOrigem, idDestino, tipo, mensagem, imagem, audio, video]
+    [idCampanha, idOrigem, idDestino, tipo, mensagem, imagem, audio, video, respondendoA]
   );
   return res.rows[0];
+}
+
+// Uma mensagem pelo id (validação do "responder": tem que ser da mesma thread).
+async function buscarMensagem(idMensagem) {
+  const res = await db.query(`SELECT * FROM mensagens_anonimas WHERE id_mensagem = $1`, [idMensagem]);
+  return res.rows[0] || null;
 }
 
 // Todas as mensagens (não arquivadas) da campanha em que o usuário participa (origem ou destino).
 async function listarConversa(idCampanha, idUsuario) {
   const res = await db.query(
-    `SELECT id_mensagem, id_usuario_origem, id_usuario_destino, tipo_mensagem, mensagem, imagem, audio, video, lida, editado_em, apagada_em, criado_em
+    `SELECT id_mensagem, id_usuario_origem, id_usuario_destino, tipo_mensagem, mensagem, imagem, audio, video, lida, editado_em, apagada_em, criado_em, respondendo_a
        FROM mensagens_anonimas
       WHERE id_campanha = $1 AND arquivada = FALSE
         AND ($2 IN (id_usuario_origem, id_usuario_destino))
@@ -105,6 +111,7 @@ async function apagar(idMensagem, idUsuario) {
 
 module.exports = {
   inserir,
+  buscarMensagem,
   listarConversa,
   marcarRecebidasComoLidas,
   marcarRecebidasComoLidasPorTipo,

@@ -82,14 +82,14 @@ async function renderInbox(req, res, sel) {
       ctx.unread.anjo = 0;
       const c = await mensagemService.listarConversa(ctx.campanha.id_campanha, me);
       conversa = { tipo: 'anjo', escopo: 'game', secreto: true, anonimo: true,
-        titulo: 'Seu anjo', rotulo: 'anônimo · você não sabe quem é',
+        titulo: 'Seu anjo', rotulo: 'anônimo · você não sabe quem é', rotuloResposta: 'Seu anjo',
         mensagens: c.comAnjo, action: '/mensagens/anjo', placeholder: 'Mensagem…' };
     } else if (sel.tipo === 'protegido' && ctx.participaJogo) {
       await mensagemService.marcarThreadLida(ctx.campanha.id_campanha, me, 'protegido');
       ctx.unread.protegido = 0;
       const c = await mensagemService.listarConversa(ctx.campanha.id_campanha, me);
       conversa = { tipo: 'protegido', escopo: 'game', secreto: true,
-        titulo: ctx.protegido.nome, rotulo: 'você é o anjo secreto dele(a) 🎭',
+        titulo: ctx.protegido.nome, rotulo: 'você é o anjo secreto dele(a) 🎭', rotuloResposta: 'Seu protegido',
         foto: ctx.protegido.foto_perfil, mensagens: c.comProtegido, action: '/mensagens/protegido',
         placeholder: 'Mensagem anônima…' };
     } else if (sel.tipo === 'u') {
@@ -97,7 +97,7 @@ async function renderInbox(req, res, sel) {
       if (outro && outro.status === 'APROVADO' && outro.ativo && outro.id_usuario !== me) {
         await dmService.marcarLidas(me, outro.id_usuario);
         const msgs = await dmService.listarConversaCom(me, outro.id_usuario);
-        conversa = { tipo: 'u', escopo: 'dm', id: outro.id_usuario, titulo: outro.nome, rotulo: '@' + outro.usuario,
+        conversa = { tipo: 'u', escopo: 'dm', id: outro.id_usuario, titulo: outro.nome, rotulo: '@' + outro.usuario, rotuloResposta: outro.nome,
           usuario: outro.usuario, foto: outro.foto_perfil, mensagens: msgs, action: '/mensagens/u/' + outro.id_usuario,
           placeholder: 'Mensagem…', prefill: String(sel.prefill || '').slice(0, 500) };
         // A conversa aberta some da contagem de não lidas na lista.
@@ -110,6 +110,7 @@ async function renderInbox(req, res, sel) {
   if (conversa && conversa.mensagens) {
     await anexarPreviasDePost(conversa.mensagens, me);
     await anexarCartoesDeStory(conversa.mensagens);
+    anexarCitacoes(conversa.mensagens);
   }
 
   // Notas (estilo Instagram): "Sua nota" + quem definiu o status hoje.
@@ -129,6 +130,22 @@ async function renderInbox(req, res, sel) {
     humorEu,
     humores: HUMORES,
     notas,
+  });
+}
+
+// "Responder" (citação estilo WhatsApp): a mensagem citada está na MESMA conversa
+// já carregada — anexa a prévia dela (quem escreveu + trecho) sem ir ao banco.
+function anexarCitacoes(mensagens) {
+  const porId = {};
+  mensagens.forEach((m) => { porId[m.id_mensagem] = m; });
+  mensagens.forEach((m) => {
+    if (!m.respondendo_a) return;
+    const q = porId[m.respondendo_a];
+    if (!q) return;
+    let trecho = q.apagada ? '🚫 Mensagem apagada'
+      : (q.texto || (q.imagem ? '📷 Foto' : q.audio ? '🎤 Mensagem de voz' : q.video ? '🎬 Vídeo' : ''));
+    if (trecho.length > 90) trecho = `${trecho.slice(0, 90)}…`;
+    m.quote = { minha: !!q.minha, texto: trecho };
   });
 }
 
@@ -200,7 +217,7 @@ async function enviarJogo(req, res, next, alvo) {
     const destino = '/mensagens/' + alvo;
     const { imagem, audio, video } = midiaDaRequisicao(req);
     if (!campanha) { req.session.flash = { erro: MSG.SEM_CAMPANHA }; return res.redirect(destino); }
-    const r = await mensagemService.enviarMensagemAnonima(campanha.id_campanha, me, alvo, req.body.mensagem, imagem, audio, video);
+    const r = await mensagemService.enviarMensagemAnonima(campanha.id_campanha, me, alvo, req.body.mensagem, imagem, audio, video, req.body.responder_a || null);
     if (!r.ok) req.session.flash = { erro: MSG[r.motivo] || 'Não foi possível enviar.' };
     res.redirect(destino);
   } catch (err) { next(err); }
@@ -214,7 +231,7 @@ async function postDireta(req, res, next) {
     const id = Number(req.params.id);
     const { imagem, audio, video } = midiaDaRequisicao(req);
     const ajax = (req.get('x-requested-with') || '') === 'fetch';
-    const r = await dmService.enviar(me, id, req.body.mensagem, imagem, audio, video);
+    const r = await dmService.enviar(me, id, req.body.mensagem, imagem, audio, video, null, req.body.responder_a || null);
     if (!r.ok) {
       if (ajax) return res.status(400).json({ erro: MSG[r.motivo] || 'Não foi possível enviar.' });
       req.session.flash = { erro: MSG[r.motivo] || 'Não foi possível enviar.' };

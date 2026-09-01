@@ -65,6 +65,7 @@
   </div>
 
   {{#if usuario}}{{> painelNotificacoes}}{{/if}}
+  {{#if usuario}}{{#unless (eq usuario.tipo_usuario "ADMINISTRADOR")}}{{> buscaTela}}{{/unless}}{{/if}}
   {{> roletaModal}}
   {{> aniversarioModal}}
   {{> cropper}}

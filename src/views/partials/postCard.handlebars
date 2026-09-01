@@ -38,7 +38,7 @@
   </div>
 
   <div class="ig-rodape">
-    <div class="ig-curtidas"{{#unless (num this.curtidas)}} hidden{{/unless}}><strong>{{num this.curtidas}}</strong> {{#if (eq (num this.curtidas) 1)}}curtida{{else}}curtidas{{/if}}</div>
+    <div class="ig-curtidas" data-vercurtidas="{{this.id_post}}" role="button" tabindex="0" title="Ver quem curtiu"{{#unless (num this.curtidas)}} hidden{{/unless}}><strong>{{num this.curtidas}}</strong> {{#if (eq (num this.curtidas) 1)}}curtida{{else}}curtidas{{/if}}</div>
 
     {{#if this.imagem}}{{#if this.texto}}<div class="tw-post-texto ig-legenda"><a href="/u/{{this.usuario}}" class="ig-user">{{this.usuario}}</a>{{comMencoes this.texto}}</div>{{/if}}{{/if}}
 

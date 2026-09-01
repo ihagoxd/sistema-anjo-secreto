@@ -20,12 +20,14 @@ const receberImagem = (req, res, next) => {
 router.get('/feed', guard, ctrl.getFeed);
 router.post('/feed', guard, receberImagem, conferirAssinaturas, verifyCsrfAposUpload, ctrl.postCriar);
 router.post('/feed/:id_post/curtir', guard, ctrl.postCurtir);
+router.get('/feed/:id_post/curtidas', guard, ctrl.getCurtidas);
 router.post('/feed/:id_post/repostar', guard, ctrl.postRepost);
 router.post('/feed/:id_post/comentar', guard, ctrl.postComentar);
 router.post('/feed/:id_post/remover', guard, ctrl.postRemover);
 router.post('/feed/comentarios/:id_comentario/remover', guard, ctrl.postRemoverComentario);
 
 router.get('/mencoes', guard, ctrl.getMencoes);
+router.get('/buscar', guard, ctrl.getBusca);
 router.get('/p/:id_post', guard, ctrl.getPost);
 router.get('/u/:usuario', guard, ctrl.getPerfil);
 router.get('/u/:usuario/reposts', guard, ctrl.getPerfilReposts);

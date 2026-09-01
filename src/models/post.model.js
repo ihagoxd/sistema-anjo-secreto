@@ -81,6 +81,19 @@ async function contarCurtidas(idPost) {
   const res = await db.query(`SELECT COUNT(*)::int AS n FROM post_curtidas WHERE id_post = $1`, [idPost]);
   return res.rows[0].n;
 }
+// Quem curtiu (mais recentes primeiro) — para a folha "Curtidas" do post.
+async function listarCurtidores(idPost, limite = 200) {
+  const res = await db.query(
+    `SELECT u.nome, u.usuario, u.foto_perfil
+       FROM post_curtidas c
+       JOIN usuarios u ON u.id_usuario = c.id_usuario
+      WHERE c.id_post = $1
+      ORDER BY c.criado_em DESC
+      LIMIT $2`,
+    [idPost, limite]
+  );
+  return res.rows;
+}
 
 // ---------- Reposts ----------
 async function repostar(idPost, idUsuario) {
@@ -136,7 +149,7 @@ async function removerComentario(idComentario) {
 
 module.exports = {
   criar, listarFeed, listarPorUsuario, listarRepostadosPor, buscarPorId, buscarFeedUm, remover,
-  curtir, descurtir, jaCurtiu, contarCurtidas,
+  curtir, descurtir, jaCurtiu, contarCurtidas, listarCurtidores,
   repostar, desfazerRepost, jaRepostou, contarReposts,
   adicionarComentario, listarComentarios, listarComentariosDeVarios, buscarComentario, removerComentario,
 };

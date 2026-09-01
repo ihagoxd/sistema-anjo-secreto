@@ -154,6 +154,21 @@ async function buscarParaMencao(termo, limite = 6) {
   return res.rows;
 }
 
+// Pesquisa de usuários (tela de busca): casa em QUALQUER parte do nome ou do @usuario;
+// quem começa com o termo vem primeiro.
+async function buscarUsuarios(termo, limite = 20) {
+  const t = String(termo || '').trim();
+  const res = await db.query(
+    `SELECT usuario, nome, foto_perfil FROM usuarios
+      WHERE status = 'APROVADO' AND ativo = TRUE AND usuario IS NOT NULL
+        AND (usuario ILIKE $1 OR nome ILIKE $1)
+      ORDER BY (usuario ILIKE $2 OR nome ILIKE $2) DESC, lower(nome) ASC
+      LIMIT $3`,
+    [`%${t}%`, `${t}%`, limite]
+  );
+  return res.rows;
+}
+
 // Resolve uma lista de usernames em ids (só aprovados/ativos).
 async function resolverMencoes(usernames) {
   if (!usernames || !usernames.length) return [];
@@ -272,6 +287,7 @@ module.exports = {
   aniversariantesHoje,
   listarAprovados,
   buscarParaMencao,
+  buscarUsuarios,
   resolverMencoes,
   buscarHumorHoje,
   atualizarHumor,

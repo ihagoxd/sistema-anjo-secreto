@@ -69,6 +69,13 @@ async function alternarCurtida(idPost, idUsuario) {
   return { ok: true, curtiu: !curtiu, total };
 }
 
+// Quem curtiu o post (para a folha "Curtidas").
+async function listarCurtidores(idPost) {
+  const post = await postModel.buscarPorId(idPost);
+  if (!post) return null;
+  return postModel.listarCurtidores(idPost);
+}
+
 // Repostar/desfazer (toggle). Retorna estado + total. Notifica o autor original.
 async function alternarRepost(idPost, idUsuario) {
   const post = await postModel.buscarPorId(idPost);
@@ -125,6 +132,6 @@ async function removerComentario(idComentario, idUsuario, ehAdmin) {
 module.exports = {
   LIMITE_TEXTO,
   criarPost, listarFeed, buscarPost, perfilPublico,
-  alternarCurtida, alternarRepost, listarRepostados, comentar, listarComentarios,
+  alternarCurtida, listarCurtidores, alternarRepost, listarRepostados, comentar, listarComentarios,
   removerPost, removerComentario,
 };

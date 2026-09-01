@@ -65,6 +65,17 @@ async function postCurtir(req, res, next) {
   }
 }
 
+// Quem curtiu (AJAX → JSON) — alimenta a folha "Curtidas" do post.
+async function getCurtidas(req, res, next) {
+  try {
+    const lista = await postService.listarCurtidores(req.params.id_post);
+    if (!lista) return res.status(404).json({ erro: 'Post não encontrado.' });
+    res.json(lista);
+  } catch (err) {
+    next(err);
+  }
+}
+
 // Repostar/desfazer (AJAX → JSON).
 async function postRepost(req, res, next) {
   try {
@@ -168,6 +179,17 @@ const getPerfil = (req, res, next) => renderPerfil(req, res, 'publicacoes').catc
 const getPerfilReposts = (req, res, next) => renderPerfil(req, res, 'reposts').catch(next);
 const getPerfilGostos = (req, res, next) => renderPerfil(req, res, 'gostos').catch(next);
 
+// Pesquisa de usuários (AJAX → JSON) — tela de busca estilo Instagram.
+async function getBusca(req, res, next) {
+  try {
+    const q = String(req.query.q || '').trim();
+    if (!q) return res.json([]);
+    res.json(await usuarioModel.buscarUsuarios(q, 20));
+  } catch (err) {
+    next(err);
+  }
+}
+
 // Autocomplete de @menções (AJAX → JSON).
 async function getMencoes(req, res, next) {
   try {
@@ -178,4 +200,4 @@ async function getMencoes(req, res, next) {
   }
 }
 
-module.exports = { getFeed, getPost, postCriar, postCurtir, postRepost, postComentar, postRemover, postRemoverComentario, getPerfil, getPerfilReposts, getPerfilGostos, getMencoes };
+module.exports = { getFeed, getPost, postCriar, postCurtir, getCurtidas, postRepost, postComentar, postRemover, postRemoverComentario, getPerfil, getPerfilReposts, getPerfilGostos, getMencoes, getBusca };

@@ -123,6 +123,95 @@
     });
   })();
 
+  /* ---------- Pesquisa de usuários (tela estilo Instagram) ----------
+     Lupa abre uma tela cheia com campo de busca; resultados ao vivo (debounce),
+     "Recentes" no localStorage (com X por item e "Limpar tudo"), clique entra
+     no perfil. ---------- */
+  (function () {
+    var tela = document.getElementById('buscaTela');
+    if (!tela) return;
+    var inp = tela.querySelector('#buscaInput');
+    var lista = tela.querySelector('.busca-lista');
+    var cabRec = tela.querySelector('.busca-recentes-cab');
+    var btnLimparCampo = tela.querySelector('[data-busca-limpar-campo]');
+    var timer = null, seq = 0, porUser = {};
+
+    function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+    function lerRecentes() { try { return JSON.parse(localStorage.getItem('buscaRecentes') || '[]'); } catch (e) { return []; } }
+    function salvarRecentes(l) { try { localStorage.setItem('buscaRecentes', JSON.stringify(l.slice(0, 8))); } catch (e) {} }
+
+    function itemHtml(p, comRemover) {
+      porUser[p.usuario] = p;
+      var av = p.foto_perfil ? '<img src="' + esc(p.foto_perfil) + '" alt="">' : esc((p.nome || '?').trim().charAt(0).toUpperCase());
+      return '<a class="share-item busca-item" href="/u/' + encodeURIComponent(p.usuario) + '" data-busca-user="' + esc(p.usuario) + '">'
+        + '<span class="share-av">' + av + '</span>'
+        + '<span class="share-txt"><span class="share-nome">' + esc(p.nome) + '</span><span class="share-user">@' + esc(p.usuario) + '</span></span>'
+        + (comRemover ? '<button type="button" class="busca-remover" data-busca-remover="' + esc(p.usuario) + '" aria-label="Remover dos recentes">&times;</button>' : '')
+        + '</a>';
+    }
+    function mostrarRecentes() {
+      var rec = lerRecentes();
+      cabRec.hidden = !rec.length;
+      lista.innerHTML = rec.length
+        ? rec.map(function (p) { return itemHtml(p, true); }).join('')
+        : '<div class="texto-suave busca-vazio">Pesquise os colegas pelo nome ou @usuário.</div>';
+    }
+    function abrir() {
+      tela.hidden = false;
+      document.body.classList.add('sem-scroll');
+      inp.value = ''; btnLimparCampo.hidden = true;
+      mostrarRecentes();
+      window.setTimeout(function () { inp.focus(); }, 60);
+    }
+    function fechar() { tela.hidden = true; document.body.classList.remove('sem-scroll'); }
+
+    document.addEventListener('click', function (e) {
+      if (e.target.closest('[data-busca-abrir]')) { abrir(); return; }
+      if (e.target.closest('[data-busca-fechar]')) { fechar(); return; }
+      var rem = e.target.closest('[data-busca-remover]');
+      if (rem) {
+        e.preventDefault(); e.stopPropagation();
+        salvarRecentes(lerRecentes().filter(function (p) { return p.usuario !== rem.getAttribute('data-busca-remover'); }));
+        mostrarRecentes();
+        return;
+      }
+      if (e.target.closest('[data-busca-limpar-recentes]')) { salvarRecentes([]); mostrarRecentes(); return; }
+      if (e.target.closest('[data-busca-limpar-campo]')) { inp.value = ''; btnLimparCampo.hidden = true; mostrarRecentes(); inp.focus(); return; }
+      var it = e.target.closest('.busca-item');
+      if (it) {
+        // guarda nos recentes e deixa o link navegar normalmente para o perfil
+        var p = porUser[it.getAttribute('data-busca-user')];
+        if (p) {
+          var rec = lerRecentes().filter(function (r) { return r.usuario !== p.usuario; });
+          rec.unshift({ usuario: p.usuario, nome: p.nome, foto_perfil: p.foto_perfil || '' });
+          salvarRecentes(rec);
+        }
+      }
+    });
+
+    inp.addEventListener('input', function () {
+      var q = inp.value.trim();
+      btnLimparCampo.hidden = !inp.value;
+      clearTimeout(timer);
+      if (!q) { mostrarRecentes(); return; }
+      timer = setTimeout(function () {
+        var minha = ++seq;
+        fetch('/buscar?q=' + encodeURIComponent(q), { headers: { 'Accept': 'application/json' } })
+          .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+          .then(function (pessoas) {
+            if (minha !== seq || inp.value.trim() !== q) return; // resposta atrasada: ignora
+            cabRec.hidden = true;
+            lista.innerHTML = pessoas.length
+              ? pessoas.map(function (p) { return itemHtml(p, false); }).join('')
+              : '<div class="texto-suave busca-vazio">Ninguém encontrado para “' + esc(q) + '”.</div>';
+          })
+          .catch(function () {});
+      }, 220);
+    });
+
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !tela.hidden) fechar(); });
+  })();
+
   /* ---------- Toast (aviso curto flutuante) ---------- */
   var toastTimer = null;
   function toast(msg) {
@@ -720,6 +809,42 @@
       document.addEventListener('touchend', function (e) { if (pAlvo && e.touches.length < 2) pSoltar(); });
       document.addEventListener('touchcancel', function () { pSoltar(); });
     })();
+
+    /* ---- "N curtidas" → folha com quem curtiu (estilo Instagram) ---- */
+    var curtModal = null;
+    function escCurt(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+    document.addEventListener('click', function (e) {
+      var alvo = e.target.closest('[data-vercurtidas]');
+      if (!alvo) return;
+      if (!curtModal) {
+        curtModal = document.createElement('div');
+        curtModal.className = 'modal sheet-share';
+        curtModal.hidden = true;
+        curtModal.setAttribute('aria-hidden', 'true');
+        curtModal.innerHTML = '<div class="modal-card share-card">'
+          + '<div class="sheet-cab sempre"><span class="sheet-grab" aria-hidden="true"></span>'
+          + '<span class="sheet-titulo">Curtidas</span>'
+          + '<button type="button" class="sheet-x" data-fechar-modal aria-label="Fechar">&times;</button></div>'
+          + '<div class="share-lista curtidas-lista"></div></div>';
+        document.body.appendChild(curtModal);
+      }
+      var lista = curtModal.querySelector('.curtidas-lista');
+      lista.innerHTML = '<div class="texto-suave" style="padding:10px 6px;">Carregando…</div>';
+      curtModal.hidden = false; curtModal.setAttribute('aria-hidden', 'false');
+      fetch('/feed/' + alvo.getAttribute('data-vercurtidas') + '/curtidas', { headers: { 'Accept': 'application/json' } })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+        .then(function (pessoas) {
+          if (!pessoas.length) { lista.innerHTML = '<div class="texto-suave" style="padding:10px 6px;">Ninguém curtiu ainda.</div>'; return; }
+          lista.innerHTML = pessoas.map(function (p) {
+            var av = p.foto_perfil ? '<img src="' + escCurt(p.foto_perfil) + '" alt="">' : escCurt((p.nome || '?').trim().charAt(0).toUpperCase());
+            return '<a class="share-item" href="/u/' + encodeURIComponent(p.usuario) + '">'
+              + '<span class="share-av">' + av + '</span>'
+              + '<span class="share-txt"><span class="share-nome">' + escCurt(p.nome) + '</span>'
+              + '<span class="share-user">@' + escCurt(p.usuario) + '</span></span></a>';
+          }).join('');
+        })
+        .catch(function () { lista.innerHTML = '<div class="texto-suave" style="padding:10px 6px;">Não foi possível carregar.</div>'; });
+    });
 
     // Compartilhar: abre a folha "enviar no Direct" (se existir na página) ou copia o link.
     var shareUrl = '';

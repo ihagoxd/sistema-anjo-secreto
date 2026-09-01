@@ -8,6 +8,7 @@ const db = require('../config/db');
 const SELECT_POST = `
   SELECT p.id_post, p.texto, p.imagem, p.video, p.criado_em,
          u.id_usuario, u.nome, u.usuario, u.foto_perfil,
+         uc.id_usuario AS id_colaborador, uc.usuario AS usuario_colab, uc.nome AS nome_colab,
          (SELECT COUNT(*) FROM post_curtidas c WHERE c.id_post = p.id_post)::int AS curtidas,
          (SELECT u2.usuario FROM post_curtidas c2 JOIN usuarios u2 ON u2.id_usuario = c2.id_usuario
            WHERE c2.id_post = p.id_post ORDER BY c2.criado_em DESC LIMIT 1) AS curtidor,
@@ -16,12 +17,13 @@ const SELECT_POST = `
          EXISTS(SELECT 1 FROM post_curtidas c WHERE c.id_post = p.id_post AND c.id_usuario = $1) AS curtiu,
          EXISTS(SELECT 1 FROM reposts r WHERE r.id_post = p.id_post AND r.id_usuario = $1) AS repostou
     FROM posts p
-    JOIN usuarios u ON u.id_usuario = p.id_usuario`;
+    JOIN usuarios u ON u.id_usuario = p.id_usuario
+    LEFT JOIN usuarios uc ON uc.id_usuario = p.id_colaborador`;
 
-async function criar({ idUsuario, texto, imagem, video = null }) {
+async function criar({ idUsuario, texto, imagem, video = null, idColaborador = null }) {
   const res = await db.query(
-    `INSERT INTO posts (id_usuario, texto, imagem, video) VALUES ($1, $2, $3, $4) RETURNING id_post`,
-    [idUsuario, texto, imagem, video]
+    `INSERT INTO posts (id_usuario, texto, imagem, video, id_colaborador) VALUES ($1, $2, $3, $4, $5) RETURNING id_post`,
+    [idUsuario, texto, imagem, video, idColaborador]
   );
   return res.rows[0];
 }
@@ -33,7 +35,7 @@ async function listarFeed(idUsuarioAtual, limite = 50) {
 
 async function listarPorUsuario(idAutor, idUsuarioAtual) {
   const res = await db.query(
-    `${SELECT_POST} WHERE p.id_usuario = $2 ORDER BY p.criado_em DESC`,
+    `${SELECT_POST} WHERE (p.id_usuario = $2 OR p.id_colaborador = $2) ORDER BY p.criado_em DESC`,
     [idUsuarioAtual, idAutor]
   );
   return res.rows;

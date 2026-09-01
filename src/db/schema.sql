@@ -239,6 +239,8 @@ ALTER TABLE posts DROP CONSTRAINT IF EXISTS posts_texto_check;
 ALTER TABLE posts DROP CONSTRAINT IF EXISTS posts_check;
 ALTER TABLE posts DROP CONSTRAINT IF EXISTS posts_conteudo;
 ALTER TABLE posts ADD CONSTRAINT posts_conteudo CHECK (texto IS NOT NULL OR imagem IS NOT NULL OR video IS NOT NULL);
+-- Colaborador do post (post em dupla, como no Instagram: "fulano e beltrano")
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS id_colaborador INTEGER REFERENCES usuarios(id_usuario) ON DELETE SET NULL;
 CREATE INDEX IF NOT EXISTS idx_posts_criado ON posts(criado_em DESC);
 CREATE INDEX IF NOT EXISTS idx_posts_usuario ON posts(id_usuario);
 
@@ -278,6 +280,8 @@ CREATE TABLE IF NOT EXISTS stories (
   criado_em   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_stories_usuario ON stories(id_usuario, criado_em DESC);
+-- Menção no story (a pessoa marcada pode repostar, como no Instagram)
+ALTER TABLE stories ADD COLUMN IF NOT EXISTS mencao INTEGER REFERENCES usuarios(id_usuario) ON DELETE SET NULL;
 CREATE INDEX IF NOT EXISTS idx_stories_criado ON stories(criado_em);
 
 -- Curtidas de story (o coração do visualizador, como no Instagram)

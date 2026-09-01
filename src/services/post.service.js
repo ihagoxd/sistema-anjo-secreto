@@ -19,11 +19,20 @@ async function notificarMencoes(texto, idAtor, idPost) {
   for (const u of alvos) await notificacaoService.notificarMencao(u.id_usuario, idAtor, idPost);
 }
 
-async function criarPost(idUsuario, texto, imagemPath, videoPath = null) {
+async function criarPost(idUsuario, texto, imagemPath, videoPath = null, colaboradorId = null) {
   const t = String(texto || '').trim();
   if (!t && !imagemPath && !videoPath) return { ok: false, motivo: 'VAZIO' };
   if (t.length > LIMITE_TEXTO) return { ok: false, motivo: 'LONGO' };
-  const novo = await postModel.criar({ idUsuario, texto: t || null, imagem: imagemPath || null, video: videoPath || null });
+
+  // Colaborador (post em dupla): valida a pessoa; inválida, publica sem.
+  let idColaborador = null;
+  if (colaboradorId && Number(colaboradorId) !== Number(idUsuario)) {
+    const c = await usuarioModel.buscarPorId(Number(colaboradorId));
+    if (c && c.status === 'APROVADO' && c.ativo && c.tipo_usuario === 'PARTICIPANTE') idColaborador = c.id_usuario;
+  }
+
+  const novo = await postModel.criar({ idUsuario, texto: t || null, imagem: imagemPath || null, video: videoPath || null, idColaborador });
+  if (idColaborador) await notificacaoService.notificarMencao(idColaborador, idUsuario, novo.id_post);
   await notificarMencoes(t, idUsuario, novo.id_post);
   return { ok: true };
 }

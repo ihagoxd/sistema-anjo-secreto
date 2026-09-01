@@ -69,7 +69,7 @@ async function postCriar(req, res, next) {
       const f = (req.files && req.files[campo] && req.files[campo][0]) || null;
       return f ? '/uploads/' + f.filename : null;
     };
-    const r = await postService.criarPost(req.session.usuario.id_usuario, req.body.texto, um('imagem'), um('video'));
+    const r = await postService.criarPost(req.session.usuario.id_usuario, req.body.texto, um('imagem'), um('video'), req.body.colaborador || null);
     if (!r.ok) req.session.flash = { erro: r.motivo === 'LONGO' ? 'Texto longo demais.' : 'Escreva algo ou adicione uma foto.' };
     else req.session.flash = { sucesso: 'Publicado! ✨' };
     res.redirect('/feed');

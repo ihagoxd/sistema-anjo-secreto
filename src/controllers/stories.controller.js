@@ -9,7 +9,7 @@ async function postCriar(req, res, next) {
       const f = req.files && req.files[campo] && req.files[campo][0];
       return f ? `/uploads/${f.filename}` : null;
     };
-    const r = await storyService.publicar(req.session.usuario.id_usuario, um('imagem'), um('video'));
+    const r = await storyService.publicar(req.session.usuario.id_usuario, um('imagem'), um('video'), req.body.mencao || null);
     if (req.get('X-Requested-With') === 'fetch') {
       if (!r.ok) return res.status(400).json({ erro: 'Escolha uma foto ou um vídeo para o story.' });
       return res.json({ ok: true, id_story: r.id_story });
@@ -86,6 +86,17 @@ async function postEncaminhar(req, res, next) {
   }
 }
 
+// Repostar um story em que fui marcado (AJAX) — usado no caminho de VÍDEO.
+async function postRepostar(req, res, next) {
+  try {
+    const r = await storyService.repostar(req.session.usuario.id_usuario, req.params.id_story);
+    if (!r.ok) return res.status(r.motivo === 'SEM_PERMISSAO' ? 403 : 404).json({ erro: 'Não foi possível repostar.' });
+    res.json({ ok: true, id_story: r.id_story });
+  } catch (err) {
+    next(err);
+  }
+}
+
 // Apaga um story (autor ou admin) — AJAX.
 async function postRemover(req, res, next) {
   try {
@@ -98,4 +109,4 @@ async function postRemover(req, res, next) {
   }
 }
 
-module.exports = { postCriar, getDados, postVisto, postRemover, postCurtir, postResponder, postEncaminhar, getVistos };
+module.exports = { postCriar, getDados, postVisto, postRemover, postCurtir, postResponder, postEncaminhar, getVistos, postRepostar };

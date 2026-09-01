@@ -7,10 +7,10 @@ const db = require('../config/db');
 
 const ATIVO = `s.criado_em > now() - interval '24 hours'`;
 
-async function criar(idUsuario, imagem, video) {
+async function criar(idUsuario, imagem, video, mencao = null) {
   const res = await db.query(
-    `INSERT INTO stories (id_usuario, imagem, video) VALUES ($1, $2, $3) RETURNING id_story`,
-    [idUsuario, imagem || null, video || null]
+    `INSERT INTO stories (id_usuario, imagem, video, mencao) VALUES ($1, $2, $3, $4) RETURNING id_story`,
+    [idUsuario, imagem || null, video || null, mencao]
   );
   return res.rows[0].id_story;
 }

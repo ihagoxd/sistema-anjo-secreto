@@ -274,7 +274,7 @@
       if (picker) { picker.value = ''; picker.click(); }
     });
 
-    var comp = null, compFile = null, compEhVideo = false, compUrl = '';
+    var comp = null, compFile = null, compEhVideo = false, compUrl = '', compMencao = null;
     function montarComposer() {
       if (comp) return;
       comp = document.createElement('div');
@@ -284,10 +284,26 @@
         '<div class="stview-cab"><span class="stview-nome">Novo story</span>'
         + '<button type="button" class="stview-x" data-comp-fechar aria-label="Cancelar">&times;</button></div>'
         + '<div class="stcomp-media"></div>'
+        + '<div class="stcomp-acoes">'
+        + '  <button type="button" class="stcomp-marcar">🏷️ Marcar pessoa</button>'
+        + '  <span class="stcomp-chip" hidden><span class="stcomp-chip-nome"></span><button type="button" class="stcomp-chip-x" aria-label="Remover marcação">&times;</button></span>'
+        + '</div>'
         + '<button type="button" class="btn btn-primario stcomp-enviar">Compartilhar no story</button>';
       document.body.appendChild(comp);
       comp.querySelector('[data-comp-fechar]').addEventListener('click', fecharComposer);
       comp.querySelector('.stcomp-enviar').addEventListener('click', enviarStory);
+      // Marcar pessoa (menção): quem for marcado recebe no Direct o card com "Repostar"
+      comp.querySelector('.stcomp-marcar').addEventListener('click', function () {
+        abrirSeletorPessoa('Marcar pessoa no story', function (p) {
+          compMencao = p.id;
+          comp.querySelector('.stcomp-chip-nome').textContent = '🏷️ @' + p.usuario;
+          comp.querySelector('.stcomp-chip').hidden = false;
+        });
+      });
+      comp.querySelector('.stcomp-chip-x').addEventListener('click', function () {
+        compMencao = null;
+        comp.querySelector('.stcomp-chip').hidden = true;
+      });
     }
     function fecharComposer() {
       if (!comp) return;
@@ -314,6 +330,8 @@
       }
       var btn = comp.querySelector('.stcomp-enviar');
       btn.disabled = false; btn.textContent = 'Compartilhar no story';
+      compMencao = null;
+      comp.querySelector('.stcomp-chip').hidden = true;
       comp.hidden = false;
       document.body.classList.add('sem-scroll');
     }
@@ -326,6 +344,7 @@
       var tk = form && form.querySelector('input[name="_csrf"]');
       if (tk) fd.append('_csrf', tk.value);
       fd.append(compEhVideo ? 'video' : 'imagem', compFile, compFile.name || (compEhVideo ? 'story.mp4' : 'story.jpg'));
+      if (compMencao) fd.append('mencao', compMencao);
       fetch('/stories', { method: 'POST', headers: { 'X-Requested-With': 'fetch', 'Accept': 'application/json' }, body: fd })
         .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
         .then(function () {
@@ -1003,6 +1022,24 @@
       ta.style.height = Math.min(220, ta.scrollHeight) + 'px';
     });
     atualizar();
+
+    // Colaborador (post em dupla): escolhe a pessoa antes de publicar
+    var btnColab = form.querySelector('[data-colab-btn]');
+    var colabId = form.querySelector('[data-colab-id]');
+    var colabChip = form.querySelector('[data-colab-chip]');
+    if (btnColab && colabId && colabChip) {
+      btnColab.addEventListener('click', function () {
+        abrirSeletorPessoa('Adicionar colaborador', function (p) {
+          colabId.value = p.id;
+          colabChip.querySelector('[data-colab-nome]').textContent = '@' + p.usuario;
+          colabChip.hidden = false;
+        });
+      });
+      colabChip.querySelector('[data-colab-tirar]').addEventListener('click', function () {
+        colabId.value = '';
+        colabChip.hidden = true;
+      });
+    }
   })();
 
   /* ---------- Feed ao vivo: checa novidades a cada 25s (e ao voltar pra aba) ----------
@@ -1130,6 +1167,94 @@
     document.addEventListener('visibilitychange', function () { if (!document.hidden) checarDirect(); });
   })();
 
+  /* ---------- "Repostar esse story" (card de menção no Direct) ----------
+     FOTO: compõe no aparelho um story novo — fundo DOURADO da marca, logo do
+     Mendes no topo, a foto original emoldurada no centro e o crédito "@autor"
+     — e publica como SEU story (igual ao repost de menção do Instagram).
+     VÍDEO: o servidor copia a mídia e publica direto. ---------- */
+  (function () {
+    var metaR = document.querySelector('meta[name="csrf-token"]');
+    var CSRF = metaR ? metaR.getAttribute('content') : '';
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-repostar-story]');
+      if (!b || b.disabled) return;
+      b.disabled = true;
+      var rotulo = b.textContent;
+      b.textContent = 'Repostando…';
+      var id = b.getAttribute('data-repostar-story');
+      function ok() { b.textContent = 'Repostado no seu story ✓'; toast('Repostado no seu story ✨'); }
+      function falha() { b.disabled = false; b.textContent = rotulo; toast('Não foi possível repostar.'); }
+
+      var img = b.getAttribute('data-rps-img');
+      if (!img) {
+        fetch('/stories/' + id + '/repostar', { method: 'POST', headers: { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch' } })
+          .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+          .then(ok).catch(falha);
+        return;
+      }
+
+      var autor = b.getAttribute('data-rps-autor') || '';
+      var foto = new Image(), logo = new Image();
+      var pend = 2, temLogo = true, morto = false;
+      function pronto() {
+        if (--pend > 0 || morto) return;
+        try {
+          var W = 1080, H = 1920;
+          var cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+          var ctx = cv.getContext('2d');
+          var grad = ctx.createLinearGradient(0, 0, 0, H);
+          grad.addColorStop(0, '#e9bb55'); grad.addColorStop(0.5, '#d4a017'); grad.addColorStop(1, '#9c750e');
+          ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
+          if (temLogo && logo.naturalWidth) { // logo da marca no topo
+            var lw = 280, lh = logo.naturalHeight * (lw / logo.naturalWidth);
+            ctx.globalAlpha = 0.95;
+            ctx.drawImage(logo, (W - lw) / 2, 120, lw, lh);
+            ctx.globalAlpha = 1;
+          }
+          // foto original emoldurada no centro, com cantos arredondados e sombra
+          var maxW = W * 0.78, maxH = H * 0.56;
+          var esc = Math.min(maxW / foto.naturalWidth, maxH / foto.naturalHeight);
+          var fw = foto.naturalWidth * esc, fh = foto.naturalHeight * esc;
+          var fx = (W - fw) / 2, fy = (H - fh) / 2 + 30, r = 36;
+          ctx.save();
+          ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 60; ctx.shadowOffsetY = 24;
+          ctx.beginPath();
+          ctx.moveTo(fx + r, fy);
+          ctx.arcTo(fx + fw, fy, fx + fw, fy + fh, r);
+          ctx.arcTo(fx + fw, fy + fh, fx, fy + fh, r);
+          ctx.arcTo(fx, fy + fh, fx, fy, r);
+          ctx.arcTo(fx, fy, fx + fw, fy, r);
+          ctx.closePath();
+          ctx.fillStyle = '#000'; ctx.fill();
+          ctx.shadowColor = 'transparent';
+          ctx.clip();
+          ctx.drawImage(foto, fx, fy, fw, fh);
+          ctx.restore();
+          ctx.fillStyle = 'rgba(20,12,0,0.8)';
+          ctx.font = '600 40px system-ui, -apple-system, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('Story de @' + autor, W / 2, fy + fh + 90);
+          cv.toBlob(function (blob) {
+            if (!blob) { falha(); return; }
+            var fd = new FormData();
+            var tk = document.querySelector('input[name="_csrf"]');
+            if (tk) fd.append('_csrf', tk.value);
+            fd.append('imagem', blob, 'repost.jpg');
+            fetch('/stories', { method: 'POST', headers: { 'X-Requested-With': 'fetch', 'Accept': 'application/json', 'X-CSRF-Token': CSRF }, body: fd })
+              .then(function (r2) { return r2.ok ? r2.json() : Promise.reject(); })
+              .then(ok).catch(falha);
+          }, 'image/jpeg', 0.92);
+        } catch (x) { falha(); }
+      }
+      foto.onload = pronto;
+      foto.onerror = function () { morto = true; falha(); };
+      logo.onload = pronto;
+      logo.onerror = function () { temLogo = false; pronto(); }; // sem logo, segue só com o fundo
+      foto.src = img;
+      logo.src = '/img/logo.png';
+    });
+  })();
+
   /* ---------- Avatar do perfil: TOQUE abre o story (se houver) ou amplia a foto;
      SEGURAR "espia" a foto de perfil ampliada (solta, fecha) — como no Instagram ---------- */
   (function () {
@@ -1209,6 +1334,54 @@
     t.classList.add('mostra');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(function () { t.classList.remove('mostra'); }, 2200);
+  }
+
+  /* ---------- Seletor de pessoa (folha genérica: colaborador do post, marcar no story) ---------- */
+  var selPessoaModal = null, selPessoaCb = null;
+  function abrirSeletorPessoa(titulo, cb) {
+    selPessoaCb = cb;
+    function escSP(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+    if (!selPessoaModal) {
+      selPessoaModal = document.createElement('div');
+      selPessoaModal.className = 'modal sheet-share stview-fwd-modal';
+      selPessoaModal.hidden = true;
+      selPessoaModal.setAttribute('aria-hidden', 'true');
+      selPessoaModal.innerHTML = '<div class="modal-card share-card">'
+        + '<div class="sheet-cab sempre"><span class="sheet-grab" aria-hidden="true"></span>'
+        + '<span class="sheet-titulo"></span>'
+        + '<button type="button" class="sheet-x" data-fechar-modal aria-label="Fechar">&times;</button></div>'
+        + '<div class="share-lista selp-lista"></div></div>';
+      document.body.appendChild(selPessoaModal);
+      selPessoaModal.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-selp]');
+        if (!b) return;
+        selPessoaModal.setAttribute('hidden', '');
+        selPessoaModal.setAttribute('aria-hidden', 'true');
+        if (selPessoaCb) selPessoaCb({
+          id: b.getAttribute('data-selp'),
+          usuario: b.getAttribute('data-selp-user'),
+          nome: b.getAttribute('data-selp-nome'),
+        });
+      });
+    }
+    selPessoaModal.querySelector('.sheet-titulo').textContent = titulo;
+    var lista = selPessoaModal.querySelector('.selp-lista');
+    lista.innerHTML = '<div class="texto-suave" style="padding:10px 6px;">Carregando…</div>';
+    selPessoaModal.hidden = false;
+    selPessoaModal.setAttribute('aria-hidden', 'false');
+    fetch('/buscar?q=', { headers: { 'Accept': 'application/json' } })
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+      .then(function (pessoas) {
+        if (!pessoas.length) { lista.innerHTML = '<div class="texto-suave" style="padding:10px 6px;">Ninguém disponível.</div>'; return; }
+        lista.innerHTML = pessoas.map(function (p) {
+          var av = p.foto_perfil ? '<img src="' + escSP(p.foto_perfil) + '" alt="">' : escSP((p.nome || '?').trim().charAt(0).toUpperCase());
+          return '<button type="button" class="share-item" data-selp="' + escSP(String(p.id_usuario || '')) + '" data-selp-user="' + escSP(p.usuario) + '" data-selp-nome="' + escSP(p.nome) + '">'
+            + '<span class="share-av">' + av + '</span>'
+            + '<span class="share-txt"><span class="share-nome">' + escSP(p.nome) + '</span>'
+            + '<span class="share-user">@' + escSP(p.usuario) + '</span></span></button>';
+        }).join('');
+      })
+      .catch(function () { lista.innerHTML = '<div class="texto-suave" style="padding:10px 6px;">Não foi possível carregar.</div>'; });
   }
 
   /* ---------- Tema (sidebar + topo mobile) ---------- */

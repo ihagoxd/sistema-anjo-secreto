@@ -934,6 +934,37 @@ table.tabela tbody tr:hover { background: var(--hover); }
    (as áreas com zoom próprio — lightbox, câmera, stories — definem o seu touch-action) */
 html { touch-action: pan-x pan-y; }
 
+/* Post em dupla ("fulano e beltrano", como no Instagram) */
+.ig-e { color: var(--text-soft); font-size: 13.5px; margin: 0 -2px; }
+/* Chip do colaborador no compositor */
+.colab-chip {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; width: max-content;
+  background: color-mix(in srgb, var(--ouro) 12%, transparent); border: 1px solid color-mix(in srgb, var(--ouro) 45%, transparent);
+  border-radius: 999px; padding: 5px 12px; font-size: 13px;
+}
+.colab-chip[hidden] { display: none; }
+.colab-tirar { background: none; border: none; color: var(--text-faint); font-size: 17px; line-height: 1; cursor: pointer; padding: 0 2px; }
+.colab-tirar:hover { color: var(--text); }
+/* Marcar pessoa no compositor de story */
+.stcomp-acoes {
+  position: absolute; left: 16px; right: 16px; bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  display: flex; align-items: center; gap: 10px; z-index: 2;
+}
+.stcomp-marcar {
+  background: rgba(0, 0, 0, 0.45); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 999px;
+  color: #fff; font: inherit; font-size: 13.5px; font-weight: 600; padding: 9px 15px; cursor: pointer;
+}
+.stcomp-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--ouro); color: var(--on-ouro); border-radius: 999px; padding: 8px 13px;
+  font-size: 13.5px; font-weight: 700;
+}
+.stcomp-chip[hidden] { display: none; }
+.stcomp-chip-x { background: none; border: none; color: inherit; font-size: 17px; line-height: 1; cursor: pointer; padding: 0; }
+/* Botão "Repostar esse story" no card de menção do Direct */
+.dm-repostar { margin-top: 6px; border-radius: 999px; font-weight: 700; font-size: 13.5px; padding: 9px 16px; width: max-content; }
+.dm-repostar:disabled { opacity: 0.75; cursor: default; }
+
 /* Resposta de story estilo Instagram: rótulo discreto + miniatura vertical + bolha abaixo */
 .dm-story-rotulo { display: block; font-size: 11.5px; color: var(--text-faint); margin: 0 2px 4px; }
 .dm-story-thumb {

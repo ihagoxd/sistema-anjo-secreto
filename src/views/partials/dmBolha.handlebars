@@ -10,6 +10,18 @@
     </div>
   {{/if}}
   {{#if this.storyPrev}}
+    {{#if (eq this.storyPrev.tipo "mencao")}}
+      {{! Menção no story: quem foi marcado vê a prévia + botão "Repostar esse story" }}
+      <span class="dm-story-rotulo">{{#if this.minha}}🏷️ Você marcou {{@root.conversa.titulo}} no seu story{{else}}🏷️ Te marcou no story{{/if}}</span>
+      <div class="dm-story-thumb{{#unless this.storyPrev.ativo}} expirado{{/unless}}"{{#if this.storyPrev.ativo}} data-abrir-story="{{this.storyPrev.id_autor}}" data-story-id="{{this.storyPrev.id_story}}" role="button" tabindex="0" title="Ver story"{{/if}}>
+        {{#if this.imagem}}<img src="{{this.imagem}}" alt="" draggable="false">{{/if}}
+        {{#if this.video}}<video src="{{this.video}}" preload="metadata" muted playsinline></video>{{/if}}
+        {{#unless this.storyPrev.ativo}}<span class="dm-story-off">Story indisponível</span>{{/unless}}
+      </div>
+      {{#unless this.minha}}{{#if this.storyPrev.ativo}}
+        <button type="button" class="btn btn-primario dm-repostar" data-repostar-story="{{this.storyPrev.id_story}}"{{#if this.imagem}} data-rps-img="{{this.imagem}}"{{/if}} data-rps-autor="{{this.storyPrev.usuario}}">Repostar esse story</button>
+      {{/if}}{{/unless}}
+    {{else}}
     {{#if (eq this.storyPrev.tipo "resposta")}}
       {{! Resposta de story, EXATAMENTE como o Instagram: rótulo discreto, a miniatura
           vertical do story (clicável enquanto ativo) e a mensagem como bolha normal abaixo }}
@@ -27,6 +39,7 @@
         {{#if this.video}}<video class="dm-storyprev-img" src="{{this.video}}" preload="metadata" muted playsinline></video>{{/if}}
         <span class="dm-storyprev-hint">{{#if this.storyPrev.ativo}}Ver story ›{{else}}Story indisponível{{/if}}</span>
       </div>
+    {{/if}}
     {{/if}}
   {{else}}
   {{#if this.imagem}}<div class="dm-bolha-img tw-post-midia" data-img="{{this.imagem}}" role="button" tabindex="0" aria-label="Ampliar imagem"><img src="{{this.imagem}}" alt="Foto" draggable="false"></div>{{/if}}

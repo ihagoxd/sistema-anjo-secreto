@@ -17,9 +17,49 @@ async function limparExpirados() {
   mortos.forEach((m) => { apagarUpload(m.imagem); apagarUpload(m.video); });
 }
 
-async function publicar(idUsuario, imagem, video) {
+async function publicar(idUsuario, imagem, video, mencaoId = null) {
   if (!imagem && !video) return { ok: false, motivo: 'VAZIO' };
-  const id = await storyModel.criar(idUsuario, imagem, video);
+
+  // Menção (marcar alguém): valida a pessoa; se inválida, publica sem menção.
+  let mencao = null;
+  if (mencaoId && Number(mencaoId) !== Number(idUsuario)) {
+    const m = await usuarioModel.buscarPorId(Number(mencaoId));
+    if (m && m.status === 'APROVADO' && m.ativo && m.tipo_usuario === 'PARTICIPANTE') mencao = m.id_usuario;
+  }
+
+  const id = await storyModel.criar(idUsuario, imagem, video, mencao);
+
+  // Como no Instagram: quem foi marcado recebe no DIRECT o card do story com
+  // o botão "Repostar esse story". A mídia é copiada pro card não quebrar.
+  if (mencao) {
+    try {
+      const origem = imagem || video;
+      const ext = path.extname(path.basename(origem));
+      const copia = `mnc-${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+      await fs.promises.copyFile(path.join(UPLOAD_DIR, path.basename(origem)), path.join(UPLOAD_DIR, copia));
+      const caminho = `/uploads/${copia}`;
+      const r = await dmService.enviar(idUsuario, mencao, null, imagem ? caminho : null, null, video ? caminho : null,
+        { ref: id, autor: idUsuario, tipo: 'mencao' });
+      if (!r.ok) apagarUpload(caminho);
+    } catch (e) { /* menção sem DM não derruba a publicação */ }
+  }
+
+  return { ok: true, id_story: id };
+}
+
+// Repostar um story em que EU fui marcado (vídeo: cópia direta; foto o front
+// compõe no fundo dourado da marca e publica como imagem nova).
+async function repostar(meId, idStory) {
+  const s = await storyModel.buscarPorId(idStory);
+  if (!s) return { ok: false, motivo: 'NAO_ENCONTRADO' };
+  if (Number(s.mencao) !== Number(meId)) return { ok: false, motivo: 'SEM_PERMISSAO' };
+  const origem = s.imagem || s.video;
+  if (!origem) return { ok: false, motivo: 'SEM_MIDIA' };
+  const ext = path.extname(path.basename(origem));
+  const copia = `rps-${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+  await fs.promises.copyFile(path.join(UPLOAD_DIR, path.basename(origem)), path.join(UPLOAD_DIR, copia));
+  const caminho = `/uploads/${copia}`;
+  const id = await storyModel.criar(meId, s.imagem ? caminho : null, s.video ? caminho : null, null);
   return { ok: true, id_story: id };
 }
 
@@ -140,4 +180,4 @@ async function remover(meId, idStory, ehAdmin) {
   return { ok: true };
 }
 
-module.exports = { publicar, listarAgrupado, resumoAneis, marcarVisto, remover, alternarCurtida, responder, encaminhar, vistosDe };
+module.exports = { publicar, listarAgrupado, resumoAneis, marcarVisto, remover, alternarCurtida, responder, encaminhar, vistosDe, repostar };

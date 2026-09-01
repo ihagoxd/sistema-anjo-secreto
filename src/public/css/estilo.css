@@ -925,13 +925,15 @@ table.tabela tbody tr:hover { background: var(--hover); }
 button.story, button.story-ring { background: none; border: none; padding: 0; font: inherit; cursor: pointer; }
 .story-ring.tem { background: linear-gradient(45deg, #8a5a00, var(--ouro) 55%, #ffe9a8); }
 .story-ring.sem { background: var(--line-strong); }
-/* "+" do Seu story igual ao Instagram: bolinha branca, sinal preto, borda da cor do fundo */
+/* "+" do Seu story (estilo Instagram, na cor da marca): bolinha dourada com o sinal
+   PERFEITAMENTE centralizado (SVG + grid, nada de "+" de texto torto) */
 .story-badge.mais {
   min-width: 0; width: 22px; height: 22px; padding: 0; right: 0; bottom: 0;
-  background: #fff; color: #111; border: 3px solid var(--bg); box-shadow: none;
+  display: grid; place-items: center;
+  background: var(--ouro); color: var(--on-ouro); border: 3px solid var(--bg); box-shadow: none;
   cursor: pointer; transition: transform 0.12s;
 }
-.story-badge.mais svg { width: 12px; height: 12px; display: block; }
+.story-badge.mais svg { width: 11px; height: 11px; display: block; }
 .story-badge.mais:hover { transform: scale(1.1); }
 
 /* Visualizador em tela cheia */

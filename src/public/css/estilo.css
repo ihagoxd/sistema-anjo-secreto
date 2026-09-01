@@ -964,12 +964,13 @@ html { touch-action: pan-x pan-y; }
   background: rgba(0, 0, 0, 0.45); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 999px;
   color: #fff; font: inherit; font-size: 13.5px; font-weight: 600; padding: 9px 15px; cursor: pointer;
 }
+.stcomp-chips { display: inline-flex; flex-wrap: wrap; gap: 6px; max-width: 70%; }
+.stcomp-chips[hidden] { display: none; }
 .stcomp-chip {
   display: inline-flex; align-items: center; gap: 6px;
   background: var(--ouro); color: var(--on-ouro); border-radius: 999px; padding: 8px 13px;
   font-size: 13.5px; font-weight: 700;
 }
-.stcomp-chip[hidden] { display: none; }
 .stcomp-chip-x { background: none; border: none; color: inherit; font-size: 17px; line-height: 1; cursor: pointer; padding: 0; }
 /* Chips de vários colaboradores ("fulano e +N") */
 .colab-chips { margin-top: 10px; font-size: 13px; color: var(--text-soft); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }

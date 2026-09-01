@@ -274,7 +274,17 @@
       if (picker) { picker.value = ''; picker.click(); }
     });
 
-    var comp = null, compFile = null, compEhVideo = false, compUrl = '', compMencao = null;
+    var comp = null, compFile = null, compEhVideo = false, compUrl = '', compMencoes = [];
+    function renderMencoes() {
+      if (!comp) return;
+      var box = comp.querySelector('.stcomp-chips');
+      if (!compMencoes.length) { box.hidden = true; box.innerHTML = ''; return; }
+      box.hidden = false;
+      box.innerHTML = compMencoes.map(function (m) {
+        return '<span class="stcomp-chip">🏷️ @' + m.usuario
+          + '<button type="button" class="stcomp-chip-x" data-tirar-mencao="' + m.id + '" aria-label="Remover marcação">&times;</button></span>';
+      }).join('');
+    }
     function montarComposer() {
       if (comp) return;
       comp = document.createElement('div');
@@ -285,24 +295,26 @@
         + '<button type="button" class="stview-x" data-comp-fechar aria-label="Cancelar">&times;</button></div>'
         + '<div class="stcomp-media"></div>'
         + '<div class="stcomp-acoes">'
-        + '  <button type="button" class="stcomp-marcar">🏷️ Marcar pessoa</button>'
-        + '  <span class="stcomp-chip" hidden><span class="stcomp-chip-nome"></span><button type="button" class="stcomp-chip-x" aria-label="Remover marcação">&times;</button></span>'
+        + '  <button type="button" class="stcomp-marcar">🏷️ Marcar pessoas</button>'
+        + '  <span class="stcomp-chips" hidden></span>'
         + '</div>'
         + '<button type="button" class="btn btn-primario stcomp-enviar">Compartilhar no story</button>';
       document.body.appendChild(comp);
       comp.querySelector('[data-comp-fechar]').addEventListener('click', fecharComposer);
       comp.querySelector('.stcomp-enviar').addEventListener('click', enviarStory);
-      // Marcar pessoa (menção): quem for marcado recebe no Direct o card com "Repostar"
+      // Marcar pessoas (pode várias): cada marcada recebe no Direct o card com "Repostar"
       comp.querySelector('.stcomp-marcar').addEventListener('click', function () {
         abrirSeletorPessoa('Marcar pessoa no story', function (p) {
-          compMencao = p.id;
-          comp.querySelector('.stcomp-chip-nome').textContent = '🏷️ @' + p.usuario;
-          comp.querySelector('.stcomp-chip').hidden = false;
+          if (compMencoes.some(function (m) { return m.id === p.id; })) return;
+          compMencoes.push({ id: p.id, usuario: p.usuario });
+          renderMencoes();
         });
       });
-      comp.querySelector('.stcomp-chip-x').addEventListener('click', function () {
-        compMencao = null;
-        comp.querySelector('.stcomp-chip').hidden = true;
+      comp.querySelector('.stcomp-chips').addEventListener('click', function (e) {
+        var b = e.target.closest('[data-tirar-mencao]');
+        if (!b) return;
+        compMencoes = compMencoes.filter(function (m) { return m.id !== b.getAttribute('data-tirar-mencao'); });
+        renderMencoes();
       });
     }
     function fecharComposer() {
@@ -330,8 +342,8 @@
       }
       var btn = comp.querySelector('.stcomp-enviar');
       btn.disabled = false; btn.textContent = 'Compartilhar no story';
-      compMencao = null;
-      comp.querySelector('.stcomp-chip').hidden = true;
+      compMencoes = [];
+      renderMencoes();
       comp.hidden = false;
       document.body.classList.add('sem-scroll');
     }
@@ -344,7 +356,7 @@
       var tk = (form && form.querySelector('input[name="_csrf"]')) || document.querySelector('input[name="_csrf"]');
       if (tk) fd.append('_csrf', tk.value);
       fd.append(compEhVideo ? 'video' : 'imagem', compFile, compFile.name || (compEhVideo ? 'story.mp4' : 'story.jpg'));
-      if (compMencao) fd.append('mencao', compMencao);
+      if (compMencoes.length) fd.append('mencao', compMencoes.map(function (m) { return m.id; }).join(','));
       fetch('/stories', { method: 'POST', headers: { 'X-Requested-With': 'fetch', 'Accept': 'application/json', 'X-CSRF-Token': CSRF }, body: fd })
         .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
         .then(function () {

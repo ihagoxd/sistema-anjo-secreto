@@ -17,18 +17,20 @@ async function limparExpirados() {
   mortos.forEach((m) => { apagarUpload(m.imagem); apagarUpload(m.video); });
 }
 
-async function publicar(idUsuario, imagem, video, mencaoId = null) {
+async function publicar(idUsuario, imagem, video, mencaoIds = null) {
   if (!imagem && !video) return { ok: false, motivo: 'VAZIO' };
 
-  // Menção (marcar alguém): valida a pessoa; se inválida, publica sem menção.
-  let mencao = null;
-  if (mencaoId && Number(mencaoId) !== Number(idUsuario)) {
-    const m = await usuarioModel.buscarPorId(Number(mencaoId));
-    if (m && m.status === 'APROVADO' && m.ativo && m.tipo_usuario === 'PARTICIPANTE') mencao = m.id_usuario;
+  // Menções (pode marcar VÁRIAS pessoas): valida cada uma; inválidas são ignoradas.
+  const marcados = [];
+  for (const bruto of String(mencaoIds || '').split(',')) {
+    const mid = Number(bruto.trim());
+    if (!mid || mid === Number(idUsuario) || marcados.includes(mid)) continue;
+    const m = await usuarioModel.buscarPorId(mid);
+    if (m && m.status === 'APROVADO' && m.ativo && m.tipo_usuario === 'PARTICIPANTE') marcados.push(m.id_usuario);
   }
 
-  const id = await storyModel.criar(idUsuario, imagem, video, mencao);
-  if (mencao) await enviarCardDeMencao(id, idUsuario, mencao, imagem, video);
+  const id = await storyModel.criar(idUsuario, imagem, video, marcados[0] || null);
+  for (const mid of marcados) await enviarCardDeMencao(id, idUsuario, mid, imagem, video);
   return { ok: true, id_story: id };
 }
 

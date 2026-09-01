@@ -1066,6 +1066,66 @@
     document.addEventListener('visibilitychange', function () { if (!document.hidden) checar(); });
   })();
 
+  /* ---------- Direct ao vivo: badges de não lidas por contato, sem F5 ----------
+     A cada 15s (e ao voltar pra aba) a lista consulta /mensagens/estado e atualiza:
+     contagem ao lado de cada contato, nome/prévia em negrito quando há novas e a
+     prévia da última mensagem. O badge global (sidebar/barra) acompanha. ---------- */
+  (function () {
+    var lista = document.querySelector('.direct-lista');
+    if (!lista) return;
+
+    function acharConv(href) { return lista.querySelector('.conv[href="' + href + '"]'); }
+    function aplicarBadge(conv, n) {
+      if (!conv) return;
+      var badge = conv.querySelector('.conv-badge');
+      var aberta = conv.classList.contains('ativa');
+      n = aberta ? 0 : (n || 0); // conversa aberta não acusa não lida
+      if (n > 0) {
+        if (!badge) {
+          badge = document.createElement('span');
+          badge.className = 'conv-badge';
+          conv.appendChild(badge);
+        }
+        badge.textContent = n;
+        conv.classList.add('tem-novas');
+      } else {
+        if (badge) badge.remove();
+        conv.classList.remove('tem-novas');
+      }
+    }
+
+    var buscando = false;
+    function checarDirect() {
+      if (document.hidden || buscando) return;
+      buscando = true;
+      fetch('/mensagens/estado', { headers: { 'Accept': 'application/json' } })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+        .then(function (d) {
+          aplicarBadge(acharConv('/mensagens/anjo'), d.anjo);
+          aplicarBadge(acharConv('/mensagens/protegido'), d.protegido);
+          var total = (d.anjo || 0) + (d.protegido || 0);
+          lista.querySelectorAll('.conv[href^="/mensagens/u/"]').forEach(function (conv) {
+            var id = (conv.getAttribute('href').match(/\/u\/(\d+)/) || [])[1];
+            if (!id) return;
+            aplicarBadge(conv, d.porContato[id]);
+            total += conv.classList.contains('ativa') ? 0 : (d.porContato[id] || 0);
+            var prev = d.previas && d.previas[id];
+            var sub = conv.querySelector('.conv-sub');
+            if (prev && sub) sub.textContent = (prev.minha ? 'Você: ' : '') + prev.texto;
+          });
+          // badge global (sidebar + barra inferior)
+          document.querySelectorAll('.js-msg-badge').forEach(function (b) {
+            b.textContent = total;
+            b.style.display = total > 0 ? '' : 'none';
+          });
+        })
+        .catch(function () {})
+        .finally(function () { buscando = false; });
+    }
+    window.setInterval(checarDirect, 15000);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) checarDirect(); });
+  })();
+
   /* ---------- Filas horizontais (notas, stories): arrastar com o MOUSE rola ----------
      (no toque a rolagem já é nativa; um arrasto não dispara o clique do item) */
   (function () {

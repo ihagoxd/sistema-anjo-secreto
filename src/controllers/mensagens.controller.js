@@ -224,6 +224,29 @@ async function postDireta(req, res, next) {
   } catch (err) { next(err); }
 }
 
+// ---------- Estado da lista (polling leve): não lidas por contato + prévias ----------
+// Alimenta os badges ao vivo do Direct (quantas mensagens e de quem), sem F5.
+async function getEstado(req, res, next) {
+  try {
+    const me = req.session.usuario.id_usuario;
+    const campanha = await campanhaService.buscarCampanhaAtiva();
+    let unread = { anjo: 0, protegido: 0 };
+    if (campanha) {
+      const p = await sorteioService.buscarProtegidoDoAnjo(campanha.id_campanha, me);
+      if (p) unread = await mensagemService.contarNaoLidasPorTipo(campanha.id_campanha, me);
+    }
+    const resumo = await dmService.resumoConversas(me);
+    const previas = {};
+    Object.keys(resumo.ultima || {}).forEach((id) => {
+      const u = resumo.ultima[id];
+      previas[id] = { minha: !!u.minha, texto: u.texto || '📎 mídia' };
+    });
+    res.json({ anjo: unread.anjo, protegido: unread.protegido, porContato: resumo.naoLidas || {}, previas });
+  } catch (err) {
+    next(err);
+  }
+}
+
 // ---------- Edição (AJAX → JSON) ----------
 async function postEditar(req, res, next) {
   try {
@@ -252,4 +275,4 @@ async function postApagar(req, res, next) {
   } catch (err) { next(err); }
 }
 
-module.exports = { getInbox, getAnjo, getProtegido, getDireta, postAnjo, postProtegido, postDireta, postEditar, postApagar };
+module.exports = { getInbox, getAnjo, getProtegido, getDireta, postAnjo, postProtegido, postDireta, postEditar, postApagar, getEstado };

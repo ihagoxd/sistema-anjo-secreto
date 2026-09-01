@@ -23,6 +23,7 @@ const midiaMsg = [receberMidia, conferirAssinaturas, verifyCsrfAposUpload];
 
 // Inbox + conversas abertas
 router.get('/', ctrl.getInbox);
+router.get('/estado', ctrl.getEstado);
 router.get('/anjo', ctrl.getAnjo);
 router.get('/protegido', ctrl.getProtegido);
 router.get('/u/:id', ctrl.getDireta);

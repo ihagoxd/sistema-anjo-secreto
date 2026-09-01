@@ -341,11 +341,11 @@
       var btn = comp.querySelector('.stcomp-enviar');
       btn.disabled = true; btn.textContent = 'Publicando…';
       var fd = new FormData();
-      var tk = form && form.querySelector('input[name="_csrf"]');
+      var tk = (form && form.querySelector('input[name="_csrf"]')) || document.querySelector('input[name="_csrf"]');
       if (tk) fd.append('_csrf', tk.value);
       fd.append(compEhVideo ? 'video' : 'imagem', compFile, compFile.name || (compEhVideo ? 'story.mp4' : 'story.jpg'));
       if (compMencao) fd.append('mencao', compMencao);
-      fetch('/stories', { method: 'POST', headers: { 'X-Requested-With': 'fetch', 'Accept': 'application/json' }, body: fd })
+      fetch('/stories', { method: 'POST', headers: { 'X-Requested-With': 'fetch', 'Accept': 'application/json', 'X-CSRF-Token': CSRF }, body: fd })
         .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
         .then(function () {
           fecharComposer();
@@ -374,6 +374,88 @@
         : e.target.hasAttribute('data-video');
       e.target.value = ''; // libera para escolher de novo depois
       abrirComposer(file, ehVideo);
+    });
+
+    // --- "Repostar esse story" (card de menção no Direct): monta a ARTE e abre o
+    // COMPOSITOR — a pessoa VÊ como vai ficar antes de compartilhar. Foto vira a
+    // composição com fundo dourado da marca + logo do Mendes + crédito; vídeo abre
+    // direto no compositor com preview. ---
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-repostar-story]');
+      if (!b || b.disabled) return;
+      b.disabled = true;
+      var rotulo = b.textContent;
+      b.textContent = 'Preparando…';
+      function liberar() { b.disabled = false; b.textContent = rotulo; }
+      function falha() { liberar(); toast('Não foi possível preparar o repost.'); }
+
+      var vid = b.getAttribute('data-rps-video');
+      if (vid) {
+        fetch(vid)
+          .then(function (r) { return r.ok ? r.blob() : Promise.reject(); })
+          .then(function (blob) {
+            liberar();
+            abrirComposer(new File([blob], 'repost.mp4', { type: blob.type || 'video/mp4' }), true);
+          })
+          .catch(falha);
+        return;
+      }
+      var img = b.getAttribute('data-rps-img');
+      if (!img) { falha(); return; }
+      var autor = b.getAttribute('data-rps-autor') || '';
+      var foto = new Image(), logo = new Image();
+      var pend = 2, temLogo = true, morto = false;
+      function pronto() {
+        if (--pend > 0 || morto) return;
+        try {
+          var W = 1080, H = 1920;
+          var cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+          var ctx = cv.getContext('2d');
+          var grad = ctx.createLinearGradient(0, 0, 0, H);
+          grad.addColorStop(0, '#e9bb55'); grad.addColorStop(0.5, '#d4a017'); grad.addColorStop(1, '#9c750e');
+          ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
+          if (temLogo && logo.naturalWidth) { // logo da marca no topo
+            var lw = 280, lh = logo.naturalHeight * (lw / logo.naturalWidth);
+            ctx.globalAlpha = 0.95;
+            ctx.drawImage(logo, (W - lw) / 2, 120, lw, lh);
+            ctx.globalAlpha = 1;
+          }
+          // foto original emoldurada no centro, com cantos arredondados e sombra
+          var maxW = W * 0.78, maxH = H * 0.56;
+          var esc = Math.min(maxW / foto.naturalWidth, maxH / foto.naturalHeight);
+          var fw = foto.naturalWidth * esc, fh = foto.naturalHeight * esc;
+          var fx = (W - fw) / 2, fy = (H - fh) / 2 + 30, r = 36;
+          ctx.save();
+          ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 60; ctx.shadowOffsetY = 24;
+          ctx.beginPath();
+          ctx.moveTo(fx + r, fy);
+          ctx.arcTo(fx + fw, fy, fx + fw, fy + fh, r);
+          ctx.arcTo(fx + fw, fy + fh, fx, fy + fh, r);
+          ctx.arcTo(fx, fy + fh, fx, fy, r);
+          ctx.arcTo(fx, fy, fx + fw, fy, r);
+          ctx.closePath();
+          ctx.fillStyle = '#000'; ctx.fill();
+          ctx.shadowColor = 'transparent';
+          ctx.clip();
+          ctx.drawImage(foto, fx, fy, fw, fh);
+          ctx.restore();
+          ctx.fillStyle = 'rgba(20,12,0,0.8)';
+          ctx.font = '600 40px system-ui, -apple-system, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('Story de @' + autor, W / 2, fy + fh + 90);
+          cv.toBlob(function (blob) {
+            if (!blob) { falha(); return; }
+            liberar();
+            abrirComposer(new File([blob], 'repost.jpg', { type: 'image/jpeg' }), false);
+          }, 'image/jpeg', 0.92);
+        } catch (x) { falha(); }
+      }
+      foto.onload = pronto;
+      foto.onerror = function () { morto = true; falha(); };
+      logo.onload = pronto;
+      logo.onerror = function () { temLogo = false; pronto(); }; // sem logo, segue só com o fundo
+      foto.src = img;
+      logo.src = '/img/logo.png';
     });
 
     // --- Visualizador ---
@@ -574,6 +656,7 @@
         + '<button type="button" class="stview-del" hidden title="Apagar story" aria-label="Apagar story">'
         + '  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>'
         + '</button>'
+        + '<button type="button" class="stview-marcar" hidden title="Marcar pessoa neste story" aria-label="Marcar pessoa">@</button>'
         + '<div class="stview-rodape" hidden>'
         + '  <input class="stview-resp" type="text" placeholder="Responder…" maxlength="500" autocomplete="off">'
         + '  <button type="button" class="stview-enviar" hidden>Enviar</button>'
@@ -675,6 +758,24 @@
 
       // "👁 N · ❤ M" (no seu story) abre a lista de quem viu, coração ao lado de quem curtiu
       vistosEl.addEventListener('click', abrirVistos);
+
+      // "@" no MEU story: marcar alguém mesmo depois de postar (recebe o card no Direct)
+      view.querySelector('.stview-marcar').addEventListener('click', function () {
+        var item = grupos[gi] && grupos[gi].itens[ii];
+        if (!item || !(grupos[gi] && grupos[gi].eu)) return;
+        pausar(true);
+        abrirSeletorPessoa('Marcar pessoa no story', function (p) {
+          fetch('/stories/' + item.id_story + '/marcar', {
+            method: 'POST',
+            headers: { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch', 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ pessoa: p.id }),
+          })
+            .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+            .then(function (d) { toast('Marcado! @' + (d.usuario || p.usuario) + ' recebeu no Direct 🏷️'); })
+            .catch(function () { toast('Não foi possível marcar.'); })
+            .finally(function () { pausar(false); });
+        }, function () { pausar(false); });
+      });
 
       likeEl.addEventListener('click', function () {
         var item = grupos[gi] && grupos[gi].itens[ii];
@@ -841,6 +942,7 @@
       nomeEl.textContent = g.usuario;
       tempoEl.textContent = tempoRelJs(item.criado_em);
       delBtn.hidden = !g.eu;
+      view.querySelector('.stview-marcar').hidden = !g.eu;
       vistosEl.hidden = !g.eu;
       if (g.eu) {
         // "Atividade" com o ícone de pessoas, como no Instagram (detalhes na folha)
@@ -1023,21 +1125,33 @@
     });
     atualizar();
 
-    // Colaborador (post em dupla): escolhe a pessoa antes de publicar
+    // Colaboradores (post em dupla/trio, "fulano e +N"): pode escolher vários
     var btnColab = form.querySelector('[data-colab-btn]');
     var colabId = form.querySelector('[data-colab-id]');
-    var colabChip = form.querySelector('[data-colab-chip]');
-    if (btnColab && colabId && colabChip) {
+    var colabChips = form.querySelector('[data-colab-chip]');
+    if (btnColab && colabId && colabChips) {
+      var colabs = [];
+      var renderColabs = function () {
+        colabId.value = colabs.map(function (c) { return c.id; }).join(',');
+        if (!colabs.length) { colabChips.hidden = true; colabChips.innerHTML = ''; return; }
+        colabChips.hidden = false;
+        colabChips.innerHTML = '👥 com ' + colabs.map(function (c) {
+          return '<span class="colab-chip"><strong>@' + c.usuario + '</strong>'
+            + '<button type="button" class="colab-tirar" data-tirar="' + c.id + '" aria-label="Remover colaborador">&times;</button></span>';
+        }).join(' ');
+      };
       btnColab.addEventListener('click', function () {
         abrirSeletorPessoa('Adicionar colaborador', function (p) {
-          colabId.value = p.id;
-          colabChip.querySelector('[data-colab-nome]').textContent = '@' + p.usuario;
-          colabChip.hidden = false;
+          if (colabs.some(function (c) { return c.id === p.id; })) return;
+          colabs.push({ id: p.id, usuario: p.usuario });
+          renderColabs();
         });
       });
-      colabChip.querySelector('[data-colab-tirar]').addEventListener('click', function () {
-        colabId.value = '';
-        colabChip.hidden = true;
+      colabChips.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-tirar]');
+        if (!b) return;
+        colabs = colabs.filter(function (c) { return c.id !== b.getAttribute('data-tirar'); });
+        renderColabs();
       });
     }
   })();
@@ -1071,12 +1185,15 @@
       try {
         var mapa = {};
         (d.aneis || []).forEach(function (a) { mapa[a.id_usuario] = a; });
-        // meu anel: ganhou story em outro aparelho/aba → vira dourado e abre o viewer
+        // meu anel: ganhou story (aqui, em outro aparelho ou via repost) → dourado na hora
         var meu = document.querySelector('.story-ring.eu-story');
-        if (meu && d.euTenho && meu.hasAttribute('data-add-story')) {
+        if (meu && d.euTenho) {
           meu.classList.remove('sem'); meu.classList.add('tem');
           var meuId = meu.getAttribute('data-meu-id');
-          if (meuId) { meu.setAttribute('data-ver-stories', meuId); meu.removeAttribute('data-add-story'); }
+          if (meuId && meu.hasAttribute('data-add-story')) {
+            meu.setAttribute('data-ver-stories', meuId);
+            meu.removeAttribute('data-add-story');
+          }
         }
         // anéis da equipe (só promove/atualiza; reordenação fica pro próximo load)
         document.querySelectorAll('.stories .story[data-usuario-id]').forEach(function (el) {
@@ -1167,94 +1284,6 @@
     document.addEventListener('visibilitychange', function () { if (!document.hidden) checarDirect(); });
   })();
 
-  /* ---------- "Repostar esse story" (card de menção no Direct) ----------
-     FOTO: compõe no aparelho um story novo — fundo DOURADO da marca, logo do
-     Mendes no topo, a foto original emoldurada no centro e o crédito "@autor"
-     — e publica como SEU story (igual ao repost de menção do Instagram).
-     VÍDEO: o servidor copia a mídia e publica direto. ---------- */
-  (function () {
-    var metaR = document.querySelector('meta[name="csrf-token"]');
-    var CSRF = metaR ? metaR.getAttribute('content') : '';
-    document.addEventListener('click', function (e) {
-      var b = e.target.closest('[data-repostar-story]');
-      if (!b || b.disabled) return;
-      b.disabled = true;
-      var rotulo = b.textContent;
-      b.textContent = 'Repostando…';
-      var id = b.getAttribute('data-repostar-story');
-      function ok() { b.textContent = 'Repostado no seu story ✓'; toast('Repostado no seu story ✨'); }
-      function falha() { b.disabled = false; b.textContent = rotulo; toast('Não foi possível repostar.'); }
-
-      var img = b.getAttribute('data-rps-img');
-      if (!img) {
-        fetch('/stories/' + id + '/repostar', { method: 'POST', headers: { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch' } })
-          .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
-          .then(ok).catch(falha);
-        return;
-      }
-
-      var autor = b.getAttribute('data-rps-autor') || '';
-      var foto = new Image(), logo = new Image();
-      var pend = 2, temLogo = true, morto = false;
-      function pronto() {
-        if (--pend > 0 || morto) return;
-        try {
-          var W = 1080, H = 1920;
-          var cv = document.createElement('canvas'); cv.width = W; cv.height = H;
-          var ctx = cv.getContext('2d');
-          var grad = ctx.createLinearGradient(0, 0, 0, H);
-          grad.addColorStop(0, '#e9bb55'); grad.addColorStop(0.5, '#d4a017'); grad.addColorStop(1, '#9c750e');
-          ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
-          if (temLogo && logo.naturalWidth) { // logo da marca no topo
-            var lw = 280, lh = logo.naturalHeight * (lw / logo.naturalWidth);
-            ctx.globalAlpha = 0.95;
-            ctx.drawImage(logo, (W - lw) / 2, 120, lw, lh);
-            ctx.globalAlpha = 1;
-          }
-          // foto original emoldurada no centro, com cantos arredondados e sombra
-          var maxW = W * 0.78, maxH = H * 0.56;
-          var esc = Math.min(maxW / foto.naturalWidth, maxH / foto.naturalHeight);
-          var fw = foto.naturalWidth * esc, fh = foto.naturalHeight * esc;
-          var fx = (W - fw) / 2, fy = (H - fh) / 2 + 30, r = 36;
-          ctx.save();
-          ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 60; ctx.shadowOffsetY = 24;
-          ctx.beginPath();
-          ctx.moveTo(fx + r, fy);
-          ctx.arcTo(fx + fw, fy, fx + fw, fy + fh, r);
-          ctx.arcTo(fx + fw, fy + fh, fx, fy + fh, r);
-          ctx.arcTo(fx, fy + fh, fx, fy, r);
-          ctx.arcTo(fx, fy, fx + fw, fy, r);
-          ctx.closePath();
-          ctx.fillStyle = '#000'; ctx.fill();
-          ctx.shadowColor = 'transparent';
-          ctx.clip();
-          ctx.drawImage(foto, fx, fy, fw, fh);
-          ctx.restore();
-          ctx.fillStyle = 'rgba(20,12,0,0.8)';
-          ctx.font = '600 40px system-ui, -apple-system, sans-serif';
-          ctx.textAlign = 'center';
-          ctx.fillText('Story de @' + autor, W / 2, fy + fh + 90);
-          cv.toBlob(function (blob) {
-            if (!blob) { falha(); return; }
-            var fd = new FormData();
-            var tk = document.querySelector('input[name="_csrf"]');
-            if (tk) fd.append('_csrf', tk.value);
-            fd.append('imagem', blob, 'repost.jpg');
-            fetch('/stories', { method: 'POST', headers: { 'X-Requested-With': 'fetch', 'Accept': 'application/json', 'X-CSRF-Token': CSRF }, body: fd })
-              .then(function (r2) { return r2.ok ? r2.json() : Promise.reject(); })
-              .then(ok).catch(falha);
-          }, 'image/jpeg', 0.92);
-        } catch (x) { falha(); }
-      }
-      foto.onload = pronto;
-      foto.onerror = function () { morto = true; falha(); };
-      logo.onload = pronto;
-      logo.onerror = function () { temLogo = false; pronto(); }; // sem logo, segue só com o fundo
-      foto.src = img;
-      logo.src = '/img/logo.png';
-    });
-  })();
-
   /* ---------- Avatar do perfil: TOQUE abre o story (se houver) ou amplia a foto;
      SEGURAR "espia" a foto de perfil ampliada (solta, fecha) — como no Instagram ---------- */
   (function () {
@@ -1338,9 +1367,10 @@
 
   /* ---------- Seletor de pessoa (folha genérica: colaborador do post, marcar no story)
      Com CAMPO DE PESQUISA no topo: filtra ao vivo enquanto digita. ---------- */
-  var selPessoaModal = null, selPessoaCb = null, selPessoaSeq = 0, selPessoaTimer = null;
-  function abrirSeletorPessoa(titulo, cb) {
+  var selPessoaModal = null, selPessoaCb = null, selPessoaSeq = 0, selPessoaTimer = null, selPessoaFechar = null;
+  function abrirSeletorPessoa(titulo, cb, aoFechar) {
     selPessoaCb = cb;
+    selPessoaFechar = aoFechar || null;
     function escSP(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
     function renderizar(pessoas, lista) {
       if (!pessoas.length) { lista.innerHTML = '<div class="texto-suave" style="padding:10px 6px;">Ninguém encontrado.</div>'; return; }
@@ -1373,16 +1403,34 @@
         + '<div class="share-lista selp-lista"></div></div>';
       document.body.appendChild(selPessoaModal);
       selPessoaModal.addEventListener('click', function (e) {
+        if (e.target.closest('[data-fechar-modal]') || e.target === selPessoaModal) {
+          if (selPessoaFechar) { var f = selPessoaFechar; selPessoaFechar = null; f(); }
+          return;
+        }
         var b = e.target.closest('[data-selp]');
         if (!b) return;
         selPessoaModal.setAttribute('hidden', '');
         selPessoaModal.setAttribute('aria-hidden', 'true');
+        selPessoaFechar = null;
         if (selPessoaCb) selPessoaCb({
           id: b.getAttribute('data-selp'),
           usuario: b.getAttribute('data-selp-user'),
           nome: b.getAttribute('data-selp-nome'),
         });
       });
+      // Teclado do celular: a folha sobe junto e a lista encolhe — ninguém fica escondido
+      if (window.visualViewport) {
+        var ajustarSelp = function () {
+          if (!selPessoaModal || selPessoaModal.hidden) return;
+          var card = selPessoaModal.querySelector('.modal-card');
+          var vv = window.visualViewport;
+          var dif = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+          card.style.transform = dif ? 'translateY(-' + dif + 'px)' : '';
+          card.style.maxHeight = dif ? Math.max(220, vv.height - 32) + 'px' : '';
+        };
+        window.visualViewport.addEventListener('resize', ajustarSelp);
+        window.visualViewport.addEventListener('scroll', ajustarSelp);
+      }
       selPessoaModal.querySelector('.selp-input').addEventListener('input', function () {
         var inp = this;
         clearTimeout(selPessoaTimer);
@@ -1392,6 +1440,8 @@
       });
     }
     selPessoaModal.querySelector('.sheet-titulo').textContent = titulo;
+    var cardSel = selPessoaModal.querySelector('.modal-card');
+    cardSel.style.transform = ''; cardSel.style.maxHeight = '';
     var inp = selPessoaModal.querySelector('.selp-input');
     inp.value = '';
     var lista = selPessoaModal.querySelector('.selp-lista');

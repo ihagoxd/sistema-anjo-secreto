@@ -33,6 +33,17 @@ const helpers = {
     return a || b;
   },
 
+  // Primeiro item de uma lista / quantos além do primeiro / lista unida (post em dupla "e +N")
+  primeiro(arr) {
+    return Array.isArray(arr) && arr.length ? arr[0] : '';
+  },
+  alemDoPrimeiro(arr) {
+    return Array.isArray(arr) && arr.length > 1 ? arr.length - 1 : 0;
+  },
+  juntar(arr) {
+    return Array.isArray(arr) ? arr.join(', ') : '';
+  },
+
   // Últimos N itens de uma lista (prévia de comentários no card do post)
   ultimos(lista, n) {
     return Array.isArray(lista) ? lista.slice(-n) : [];

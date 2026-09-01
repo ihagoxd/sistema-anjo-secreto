@@ -6,7 +6,11 @@
       <a href="/u/{{this.usuario}}" class="ig-av">{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</a>
     {{/if}}
     <div class="ig-cab-txt">
-      <a href="/u/{{this.usuario}}" class="ig-user">{{this.usuario}}</a>{{#if this.usuario_colab}}<span class="ig-e">e</span><a href="/u/{{this.usuario_colab}}" class="ig-user">{{this.usuario_colab}}</a>{{/if}}
+      <a href="/u/{{this.usuario}}" class="ig-user">{{this.usuario}}</a>
+      {{~#if (primeiro this.colaboradores)~}}
+        <span class="ig-e">e</span><a href="/u/{{primeiro this.colaboradores}}" class="ig-user">{{primeiro this.colaboradores}}</a>
+        {{~#if (alemDoPrimeiro this.colaboradores)}}<span class="ig-user ig-mais-colab" title="{{juntar this.colaboradores}}">+{{alemDoPrimeiro this.colaboradores}}</span>{{/if~}}
+      {{~else}}{{#if this.usuario_colab}}<span class="ig-e">e</span><a href="/u/{{this.usuario_colab}}" class="ig-user">{{this.usuario_colab}}</a>{{/if}}{{/if~}}
       <span class="ig-tempo">{{tempoRel this.criado_em}}</span>
     </div>
     {{#if (ou (eq this.id_usuario @root.usuario.id_usuario) (eq @root.usuario.tipo_usuario "ADMINISTRADOR"))}}

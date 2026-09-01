@@ -9,6 +9,9 @@ const SELECT_POST = `
   SELECT p.id_post, p.texto, p.imagem, p.video, p.criado_em,
          u.id_usuario, u.nome, u.usuario, u.foto_perfil,
          uc.id_usuario AS id_colaborador, uc.usuario AS usuario_colab, uc.nome AS nome_colab,
+         (SELECT array_agg(u3.usuario ORDER BY u3.usuario)
+            FROM post_colaboradores pc JOIN usuarios u3 ON u3.id_usuario = pc.id_usuario
+           WHERE pc.id_post = p.id_post) AS colaboradores,
          (SELECT COUNT(*) FROM post_curtidas c WHERE c.id_post = p.id_post)::int AS curtidas,
          (SELECT u2.usuario FROM post_curtidas c2 JOIN usuarios u2 ON u2.id_usuario = c2.id_usuario
            WHERE c2.id_post = p.id_post ORDER BY c2.criado_em DESC LIMIT 1) AS curtidor,
@@ -35,7 +38,9 @@ async function listarFeed(idUsuarioAtual, limite = 50) {
 
 async function listarPorUsuario(idAutor, idUsuarioAtual) {
   const res = await db.query(
-    `${SELECT_POST} WHERE (p.id_usuario = $2 OR p.id_colaborador = $2) ORDER BY p.criado_em DESC`,
+    `${SELECT_POST} WHERE (p.id_usuario = $2 OR p.id_colaborador = $2
+        OR EXISTS (SELECT 1 FROM post_colaboradores pc WHERE pc.id_post = p.id_post AND pc.id_usuario = $2))
+      ORDER BY p.criado_em DESC`,
     [idUsuarioAtual, idAutor]
   );
   return res.rows;
@@ -55,6 +60,16 @@ async function listarRepostadosPor(idAutor, idUsuarioAtual) {
 async function buscarPorId(idPost) {
   const res = await db.query(`SELECT id_post, id_usuario, imagem FROM posts WHERE id_post = $1`, [idPost]);
   return res.rows[0] || null;
+}
+
+// Colaboradores do post (post em dupla/trio: "fulano e +N").
+async function adicionarColaboradores(idPost, ids) {
+  for (const id of ids) {
+    await db.query(
+      `INSERT INTO post_colaboradores (id_post, id_usuario) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+      [idPost, id]
+    );
+  }
 }
 
 // Quantos posts entraram depois do id X (polling leve do feed ao vivo).
@@ -158,7 +173,7 @@ async function removerComentario(idComentario) {
 }
 
 module.exports = {
-  criar, listarFeed, listarPorUsuario, listarRepostadosPor, buscarPorId, buscarFeedUm, remover, contarNovosDesde,
+  criar, listarFeed, listarPorUsuario, listarRepostadosPor, buscarPorId, buscarFeedUm, remover, contarNovosDesde, adicionarColaboradores,
   curtir, descurtir, jaCurtiu, contarCurtidas, listarCurtidores,
   repostar, desfazerRepost, jaRepostou, contarReposts,
   adicionarComentario, listarComentarios, listarComentariosDeVarios, buscarComentario, removerComentario,

@@ -52,10 +52,8 @@
         <textarea name="texto" maxlength="{{limite}}" placeholder="No que você está pensando?" autocomplete="off" data-mencoes data-texto></textarea>
       </div>
       <div class="compositor-preview" data-preview hidden></div>
-      {{! Colaborador (post em dupla, como no Instagram) }}
-      <div class="colab-chip" data-colab-chip hidden>👥 com <strong data-colab-nome></strong>
-        <button type="button" class="colab-tirar" data-colab-tirar aria-label="Remover colaborador">&times;</button>
-      </div>
+      {{! Colaboradores (post em dupla/trio, como no Instagram) — os chips são montados pelo JS }}
+      <div class="colab-chips" data-colab-chip hidden></div>
       <input type="hidden" name="colaborador" value="" data-colab-id>
       <div class="compositor-rodape">
         <div class="compositor-acoes">

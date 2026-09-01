@@ -24,15 +24,23 @@ async function criarPost(idUsuario, texto, imagemPath, videoPath = null, colabor
   if (!t && !imagemPath && !videoPath) return { ok: false, motivo: 'VAZIO' };
   if (t.length > LIMITE_TEXTO) return { ok: false, motivo: 'LONGO' };
 
-  // Colaborador (post em dupla): valida a pessoa; inválida, publica sem.
-  let idColaborador = null;
-  if (colaboradorId && Number(colaboradorId) !== Number(idUsuario)) {
-    const c = await usuarioModel.buscarPorId(Number(colaboradorId));
-    if (c && c.status === 'APROVADO' && c.ativo && c.tipo_usuario === 'PARTICIPANTE') idColaborador = c.id_usuario;
+  // Colaboradores (post em dupla/trio, "fulano e +N"): valida cada um; inválidos são ignorados.
+  const colaboradores = [];
+  for (const bruto of String(colaboradorId || '').split(',')) {
+    const cid = Number(bruto.trim());
+    if (!cid || cid === Number(idUsuario) || colaboradores.includes(cid)) continue;
+    const c = await usuarioModel.buscarPorId(cid);
+    if (c && c.status === 'APROVADO' && c.ativo && c.tipo_usuario === 'PARTICIPANTE') colaboradores.push(c.id_usuario);
   }
 
-  const novo = await postModel.criar({ idUsuario, texto: t || null, imagem: imagemPath || null, video: videoPath || null, idColaborador });
-  if (idColaborador) await notificacaoService.notificarMencao(idColaborador, idUsuario, novo.id_post);
+  const novo = await postModel.criar({
+    idUsuario, texto: t || null, imagem: imagemPath || null, video: videoPath || null,
+    idColaborador: colaboradores[0] || null,
+  });
+  if (colaboradores.length) {
+    await postModel.adicionarColaboradores(novo.id_post, colaboradores);
+    for (const cid of colaboradores) await notificacaoService.notificarMencao(cid, idUsuario, novo.id_post);
+  }
   await notificarMencoes(t, idUsuario, novo.id_post);
   return { ok: true };
 }

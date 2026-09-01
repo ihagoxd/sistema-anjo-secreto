@@ -55,6 +55,22 @@ async function resumoAneis(meId) {
   return mapa;
 }
 
+// ---------- Menções ----------
+async function adicionarMencao(idStory, idUsuario) {
+  await db.query(
+    `INSERT INTO story_mencoes (id_story, id_usuario) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+    [idStory, idUsuario]
+  );
+}
+async function foiMencionado(idStory, idUsuario) {
+  const res = await db.query(
+    `SELECT 1 FROM story_mencoes WHERE id_story = $1 AND id_usuario = $2
+     UNION SELECT 1 FROM stories WHERE id_story = $1 AND mencao = $2 LIMIT 1`,
+    [idStory, idUsuario]
+  );
+  return res.rowCount > 0;
+}
+
 // ---------- Curtidas de story ----------
 async function curtir(idStory, idUsuario) {
   await db.query(
@@ -110,5 +126,6 @@ async function removerExpirados() {
 
 module.exports = {
   criar, buscarPorId, listarAtivos, resumoAneis, marcarVisto, remover, removerExpirados, listarViram,
+  adicionarMencao, foiMencionado,
   curtir, descurtir, jaCurtiu, contarCurtidas,
 };

@@ -86,6 +86,17 @@ async function postEncaminhar(req, res, next) {
   }
 }
 
+// Marcar alguém num story JÁ publicado (AJAX — ícone @ no visualizador).
+async function postMarcar(req, res, next) {
+  try {
+    const r = await storyService.marcarPessoa(req.session.usuario.id_usuario, req.params.id_story, req.body.pessoa);
+    if (!r.ok) return res.status(400).json({ erro: 'Não foi possível marcar.' });
+    res.json({ ok: true, usuario: r.usuario });
+  } catch (err) {
+    next(err);
+  }
+}
+
 // Repostar um story em que fui marcado (AJAX) — usado no caminho de VÍDEO.
 async function postRepostar(req, res, next) {
   try {
@@ -109,4 +120,4 @@ async function postRemover(req, res, next) {
   }
 }
 
-module.exports = { postCriar, getDados, postVisto, postRemover, postCurtir, postResponder, postEncaminhar, getVistos, postRepostar };
+module.exports = { postCriar, getDados, postVisto, postRemover, postCurtir, postResponder, postEncaminhar, getVistos, postRepostar, postMarcar };

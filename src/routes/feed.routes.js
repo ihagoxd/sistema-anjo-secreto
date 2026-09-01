@@ -43,6 +43,7 @@ router.post('/stories/:id_story/curtir', guard, storiesCtrl.postCurtir);
 router.post('/stories/:id_story/responder', guard, storiesCtrl.postResponder);
 router.post('/stories/:id_story/encaminhar', guard, storiesCtrl.postEncaminhar);
 router.post('/stories/:id_story/repostar', guard, storiesCtrl.postRepostar);
+router.post('/stories/:id_story/marcar', guard, storiesCtrl.postMarcar);
 router.post('/stories/:id_story/remover', guard, storiesCtrl.postRemover);
 
 router.get('/mencoes', guard, ctrl.getMencoes);

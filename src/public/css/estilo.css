@@ -971,6 +971,20 @@ html { touch-action: pan-x pan-y; }
 }
 .stcomp-chip[hidden] { display: none; }
 .stcomp-chip-x { background: none; border: none; color: inherit; font-size: 17px; line-height: 1; cursor: pointer; padding: 0; }
+/* Chips de vários colaboradores ("fulano e +N") */
+.colab-chips { margin-top: 10px; font-size: 13px; color: var(--text-soft); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.colab-chips[hidden] { display: none; }
+.colab-chips .colab-chip { margin-top: 0; }
+.ig-mais-colab { cursor: help; margin-left: 2px; }
+/* "@" no visualizador do próprio story (marcar depois de postar) */
+.stview-marcar {
+  position: absolute; bottom: 12px; right: 64px; z-index: 4;
+  width: 42px; height: 42px; display: grid; place-items: center;
+  background: rgba(255, 255, 255, 0.14); border: none; color: #fff; cursor: pointer; border-radius: 50%;
+  font-size: 20px; font-weight: 700; line-height: 1;
+}
+.stview-marcar:hover { background: rgba(255, 255, 255, 0.26); }
+
 /* Botão "Repostar esse story" no card de menção do Direct */
 .dm-repostar { margin-top: 6px; border-radius: 999px; font-weight: 700; font-size: 13.5px; padding: 9px 16px; width: max-content; }
 .dm-repostar:disabled { opacity: 0.75; cursor: default; }

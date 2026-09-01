@@ -19,7 +19,7 @@
         {{#unless this.storyPrev.ativo}}<span class="dm-story-off">Story indisponível</span>{{/unless}}
       </div>
       {{#unless this.minha}}{{#if this.storyPrev.ativo}}
-        <button type="button" class="btn btn-primario dm-repostar" data-repostar-story="{{this.storyPrev.id_story}}"{{#if this.imagem}} data-rps-img="{{this.imagem}}"{{/if}} data-rps-autor="{{this.storyPrev.usuario}}">Repostar esse story</button>
+        <button type="button" class="btn btn-primario dm-repostar" data-repostar-story="{{this.storyPrev.id_story}}"{{#if this.imagem}} data-rps-img="{{this.imagem}}"{{/if}}{{#if this.video}} data-rps-video="{{this.video}}"{{/if}} data-rps-autor="{{this.storyPrev.usuario}}">Repostar esse story</button>
       {{/if}}{{/unless}}
     {{else}}
     {{#if (eq this.storyPrev.tipo "resposta")}}

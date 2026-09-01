@@ -41,6 +41,39 @@ async function postVisto(req, res, next) {
   }
 }
 
+// Curtir/descurtir um story (AJAX).
+async function postCurtir(req, res, next) {
+  try {
+    const r = await storyService.alternarCurtida(req.session.usuario.id_usuario, req.params.id_story);
+    if (!r.ok) return res.status(404).json({ erro: 'Story não encontrado.' });
+    res.json({ curti: r.curti, total: r.total });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// Responder ao story → DM para o autor (AJAX).
+async function postResponder(req, res, next) {
+  try {
+    const r = await storyService.responder(req.session.usuario.id_usuario, req.params.id_story, req.body.texto);
+    if (!r.ok) return res.status(400).json({ erro: 'Não foi possível responder.' });
+    res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// Encaminhar o story para alguém no Direct (AJAX).
+async function postEncaminhar(req, res, next) {
+  try {
+    const r = await storyService.encaminhar(req.session.usuario.id_usuario, req.params.id_story, req.body.para);
+    if (!r.ok) return res.status(400).json({ erro: 'Não foi possível encaminhar.' });
+    res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
 // Apaga um story (autor ou admin) — AJAX.
 async function postRemover(req, res, next) {
   try {
@@ -53,4 +86,4 @@ async function postRemover(req, res, next) {
   }
 }
 
-module.exports = { postCriar, getDados, postVisto, postRemover };
+module.exports = { postCriar, getDados, postVisto, postRemover, postCurtir, postResponder, postEncaminhar };

@@ -27,7 +27,9 @@ async function listarAtivos(meId) {
     `SELECT s.id_story, s.id_usuario, s.imagem, s.video, s.criado_em,
             u.nome, u.usuario, u.foto_perfil,
             EXISTS(SELECT 1 FROM story_vistos v WHERE v.id_story = s.id_story AND v.id_usuario = $1) AS visto,
-            (SELECT COUNT(*) FROM story_vistos v WHERE v.id_story = s.id_story AND v.id_usuario <> s.id_usuario)::int AS vistos
+            (SELECT COUNT(*) FROM story_vistos v WHERE v.id_story = s.id_story AND v.id_usuario <> s.id_usuario)::int AS vistos,
+            EXISTS(SELECT 1 FROM story_curtidas c WHERE c.id_story = s.id_story AND c.id_usuario = $1) AS curti,
+            (SELECT COUNT(*) FROM story_curtidas c WHERE c.id_story = s.id_story)::int AS curtidas
        FROM stories s
        JOIN usuarios u ON u.id_usuario = s.id_usuario
       WHERE ${ATIVO} AND u.status = 'APROVADO' AND u.ativo = TRUE
@@ -53,6 +55,25 @@ async function resumoAneis(meId) {
   return mapa;
 }
 
+// ---------- Curtidas de story ----------
+async function curtir(idStory, idUsuario) {
+  await db.query(
+    `INSERT INTO story_curtidas (id_story, id_usuario) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+    [idStory, idUsuario]
+  );
+}
+async function descurtir(idStory, idUsuario) {
+  await db.query(`DELETE FROM story_curtidas WHERE id_story = $1 AND id_usuario = $2`, [idStory, idUsuario]);
+}
+async function jaCurtiu(idStory, idUsuario) {
+  const res = await db.query(`SELECT 1 FROM story_curtidas WHERE id_story = $1 AND id_usuario = $2`, [idStory, idUsuario]);
+  return res.rowCount > 0;
+}
+async function contarCurtidas(idStory) {
+  const res = await db.query(`SELECT COUNT(*)::int AS n FROM story_curtidas WHERE id_story = $1`, [idStory]);
+  return res.rows[0].n;
+}
+
 async function marcarVisto(idStory, idUsuario) {
   await db.query(
     `INSERT INTO story_vistos (id_story, id_usuario) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
@@ -72,4 +93,7 @@ async function removerExpirados() {
   return res.rows;
 }
 
-module.exports = { criar, buscarPorId, listarAtivos, resumoAneis, marcarVisto, remover, removerExpirados };
+module.exports = {
+  criar, buscarPorId, listarAtivos, resumoAneis, marcarVisto, remover, removerExpirados,
+  curtir, descurtir, jaCurtiu, contarCurtidas,
+};

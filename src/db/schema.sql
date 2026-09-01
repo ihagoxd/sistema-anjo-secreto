@@ -272,6 +272,14 @@ CREATE TABLE IF NOT EXISTS stories (
 CREATE INDEX IF NOT EXISTS idx_stories_usuario ON stories(id_usuario, criado_em DESC);
 CREATE INDEX IF NOT EXISTS idx_stories_criado ON stories(criado_em);
 
+-- Curtidas de story (o coração do visualizador, como no Instagram)
+CREATE TABLE IF NOT EXISTS story_curtidas (
+  id_story    INTEGER NOT NULL REFERENCES stories(id_story) ON DELETE CASCADE,
+  id_usuario  INTEGER NOT NULL REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
+  criado_em   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (id_story, id_usuario)
+);
+
 -- Quem já viu cada story (anel dourado vira cinza depois de visto, como no Instagram)
 CREATE TABLE IF NOT EXISTS story_vistos (
   id_story    INTEGER NOT NULL REFERENCES stories(id_story) ON DELETE CASCADE,

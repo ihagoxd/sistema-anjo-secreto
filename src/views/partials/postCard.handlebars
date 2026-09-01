@@ -1,6 +1,10 @@
 <article class="tw-post ig-post{{#if @root.detalhe}} tw-post-det{{/if}}" data-id="{{this.id_post}}">
   <header class="ig-cab">
-    <a href="/u/{{this.usuario}}" class="ig-av">{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</a>
+    {{#if this.temStory}}
+      <button type="button" class="ig-av av-story {{#if this.storyVisto}}visto{{else}}tem{{/if}}" data-ver-stories="{{this.id_usuario}}" title="Ver o story de {{this.usuario}}">{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</button>
+    {{else}}
+      <a href="/u/{{this.usuario}}" class="ig-av">{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</a>
+    {{/if}}
     <div class="ig-cab-txt">
       <a href="/u/{{this.usuario}}" class="ig-user">{{this.usuario}}</a>
       <span class="ig-tempo">{{tempoRel this.criado_em}}</span>

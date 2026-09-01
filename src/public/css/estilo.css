@@ -970,6 +970,38 @@ button.story, button.story-ring { background: none; border: none; padding: 0; fo
 }
 .stview-del:hover { background: rgba(255, 255, 255, 0.26); }
 
+/* Rodapé de interação (stories dos outros): Responder + coração + avião, como no IG */
+.stview-rodape {
+  position: absolute; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  display: flex; align-items: center; gap: 8px; z-index: 5;
+}
+.stview-rodape[hidden] { display: none; }
+.stview-resp {
+  flex: 1; min-width: 0; background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 999px; padding: 12px 16px; font: inherit; font-size: 14.5px; color: #fff; outline: none;
+}
+.stview-resp::placeholder { color: rgba(255, 255, 255, 0.75); }
+.stview-resp:focus { border-color: #fff; }
+.stview-like, .stview-fwd { background: none; border: none; color: #fff; cursor: pointer; padding: 8px; flex-shrink: 0; }
+.stview-like svg, .stview-fwd svg { width: 26px; height: 26px; display: block; }
+.stview-like.ativo { color: var(--st-vermelho, #ed4956); }
+.stview-like.ativo svg { fill: currentColor; animation: like-pop 0.42s var(--ease-spring); }
+.stview-fwd-modal { z-index: 660; }
+/* Celular: mídia em TELA CHEIA (cover), como o story do app do Instagram */
+@media (max-width: 899px) {
+  .stview-media img, .stview-media video,
+  .stcomp-media img, .stcomp-media video {
+    width: 100%; height: 100%; max-width: none; max-height: none; object-fit: cover;
+  }
+  .stcomp-media { height: 100%; }
+  .stview-tap { bottom: 88px; }
+}
+
+/* Anel de story no avatar do post: clica no avatar → story; no nome → perfil */
+button.ig-av { border: none; cursor: pointer; padding: 0; font: inherit; }
+.ig-av.av-story.tem { box-shadow: 0 0 0 2px var(--ouro); }
+.ig-av.av-story.visto { box-shadow: 0 0 0 2px color-mix(in srgb, var(--ouro) 38%, var(--line-strong)); }
+
 /* Carregando: foto some e um spinner gira no centro; a barra de progresso só anda
    quando a mídia está pronta */
 .stview-media { position: relative; }

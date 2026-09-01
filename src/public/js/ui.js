@@ -357,9 +357,64 @@
     // --- Visualizador ---
     var view = null, barras = null, mediaBox = null, avEl = null, nomeEl = null, tempoEl = null,
       vistosEl = null, delBtn = null, somBtn = null;
+    var rodapeEl = null, respEl = null, likeEl = null, fwdEl = null, fwdModal = null;
     var grupos = [], gi = 0, ii = 0;
     var raf = 0, t0 = 0, decorrido = 0, dur = 5000, pausado = false, videoEl = null;
     var pressT = 0, swipeY = -1, mostrarSeq = 0;
+
+    // Folha "Encaminhar no Direct": lista a equipe; tocar numa pessoa envia o story.
+    function abrirEncaminhar() {
+      var item = grupos[gi] && grupos[gi].itens[ii];
+      if (!item) return;
+      pausar(true);
+      if (!fwdModal) {
+        fwdModal = document.createElement('div');
+        fwdModal.className = 'modal sheet-share stview-fwd-modal';
+        fwdModal.hidden = true;
+        fwdModal.setAttribute('aria-hidden', 'true');
+        fwdModal.innerHTML = '<div class="modal-card share-card">'
+          + '<div class="sheet-cab sempre"><span class="sheet-grab" aria-hidden="true"></span>'
+          + '<span class="sheet-titulo">Enviar para</span>'
+          + '<button type="button" class="sheet-x" data-fechar-modal aria-label="Fechar">&times;</button></div>'
+          + '<div class="share-lista fwd-lista"></div></div>';
+        document.body.appendChild(fwdModal);
+        fwdModal.addEventListener('click', function (e) {
+          if (e.target.closest('[data-fechar-modal]') || e.target === fwdModal) { pausar(false); return; }
+          var b = e.target.closest('[data-fwd-para]');
+          if (!b) return;
+          b.disabled = true;
+          fetch('/stories/' + (grupos[gi] && grupos[gi].itens[ii] || {}).id_story + '/encaminhar', {
+            method: 'POST',
+            headers: { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch', 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ para: b.getAttribute('data-fwd-para') }),
+          })
+            .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+            .then(function () {
+              toast('Enviado no Direct ✈️');
+              fwdModal.setAttribute('hidden', ''); fwdModal.setAttribute('aria-hidden', 'true');
+              pausar(false);
+            })
+            .catch(function () { toast('Não foi possível enviar.'); })
+            .finally(function () { b.disabled = false; });
+        });
+      }
+      var lista = fwdModal.querySelector('.fwd-lista');
+      lista.innerHTML = '<div class="texto-suave" style="padding:10px 6px;">Carregando…</div>';
+      fwdModal.hidden = false; fwdModal.setAttribute('aria-hidden', 'false');
+      fetch('/buscar?q=', { headers: { 'Accept': 'application/json' } })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+        .then(function (pessoas) {
+          if (!pessoas.length) { lista.innerHTML = '<div class="texto-suave" style="padding:10px 6px;">Ninguém disponível.</div>'; return; }
+          lista.innerHTML = pessoas.map(function (p) {
+            var av = p.foto_perfil ? '<img src="' + escSt(p.foto_perfil) + '" alt="">' : escSt((p.nome || '?').trim().charAt(0).toUpperCase());
+            return '<button type="button" class="share-item" data-fwd-para="' + escSt(String(p.id_usuario || '')) + '">'
+              + '<span class="share-av">' + av + '</span>'
+              + '<span class="share-txt"><span class="share-nome">' + escSt(p.nome) + '</span>'
+              + '<span class="share-user">@' + escSt(p.usuario) + '</span></span></button>';
+          }).join('');
+        })
+        .catch(function () { lista.innerHTML = '<div class="texto-suave" style="padding:10px 6px;">Não foi possível carregar.</div>'; });
+    }
 
     function tempoRelJs(iso) {
       var seg = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
@@ -386,7 +441,16 @@
         + '<div class="stview-tap prev" aria-hidden="true"></div>'
         + '<div class="stview-tap next" aria-hidden="true"></div>'
         + '<div class="stview-vistos" hidden></div>'
-        + '<button type="button" class="stview-del" hidden>Apagar story</button>';
+        + '<button type="button" class="stview-del" hidden>Apagar story</button>'
+        + '<div class="stview-rodape" hidden>'
+        + '  <input class="stview-resp" type="text" placeholder="Responder…" maxlength="500" autocomplete="off">'
+        + '  <button type="button" class="stview-like" aria-label="Curtir">'
+        + '    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>'
+        + '  </button>'
+        + '  <button type="button" class="stview-fwd" aria-label="Encaminhar no Direct">'
+        + '    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>'
+        + '  </button>'
+        + '</div>';
       document.body.appendChild(view);
       barras = view.querySelector('.stview-progresso');
       mediaBox = view.querySelector('.stview-media');
@@ -398,6 +462,45 @@
       somBtn = view.querySelector('.stview-som');
 
       view.querySelector('.stview-x').addEventListener('click', fecharView);
+
+      // --- Responder / curtir / encaminhar (nos stories dos outros) ---
+      rodapeEl = view.querySelector('.stview-rodape');
+      respEl = view.querySelector('.stview-resp');
+      likeEl = view.querySelector('.stview-like');
+      fwdEl = view.querySelector('.stview-fwd');
+
+      respEl.addEventListener('focus', function () { pausar(true); });
+      respEl.addEventListener('blur', function () { if (!view.hidden) pausar(false); });
+      respEl.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        var item = grupos[gi] && grupos[gi].itens[ii];
+        var texto = respEl.value.trim();
+        if (!item || !texto) return;
+        respEl.disabled = true;
+        fetch('/stories/' + item.id_story + '/responder', {
+          method: 'POST',
+          headers: { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch', 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ texto: texto }),
+        })
+          .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+          .then(function () { respEl.value = ''; toast('Resposta enviada 💬'); respEl.blur(); })
+          .catch(function () { toast('Não foi possível responder.'); })
+          .finally(function () { respEl.disabled = false; });
+      });
+
+      likeEl.addEventListener('click', function () {
+        var item = grupos[gi] && grupos[gi].itens[ii];
+        if (!item) return;
+        item.curti = !item.curti; // otimista, como no Instagram
+        likeEl.classList.toggle('ativo', !!item.curti);
+        fetch('/stories/' + item.id_story + '/curtir', { method: 'POST', headers: { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch' } })
+          .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+          .then(function (d) { item.curti = !!d.curti; likeEl.classList.toggle('ativo', item.curti); })
+          .catch(function () {});
+      });
+
+      fwdEl.addEventListener('click', abrirEncaminhar);
       somBtn.addEventListener('click', function () {
         if (!videoEl) return;
         videoEl.muted = !videoEl.muted;
@@ -478,8 +581,15 @@
       tempoEl.textContent = tempoRelJs(item.criado_em);
       delBtn.hidden = !g.eu; delBtn.dataset.confirmando = ''; delBtn.textContent = 'Apagar story';
       vistosEl.hidden = !g.eu;
-      if (g.eu) vistosEl.textContent = '👁 ' + (item.vistos || 0) + (item.vistos === 1 ? ' visualização' : ' visualizações');
+      if (g.eu) vistosEl.textContent = '👁 ' + (item.vistos || 0) + ' · ❤ ' + (item.curtidas || 0);
       somBtn.hidden = !item.video;
+      // Rodapé de interação (só nos stories dos outros): responder, curtir, encaminhar
+      rodapeEl.hidden = !!g.eu;
+      if (!g.eu) {
+        respEl.placeholder = 'Responder a ' + g.usuario + '…';
+        respEl.value = '';
+        likeEl.classList.toggle('ativo', !!item.curti);
+      }
 
       mediaBox.innerHTML = '';
       var seq = ++mostrarSeq;
@@ -581,9 +691,13 @@
 
     document.addEventListener('keydown', function (e) {
       if (!view || view.hidden) return;
-      if (e.key === 'Escape') fecharView();
-      else if (e.key === 'ArrowRight') proximo();
-      else if (e.key === 'ArrowLeft') anterior();
+      if (e.key === 'Escape') {
+        // Esc com a folha de encaminhar aberta: o modal fecha (handler genérico) e o story volta a rodar
+        if (fwdModal && !fwdModal.hidden) { pausar(false); return; }
+        if (document.activeElement === respEl) { respEl.blur(); return; }
+        fecharView();
+      } else if (e.key === 'ArrowRight' && document.activeElement !== respEl) proximo();
+      else if (e.key === 'ArrowLeft' && document.activeElement !== respEl) anterior();
     });
   })();
 

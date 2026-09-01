@@ -18,6 +18,14 @@ function anexarComentarios(posts, comentarios) {
   posts.forEach((p) => { p.comentariosLista = porPost[p.id_post] || []; });
 }
 
+// Marca em cada post se o AUTOR tem story ativo (anel no avatar do card).
+function anotarStories(posts, aneis) {
+  posts.forEach((p) => {
+    p.temStory = !!aneis[p.id_usuario];
+    p.storyVisto = !!(aneis[p.id_usuario] && aneis[p.id_usuario].tudoVisto);
+  });
+}
+
 async function getFeed(req, res, next) {
   try {
     const me = req.session.usuario.id_usuario;
@@ -32,6 +40,7 @@ async function getFeed(req, res, next) {
       temStory: !!aneis[u.id_usuario],
       storyVisto: !!(aneis[u.id_usuario] && aneis[u.id_usuario].tudoVisto),
     }));
+    anotarStories(posts, aneis);
     const sugestoes = equipe.slice(0, 5); // sidebar segue em ordem alfabética
     // Fileira de stories: quem postou vai pra FRENTE (não vistos primeiro, depois já
     // vistos), quem não tem story fica atrás — como no Instagram.
@@ -154,6 +163,7 @@ async function getPost(req, res, next) {
       req.session.flash = { erro: 'Publicação não encontrada.' };
       return res.redirect('/feed');
     }
+    anotarStories([post], await storyService.resumoAneis(req.session.usuario.id_usuario));
     res.render('feed/post', { titulo: 'Publicação', posts: [post], detalhe: true });
   } catch (err) {
     next(err);
@@ -183,6 +193,7 @@ async function renderPerfil(req, res, aba) {
   // Comentários (para expandir inline nos cards do perfil, igual ao mural).
   const comentarios = await postModel.listarComentariosDeVarios(posts.map((p) => p.id_post));
   anexarComentarios(posts, comentarios);
+  anotarStories(posts, await storyService.resumoAneis(me));
   res.render('feed/perfil', {
     titulo: dados.alvo.nome, alvo: dados.alvo, posts, aba, gostos, fotosGosta,
     numPublicacoes: dados.posts.length, pagina: 'perfil',

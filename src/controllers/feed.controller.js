@@ -205,6 +205,23 @@ const getPerfil = (req, res, next) => renderPerfil(req, res, 'publicacoes').catc
 const getPerfilReposts = (req, res, next) => renderPerfil(req, res, 'reposts').catch(next);
 const getPerfilGostos = (req, res, next) => renderPerfil(req, res, 'gostos').catch(next);
 
+// Feed ao vivo (polling leve): quantos posts novos desde o id X + estado dos anéis de story.
+async function getNovidades(req, res, next) {
+  try {
+    const me = req.session.usuario.id_usuario;
+    const depois = parseInt(req.query.depois, 10) || 0;
+    const novosPosts = await postModel.contarNovosDesde(depois);
+    const aneis = await storyService.resumoAneis(me);
+    res.json({
+      novosPosts,
+      euTenho: !!aneis[me],
+      aneis: Object.keys(aneis).map((id) => ({ id_usuario: Number(id), tudoVisto: !!aneis[id].tudoVisto })),
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 // Pesquisa de usuários (AJAX → JSON) — tela de busca estilo Instagram.
 // Sem termo, devolve os cadastrados (as "Sugestões" da tela), sem o próprio usuário.
 async function getBusca(req, res, next) {
@@ -227,4 +244,4 @@ async function getMencoes(req, res, next) {
   }
 }
 
-module.exports = { getFeed, getPost, postCriar, postCurtir, getCurtidas, postRepost, postComentar, postRemover, postRemoverComentario, getPerfil, getPerfilReposts, getPerfilGostos, getMencoes, getBusca };
+module.exports = { getFeed, getPost, postCriar, postCurtir, getCurtidas, postRepost, postComentar, postRemover, postRemoverComentario, getPerfil, getPerfilReposts, getPerfilGostos, getMencoes, getBusca, getNovidades };

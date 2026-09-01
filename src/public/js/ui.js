@@ -925,6 +925,7 @@
     document.addEventListener('click', function (e) {
       var b = e.target.closest('[data-ver-stories]');
       if (!b) return;
+      e.preventDefault(); // um <a> promovido a "tem story" abre o viewer, não navega
       var idAlvo = parseInt(b.getAttribute('data-ver-stories'), 10);
       montarView();
       fetch('/stories/dados', { headers: { 'Accept': 'application/json' } })
@@ -978,6 +979,71 @@
       ta.style.height = Math.min(220, ta.scrollHeight) + 'px';
     });
     atualizar();
+  })();
+
+  /* ---------- Feed ao vivo: checa novidades a cada 25s (e ao voltar pra aba) ----------
+     Post novo → pílula "novas publicações" no topo. Anel de story aparece/atualiza
+     sozinho, sem F5. Nada é injetado no meio do feed — zero risco de quebrar. */
+  (function () {
+    var stories = document.querySelector('.stories');
+    var feed = document.querySelector('.feed');
+    if (!stories || !feed) return; // só na página do mural
+    var maiorId = 0;
+    document.querySelectorAll('.tw-post[data-id]').forEach(function (p) {
+      maiorId = Math.max(maiorId, parseInt(p.getAttribute('data-id'), 10) || 0);
+    });
+    var aviso = null, buscando = false;
+
+    function mostrarAviso(n) {
+      if (!aviso) {
+        aviso = document.createElement('button');
+        aviso.type = 'button';
+        aviso.className = 'feed-novas';
+        aviso.addEventListener('click', function () { window.scrollTo(0, 0); window.location.reload(); });
+        document.body.appendChild(aviso);
+      }
+      aviso.textContent = '↑ ' + (n === 1 ? '1 nova publicação' : n + ' novas publicações');
+      aviso.hidden = false;
+    }
+
+    function aplicarAneis(d) {
+      try {
+        var mapa = {};
+        (d.aneis || []).forEach(function (a) { mapa[a.id_usuario] = a; });
+        // meu anel: ganhou story em outro aparelho/aba → vira dourado e abre o viewer
+        var meu = document.querySelector('.story-ring.eu-story');
+        if (meu && d.euTenho && meu.hasAttribute('data-add-story')) {
+          meu.classList.remove('sem'); meu.classList.add('tem');
+          var meuId = meu.getAttribute('data-meu-id');
+          if (meuId) { meu.setAttribute('data-ver-stories', meuId); meu.removeAttribute('data-add-story'); }
+        }
+        // anéis da equipe (só promove/atualiza; reordenação fica pro próximo load)
+        document.querySelectorAll('.stories .story[data-usuario-id]').forEach(function (el) {
+          var id = parseInt(el.getAttribute('data-usuario-id'), 10);
+          var anel = el.querySelector('.story-ring');
+          if (!id || !anel || !mapa[id]) return;
+          anel.classList.remove('sem');
+          anel.classList.toggle('tem', !mapa[id].tudoVisto);
+          anel.classList.toggle('visto', !!mapa[id].tudoVisto);
+          if (!el.hasAttribute('data-ver-stories')) el.setAttribute('data-ver-stories', id);
+        });
+      } catch (e) {}
+    }
+
+    function checar() {
+      if (document.hidden || buscando) return;
+      buscando = true;
+      fetch('/feed/novidades?depois=' + maiorId, { headers: { 'Accept': 'application/json' } })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+        .then(function (d) {
+          if (d.novosPosts > 0) mostrarAviso(d.novosPosts);
+          aplicarAneis(d);
+        })
+        .catch(function () {})
+        .finally(function () { buscando = false; });
+    }
+    window.setInterval(checar, 25000);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) checar(); });
   })();
 
   /* ---------- Filas horizontais (notas, stories): arrastar com o MOUSE rola ----------

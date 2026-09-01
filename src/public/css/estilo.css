@@ -933,6 +933,16 @@ table.tabela tbody tr:hover { background: var(--hover); }
    (as áreas com zoom próprio — lightbox, câmera, stories — definem o seu touch-action) */
 html { touch-action: pan-x pan-y; }
 
+/* Pílula "novas publicações" do feed ao vivo (aparece sem F5, como no Instagram) */
+.feed-novas {
+  position: fixed; top: 66px; left: 50%; transform: translateX(-50%); z-index: 60;
+  background: var(--ouro); color: var(--on-ouro); border: none; border-radius: 999px;
+  padding: 9px 18px; font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35); animation: pill-sobe 0.3s ease both;
+}
+.feed-novas:hover { filter: brightness(1.05); }
+@keyframes pill-sobe { from { transform: translate(-50%, -14px); opacity: 0; } to { transform: translateX(-50%); opacity: 1; } }
+
 /* --- Stories (estilo Instagram) --- */
 /* Anel: dourado = tem story não visto; cinza fino = sem story ou já visto */
 button.story, button.story-ring { background: none; border: none; padding: 0; font: inherit; cursor: pointer; }

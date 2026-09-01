@@ -16,7 +16,7 @@
       </div>
       {{#each equipe}}
         {{#if this.temStory}}
-          <button type="button" class="story" data-ver-stories="{{this.id_usuario}}" title="Ver o story de {{this.nome}}{{#if this.humor}} · {{rotuloHumor this.humor}}{{/if}}">
+          <button type="button" class="story" data-usuario-id="{{this.id_usuario}}" data-ver-stories="{{this.id_usuario}}" title="Ver o story de {{this.nome}}{{#if this.humor}} · {{rotuloHumor this.humor}}{{/if}}">
             <div class="story-ring-area">
               <span class="story-ring {{#if this.storyVisto}}visto{{else}}tem{{/if}}"><span class="story-ring-in">{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</span></span>
               {{#if this.humor}}<span class="story-badge">{{emojiHumor this.humor}}</span>{{/if}}
@@ -24,7 +24,7 @@
             <span class="story-nome">{{this.usuario}}</span>
           </button>
         {{else}}
-          <a class="story" href="/u/{{this.usuario}}" title="{{this.nome}}{{#if this.humor}} · {{rotuloHumor this.humor}}{{/if}}">
+          <a class="story" href="/u/{{this.usuario}}" data-usuario-id="{{this.id_usuario}}" title="{{this.nome}}{{#if this.humor}} · {{rotuloHumor this.humor}}{{/if}}">
             <div class="story-ring-area">
               <span class="story-ring sem"><span class="story-ring-in">{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</span></span>
               {{#if this.humor}}<span class="story-badge">{{emojiHumor this.humor}}</span>{{/if}}

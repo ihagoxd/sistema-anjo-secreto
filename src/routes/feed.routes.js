@@ -19,6 +19,7 @@ const receberImagem = (req, res, next) => {
 };
 
 router.get('/feed', guard, ctrl.getFeed);
+router.get('/feed/novidades', guard, ctrl.getNovidades);
 router.post('/feed', guard, receberImagem, conferirAssinaturas, verifyCsrfAposUpload, ctrl.postCriar);
 router.post('/feed/:id_post/curtir', guard, ctrl.postCurtir);
 router.get('/feed/:id_post/curtidas', guard, ctrl.getCurtidas);

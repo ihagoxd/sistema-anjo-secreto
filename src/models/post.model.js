@@ -55,6 +55,12 @@ async function buscarPorId(idPost) {
   return res.rows[0] || null;
 }
 
+// Quantos posts entraram depois do id X (polling leve do feed ao vivo).
+async function contarNovosDesde(idPost) {
+  const res = await db.query(`SELECT COUNT(*)::int AS n FROM posts WHERE id_post > $1`, [idPost]);
+  return res.rows[0].n;
+}
+
 // Post completo (com autor + contagens + curtiu) para a página individual.
 async function buscarFeedUm(idPost, idUsuarioAtual) {
   const res = await db.query(`${SELECT_POST} WHERE p.id_post = $2`, [idUsuarioAtual, idPost]);
@@ -150,7 +156,7 @@ async function removerComentario(idComentario) {
 }
 
 module.exports = {
-  criar, listarFeed, listarPorUsuario, listarRepostadosPor, buscarPorId, buscarFeedUm, remover,
+  criar, listarFeed, listarPorUsuario, listarRepostadosPor, buscarPorId, buscarFeedUm, remover, contarNovosDesde,
   curtir, descurtir, jaCurtiu, contarCurtidas, listarCurtidores,
   repostar, desfazerRepost, jaRepostou, contarReposts,
   adicionarComentario, listarComentarios, listarComentariosDeVarios, buscarComentario, removerComentario,

@@ -1502,7 +1502,9 @@
     var camRec = null, camRecChunks = [], camRecTimer = 0, camRecT0 = 0, camRecEnviar = false;
     function iniciarVideo() {
       if (!window.MediaRecorder || !camStream || camRec) return; // sem suporte: soltar tira foto
-      var opts = {};
+      // Bitrate explícito: o padrão do navegador é baixo demais para 1080p e o vídeo sai "quadriculado".
+      // 5 Mbps de vídeo × 1 min ≈ 38 MB — cabe no limite de 60 MB do upload.
+      var opts = { videoBitsPerSecond: 5000000, audioBitsPerSecond: 128000 };
       if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')) opts.mimeType = 'video/webm;codecs=vp8,opus';
       else if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported('video/webm')) opts.mimeType = 'video/webm';
       else if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported('video/mp4')) opts.mimeType = 'video/mp4';
@@ -1551,8 +1553,13 @@
     // se o mic for negado, segue só com a câmera. Detecta zoom nativo (hardware).
     function abrirStream() {
       pararStream();
+      // Resolução ALTA é obrigatória: sem width/height o navegador entrega 640×480
+      // e a foto sai borrada. "ideal" nunca rejeita — o navegador dá o máximo que a câmera tiver.
       var pedir = function (comAudio) {
-        return navigator.mediaDevices.getUserMedia({ video: { facingMode: camFacing }, audio: comAudio });
+        return navigator.mediaDevices.getUserMedia({
+          video: { facingMode: camFacing, width: { ideal: 1920 }, height: { ideal: 1440 }, frameRate: { ideal: 30 } },
+          audio: comAudio,
+        });
       };
       return pedir(true).catch(function () { return pedir(false); })
         .then(function (s) {
@@ -1611,7 +1618,7 @@
           }
         }
         fecharCamera();
-      }, 'image/jpeg', 0.9);
+      }, 'image/jpeg', 0.92);
     }
     function captureFallback(b) {
       var input = b.form && b.form.querySelector('[data-foto]');

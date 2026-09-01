@@ -920,9 +920,26 @@ table.tabela tbody tr:hover { background: var(--hover); }
 }
 
 /* Lightbox (ampliar imagem na mesma guia) */
-/* --- Tela de pesquisa de usuários (estilo Instagram) --- */
-.busca-tela { position: fixed; inset: 0; z-index: 320; background: var(--bg); display: flex; flex-direction: column; }
+/* --- Tela de pesquisa de usuários (estilo Instagram) ---
+   Mobile: tela cheia, mas PARA ACIMA da barra inferior (a nav continua visível, como a aba
+   de pesquisa do Instagram). Desktop: painel encostado na sidebar — nada da página some. */
+.busca-tela { position: fixed; inset: 0; z-index: 40; background: var(--bg); display: flex; flex-direction: column; }
 .busca-tela[hidden] { display: none; }
+@media (max-width: 899px) {
+  .busca-tela { bottom: calc(58px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (min-width: 900px) {
+  .busca-tela {
+    inset: 0 auto 0 248px; width: 400px; max-width: calc(100vw - 248px);
+    background: var(--surface); border-right: 1px solid var(--line);
+    border-radius: 0 18px 18px 0; box-shadow: var(--shadow-pop);
+    animation: busca-desliza 0.22s ease both;
+  }
+  .busca-voltar { display: none; }
+  .busca-topo, .busca-corpo { max-width: none; }
+}
+@keyframes busca-desliza { from { transform: translateX(-14px); opacity: 0; } to { transform: none; opacity: 1; } }
+.busca-subtitulo { padding: 12px 10px 4px; font-weight: 700; font-size: 15px; }
 .busca-topo { display: flex; align-items: center; gap: 6px; padding: 12px 12px 8px; width: 100%; max-width: 640px; margin-inline: auto; }
 .busca-voltar { color: var(--text); }
 .busca-campo {

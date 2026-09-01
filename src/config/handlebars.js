@@ -38,6 +38,26 @@ const helpers = {
     return parseInt(n, 10) || 0;
   },
 
+  // Contador abreviado estilo Instagram: 96 → "96", 2200 → "2,2 mil"; zero vira vazio (some)
+  abrevia(n) {
+    n = parseInt(n, 10) || 0;
+    if (!n) return '';
+    if (n < 1000) return String(n);
+    const v = n / 1000;
+    const s = v % 1 === 0 || v >= 10 ? String(Math.round(v)) : v.toFixed(1).replace('.', ',');
+    return `${s} mil`;
+  },
+
+  // Linha de curtidas estilo Instagram: "Curtido por fulano e outras pessoas"
+  linhaCurtidas(curtidor, total) {
+    const n = parseInt(total, 10) || 0;
+    if (!n) return '';
+    if (!curtidor) return new Handlebars.SafeString(`<strong>${n}</strong> curtida${n === 1 ? '' : 's'}`);
+    let txt = `Curtido por <strong>${Handlebars.escapeExpression(curtidor)}</strong>`;
+    if (n > 1) txt += ' e <strong>outras pessoas</strong>';
+    return new Handlebars.SafeString(txt);
+  },
+
   // Inicial do nome (avatar)
   inicial(nome) {
     return (String(nome || '').trim()[0] || '?').toUpperCase();

@@ -59,7 +59,7 @@ async function postCurtir(req, res, next) {
   try {
     const r = await postService.alternarCurtida(req.params.id_post, req.session.usuario.id_usuario);
     if (!r.ok) return res.status(404).json({ erro: 'Post não encontrado.' });
-    res.json({ curtiu: r.curtiu, total: r.total });
+    res.json({ curtiu: r.curtiu, total: r.total, curtidor: r.curtidor });
   } catch (err) {
     next(err);
   }
@@ -180,11 +180,12 @@ const getPerfilReposts = (req, res, next) => renderPerfil(req, res, 'reposts').c
 const getPerfilGostos = (req, res, next) => renderPerfil(req, res, 'gostos').catch(next);
 
 // Pesquisa de usuários (AJAX → JSON) — tela de busca estilo Instagram.
+// Sem termo, devolve os cadastrados (as "Sugestões" da tela), sem o próprio usuário.
 async function getBusca(req, res, next) {
   try {
     const q = String(req.query.q || '').trim();
-    if (!q) return res.json([]);
-    res.json(await usuarioModel.buscarUsuarios(q, 20));
+    const lista = await usuarioModel.buscarUsuarios(q, q ? 20 : 31);
+    res.json(lista.filter((u) => u.usuario !== req.session.usuario.usuario).slice(0, q ? 20 : 30));
   } catch (err) {
     next(err);
   }

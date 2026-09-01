@@ -66,7 +66,9 @@ async function alternarCurtida(idPost, idUsuario) {
     await notificacaoService.notificarCurtida(post.id_usuario, idUsuario, idPost);
   }
   const total = await postModel.contarCurtidas(idPost);
-  return { ok: true, curtiu: !curtiu, total };
+  // Quem aparece na linha "Curtido por fulano e outras pessoas" (o curtidor mais recente)
+  const primeiros = await postModel.listarCurtidores(idPost, 1);
+  return { ok: true, curtiu: !curtiu, total, curtidor: primeiros.length ? primeiros[0].usuario : null };
 }
 
 // Quem curtiu o post (para a folha "Curtidas").

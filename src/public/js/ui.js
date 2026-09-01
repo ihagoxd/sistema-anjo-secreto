@@ -149,18 +149,36 @@
         + (comRemover ? '<button type="button" class="busca-remover" data-busca-remover="' + esc(p.usuario) + '" aria-label="Remover dos recentes">&times;</button>' : '')
         + '</a>';
     }
-    function mostrarRecentes() {
+    // Estado inicial da tela: "Recentes" (localStorage) + "Sugestões" com os usuários cadastrados.
+    function mostrarInicio() {
       var rec = lerRecentes();
       cabRec.hidden = !rec.length;
-      lista.innerHTML = rec.length
-        ? rec.map(function (p) { return itemHtml(p, true); }).join('')
-        : '<div class="texto-suave busca-vazio">Pesquise os colegas pelo nome ou @usuário.</div>';
+      var htmlRec = rec.map(function (p) { return itemHtml(p, true); }).join('');
+      lista.innerHTML = htmlRec;
+      fetch('/buscar?q=', { headers: { 'Accept': 'application/json' } })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+        .then(function (pessoas) {
+          if (tela.hidden || inp.value.trim()) return; // já fechou ou já começou a digitar
+          var jaTem = {};
+          rec.forEach(function (p) { jaTem[p.usuario] = true; });
+          var sug = pessoas.filter(function (p) { return !jaTem[p.usuario]; });
+          if (sug.length) {
+            lista.innerHTML = htmlRec + '<div class="busca-subtitulo">Sugestões</div>'
+              + sug.map(function (p) { return itemHtml(p, false); }).join('');
+          } else if (!rec.length) {
+            lista.innerHTML = '<div class="texto-suave busca-vazio">Pesquise os colegas pelo nome ou @usuário.</div>';
+          }
+        })
+        .catch(function () {
+          if (!rec.length) lista.innerHTML = '<div class="texto-suave busca-vazio">Pesquise os colegas pelo nome ou @usuário.</div>';
+        });
     }
     function abrir() {
       tela.hidden = false;
-      document.body.classList.add('sem-scroll');
+      // Só o mobile trava o scroll do fundo; no desktop a página continua visível ao lado
+      if (window.matchMedia('(max-width: 899px)').matches) document.body.classList.add('sem-scroll');
       inp.value = ''; btnLimparCampo.hidden = true;
-      mostrarRecentes();
+      mostrarInicio();
       window.setTimeout(function () { inp.focus(); }, 60);
     }
     function fechar() { tela.hidden = true; document.body.classList.remove('sem-scroll'); }
@@ -172,11 +190,11 @@
       if (rem) {
         e.preventDefault(); e.stopPropagation();
         salvarRecentes(lerRecentes().filter(function (p) { return p.usuario !== rem.getAttribute('data-busca-remover'); }));
-        mostrarRecentes();
+        mostrarInicio();
         return;
       }
-      if (e.target.closest('[data-busca-limpar-recentes]')) { salvarRecentes([]); mostrarRecentes(); return; }
-      if (e.target.closest('[data-busca-limpar-campo]')) { inp.value = ''; btnLimparCampo.hidden = true; mostrarRecentes(); inp.focus(); return; }
+      if (e.target.closest('[data-busca-limpar-recentes]')) { salvarRecentes([]); mostrarInicio(); return; }
+      if (e.target.closest('[data-busca-limpar-campo]')) { inp.value = ''; btnLimparCampo.hidden = true; mostrarInicio(); inp.focus(); return; }
       var it = e.target.closest('.busca-item');
       if (it) {
         // guarda nos recentes e deixa o link navegar normalmente para o perfil
@@ -193,7 +211,7 @@
       var q = inp.value.trim();
       btnLimparCampo.hidden = !inp.value;
       clearTimeout(timer);
-      if (!q) { mostrarRecentes(); return; }
+      if (!q) { mostrarInicio(); return; }
       timer = setTimeout(function () {
         var minha = ++seq;
         fetch('/buscar?q=' + encodeURIComponent(q), { headers: { 'Accept': 'application/json' } })
@@ -585,7 +603,13 @@
           if (linha) {
             var n = Number(d.total) || 0;
             linha.hidden = !n;
-            linha.innerHTML = '<strong>' + n + '</strong> curtida' + (n === 1 ? '' : 's');
+            if (d.curtidor) {
+              var dv = document.createElement('div'); dv.textContent = d.curtidor;
+              linha.innerHTML = 'Curtido por <strong>' + dv.innerHTML + '</strong>'
+                + (n > 1 ? ' e <strong>outras pessoas</strong>' : '');
+            } else {
+              linha.innerHTML = '<strong>' + n + '</strong> curtida' + (n === 1 ? '' : 's');
+            }
           }
         })
         .catch(function () {})

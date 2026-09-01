@@ -9,6 +9,8 @@ const SELECT_POST = `
   SELECT p.id_post, p.texto, p.imagem, p.video, p.criado_em,
          u.id_usuario, u.nome, u.usuario, u.foto_perfil,
          (SELECT COUNT(*) FROM post_curtidas c WHERE c.id_post = p.id_post)::int AS curtidas,
+         (SELECT u2.usuario FROM post_curtidas c2 JOIN usuarios u2 ON u2.id_usuario = c2.id_usuario
+           WHERE c2.id_post = p.id_post ORDER BY c2.criado_em DESC LIMIT 1) AS curtidor,
          (SELECT COUNT(*) FROM post_comentarios m WHERE m.id_post = p.id_post)::int AS comentarios,
          (SELECT COUNT(*) FROM reposts r WHERE r.id_post = p.id_post)::int AS reposts,
          EXISTS(SELECT 1 FROM post_curtidas c WHERE c.id_post = p.id_post AND c.id_usuario = $1) AS curtiu,

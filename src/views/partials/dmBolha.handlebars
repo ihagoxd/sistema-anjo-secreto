@@ -50,7 +50,7 @@
   {{/if}}
   {{/if}}
   <div class="dm-bolha-meta">
-    <span class="dm-hora">{{tempoRel this.criado_em}}</span>
+    <span class="dm-hora">{{horaMsg this.criado_em}}</span>
     <span class="dm-editada"{{#unless this.editado_em}} hidden{{/unless}}>(editada)</span>
     {{#unless this.apagada}}
       <button type="button" class="dm-editar" data-responder-msg title="Responder" aria-label="Responder">

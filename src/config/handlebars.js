@@ -122,6 +122,17 @@ const helpers = {
     return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
   },
 
+  // Hora da mensagem no chat (estilo WhatsApp): hoje → "14:32"; outro dia → "28/08 14:32"
+  horaMsg(data) {
+    if (!data) return '';
+    const d = new Date(data);
+    if (Number.isNaN(d.getTime())) return '';
+    const hm = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    return d.toDateString() === new Date().toDateString()
+      ? hm
+      : `${d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} ${hm}`;
+  },
+
   // Formata TIMESTAMP para pt-BR (dd/mm/aaaa hh:mm)
   formatarData(data) {
     if (!data) return '-';

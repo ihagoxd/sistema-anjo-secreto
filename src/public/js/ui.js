@@ -2304,6 +2304,44 @@
       var vel = box.querySelector('[data-audio-vel]');
       function dur() { return isFinite(au.duration) && au.duration > 0 ? au.duration : 0; }
       function mostrarDur() { if (dur()) tempo.textContent = fmt(dur()); }
+
+      // Onda de voz REAL (como no WhatsApp): decodifica o arquivo e desenha os picos.
+      // Se não der (arquivo grande/formato exótico), fica a linha de sempre.
+      (function () {
+        var AC = window.AudioContext || window.webkitAudioContext;
+        var src = au.getAttribute('src');
+        if (!AC || !window.fetch || !src) return;
+        fetch(src)
+          .then(function (r) { return r.ok ? r.arrayBuffer() : Promise.reject(); })
+          .then(function (buf) {
+            if (buf.byteLength > 8 * 1024 * 1024) return Promise.reject();
+            var ctx = new AC();
+            return ctx.decodeAudioData(buf).then(function (dec) { try { ctx.close(); } catch (e) {} return dec; });
+          })
+          .then(function (dec) {
+            var N = 30, dados = dec.getChannelData(0);
+            var passo = Math.max(1, Math.floor(dados.length / N));
+            var picos = [], max = 0;
+            for (var i = 0; i < N; i++) {
+              var p = 0;
+              for (var j = i * passo; j < (i + 1) * passo && j < dados.length; j += 24) {
+                var v = Math.abs(dados[j]);
+                if (v > p) p = v;
+              }
+              picos.push(p);
+              if (p > max) max = p;
+            }
+            if (!max) return;
+            var barras = picos.map(function (p2) {
+              return '<i style="height:' + Math.max(15, Math.round((p2 / max) * 100)) + '%"></i>';
+            }).join('');
+            trilha.classList.add('com-onda');
+            trilha.innerHTML = '<span class="onda-base">' + barras + '</span>'
+              + '<span class="dm-audio-prog"><span class="onda-cheia" style="width:' + trilha.clientWidth + 'px">' + barras + '</span></span>';
+            prog = trilha.querySelector('.dm-audio-prog'); // o timeupdate passa a mover a onda colorida
+          })
+          .catch(function () {});
+      })();
       au.addEventListener('loadedmetadata', function () {
         if (isFinite(au.duration)) { mostrarDur(); return; }
         // WebM antigo sem duração nos metadados: força o navegador a calcular
@@ -2421,6 +2459,7 @@
     msgs.addEventListener('pointerdown', function (e) {
       var b = e.target.closest('.dm-bolha');
       if (!b || e.pointerType === 'mouse') return;
+      if (e.target.closest('.dm-audio-trilha, .dm-audio-play, .dm-audio-vel')) return; // player tem gestos próprios
       swB = b; swX = e.clientX; swY = e.clientY; swOn = false;
     });
     msgs.addEventListener('pointermove', function (e) {
@@ -2542,6 +2581,7 @@
         }
         msgs.addEventListener('pointerdown', function (e) {
           if (e.pointerType !== 'touch') return;
+          if (e.target.closest('.dm-audio-trilha, .dm-audio-play, .dm-audio-vel')) return; // player tem gestos próprios
           var bolha = e.target.closest('.dm-bolha.minha');
           if (!bolha || !bolha.querySelector('[data-apagar-msg]')) return; // apagada ou sem ações
           lpBolha = bolha; lpX = e.clientX; lpY = e.clientY; lpDisparou = false;

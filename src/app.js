@@ -45,6 +45,14 @@ app.use(permissionsPolicy);
 // --- Arquivos estáticos (não passam por sessão/rate limit) ---
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Páginas HTML NUNCA são cacheadas: sem isso o navegador guardava o HTML antigo,
+// que apontava pro ui.js?v=VELHO — e as atualizações não chegavam mesmo com F5.
+// (Os assets ficam de fora: o carimbo ?v= do assetVer já cuida da versão deles.)
+app.use((req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+  next();
+});
+
 // --- Parsers ---
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());

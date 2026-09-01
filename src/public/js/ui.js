@@ -358,8 +358,34 @@
     var view = null, barras = null, mediaBox = null, avEl = null, nomeEl = null, tempoEl = null,
       vistosEl = null, delBtn = null, somBtn = null;
     var rodapeEl = null, respEl = null, enviarEl = null, likeEl = null, fwdEl = null, fwdModal = null, vistosModal = null, delModal = null;
-    var palcoEl = null, cuboEl = null, faceEl = null;
+    var palcoEl = null, cuboEl = null, faceEl = null, vizPrevEl = null, vizNextEl = null;
     var swipeX = null, gesto = '', cuboDir = 0, cuboW = 0;
+
+    // Pula direto para outro grupo (clique na prévia lateral do desktop)
+    function irParaGrupo(idx) {
+      if (!grupos[idx]) return;
+      gi = idx;
+      var g = grupos[gi];
+      ii = g.eu ? 0 : g.itens.findIndex(function (it) { return !it.visto; });
+      if (ii < 0) ii = 0;
+      mostrar();
+    }
+
+    // Prévias laterais (desktop): foto escurecida + avatar + nome + tempo do grupo vizinho
+    function atualizarVizinhos() {
+      [[vizPrevEl, grupos[gi - 1]], [vizNextEl, grupos[gi + 1]]].forEach(function (par) {
+        var el = par[0], g = par[1];
+        if (!el) return;
+        if (!g) { el.hidden = true; return; }
+        el.hidden = false;
+        var it = g.itens[0];
+        var av = g.foto_perfil ? '<img src="' + escSt(g.foto_perfil) + '" alt="">' : escSt((g.nome || '?').trim().charAt(0).toUpperCase());
+        el.innerHTML = (it.imagem ? '<img class="stviz-fundo" src="' + escSt(it.imagem) + '" alt="">' : '<span class="stviz-fundo-video">🎬</span>')
+          + '<span class="stviz-info"><span class="stviz-av">' + av + '</span>'
+          + '<span class="stviz-nome">' + escSt(g.usuario) + '</span>'
+          + '<span class="stviz-tempo">' + tempoRelJs(g.itens[g.itens.length - 1].criado_em) + '</span></span>';
+      });
+    }
 
     // Story vizinho na direção do arrasto (1 = próximo, -1 = anterior)
     function vizinhoDe(dir) {
@@ -508,7 +534,10 @@
       view.className = 'stview';
       view.hidden = true;
       view.innerHTML =
-        '<div class="stview-progresso"></div>'
+        '<button type="button" class="stview-viz prev" hidden aria-label="Story anterior"></button>'
+        + '<div class="stview-centro">'
+        + '<div class="stview-quadro">'
+        + '<div class="stview-progresso"></div>'
         + '<div class="stview-cab">'
         + '  <span class="stview-av"></span>'
         + '  <span class="stview-nome"></span><span class="stview-tempo"></span>'
@@ -532,13 +561,26 @@
         + '  <button type="button" class="stview-fwd" aria-label="Encaminhar no Direct">'
         + '    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>'
         + '  </button>'
-        + '</div>';
+        + '</div>'
+        + '</div>'
+        + '<button type="button" class="stview-seta prev" aria-label="Anterior"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>'
+        + '<button type="button" class="stview-seta next" aria-label="Próximo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>'
+        + '</div>'
+        + '<button type="button" class="stview-viz next" hidden aria-label="Próximo story"></button>';
       document.body.appendChild(view);
       barras = view.querySelector('.stview-progresso');
       mediaBox = view.querySelector('.stview-media');
       palcoEl = view.querySelector('.stview-palco');
       cuboEl = view.querySelector('.stview-cubo');
       faceEl = view.querySelector('.stview-face');
+      vizPrevEl = view.querySelector('.stview-viz.prev');
+      vizNextEl = view.querySelector('.stview-viz.next');
+
+      // Desktop: prévias dos vizinhos clicáveis + setinhas de navegação (como o IG web)
+      vizPrevEl.addEventListener('click', function () { irParaGrupo(gi - 1); });
+      vizNextEl.addEventListener('click', function () { irParaGrupo(gi + 1); });
+      view.querySelector('.stview-seta.prev').addEventListener('click', anterior);
+      view.querySelector('.stview-seta.next').addEventListener('click', proximo);
       avEl = view.querySelector('.stview-av');
       nomeEl = view.querySelector('.stview-nome');
       tempoEl = view.querySelector('.stview-tempo');
@@ -834,6 +876,7 @@
         else { img.onload = iniciar; img.onerror = iniciar; }
       }
       preCarregar(); // próximo story baixa em segundo plano (transição instantânea)
+      atualizarVizinhos(); // prévias laterais do desktop
 
       if (!g.eu && !item.visto) {
         item.visto = true;

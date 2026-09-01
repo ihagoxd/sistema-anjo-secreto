@@ -943,8 +943,41 @@ button.story, button.story-ring { background: none; border: none; padding: 0; fo
 .story-badge.mais:hover { transform: scale(1.1); }
 
 /* Visualizador em tela cheia */
-.stview { position: fixed; inset: 0; z-index: 640; background: #000; display: flex; flex-direction: column; touch-action: none; }
+.stview { position: fixed; inset: 0; z-index: 640; background: #000; touch-action: none; }
 .stview[hidden] { display: none; }
+/* Quadro = a "tela" do story. Mobile: ocupa tudo; desktop: cartão 9:16 centralizado */
+.stview-centro { position: absolute; inset: 0; }
+.stview-quadro { position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden; }
+.stview-viz, .stview-seta { display: none; }
+@media (min-width: 900px) {
+  .stview { display: flex; align-items: center; justify-content: center; gap: 56px; background: #0a0a0a; }
+  .stview[hidden] { display: none; }
+  .stview-centro { position: relative; inset: auto; height: min(94vh, 94dvh); aspect-ratio: 9 / 16; flex-shrink: 0; }
+  .stview-quadro { border-radius: 12px; background: #000; }
+  .stview-quadro .stview-media img, .stview-quadro .stview-media video { width: 100%; height: 100%; max-width: none; max-height: none; object-fit: cover; }
+  .stview-seta {
+    display: grid; place-items: center; position: absolute; top: 50%; transform: translateY(-50%);
+    width: 30px; height: 30px; border-radius: 50%; border: none; cursor: pointer;
+    background: rgba(255, 255, 255, 0.9); color: #111; z-index: 6;
+  }
+  .stview-seta.prev { left: -46px; }
+  .stview-seta.next { right: -46px; }
+  .stview-seta:hover { background: #fff; }
+  /* Prévia do story vizinho (clicável): foto escurecida + avatar com anel + nome + tempo */
+  .stview-viz {
+    display: block; position: relative; width: 176px; aspect-ratio: 9 / 16; flex-shrink: 0;
+    border: none; padding: 0; border-radius: 10px; overflow: hidden; background: #141414; cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+  .stview-viz:hover { transform: scale(1.03); }
+  .stviz-fundo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.45; }
+  .stviz-fundo-video { position: absolute; inset: 0; display: grid; place-items: center; font-size: 36px; opacity: 0.6; }
+  .stviz-info { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: #fff; }
+  .stviz-av { width: 56px; height: 56px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: #333; font-weight: 700; font-size: 18px; box-shadow: 0 0 0 2px var(--ouro); }
+  .stviz-av img { width: 100%; height: 100%; object-fit: cover; }
+  .stviz-nome { font-weight: 700; font-size: 13.5px; }
+  .stviz-tempo { font-size: 12px; color: rgba(255, 255, 255, 0.7); }
+}
 .stview-progresso { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; gap: 4px; z-index: 4; }
 .stbar { flex: 1; height: 3px; border-radius: 99px; background: rgba(255, 255, 255, 0.3); overflow: hidden; }
 .stbar i { display: block; height: 100%; width: 0; background: #fff; border-radius: 99px; }

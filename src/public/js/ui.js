@@ -358,7 +358,39 @@
     var view = null, barras = null, mediaBox = null, avEl = null, nomeEl = null, tempoEl = null,
       vistosEl = null, delBtn = null, somBtn = null;
     var rodapeEl = null, respEl = null, enviarEl = null, likeEl = null, fwdEl = null, fwdModal = null, vistosModal = null, delModal = null;
-    var swipeX = null;
+    var palcoEl = null, cuboEl = null, faceEl = null;
+    var swipeX = null, gesto = '', cuboDir = 0, cuboW = 0;
+
+    // Story vizinho na direção do arrasto (1 = próximo, -1 = anterior)
+    function vizinhoDe(dir) {
+      var g = grupos[gi];
+      if (!g) return null;
+      if (dir > 0) return g.itens[ii + 1] || (grupos[gi + 1] && grupos[gi + 1].itens[0]) || null;
+      return g.itens[ii - 1] || (grupos[gi - 1] && grupos[gi - 1].itens[grupos[gi - 1].itens.length - 1]) || null;
+    }
+    // Prepara o cubo 3D: a tela vira a face frontal; o vizinho entra na face lateral
+    function prepararCubo(w, dir) {
+      cuboW = w; cuboDir = dir;
+      cuboEl.style.transition = 'none';
+      cuboEl.style.transform = 'translateZ(' + (-w / 2) + 'px)';
+      mediaBox.style.transform = 'rotateY(0deg) translateZ(' + (w / 2) + 'px)';
+      faceEl.style.transform = 'rotateY(' + (dir * 90) + 'deg) translateZ(' + (w / 2) + 'px)';
+      faceEl.innerHTML = '';
+      var viz = vizinhoDe(dir);
+      if (viz && viz.imagem) {
+        var im = document.createElement('img');
+        im.src = viz.imagem; im.alt = '';
+        faceEl.appendChild(im);
+      } else if (viz && viz.video) {
+        faceEl.innerHTML = '<div class="fviz-video">🎬</div>';
+      }
+    }
+    function limparCubo() {
+      cuboEl.style.transition = ''; cuboEl.style.transform = '';
+      mediaBox.style.transform = '';
+      faceEl.style.transform = ''; faceEl.innerHTML = '';
+      cuboDir = 0; cuboW = 0; gesto = '';
+    }
     var grupos = [], gi = 0, ii = 0;
     var raf = 0, t0 = 0, decorrido = 0, dur = 5000, pausado = false, videoEl = null;
     var pressT = 0, swipeY = -1, mostrarSeq = 0;
@@ -483,7 +515,7 @@
         + '  <button type="button" class="stview-som" hidden aria-label="Som">🔊</button>'
         + '  <button type="button" class="stview-x" aria-label="Fechar">&times;</button>'
         + '</div>'
-        + '<div class="stview-media"></div>'
+        + '<div class="stview-palco"><div class="stview-cubo"><div class="stview-media"></div><div class="stview-face" aria-hidden="true"></div></div></div>'
         + '<div class="stview-tap prev" aria-hidden="true"></div>'
         + '<div class="stview-tap next" aria-hidden="true"></div>'
         + '<button type="button" class="stview-vistos" hidden></button>'
@@ -503,6 +535,9 @@
       document.body.appendChild(view);
       barras = view.querySelector('.stview-progresso');
       mediaBox = view.querySelector('.stview-media');
+      palcoEl = view.querySelector('.stview-palco');
+      cuboEl = view.querySelector('.stview-cubo');
+      faceEl = view.querySelector('.stview-face');
       avEl = view.querySelector('.stview-av');
       nomeEl = view.querySelector('.stview-nome');
       tempoEl = view.querySelector('.stview-tempo');
@@ -639,12 +674,17 @@
         zona.addEventListener('pointermove', function (e) {
           if (swipeX === null || view.classList.contains('respondendo')) return;
           var dx = e.clientX - swipeX, dy = e.clientY - swipeY;
-          if (Math.abs(dx) >= Math.abs(dy)) {
-            mediaBox.style.transform = 'translateX(' + dx + 'px)';
-            mediaBox.style.opacity = String(Math.max(0.5, 1 - Math.abs(dx) / 900));
-          } else if (dy > 0) {
-            mediaBox.style.transform = 'translateY(' + dy + 'px) scale(' + Math.max(0.85, 1 - dy / 1400) + ')';
-            mediaBox.style.opacity = '';
+          // define o eixo do gesto no primeiro movimento firme e mantém até soltar
+          if (!gesto && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) gesto = Math.abs(dx) >= Math.abs(dy) ? 'h' : 'v';
+          if (gesto === 'h') {
+            // CUBO 3D girando com o dedo (efeito do Instagram): o vizinho já aparece na lateral
+            var w = palcoEl.clientWidth || window.innerWidth;
+            var dir = dx < 0 ? 1 : -1;
+            if (cuboDir !== dir) prepararCubo(w, dir);
+            var ang = Math.max(-88, Math.min(88, dx / w * 90));
+            cuboEl.style.transform = 'translateZ(' + (-w / 2) + 'px) rotateY(' + ang + 'deg)';
+          } else if (gesto === 'v' && dy > 0) {
+            cuboEl.style.transform = 'translateY(' + dy + 'px) scale(' + Math.max(0.85, 1 - dy / 1400) + ')';
           }
         });
         function soltarArrasto(e, cancelado) {
@@ -652,20 +692,38 @@
           var segurou = Date.now() - pressT > 260;
           var dy = e ? e.clientY - swipeY : 0;
           var dx = e ? e.clientX - swipeX : 0;
+          var eixo = gesto;
           swipeY = -1; swipeX = null;
           function encaixar() { // volta pro lugar com mola
-            mediaBox.style.transition = 'transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease';
-            mediaBox.style.transform = ''; mediaBox.style.opacity = '';
-            setTimeout(function () { mediaBox.style.transition = ''; }, 220);
+            cuboEl.style.transition = 'transform 0.22s cubic-bezier(0.22, 1, 0.36, 1)';
+            cuboEl.style.transform = cuboW ? 'translateZ(' + (-cuboW / 2) + 'px) rotateY(0deg)' : '';
+            setTimeout(limparCubo, 240);
           }
           if (cancelado) { encaixar(); pausar(false); return; }
-          if (dy > 80 && dy > Math.abs(dx)) { fecharView(); return; } // desceu: fecha
-          if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {    // pro lado: troca
-            pausar(false);
-            if (dx < 0) proximo(); else anterior();
-            return;
+          if (eixo === 'v') {
+            if (dy > 80) { limparCubo(); fecharView(); return; }
+            encaixar(); pausar(false); return;
           }
-          encaixar();
+          if (eixo === 'h') {
+            var w = cuboW || palcoEl.clientWidth || window.innerWidth;
+            if (Math.abs(dx) > Math.min(70, w * 0.18)) {
+              // completa o giro do cubo e só então troca o story
+              var dir = dx < 0 ? 1 : -1;
+              var temViz = !!vizinhoDe(dir);
+              cuboEl.style.transition = 'transform 0.22s ease-out';
+              cuboEl.style.transform = 'translateZ(' + (-w / 2) + 'px) rotateY(' + (dir * -90) + 'deg)';
+              setTimeout(function () {
+                limparCubo();
+                pausar(false);
+                if (!temViz && dir > 0) { fecharView(); return; } // acabou tudo: fecha
+                if (dir > 0) proximo(); else anterior();
+              }, 225);
+              return;
+            }
+            encaixar(); pausar(false); return;
+          }
+          // toque simples (sem gesto): navega
+          limparCubo();
           pausar(false);
           if (!segurou && Math.abs(dx) < 8 && Math.abs(dy) < 8) (lado === 'prev' ? anterior() : proximo());
         }
@@ -812,7 +870,7 @@
     function fecharView() {
       pararTempo();
       if (view) view.hidden = true;
-      if (mediaBox) { mediaBox.style.transform = ''; mediaBox.style.opacity = ''; mediaBox.style.transition = ''; }
+      if (cuboEl) limparCubo();
       document.body.classList.remove('sem-scroll');
       atualizarAneis();
     }

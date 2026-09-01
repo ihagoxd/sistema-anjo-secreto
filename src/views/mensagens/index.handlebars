@@ -10,13 +10,13 @@
         Identidade pública do escritório — não toca nos canais secretos do jogo. }}
     <div class="notas">
       <button type="button" class="nota" data-abrir-modal="modal-humor" title="{{#if humorEu}}{{rotuloHumor humorEu}} · alterar{{else}}Deixar uma nota{{/if}}">
-        <span class="nota-bolha {{#unless humorEu}}vazia{{/unless}}">{{#if humorEu}}{{emojiHumor humorEu}} {{rotuloHumor humorEu}}{{else}}Nota…{{/if}}</span>
+        <span class="nota-bolha {{#unless humorEu}}vazia{{/unless}}">{{#if humorEu}}{{emojiHumor humorEu}}{{else}}+{{/if}}</span>
         <span class="nota-av">{{#if usuario.foto_perfil}}<img src="{{usuario.foto_perfil}}" alt="">{{else}}{{inicial usuario.nome}}{{/if}}</span>
         <span class="nota-nome">Sua nota</span>
       </button>
       {{#each notas}}
         <a class="nota" href="/mensagens/u/{{this.id_usuario}}" title="{{this.nome}} · {{rotuloHumor this.humor}}">
-          <span class="nota-bolha">{{emojiHumor this.humor}} {{rotuloHumor this.humor}}</span>
+          <span class="nota-bolha">{{emojiHumor this.humor}}</span>
           <span class="nota-av">{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</span>
           <span class="nota-nome">{{this.usuario}}</span>
         </a>

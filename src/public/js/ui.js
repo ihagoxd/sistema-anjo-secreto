@@ -783,6 +783,30 @@
     });
   })();
 
+  /* ---------- Filas horizontais (notas, stories): arrastar com o MOUSE rola ----------
+     (no toque a rolagem já é nativa; um arrasto não dispara o clique do item) */
+  (function () {
+    document.querySelectorAll('.notas, .stories').forEach(function (fila) {
+      var ativo = false, moveu = false, x0 = 0, s0 = 0;
+      fila.addEventListener('pointerdown', function (e) {
+        if (e.pointerType !== 'mouse') return;
+        ativo = true; moveu = false; x0 = e.clientX; s0 = fila.scrollLeft;
+      });
+      fila.addEventListener('pointermove', function (e) {
+        if (!ativo) return;
+        var dx = e.clientX - x0;
+        if (Math.abs(dx) > 4) moveu = true;
+        fila.scrollLeft = s0 - dx;
+      });
+      ['pointerup', 'pointerleave', 'pointercancel'].forEach(function (ev) {
+        fila.addEventListener(ev, function () { ativo = false; });
+      });
+      fila.addEventListener('click', function (e) {
+        if (moveu) { e.preventDefault(); e.stopPropagation(); moveu = false; }
+      }, true);
+    });
+  })();
+
   /* ---------- Toast (aviso curto flutuante) ---------- */
   var toastTimer = null;
   function toast(msg) {

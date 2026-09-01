@@ -1046,26 +1046,41 @@ button.ig-av { border: none; cursor: pointer; padding: 0; font: inherit; }
   border-radius: 999px; min-height: 48px; font-weight: 700; font-size: 15.5px; z-index: 2;
 }
 
-/* --- Notas no Direct (estilo Instagram: balãozinho acima do avatar) --- */
-.notas { display: flex; gap: 14px; overflow-x: auto; padding: 20px 14px 8px; border-bottom: 1px solid var(--line); }
-.notas::-webkit-scrollbar { height: 5px; }
-.notas::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 3px; }
-.nota { flex: 0 0 auto; width: 82px; display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; padding: 0; font: inherit; cursor: pointer; text-decoration: none; }
+/* --- Notas no Direct (estilo Instagram: SÓ o emoji no balãozinho) --- */
+.notas {
+  display: flex; gap: 16px; overflow-x: auto; padding: 18px 16px 10px;
+  border-bottom: 1px solid var(--line); -webkit-overflow-scrolling: touch;
+  cursor: grab; user-select: none;
+}
+.notas::-webkit-scrollbar { height: 0; }
+.nota { flex: 0 0 auto; width: 72px; display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; padding: 0; font: inherit; cursor: pointer; text-decoration: none; }
 .nota:hover { text-decoration: none; }
 .nota-bolha {
-  position: relative; max-width: 92px; min-height: 24px; margin-bottom: 3px;
-  background: var(--surface-2); border: 1px solid var(--line); border-radius: 14px;
-  padding: 5px 9px; font-size: 11px; line-height: 1.25; color: var(--text); text-align: center;
+  position: relative; margin-bottom: 3px;
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px;
+  padding: 4px 11px; font-size: 17px; line-height: 1.3; color: var(--text); text-align: center;
 }
 .nota-bolha::after {
   content: ''; position: absolute; bottom: -7px; left: 13px; width: 7px; height: 7px;
   border-radius: 50%; background: var(--surface-2); border: 1px solid var(--line);
 }
-.nota-bolha.vazia { color: var(--text-faint); }
+.nota-bolha.vazia { color: var(--text-faint); font-size: 15px; font-weight: 700; }
 .nota-av { width: 56px; height: 56px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-strong); font-weight: 700; font-size: 17px; }
 .nota-av img { width: 100%; height: 100%; object-fit: cover; }
-.nota-nome { font-size: 11.5px; color: var(--text-soft); max-width: 82px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nota-nome { font-size: 11.5px; color: var(--text-soft); max-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .nota:hover .nota-nome { color: var(--text); }
+
+/* Direct com mais respiro (lista de conversas) */
+.direct-lista-topo { padding: 20px 18px 14px; }
+.direct-scroll { padding: 10px 12px 18px; }
+.conv { padding: 11px 12px; gap: 13px; }
+.direct-secao { padding: 16px 10px 8px; }
+
+/* Bolhas do chat mais limpas: a hora/ações aparecem só na ÚLTIMA mensagem
+   ou ao passar o mouse (no celular, segurar a bolha abre o menu de ações) */
+.dm-msgs .dm-bolha .dm-bolha-meta { opacity: 0; max-height: 0; overflow: hidden; margin-top: 0; transition: opacity 0.15s; }
+.dm-msgs .dm-bolha:hover .dm-bolha-meta,
+.dm-msgs .dm-bolha:last-of-type .dm-bolha-meta { opacity: 1; max-height: 24px; margin-top: 2px; }
 
 /* --- Tela de pesquisa de usuários (estilo Instagram) ---
    Mobile: tela cheia, mas PARA ACIMA da barra inferior (a nav continua visível, como a aba

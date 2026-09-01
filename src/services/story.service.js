@@ -86,14 +86,28 @@ async function alternarCurtida(meId, idStory) {
   return { ok: true, curti: !ja, total: await storyModel.contarCurtidas(idStory) };
 }
 
-// Responder ao story: vira DM para o autor (como no Instagram).
+// Responder ao story: vira DM para o autor COM a foto do story junto (como no
+// Instagram, que mostra a prévia do story na resposta). A imagem é copiada para
+// a conversa não quebrar quando o story expirar. Story de vídeo vai só com texto.
 async function responder(meId, idStory, texto) {
   const s = await storyModel.buscarPorId(idStory);
   if (!s) return { ok: false, motivo: 'NAO_ENCONTRADO' };
   if (s.id_usuario === meId) return { ok: false, motivo: 'PROPRIO' };
   const t = String(texto || '').trim();
   if (!t) return { ok: false, motivo: 'VAZIA' };
-  return dmService.enviar(meId, s.id_usuario, `💬 Respondeu ao seu story:\n${t.slice(0, 500)}`);
+  let imagem = null;
+  if (s.imagem) {
+    try {
+      const ext = path.extname(path.basename(s.imagem));
+      const copia = `resp-${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+      await fs.promises.copyFile(path.join(UPLOAD_DIR, path.basename(s.imagem)), path.join(UPLOAD_DIR, copia));
+      imagem = `/uploads/${copia}`;
+    } catch (e) { imagem = null; }
+  }
+  const rotulo = s.video ? '💬 Respondeu ao seu story 🎬' : '💬 Respondeu ao seu story';
+  const r = await dmService.enviar(meId, s.id_usuario, `${rotulo}\n${t.slice(0, 500)}`, imagem);
+  if (!r.ok && imagem) apagarUpload(imagem);
+  return r;
 }
 
 // Encaminhar o story para alguém no Direct: a mídia é COPIADA no disco para a

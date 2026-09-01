@@ -740,7 +740,9 @@ table.tabela tbody tr:hover { background: var(--hover); }
   /* TELA CHEIA no celular, como o Instagram: o Direct estoura o padding do
      .container e ocupa tudo abaixo do topo — sem cartão, sem borda, sem aperto. */
   .direct {
-    grid-template-columns: 1fr;
+    /* minmax(0,1fr): SEM isso a coluna cresce pro tamanho das notas e estoura a tela
+       (era o que impedia as notas de rolarem e cortava os textos sem reticências) */
+    grid-template-columns: minmax(0, 1fr);
     margin: -20px -16px calc(-70px - env(safe-area-inset-bottom, 0px));
     height: calc(100vh - 54px);
     height: calc(100dvh - 54px);
@@ -749,7 +751,7 @@ table.tabela tbody tr:hover { background: var(--hover); }
     background: transparent;
   }
   [data-theme='dark'] .direct { background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
-  .direct-lista { border-right: none; }
+  .direct-lista { border-right: none; min-width: 0; }
   .direct-lista-topo { padding: 18px 16px 12px; }
   /* a lista rola por baixo da pílula flutuante, com respiro pro último item */
   .direct-scroll { padding-bottom: calc(94px + env(safe-area-inset-bottom, 0px)); }

@@ -1135,44 +1135,44 @@
   (function () {
     var av = document.querySelector('[data-avatar-perfil]');
     if (!av) return;
-    var peek = null, timer = 0, segurou = false, fixo = false;
+    var peek = null, timer = 0, segurou = false;
 
-    function abrirPeek(persistente) {
+    function abrirPeek() {
       var src = av.getAttribute('data-foto-ampla');
       if (!src) return;
-      fixo = !!persistente;
       if (!peek) {
         peek = document.createElement('div');
         peek.className = 'foto-peek';
         peek.hidden = true;
-        peek.innerHTML = '<img alt="" draggable="false">';
+        peek.innerHTML = '<button type="button" class="foto-peek-x" aria-label="Fechar">&times;</button>'
+          + '<img alt="" draggable="false">';
         document.body.appendChild(peek);
-        peek.addEventListener('click', function () { if (fixo) fecharPeek(); });
+        // fecha no X ou tocando no fundo escuro (a foto em si não fecha)
+        peek.addEventListener('click', function (e) {
+          if (e.target === peek || e.target.closest('.foto-peek-x')) fecharPeek();
+        });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') fecharPeek(); });
       }
       peek.querySelector('img').src = src;
       peek.hidden = false;
     }
-    function fecharPeek() { if (peek) peek.hidden = true; fixo = false; }
+    function fecharPeek() { if (peek) peek.hidden = true; }
 
     av.addEventListener('pointerdown', function () {
       segurou = false;
       clearTimeout(timer);
-      timer = setTimeout(function () { segurou = true; abrirPeek(false); }, 420);
+      timer = setTimeout(function () { segurou = true; abrirPeek(); }, 420); // fica aberta; fecha no X
     });
     ['pointerup', 'pointerleave', 'pointercancel'].forEach(function (ev) {
-      av.addEventListener(ev, function () {
-        clearTimeout(timer);
-        if (!fixo) fecharPeek(); // era só a espiada do segurar
-      });
+      av.addEventListener(ev, function () { clearTimeout(timer); });
     });
     av.addEventListener('contextmenu', function (e) { e.preventDefault(); }); // segurar no celular sem menu nativo
 
     // Toque rápido: com story, o delegate de data-ver-stories abre o viewer;
-    // sem story, amplia a foto (fica aberta até tocar nela). Depois de SEGURAR,
-    // o clique que sobra é engolido para não disparar nada.
+    // sem story, amplia a foto. Depois de SEGURAR, o clique residual é engolido.
     av.addEventListener('click', function (e) {
       if (segurou) { segurou = false; e.preventDefault(); e.stopPropagation(); return; }
-      if (!av.hasAttribute('data-ver-stories')) abrirPeek(true);
+      if (!av.hasAttribute('data-ver-stories')) abrirPeek();
     }, true);
   })();
 

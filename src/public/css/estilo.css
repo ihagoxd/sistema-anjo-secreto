@@ -863,14 +863,23 @@ table.tabela tbody tr:hover { background: var(--hover); }
 .feed { display: flex; flex-direction: column; gap: 18px; max-width: 600px; }
 .feed-unico { margin: 0 auto; }
 
-.post-compositor { margin-bottom: 4px; max-width: 600px; }
-.compositor-topo { display: flex; gap: 12px; }
-.compositor-topo textarea { flex: 1; min-width: 0; min-height: 62px; border: none; background: transparent; resize: vertical; font-family: inherit; font-size: 15px; line-height: 1.5; padding: 6px 0; color: var(--text); }
+.post-compositor { margin-bottom: 4px; max-width: 600px; border-radius: 18px; }
+.compositor-topo { display: flex; gap: 12px; align-items: flex-start; }
+.compositor-topo textarea { flex: 1; min-width: 0; min-height: 46px; border: none; background: transparent; resize: none; overflow: hidden; font-family: inherit; font-size: 15.5px; line-height: 1.5; padding: 8px 0; color: var(--text); }
 .compositor-topo textarea::placeholder { font-family: inherit; color: var(--text-faint); }
 .compositor-topo textarea:focus { outline: none; box-shadow: none; }
 .compositor-preview { margin-top: 10px; }
 .compositor-preview img { max-height: 260px; border-radius: var(--radius); border: 1px solid var(--line); display: block; }
-.compositor-rodape { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+.compositor-rodape { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+.compositor-rodape .btn-primario { font-weight: 700; }
+.compositor-rodape .btn-primario:disabled { opacity: 0.45; cursor: default; }
+/* Cardzinho de confirmação (substitui o confirm nativo) */
+.conf-card { max-width: 340px; text-align: center; }
+.conf-card .conf-titulo { margin: 0 0 6px; font-size: 16.5px; line-height: 1.4; }
+.conf-card .conf-sub { margin: 0 0 14px; font-size: 13px; }
+.conf-card .modal-acoes { justify-content: center; }
+.conf-ok.conf-perigo { background: var(--st-vermelho, #d1242f); color: #fff; border-color: transparent; }
+.conf-ok.conf-perigo:hover { filter: brightness(1.1); }
 .compositor-acoes { display: flex; align-items: center; gap: 2px; }
 .comp-acao {
   width: 38px; height: 38px; flex-shrink: 0; border-radius: 50%; border: none; background: transparent;

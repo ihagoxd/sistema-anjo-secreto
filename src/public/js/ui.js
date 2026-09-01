@@ -953,6 +953,30 @@
     });
   })();
 
+  /* ---------- Compositor do mural: Publicar só habilita com conteúdo + textarea cresce ---------- */
+  (function () {
+    var form = document.querySelector('.post-compositor');
+    if (!form) return;
+    var ta = form.querySelector('[data-texto]');
+    var btn = form.querySelector('button[type="submit"]');
+    if (!ta || !btn) return;
+    function temConteudo() {
+      var temMidia = ['[data-foto]', '[data-video]'].some(function (s) {
+        var i = form.querySelector(s);
+        return i && i.files && i.files.length;
+      });
+      return !!(ta.value.trim() || temMidia);
+    }
+    function atualizar() { btn.disabled = !temConteudo(); }
+    form.addEventListener('input', atualizar);
+    form.addEventListener('change', atualizar);
+    ta.addEventListener('input', function () { // cresce com o texto, sem barra de rolagem
+      ta.style.height = 'auto';
+      ta.style.height = Math.min(220, ta.scrollHeight) + 'px';
+    });
+    atualizar();
+  })();
+
   /* ---------- Filas horizontais (notas, stories): arrastar com o MOUSE rola ----------
      (no toque a rolagem já é nativa; um arrasto não dispara o clique do item) */
   (function () {
@@ -1021,10 +1045,50 @@
     var b = e.target.closest('[data-fechar]');
     if (b) { var a = b.closest('.alerta'); if (a) a.remove(); }
   });
-  document.addEventListener('submit', function (e) {
-    var f = e.target.closest('[data-confirmar]');
-    if (f && !window.confirm(f.getAttribute('data-confirmar'))) e.preventDefault();
-  });
+  // Confirmação bonita (substitui o confirm nativo do navegador): um cardzinho com
+  // Cancelar/Confirmar. Ações destrutivas (apagar/remover/…) ganham botão vermelho.
+  (function () {
+    var confModal = null, confForm = null;
+    document.addEventListener('submit', function (e) {
+      var f = e.target.closest('[data-confirmar]');
+      if (!f) return;
+      if (f.dataset.confirmado === '1') { f.dataset.confirmado = ''; return; } // já passou pelo card
+      e.preventDefault();
+      confForm = f;
+      if (!confModal) {
+        confModal = document.createElement('div');
+        confModal.className = 'modal';
+        confModal.hidden = true;
+        confModal.setAttribute('aria-hidden', 'true');
+        confModal.innerHTML = '<div class="modal-card conf-card">'
+          + '<h3 class="conf-titulo"></h3>'
+          + '<p class="texto-suave conf-sub">Essa ação não pode ser desfeita.</p>'
+          + '<div class="modal-acoes">'
+          + '<button type="button" class="btn btn-secundario btn-sm" data-fechar-modal>Cancelar</button>'
+          + '<button type="button" class="btn btn-primario btn-sm conf-ok">Confirmar</button>'
+          + '</div></div>';
+        document.body.appendChild(confModal);
+        confModal.addEventListener('click', function (ev) {
+          if (!ev.target.closest('.conf-ok')) return;
+          confModal.setAttribute('hidden', '');
+          confModal.setAttribute('aria-hidden', 'true');
+          if (confForm) {
+            confForm.dataset.confirmado = '1';
+            if (confForm.requestSubmit) confForm.requestSubmit(); else confForm.submit();
+          }
+        });
+      }
+      var msg = f.getAttribute('data-confirmar') || 'Confirmar?';
+      confModal.querySelector('.conf-titulo').textContent = msg;
+      var ok = confModal.querySelector('.conf-ok');
+      var destrutivo = /apagar|remover|excluir|recusar|inativar|encerrar/i.test(msg);
+      ok.classList.toggle('conf-perigo', destrutivo);
+      ok.textContent = destrutivo ? 'Sim, remover' : 'Confirmar';
+      if (/encerrar/i.test(msg)) ok.textContent = 'Sim, encerrar';
+      confModal.hidden = false;
+      confModal.setAttribute('aria-hidden', 'false');
+    });
+  })();
 
   /* ---------- Modais (genérico: abrir/fechar por id) ---------- */
   function abrirModal(m) { if (m) { m.removeAttribute('hidden'); m.setAttribute('aria-hidden', 'false'); } }

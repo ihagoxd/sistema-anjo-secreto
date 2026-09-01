@@ -71,6 +71,7 @@ async function postCriar(req, res, next) {
     };
     const r = await postService.criarPost(req.session.usuario.id_usuario, req.body.texto, um('imagem'), um('video'));
     if (!r.ok) req.session.flash = { erro: r.motivo === 'LONGO' ? 'Texto longo demais.' : 'Escreva algo ou adicione uma foto.' };
+    else req.session.flash = { sucesso: 'Publicado! ✨' };
     res.redirect('/feed');
   } catch (err) {
     next(err);

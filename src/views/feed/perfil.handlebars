@@ -13,8 +13,10 @@
 
   <div class="tw-head">
     <div class="tw-avatar-row">
-      <span class="tw-avatar">
-        {{#if alvo.foto_perfil}}<img src="{{alvo.foto_perfil}}" alt="">{{else}}{{inicial alvo.nome}}{{/if}}
+      <span class="tw-avatar{{#if alvo.temStory}} st-anel {{#if alvo.storyVisto}}st-visto{{else}}st-tem{{/if}}{{/if}}"
+            data-avatar-perfil{{#if alvo.foto_perfil}} data-foto-ampla="{{alvo.foto_perfil}}"{{/if}}{{#if alvo.temStory}} data-ver-stories="{{alvo.id_usuario}}"{{/if}}
+            {{#if alvo.temStory}}title="Toque: ver story · Segure: ampliar a foto"{{else}}{{#if alvo.foto_perfil}}title="Toque ou segure: ampliar a foto"{{/if}}{{/if}}>
+        {{#if alvo.foto_perfil}}<img src="{{alvo.foto_perfil}}" alt="" draggable="false">{{else}}{{inicial alvo.nome}}{{/if}}
         {{#if alvo.humor}}<span class="tw-humor" title="{{rotuloHumor alvo.humor}}">{{emojiHumor alvo.humor}}</span>{{/if}}
       </span>
       <div class="tw-acoes">

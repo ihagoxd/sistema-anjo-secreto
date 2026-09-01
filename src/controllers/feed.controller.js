@@ -194,7 +194,11 @@ async function renderPerfil(req, res, aba) {
   // Comentários (para expandir inline nos cards do perfil, igual ao mural).
   const comentarios = await postModel.listarComentariosDeVarios(posts.map((p) => p.id_post));
   anexarComentarios(posts, comentarios);
-  anotarStories(posts, await storyService.resumoAneis(me));
+  const aneis = await storyService.resumoAneis(me);
+  anotarStories(posts, aneis);
+  // Anel + toque no avatar do CABEÇALHO do perfil abre o story (segurar amplia a foto)
+  dados.alvo.temStory = !!aneis[dados.alvo.id_usuario];
+  dados.alvo.storyVisto = !!(aneis[dados.alvo.id_usuario] && aneis[dados.alvo.id_usuario].tudoVisto);
   res.render('feed/perfil', {
     titulo: dados.alvo.nome, alvo: dados.alvo, posts, aba, gostos, fotosGosta,
     numPublicacoes: dados.posts.length, pagina: 'perfil',

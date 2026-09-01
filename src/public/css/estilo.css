@@ -1174,6 +1174,25 @@ button.ig-av { border: none; cursor: pointer; padding: 0; font: inherit; }
 .nota-nome { font-size: 11.5px; color: var(--text-soft); max-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .nota:hover .nota-nome { color: var(--text); }
 
+/* "Espiada" da foto de perfil (segurar amplia; no toque sem story fica fixa) */
+.foto-peek {
+  position: fixed; inset: 0; z-index: 700; display: grid; place-items: center;
+  background: rgba(0, 0, 0, 0.72); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  animation: modal-bg 0.15s ease both; cursor: zoom-out;
+}
+.foto-peek[hidden] { display: none; }
+.foto-peek img {
+  width: min(78vw, 400px); aspect-ratio: 1; object-fit: cover; border-radius: 50%;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.6);
+  animation: pop-in 0.22s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+  user-select: none; -webkit-user-drag: none;
+}
+/* Anel de story no avatar do CABEÇALHO do perfil */
+.tw-avatar.st-tem { box-shadow: 0 0 0 3px var(--surface), 0 0 0 6px var(--ouro); }
+.tw-avatar.st-visto { box-shadow: 0 0 0 3px var(--surface), 0 0 0 6px color-mix(in srgb, var(--ouro) 38%, var(--line-strong)); }
+.tw-avatar[data-avatar-perfil] { cursor: pointer; user-select: none; -webkit-user-select: none; }
+.tw-avatar[data-avatar-perfil] img { -webkit-user-drag: none; }
+
 /* Anel de story no avatar da lista do Direct (como no Instagram):
    dourado = story não visto; apagado = já visto. Clicar no AVATAR abre o story. */
 .conv-av.st-anel, .nota-av.st-anel[data-ver-stories] { cursor: pointer; }

@@ -1130,6 +1130,52 @@
     document.addEventListener('visibilitychange', function () { if (!document.hidden) checarDirect(); });
   })();
 
+  /* ---------- Avatar do perfil: TOQUE abre o story (se houver) ou amplia a foto;
+     SEGURAR "espia" a foto de perfil ampliada (solta, fecha) — como no Instagram ---------- */
+  (function () {
+    var av = document.querySelector('[data-avatar-perfil]');
+    if (!av) return;
+    var peek = null, timer = 0, segurou = false, fixo = false;
+
+    function abrirPeek(persistente) {
+      var src = av.getAttribute('data-foto-ampla');
+      if (!src) return;
+      fixo = !!persistente;
+      if (!peek) {
+        peek = document.createElement('div');
+        peek.className = 'foto-peek';
+        peek.hidden = true;
+        peek.innerHTML = '<img alt="" draggable="false">';
+        document.body.appendChild(peek);
+        peek.addEventListener('click', function () { if (fixo) fecharPeek(); });
+      }
+      peek.querySelector('img').src = src;
+      peek.hidden = false;
+    }
+    function fecharPeek() { if (peek) peek.hidden = true; fixo = false; }
+
+    av.addEventListener('pointerdown', function () {
+      segurou = false;
+      clearTimeout(timer);
+      timer = setTimeout(function () { segurou = true; abrirPeek(false); }, 420);
+    });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(function (ev) {
+      av.addEventListener(ev, function () {
+        clearTimeout(timer);
+        if (!fixo) fecharPeek(); // era só a espiada do segurar
+      });
+    });
+    av.addEventListener('contextmenu', function (e) { e.preventDefault(); }); // segurar no celular sem menu nativo
+
+    // Toque rápido: com story, o delegate de data-ver-stories abre o viewer;
+    // sem story, amplia a foto (fica aberta até tocar nela). Depois de SEGURAR,
+    // o clique que sobra é engolido para não disparar nada.
+    av.addEventListener('click', function (e) {
+      if (segurou) { segurou = false; e.preventDefault(); e.stopPropagation(); return; }
+      if (!av.hasAttribute('data-ver-stories')) abrirPeek(true);
+    }, true);
+  })();
+
   /* ---------- Filas horizontais (notas, stories): arrastar com o MOUSE rola ----------
      (no toque a rolagem já é nativa; um arrasto não dispara o clique do item) */
   (function () {

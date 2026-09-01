@@ -32,13 +32,21 @@ async function getFeed(req, res, next) {
       temStory: !!aneis[u.id_usuario],
       storyVisto: !!(aneis[u.id_usuario] && aneis[u.id_usuario].tudoVisto),
     }));
+    const sugestoes = equipe.slice(0, 5); // sidebar segue em ordem alfabética
+    // Fileira de stories: quem postou vai pra FRENTE (não vistos primeiro, depois já
+    // vistos), quem não tem story fica atrás — como no Instagram.
+    equipe.sort((a, b) => {
+      const ka = a.temStory ? (a.storyVisto ? 1 : 0) : 2;
+      const kb = b.temStory ? (b.storyVisto ? 1 : 0) : 2;
+      return ka - kb;
+    });
     const meuAnel = aneis[me] || null;
     res.render('feed/index', {
       titulo: 'Mural',
       posts,
       limite: postService.LIMITE_TEXTO,
       equipe,
-      sugestoes: equipe.slice(0, 5),
+      sugestoes,
       tenhoStory: !!meuAnel,
     });
   } catch (err) {

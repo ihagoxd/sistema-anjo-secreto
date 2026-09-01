@@ -18,7 +18,7 @@
         {{#if this.temStory}}
           <button type="button" class="story" data-ver-stories="{{this.id_usuario}}" title="Ver o story de {{this.nome}}">
             <div class="story-ring-area">
-              <span class="story-ring {{#if this.storyVisto}}sem{{else}}tem{{/if}}"><span class="story-ring-in">{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</span></span>
+              <span class="story-ring {{#if this.storyVisto}}visto{{else}}tem{{/if}}"><span class="story-ring-in">{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</span></span>
             </div>
             <span class="story-nome">{{this.usuario}}</span>
           </button>

@@ -68,6 +68,14 @@ async function marcarVisto(meId, idStory) {
   return { ok: true };
 }
 
+// Lista de quem viu (só o AUTOR do story — ou admin — pode ver).
+async function vistosDe(meId, idStory, ehAdmin) {
+  const s = await storyModel.buscarPorId(idStory);
+  if (!s) return null;
+  if (s.id_usuario !== meId && !ehAdmin) return null;
+  return storyModel.listarViram(idStory);
+}
+
 // Curtir/descurtir o story (coração do visualizador).
 async function alternarCurtida(meId, idStory) {
   const s = await storyModel.buscarPorId(idStory);
@@ -117,4 +125,4 @@ async function remover(meId, idStory, ehAdmin) {
   return { ok: true };
 }
 
-module.exports = { publicar, listarAgrupado, resumoAneis, marcarVisto, remover, alternarCurtida, responder, encaminhar };
+module.exports = { publicar, listarAgrupado, resumoAneis, marcarVisto, remover, alternarCurtida, responder, encaminhar, vistosDe };

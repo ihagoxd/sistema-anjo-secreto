@@ -37,6 +37,7 @@ const receberStory = (req, res, next) => {
 router.post('/stories', guard, receberStory, conferirAssinaturas, verifyCsrfAposUpload, storiesCtrl.postCriar);
 router.get('/stories/dados', guard, storiesCtrl.getDados);
 router.post('/stories/:id_story/visto', guard, storiesCtrl.postVisto);
+router.get('/stories/:id_story/vistos', guard, storiesCtrl.getVistos);
 router.post('/stories/:id_story/curtir', guard, storiesCtrl.postCurtir);
 router.post('/stories/:id_story/responder', guard, storiesCtrl.postResponder);
 router.post('/stories/:id_story/encaminhar', guard, storiesCtrl.postEncaminhar);

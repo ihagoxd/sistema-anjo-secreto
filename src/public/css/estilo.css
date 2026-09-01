@@ -962,7 +962,13 @@ button.story, button.story-ring { background: none; border: none; padding: 0; fo
 .stview-tap { position: absolute; top: 72px; bottom: 76px; width: 30%; z-index: 3; }
 .stview-tap.prev { left: 0; }
 .stview-tap.next { right: 0; width: 70%; }
-.stview-vistos { position: absolute; bottom: 18px; left: 16px; color: #fff; z-index: 4; font-size: 13.5px; }
+/* "👁 N · ❤ M" no seu story: é um botão — toca e abre a lista de quem viu */
+.stview-vistos {
+  position: absolute; bottom: 16px; left: 14px; z-index: 4;
+  background: rgba(255, 255, 255, 0.14); border: none; border-radius: 999px;
+  color: #fff; font: inherit; font-size: 13.5px; padding: 8px 14px; cursor: pointer;
+}
+.stview-vistos:hover { background: rgba(255, 255, 255, 0.26); }
 .stview-del {
   position: absolute; bottom: 12px; right: 14px; z-index: 4;
   background: rgba(255, 255, 255, 0.14); border: none; color: #fff; cursor: pointer;
@@ -986,7 +992,21 @@ button.story, button.story-ring { background: none; border: none; padding: 0; fo
 .stview-like svg, .stview-fwd svg { width: 26px; height: 26px; display: block; }
 .stview-like.ativo { color: var(--st-vermelho, #ed4956); }
 .stview-like.ativo svg { fill: currentColor; animation: like-pop 0.42s var(--ease-spring); }
+/* Botão "Enviar" aparece só com texto digitado (coração/avião somem), como no IG */
+.stview-enviar {
+  background: none; border: none; color: #4c8bf5; font: inherit; font-size: 15px; font-weight: 700;
+  cursor: pointer; padding: 8px 6px; flex-shrink: 0;
+}
+.stview-enviar[hidden], .stview-like[hidden], .stview-fwd[hidden] { display: none; }
+/* Digitando a resposta: story escurece e cabeçalho/barras somem, foco total no texto */
+.stview.respondendo .stview-media::before {
+  content: ''; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.55); z-index: 1;
+}
+.stview.respondendo .stview-progresso, .stview.respondendo .stview-cab { opacity: 0; transition: opacity 0.15s; }
+.stview-rodape { transition: transform 0.15s ease; }
 .stview-fwd-modal { z-index: 660; }
+/* Coraçãozinho vermelho na lista de visualizações (quem curtiu o story) */
+.visto-coracao { margin-left: auto; color: var(--st-vermelho, #ed4956); flex-shrink: 0; }
 /* Celular: mídia em TELA CHEIA (cover), como o story do app do Instagram */
 @media (max-width: 899px) {
   .stview-media img, .stview-media video,

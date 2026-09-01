@@ -41,6 +41,18 @@ async function postVisto(req, res, next) {
   }
 }
 
+// Quem viu o story (JSON) — só o autor (ou admin) recebe a lista.
+async function getVistos(req, res, next) {
+  try {
+    const ehAdmin = req.session.usuario.tipo_usuario === 'ADMINISTRADOR';
+    const lista = await storyService.vistosDe(req.session.usuario.id_usuario, req.params.id_story, ehAdmin);
+    if (!lista) return res.status(403).json({ erro: 'Sem permissão.' });
+    res.json(lista);
+  } catch (err) {
+    next(err);
+  }
+}
+
 // Curtir/descurtir um story (AJAX).
 async function postCurtir(req, res, next) {
   try {
@@ -86,4 +98,4 @@ async function postRemover(req, res, next) {
   }
 }
 
-module.exports = { postCriar, getDados, postVisto, postRemover, postCurtir, postResponder, postEncaminhar };
+module.exports = { postCriar, getDados, postVisto, postRemover, postCurtir, postResponder, postEncaminhar, getVistos };

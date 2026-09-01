@@ -357,10 +357,51 @@
     // --- Visualizador ---
     var view = null, barras = null, mediaBox = null, avEl = null, nomeEl = null, tempoEl = null,
       vistosEl = null, delBtn = null, somBtn = null;
-    var rodapeEl = null, respEl = null, likeEl = null, fwdEl = null, fwdModal = null;
+    var rodapeEl = null, respEl = null, enviarEl = null, likeEl = null, fwdEl = null, fwdModal = null, vistosModal = null;
     var grupos = [], gi = 0, ii = 0;
     var raf = 0, t0 = 0, decorrido = 0, dur = 5000, pausado = false, videoEl = null;
     var pressT = 0, swipeY = -1, mostrarSeq = 0;
+
+    // Folha "Visualizações" (só no MEU story): quem viu, com coração ao lado de quem curtiu.
+    var CORACAO_MINI = '<svg class="visto-coracao" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-label="Curtiu"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+    function abrirVistos() {
+      var item = grupos[gi] && grupos[gi].itens[ii];
+      if (!item || !(grupos[gi] && grupos[gi].eu)) return;
+      pausar(true);
+      if (!vistosModal) {
+        vistosModal = document.createElement('div');
+        vistosModal.className = 'modal sheet-share stview-fwd-modal';
+        vistosModal.hidden = true;
+        vistosModal.setAttribute('aria-hidden', 'true');
+        vistosModal.innerHTML = '<div class="modal-card share-card">'
+          + '<div class="sheet-cab sempre"><span class="sheet-grab" aria-hidden="true"></span>'
+          + '<span class="sheet-titulo">Visualizações</span>'
+          + '<button type="button" class="sheet-x" data-fechar-modal aria-label="Fechar">&times;</button></div>'
+          + '<div class="share-lista vistos-lista"></div></div>';
+        document.body.appendChild(vistosModal);
+        vistosModal.addEventListener('click', function (e) {
+          if (e.target.closest('[data-fechar-modal]') || e.target === vistosModal) pausar(false);
+        });
+      }
+      var lista = vistosModal.querySelector('.vistos-lista');
+      lista.innerHTML = '<div class="texto-suave" style="padding:10px 6px;">Carregando…</div>';
+      vistosModal.hidden = false; vistosModal.setAttribute('aria-hidden', 'false');
+      fetch('/stories/' + item.id_story + '/vistos', { headers: { 'Accept': 'application/json' } })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+        .then(function (pessoas) {
+          if (!pessoas.length) { lista.innerHTML = '<div class="texto-suave" style="padding:10px 6px;">Ninguém viu ainda.</div>'; return; }
+          lista.innerHTML = pessoas.map(function (p) {
+            var av = p.foto_perfil ? '<img src="' + escSt(p.foto_perfil) + '" alt="">' : escSt((p.nome || '?').trim().charAt(0).toUpperCase());
+            return '<a class="share-item" href="/u/' + encodeURIComponent(p.usuario) + '">'
+              + '<span class="share-av">' + av + '</span>'
+              + '<span class="share-txt"><span class="share-nome">' + escSt(p.nome) + '</span>'
+              + '<span class="share-user">@' + escSt(p.usuario) + '</span></span>'
+              + (p.curtiu ? CORACAO_MINI : '')
+              + '</a>';
+          }).join('');
+        })
+        .catch(function () { lista.innerHTML = '<div class="texto-suave" style="padding:10px 6px;">Não foi possível carregar.</div>'; });
+    }
 
     // Folha "Encaminhar no Direct": lista a equipe; tocar numa pessoa envia o story.
     function abrirEncaminhar() {
@@ -440,10 +481,11 @@
         + '<div class="stview-media"></div>'
         + '<div class="stview-tap prev" aria-hidden="true"></div>'
         + '<div class="stview-tap next" aria-hidden="true"></div>'
-        + '<div class="stview-vistos" hidden></div>'
+        + '<button type="button" class="stview-vistos" hidden></button>'
         + '<button type="button" class="stview-del" hidden>Apagar story</button>'
         + '<div class="stview-rodape" hidden>'
         + '  <input class="stview-resp" type="text" placeholder="Responder…" maxlength="500" autocomplete="off">'
+        + '  <button type="button" class="stview-enviar" hidden>Enviar</button>'
         + '  <button type="button" class="stview-like" aria-label="Curtir">'
         + '    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>'
         + '  </button>'
@@ -466,28 +508,66 @@
       // --- Responder / curtir / encaminhar (nos stories dos outros) ---
       rodapeEl = view.querySelector('.stview-rodape');
       respEl = view.querySelector('.stview-resp');
+      enviarEl = view.querySelector('.stview-enviar');
       likeEl = view.querySelector('.stview-like');
       fwdEl = view.querySelector('.stview-fwd');
 
-      respEl.addEventListener('focus', function () { pausar(true); });
-      respEl.addEventListener('blur', function () { if (!view.hidden) pausar(false); });
-      respEl.addEventListener('keydown', function (e) {
-        if (e.key !== 'Enter') return;
-        e.preventDefault();
+      // Teclado do celular: a barra sobe junto (visualViewport) — nada fica escondido
+      function ajustarTeclado() {
+        if (!window.visualViewport || !rodapeEl) return;
+        var vv = window.visualViewport;
+        var dif = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+        rodapeEl.style.transform = dif ? 'translateY(-' + dif + 'px)' : '';
+      }
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', ajustarTeclado);
+        window.visualViewport.addEventListener('scroll', ajustarTeclado);
+      }
+
+      function enviarResposta() {
         var item = grupos[gi] && grupos[gi].itens[ii];
         var texto = respEl.value.trim();
         if (!item || !texto) return;
-        respEl.disabled = true;
+        respEl.disabled = true; enviarEl.disabled = true;
         fetch('/stories/' + item.id_story + '/responder', {
           method: 'POST',
           headers: { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch', 'Content-Type': 'application/x-www-form-urlencoded' },
           body: new URLSearchParams({ texto: texto }),
         })
           .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
-          .then(function () { respEl.value = ''; toast('Resposta enviada 💬'); respEl.blur(); })
+          .then(function () { respEl.value = ''; atualizarBarraResp(); toast('Resposta enviada 💬'); respEl.blur(); })
           .catch(function () { toast('Não foi possível responder.'); })
-          .finally(function () { respEl.disabled = false; });
+          .finally(function () { respEl.disabled = false; enviarEl.disabled = false; });
+      }
+      // Digitando: aparece o "Enviar", somem coração/avião e o fundo escurece (como no IG)
+      function atualizarBarraResp() {
+        var tem = !!respEl.value.trim();
+        enviarEl.hidden = !tem;
+        likeEl.hidden = tem;
+        fwdEl.hidden = tem;
+      }
+      respEl.addEventListener('input', atualizarBarraResp);
+      respEl.addEventListener('focus', function () {
+        pausar(true);
+        view.classList.add('respondendo');
+        setTimeout(ajustarTeclado, 80); // o teclado leva um instante para abrir
       });
+      respEl.addEventListener('blur', function () {
+        view.classList.remove('respondendo');
+        rodapeEl.style.transform = '';
+        atualizarBarraResp();
+        if (!view.hidden) pausar(false);
+      });
+      respEl.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        enviarResposta();
+      });
+      enviarEl.addEventListener('pointerdown', function (e) { e.preventDefault(); }); // não rouba o foco do input
+      enviarEl.addEventListener('click', enviarResposta);
+
+      // "👁 N · ❤ M" (no seu story) abre a lista de quem viu, coração ao lado de quem curtiu
+      vistosEl.addEventListener('click', abrirVistos);
 
       likeEl.addEventListener('click', function () {
         var item = grupos[gi] && grupos[gi].itens[ii];
@@ -525,9 +605,11 @@
       ['prev', 'next'].forEach(function (lado) {
         var zona = view.querySelector('.stview-tap.' + lado);
         zona.addEventListener('pointerdown', function (e) {
+          if (view.classList.contains('respondendo')) return; // digitando: toque só fecha o teclado
           pressT = Date.now(); swipeY = e.clientY; pausar(true);
         });
         zona.addEventListener('pointerup', function (e) {
+          if (view.classList.contains('respondendo')) { respEl.blur(); swipeY = -1; return; }
           var segurou = Date.now() - pressT > 260;
           var desceu = swipeY >= 0 && (e.clientY - swipeY) > 80;
           swipeY = -1;
@@ -692,8 +774,8 @@
     document.addEventListener('keydown', function (e) {
       if (!view || view.hidden) return;
       if (e.key === 'Escape') {
-        // Esc com a folha de encaminhar aberta: o modal fecha (handler genérico) e o story volta a rodar
-        if (fwdModal && !fwdModal.hidden) { pausar(false); return; }
+        // Esc com folha aberta (encaminhar/visualizações): o modal fecha (handler genérico) e o story volta
+        if ((fwdModal && !fwdModal.hidden) || (vistosModal && !vistosModal.hidden)) { pausar(false); return; }
         if (document.activeElement === respEl) { respEl.blur(); return; }
         fecharView();
       } else if (e.key === 'ArrowRight' && document.activeElement !== respEl) proximo();

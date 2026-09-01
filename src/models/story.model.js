@@ -74,6 +74,21 @@ async function contarCurtidas(idStory) {
   return res.rows[0].n;
 }
 
+// Quem viu o story (para o AUTOR): quem curtiu vem primeiro, com flag do coração.
+async function listarViram(idStory) {
+  const res = await db.query(
+    `SELECT u.id_usuario, u.nome, u.usuario, u.foto_perfil, v.visto_em,
+            EXISTS(SELECT 1 FROM story_curtidas c WHERE c.id_story = v.id_story AND c.id_usuario = v.id_usuario) AS curtiu
+       FROM story_vistos v
+       JOIN usuarios u ON u.id_usuario = v.id_usuario
+      WHERE v.id_story = $1
+        AND v.id_usuario <> (SELECT s.id_usuario FROM stories s WHERE s.id_story = $1)
+      ORDER BY curtiu DESC, v.visto_em DESC`,
+    [idStory]
+  );
+  return res.rows;
+}
+
 async function marcarVisto(idStory, idUsuario) {
   await db.query(
     `INSERT INTO story_vistos (id_story, id_usuario) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
@@ -94,6 +109,6 @@ async function removerExpirados() {
 }
 
 module.exports = {
-  criar, buscarPorId, listarAtivos, resumoAneis, marcarVisto, remover, removerExpirados,
+  criar, buscarPorId, listarAtivos, resumoAneis, marcarVisto, remover, removerExpirados, listarViram,
   curtir, descurtir, jaCurtiu, contarCurtidas,
 };

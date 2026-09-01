@@ -2336,6 +2336,13 @@ a.share-item { text-decoration: none; color: inherit; }
 .dm-apagar:hover { color: var(--st-vermelho); }
 
 /* --- Filtro de voz do anjo secreto (chips acima do composer) --- */
+/* Prévia da gravação pausada: play/stop pra ouvir antes de enviar */
+.dm-grav-ouvir[hidden] { display: none; }
+.dm-grav-ouvir .ic-prev-stop { display: none; }
+.dm-grav-ouvir.tocando .ic-prev-play { display: none; }
+.dm-grav-ouvir.tocando .ic-prev-stop { display: block; }
+.dm-grav-ouvir.tocando { color: var(--ouro-forte, var(--ouro)); }
+
 .dm-filtro { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 0 2px; }
 .dm-filtro-rot { font-size: 12px; font-weight: 700; color: color-mix(in srgb, var(--ouro) 80%, var(--text)); cursor: help; }
 .dm-filtro-op {

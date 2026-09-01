@@ -2126,7 +2126,11 @@
       stream = null;
       linhaGrav.classList.remove('pausada');
     }
-    function mostrarGravando(mostra) { linhaNormal.hidden = mostra; linhaGrav.hidden = !mostra; }
+    function mostrarGravando(mostra) {
+      linhaNormal.hidden = mostra; linhaGrav.hidden = !mostra;
+      linhaGrav.classList.remove('pausada');
+      esconderOuvir(); // qualquer transição encerra a prévia
+    }
 
     btnMic.addEventListener('click', function () {
       // Sem getUserMedia (ex.: HTTP na rede interna): cai no gravador/arquivo do sistema
@@ -2169,7 +2173,31 @@
     form.querySelector('[data-grav-enviar]').addEventListener('click', function () {
       if (rec && rec.state !== 'inactive') { enviarAoParar = true; rec.stop(); }
     });
-    // Pausar/retomar (como no WhatsApp): a onda congela e o tempo para de contar
+    // ----- Prévia na pausa: ouvir o que já foi gravado antes de enviar -----
+    var btnOuvir = form.querySelector('[data-grav-ouvir]');
+    var prevAudio = null, prevUrl = '';
+    function pararPrevia() {
+      if (prevAudio) { try { prevAudio.pause(); } catch (e) {} prevAudio = null; }
+      if (prevUrl) { URL.revokeObjectURL(prevUrl); prevUrl = ''; }
+      if (btnOuvir) btnOuvir.classList.remove('tocando');
+    }
+    function esconderOuvir() { pararPrevia(); if (btnOuvir) btnOuvir.hidden = true; }
+    if (btnOuvir) btnOuvir.addEventListener('click', function () {
+      if (prevAudio) { pararPrevia(); return; } // tocando → para
+      if (!rec || rec.state !== 'paused') return;
+      try { rec.requestData(); } catch (e) {} // garante o último pedacinho gravado
+      setTimeout(function () {
+        if (!pedacos.length) return;
+        var base = (rec && rec.mimeType ? rec.mimeType : 'audio/webm').split(';')[0];
+        prevUrl = URL.createObjectURL(new Blob(pedacos, { type: base }));
+        prevAudio = new Audio(prevUrl);
+        prevAudio.onended = pararPrevia;
+        btnOuvir.classList.add('tocando');
+        prevAudio.play().catch(pararPrevia);
+      }, 80);
+    });
+
+    // Pausar/retomar (como no WhatsApp): a onda congela, o tempo para e dá pra OUVIR a prévia
     var btnPausa = form.querySelector('[data-grav-pausa]');
     if (btnPausa) btnPausa.addEventListener('click', function () {
       if (!rec) return;
@@ -2178,7 +2206,9 @@
         decorrido += Date.now() - t0;
         linhaGrav.classList.add('pausada');
         cancelAnimationFrame(rafOnda); // congela a onda no lugar
+        if (btnOuvir) btnOuvir.hidden = false; // pausou: pode ouvir o que já gravou
       } else if (rec.state === 'paused' && rec.resume) {
+        esconderOuvir(); // retomou: para a prévia e esconde o botão
         rec.resume();
         t0 = Date.now();
         linhaGrav.classList.remove('pausada');

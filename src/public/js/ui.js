@@ -473,7 +473,7 @@
     // --- Visualizador ---
     var view = null, barras = null, mediaBox = null, avEl = null, nomeEl = null, tempoEl = null,
       vistosEl = null, delBtn = null, somBtn = null;
-    var rodapeEl = null, respEl = null, enviarEl = null, likeEl = null, fwdEl = null, fwdModal = null, vistosModal = null, delModal = null;
+    var rodapeEl = null, respEl = null, enviarEl = null, likeEl = null, fwdEl = null, fwdModal = null, vistosModal = null, delModal = null, mrcModal = null, mrcPessoa = null;
     var palcoEl = null, cuboEl = null, faceEl = null, vizPrevEl = null, vizNextEl = null;
     var swipeX = null, gesto = '', cuboDir = 0, cuboW = 0;
 
@@ -771,21 +771,47 @@
       // "👁 N · ❤ M" (no seu story) abre a lista de quem viu, coração ao lado de quem curtiu
       vistosEl.addEventListener('click', abrirVistos);
 
-      // "@" no MEU story: marcar alguém mesmo depois de postar (recebe o card no Direct)
+      // "@" no MEU story: marcar alguém mesmo depois de postar — com CARDZINHO de
+      // confirmação antes de enviar (a pessoa recebe o card no Direct e pode repostar)
       view.querySelector('.stview-marcar').addEventListener('click', function () {
         var item = grupos[gi] && grupos[gi].itens[ii];
         if (!item || !(grupos[gi] && grupos[gi].eu)) return;
         pausar(true);
         abrirSeletorPessoa('Marcar pessoa no story', function (p) {
-          fetch('/stories/' + item.id_story + '/marcar', {
-            method: 'POST',
-            headers: { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch', 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({ pessoa: p.id }),
-          })
-            .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
-            .then(function (d) { toast('Marcado! @' + (d.usuario || p.usuario) + ' recebeu no Direct 🏷️'); })
-            .catch(function () { toast('Não foi possível marcar.'); })
-            .finally(function () { pausar(false); });
+          if (!mrcModal) {
+            mrcModal = document.createElement('div');
+            mrcModal.className = 'modal stview-fwd-modal';
+            mrcModal.hidden = true;
+            mrcModal.setAttribute('aria-hidden', 'true');
+            mrcModal.innerHTML = '<div class="modal-card stdel-card">'
+              + '<h3 class="mrc-titulo"></h3>'
+              + '<p class="texto-suave">A pessoa recebe o story no Direct e pode repostar.</p>'
+              + '<div class="modal-acoes">'
+              + '<button type="button" class="btn btn-secundario btn-sm" data-fechar-modal>Cancelar</button>'
+              + '<button type="button" class="btn btn-primario btn-sm mrc-ok">Marcar</button>'
+              + '</div></div>';
+            document.body.appendChild(mrcModal);
+            mrcModal.addEventListener('click', function (ev) {
+              if (ev.target.closest('[data-fechar-modal]') || ev.target === mrcModal) { pausar(false); return; }
+              if (!ev.target.closest('.mrc-ok') || !mrcPessoa) return;
+              var alvoP = mrcPessoa; mrcPessoa = null;
+              mrcModal.setAttribute('hidden', '');
+              mrcModal.setAttribute('aria-hidden', 'true');
+              fetch('/stories/' + alvoP.idStory + '/marcar', {
+                method: 'POST',
+                headers: { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch', 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ pessoa: alvoP.id }),
+              })
+                .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+                .then(function (d) { toast('Marcado! @' + (d.usuario || alvoP.usuario) + ' recebeu no Direct 🏷️'); })
+                .catch(function () { toast('Não foi possível marcar.'); })
+                .finally(function () { pausar(false); });
+            });
+          }
+          mrcPessoa = { id: p.id, usuario: p.usuario, idStory: item.id_story };
+          mrcModal.querySelector('.mrc-titulo').textContent = 'Marcar @' + p.usuario + ' neste story?';
+          mrcModal.hidden = false;
+          mrcModal.setAttribute('aria-hidden', 'false');
         }, function () { pausar(false); });
       });
 

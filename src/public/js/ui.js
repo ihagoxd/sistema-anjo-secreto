@@ -1942,17 +1942,24 @@
     });
   }
 
-  /* ---------- Revelar conteúdo com stagger ---------- */
+  /* ---------- Revelar conteúdo ----------
+     Navegação dentro do app (rapido): SEM stagger e sem transform — o conteúdo aparece
+     na hora com um fade curtíssimo, como trocar de aba no Instagram. O stagger bonito
+     fica só para a primeira entrada da sessão (junto do loader do anjo). */
   function revelar(rapido) {
     document.documentElement.classList.remove('preparando');
     document.body.classList.add('pronto');
-    var passo = rapido ? 32 : 75;
+    if (rapido) {
+      document.body.classList.add('entrada-rapida');
+      // sem contarNumeros(): re-animar os contadores a cada troca de aba dava "engasgada"
+      return;
+    }
     var alvos = document.querySelectorAll('.container > *:not(.modal)');
     alvos.forEach(function (el, i) {
-      el.style.setProperty('--d', (i * passo) + 'ms');
+      el.style.setProperty('--d', (Math.min(i, 8) * 60) + 'ms'); // teto no atraso: nada de fila longa
       el.classList.add('reveal');
     });
-    setTimeout(contarNumeros, rapido ? 100 : 250);
+    setTimeout(contarNumeros, 250);
   }
 
   function removerLoader(loader) { if (loader && loader.parentNode) loader.parentNode.removeChild(loader); }

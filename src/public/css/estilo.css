@@ -1549,11 +1549,14 @@ html.preparando .container > *,
 html.preparando .auth-id,
 html.preparando .auth-form-wrap { opacity: 0; }
 /* fill "backwards" (não "both"): com "both" o transform final fica preso no elemento
-   e ele vira âncora de position:fixed — a gaveta de comentários renderizava fora da tela. */
-body.pronto .reveal { animation: pop-in 0.6s cubic-bezier(0.34, 1.55, 0.64, 1) backwards; animation-delay: var(--d, 0ms); }
+   e ele vira âncora de position:fixed — a gaveta de comentários renderizava fora da tela.
+   Sem scale: reescalar blocos com backdrop-filter/sombra derruba o frame rate no celular. */
+body.pronto .reveal { animation: pop-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) backwards; animation-delay: var(--d, 0ms); }
+/* Navegação dentro do app: conteúdo na hora, só um fade curtíssimo para não "piscar" */
+body.entrada-rapida .container { animation: fade-rapido 0.16s ease-out; }
+@keyframes fade-rapido { from { opacity: 0.4; } to { opacity: 1; } }
 @keyframes pop-in {
-  0% { opacity: 0; transform: translateY(16px) scale(0.965); }
-  60% { opacity: 1; }
+  0% { opacity: 0; transform: translateY(10px); }
   100% { opacity: 1; transform: none; }
 }
 
@@ -1590,7 +1593,7 @@ table.tabela tbody tr { transition: background 0.12s; }
 
 @media (prefers-reduced-motion: reduce) {
   html.preparando .container > *, html.preparando .auth-id, html.preparando .auth-form-wrap { opacity: 1; }
-  body.pronto .reveal, .side-link.ativo::before, #loader, #loader *,
+  body.pronto .reveal, body.entrada-rapida .container, .side-link.ativo::before, #loader, #loader *,
   body::before, body::after, .auth-ceu span, .auth-anjo img, .auth-anjo *, .anjo, .anjo img,
   body.pronto [class*="auth-"],
   body.pronto .auth-form-wrap .campo, body.pronto .auth-form-wrap .btn-primario { animation: none !important; }

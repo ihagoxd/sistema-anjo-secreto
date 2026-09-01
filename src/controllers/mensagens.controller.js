@@ -138,6 +138,7 @@ async function renderInbox(req, res, sel) {
     humorEu,
     humores: HUMORES,
     notas,
+    tenhoStory: !!aneis[me],
   });
 }
 

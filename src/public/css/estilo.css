@@ -926,7 +926,9 @@ table.tabela tbody tr:hover { background: var(--hover); }
 .busca-tela { position: fixed; inset: 0; z-index: 40; background: var(--bg); display: flex; flex-direction: column; }
 .busca-tela[hidden] { display: none; }
 @media (max-width: 899px) {
-  .busca-tela { bottom: calc(58px + env(safe-area-inset-bottom, 0px)); }
+  /* A barra inferior é uma pílula flutuante translúcida: a tela vai até o fim e a lista
+     rola por baixo dela, com o mesmo respiro do .container para o último item aparecer */
+  .busca-corpo { padding-bottom: calc(94px + env(safe-area-inset-bottom, 0px)); }
 }
 @media (min-width: 900px) {
   .busca-tela {

@@ -20,6 +20,7 @@ const dmService = require('../services/mensagemDireta.service');
 const usuarioModel = require('../models/usuario.model');
 const postModel = require('../models/post.model');
 const storyModel = require('../models/story.model');
+const storyService = require('../services/story.service');
 const { HUMORES } = require('../config/humores');
 
 const MSG = {
@@ -112,6 +113,13 @@ async function renderInbox(req, res, sel) {
     await anexarCartoesDeStory(conversa.mensagens);
     anexarCitacoes(conversa.mensagens);
   }
+
+  // Anéis de story na lista (como no Instagram): dourado = story não visto; apagado = já visto.
+  const aneis = await storyService.resumoAneis(me);
+  ctx.equipe.forEach((u) => {
+    u.temStory = !!aneis[u.id_usuario];
+    u.storyVisto = !!(aneis[u.id_usuario] && aneis[u.id_usuario].tudoVisto);
+  });
 
   // Notas (estilo Instagram): "Sua nota" + quem definiu o status hoje.
   // Identidade PÚBLICA do escritório — nada aqui toca nos canais secretos do jogo.

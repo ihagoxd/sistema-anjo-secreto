@@ -911,6 +911,8 @@
         var tudo = g.itens.every(function (it) { return it.visto || g.eu; });
         var anel = document.querySelector('[data-ver-stories="' + g.id_usuario + '"] .story-ring, .story-ring[data-ver-stories="' + g.id_usuario + '"]');
         if (anel && tudo && !g.eu) { anel.classList.remove('tem'); anel.classList.add('visto'); } // dourado apagado: postou e você já viu
+        var avDm = document.querySelector('.conv-av[data-ver-stories="' + g.id_usuario + '"]'); // anel na lista do Direct
+        if (avDm && tudo && !g.eu) { avDm.classList.remove('st-tem'); avDm.classList.add('st-visto'); }
       });
     }
 

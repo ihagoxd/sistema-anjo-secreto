@@ -63,7 +63,7 @@
 
       {{#each equipe}}
         <a class="conv {{#if (eq @root.conversa.id this.id_usuario)}}ativa{{/if}}{{#if this.naoLidas}} tem-novas{{/if}}" href="/mensagens/u/{{this.id_usuario}}">
-          <span class="conv-av">{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</span>
+          <span class="conv-av{{#if this.temStory}} st-anel {{#if this.storyVisto}}st-visto{{else}}st-tem{{/if}}{{/if}}"{{#if this.temStory}} data-ver-stories="{{this.id_usuario}}" title="Ver o story de {{this.nome}}"{{/if}}>{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</span>
           <div class="conv-txt">
             <div class="conv-nome">{{this.nome}}{{#if this.souProtegido}} <span class="tag-tirei">você tirou 🎁</span>{{/if}}</div>
             <div class="conv-sub">{{#if this.ultima}}{{#if this.ultima.minha}}Você: {{/if}}{{this.ultima.texto}}{{else}}@{{this.usuario}}{{/if}}</div>

@@ -1413,6 +1413,14 @@
           b.setAttribute('aria-pressed', d.curtiu ? 'true' : 'false');
           // Atualiza a linha "N curtidas" (estilo Instagram) do post
           var art = b.closest('.tw-post');
+          // contador ao lado do coração (abreviado; zero some)
+          var contCor = b.querySelector('.post-curtidas');
+          var nTot = Number(d.total) || 0;
+          if (contCor) {
+            contCor.textContent = !nTot ? ''
+              : nTot < 1000 ? String(nTot)
+              : ((nTot / 1000) % 1 === 0 || nTot >= 10000 ? Math.round(nTot / 1000) : (nTot / 1000).toFixed(1).replace('.', ',')) + ' mil';
+          }
           var linha = art && art.querySelector('.ig-curtidas');
           if (linha) {
             var n = Number(d.total) || 0;

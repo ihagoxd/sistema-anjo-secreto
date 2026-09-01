@@ -10,7 +10,7 @@
           {{else}}
             <button type="button" class="story-ring sem eu-story" data-add-story title="Publicar um story"><span class="story-ring-in">{{#if usuario.foto_perfil}}<img src="{{usuario.foto_perfil}}" alt="">{{else}}{{inicial usuario.nome}}{{/if}}</span></button>
           {{/if}}
-          <button type="button" class="story-badge mais" data-add-story title="Publicar um story" aria-label="Publicar um story">+</button>
+          <button type="button" class="story-badge mais" data-add-story title="Adicionar ao story" aria-label="Adicionar ao story"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
         </div>
         <span class="story-nome">Seu story</span>
       </div>
@@ -33,37 +33,15 @@
       {{/each}}
     </div>
 
-    {{! Form invisível que publica o story (câmera ou galeria, qualidade intocada) }}
+    {{! Form invisível que publica o story. O + abre DIRETO a galeria do celular
+        (foto ou vídeo num seletor só, como o "Adicionar ao story" do Instagram);
+        o arquivo vai intacto — qualidade original, sem recompressão. }}
     <form id="formStory" action="/stories" method="POST" enctype="multipart/form-data">
       <input type="hidden" name="_csrf" value="{{csrfToken}}">
+      <input type="file" accept="image/png,image/jpeg,image/gif,image/webp,video/webm,video/mp4,video/quicktime" class="visualmente-oculto" data-story-picker tabindex="-1">
       <input type="file" name="imagem" accept="image/png,image/jpeg,image/gif,image/webp" class="visualmente-oculto" data-foto tabindex="-1">
       <input type="file" name="video" accept="video/webm,video/mp4,video/quicktime" class="visualmente-oculto" data-video tabindex="-1">
     </form>
-
-    {{! Folha "Publicar story": câmera / foto da galeria / vídeo da galeria }}
-    <div class="modal sheet-share" id="modal-add-story" hidden aria-hidden="true">
-      <div class="modal-card share-card">
-        <div class="sheet-cab sempre">
-          <span class="sheet-grab" aria-hidden="true"></span>
-          <span class="sheet-titulo">Publicar story</span>
-          <button type="button" class="sheet-x" data-fechar-modal="modal-add-story" aria-label="Fechar">&times;</button>
-        </div>
-        <div class="share-lista">
-          <button type="button" class="share-item" form="formStory" data-camera data-story-camera>
-            <span class="share-av share-av-link"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span>
-            <span class="share-txt"><span class="share-nome">Câmera</span><span class="share-user">tirar foto ou gravar vídeo agora</span></span>
-          </button>
-          <button type="button" class="share-item" data-story-foto>
-            <span class="share-av share-av-link"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span>
-            <span class="share-txt"><span class="share-nome">Foto da galeria</span><span class="share-user">qualidade original, sem compressão</span></span>
-          </button>
-          <button type="button" class="share-item" data-story-video>
-            <span class="share-av share-av-link"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></span>
-            <span class="share-txt"><span class="share-nome">Vídeo da galeria</span><span class="share-user">até 60 MB</span></span>
-          </button>
-        </div>
-      </div>
-    </div>
 
     <form class="post-compositor card" action="/feed" method="POST" enctype="multipart/form-data" novalidate>
       <input type="hidden" name="_csrf" value="{{csrfToken}}">

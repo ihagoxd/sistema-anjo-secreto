@@ -254,36 +254,33 @@
     var metaCsrfSt = document.querySelector('meta[name="csrf-token"]');
     var CSRF = metaCsrfSt ? metaCsrfSt.getAttribute('content') : '';
 
-    // --- Publicar: escolhas da folha disparam os inputs do form invisível ---
-    function fecharSheetStory() {
-      var m = document.getElementById('modal-add-story');
-      if (m) { m.setAttribute('hidden', ''); m.setAttribute('aria-hidden', 'true'); }
-    }
+    // --- Publicar: o + abre direto a galeria do celular (foto OU vídeo num seletor só,
+    // como o "Adicionar ao story" do Instagram). O arquivo é roteado para o campo certo
+    // pelo tipo e o form envia na hora — sem perguntas no meio do caminho. ---
     document.addEventListener('click', function (e) {
+      if (!e.target.closest('[data-add-story]')) return;
       var form = document.getElementById('formStory');
-      if (e.target.closest('[data-add-story]')) {
-        var m = document.getElementById('modal-add-story');
-        if (m) { m.removeAttribute('hidden'); m.setAttribute('aria-hidden', 'false'); }
+      var picker = form && form.querySelector('[data-story-picker]');
+      if (picker) { picker.value = ''; picker.click(); }
+    });
+    document.addEventListener('change', function (e) {
+      var form = e.target.form;
+      if (!form || form.id !== 'formStory') return;
+      var file = e.target.files && e.target.files[0];
+      if (!file) return;
+      if (e.target.hasAttribute('data-story-picker')) {
+        // roteia para imagem ou vídeo conforme o tipo e publica
+        var alvo = form.querySelector(file.type.indexOf('video/') === 0 ? '[data-video]' : '[data-foto]');
+        try {
+          var dt = new DataTransfer();
+          dt.items.add(file);
+          alvo.files = dt.files;
+        } catch (x) { return; }
+        e.target.value = '';
+        form.submit();
         return;
       }
-      if (!form) return;
-      if (e.target.closest('[data-story-foto]')) {
-        fecharSheetStory();
-        var fi = form.querySelector('[data-foto]');
-        if (fi) { fi.removeAttribute('capture'); fi.click(); }
-      } else if (e.target.closest('[data-story-video]')) {
-        fecharSheetStory();
-        var vi = form.querySelector('[data-video]');
-        if (vi) vi.click();
-      } else if (e.target.closest('[data-story-camera]')) {
-        fecharSheetStory(); // a câmera abre pelo handler de [data-camera] (mesmo clique)
-      }
-    });
-    // Arquivo escolhido/capturado → publica na hora
-    document.addEventListener('change', function (e) {
-      var f = e.target.form;
-      if (!f || f.id !== 'formStory') return;
-      if (e.target.files && e.target.files.length) f.submit();
+      form.submit(); // captura vinda da câmera cai direto nos campos nomeados
     });
 
     // --- Visualizador ---

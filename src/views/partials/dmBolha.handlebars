@@ -10,13 +10,24 @@
     </div>
   {{/if}}
   {{#if this.storyPrev}}
-    {{! Cartão de story (resposta/encaminhamento): clica e abre o story enquanto estiver no ar }}
-    <div class="dm-storyprev{{#unless this.storyPrev.ativo}} expirado{{/unless}}"{{#if this.storyPrev.ativo}} data-abrir-story="{{this.storyPrev.id_autor}}" data-story-id="{{this.storyPrev.id_story}}" role="button" tabindex="0"{{/if}}>
-      <span class="dm-storyprev-rotulo">{{#if (eq this.storyPrev.tipo "resposta")}}💬 Respondeu ao story de{{else}}📤 Story de{{/if}} <strong>@{{this.storyPrev.usuario}}</strong></span>
-      {{#if this.imagem}}<img class="dm-storyprev-img" src="{{this.imagem}}" alt="" draggable="false">{{/if}}
-      {{#if this.video}}<video class="dm-storyprev-img" src="{{this.video}}" preload="metadata" muted playsinline></video>{{/if}}
-      <span class="dm-storyprev-hint">{{#if this.storyPrev.ativo}}Ver story ›{{else}}Story indisponível{{/if}}</span>
-    </div>
+    {{#if (eq this.storyPrev.tipo "resposta")}}
+      {{! Resposta de story, EXATAMENTE como o Instagram: rótulo discreto, a miniatura
+          vertical do story (clicável enquanto ativo) e a mensagem como bolha normal abaixo }}
+      <span class="dm-story-rotulo">{{#if this.minha}}Você respondeu ao story de {{@root.conversa.titulo}}{{else}}Respondeu ao seu story{{/if}}</span>
+      <div class="dm-story-thumb{{#unless this.storyPrev.ativo}} expirado{{/unless}}"{{#if this.storyPrev.ativo}} data-abrir-story="{{this.storyPrev.id_autor}}" data-story-id="{{this.storyPrev.id_story}}" role="button" tabindex="0" title="Ver story"{{/if}}>
+        {{#if this.imagem}}<img src="{{this.imagem}}" alt="" draggable="false">{{/if}}
+        {{#if this.video}}<video src="{{this.video}}" preload="metadata" muted playsinline></video>{{/if}}
+        {{#unless this.storyPrev.ativo}}<span class="dm-story-off">Story indisponível</span>{{/unless}}
+      </div>
+    {{else}}
+      {{! Encaminhamento: cartão com rótulo + mídia + "Ver story" }}
+      <div class="dm-storyprev{{#unless this.storyPrev.ativo}} expirado{{/unless}}"{{#if this.storyPrev.ativo}} data-abrir-story="{{this.storyPrev.id_autor}}" data-story-id="{{this.storyPrev.id_story}}" role="button" tabindex="0"{{/if}}>
+        <span class="dm-storyprev-rotulo">📤 Story de <strong>@{{this.storyPrev.usuario}}</strong></span>
+        {{#if this.imagem}}<img class="dm-storyprev-img" src="{{this.imagem}}" alt="" draggable="false">{{/if}}
+        {{#if this.video}}<video class="dm-storyprev-img" src="{{this.video}}" preload="metadata" muted playsinline></video>{{/if}}
+        <span class="dm-storyprev-hint">{{#if this.storyPrev.ativo}}Ver story ›{{else}}Story indisponível{{/if}}</span>
+      </div>
+    {{/if}}
   {{else}}
   {{#if this.imagem}}<div class="dm-bolha-img tw-post-midia" data-img="{{this.imagem}}" role="button" tabindex="0" aria-label="Ampliar imagem"><img src="{{this.imagem}}" alt="Foto" draggable="false"></div>{{/if}}
   {{#if this.video}}<div class="dm-bolha-video"><video src="{{this.video}}" controls playsinline preload="metadata"></video></div>{{/if}}

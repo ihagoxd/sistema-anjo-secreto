@@ -934,6 +934,22 @@ table.tabela tbody tr:hover { background: var(--hover); }
    (as áreas com zoom próprio — lightbox, câmera, stories — definem o seu touch-action) */
 html { touch-action: pan-x pan-y; }
 
+/* Resposta de story estilo Instagram: rótulo discreto + miniatura vertical + bolha abaixo */
+.dm-story-rotulo { display: block; font-size: 11.5px; color: var(--text-faint); margin: 0 2px 4px; }
+.dm-story-thumb {
+  position: relative; width: 118px; aspect-ratio: 9 / 16; margin-bottom: 6px;
+  border-radius: 14px; overflow: hidden; background: var(--surface-2); cursor: pointer;
+}
+.dm-story-thumb img, .dm-story-thumb video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.dm-story-thumb:hover img { opacity: 0.9; }
+.dm-story-thumb.expirado { cursor: default; }
+.dm-story-thumb.expirado img, .dm-story-thumb.expirado video { opacity: 0.35; }
+.dm-story-off {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  font-size: 11px; font-weight: 600; color: #fff; background: rgba(0, 0, 0, 0.35);
+  text-align: center; padding: 8px;
+}
+
 /* Cartão de story na DM (resposta/encaminhamento) — clica e abre o story */
 .dm-storyprev {
   display: block; max-width: 230px; border: 1px solid var(--line); border-radius: 16px;

@@ -637,10 +637,11 @@
 
     // Detecção manual de clique simples x duplo — funciona no desktop E no toque (mobile),
     // usando só o evento 'click' (não depende de 'dblclick', instável no touch).
-    var ultTempo = 0, ultAlvo = null, tLB = null;
+    var ultTempo = 0, ultAlvo = null, tLB = null, pincaAte = 0;
     document.addEventListener('click', function (e) {
       var midia = e.target.closest('.tw-post-midia');
       if (!midia) return;
+      if (Date.now() - pincaAte < 400) return; // acabou de pinçar: não abre lightbox nem curte
       var agora = Date.now();
       if (ultAlvo === midia && (agora - ultTempo) < 320) {
         clearTimeout(tLB); tLB = null; ultTempo = 0; ultAlvo = null;
@@ -663,6 +664,62 @@
       if (!g) return;
       abrirLB(g.getAttribute('data-img'), null);
     });
+
+    /* ---- Pinça direto na foto do feed (estilo Instagram): dois dedos ampliam
+       a imagem por cima da página (fundo escurece) e ao soltar ela volta sozinha.
+       A imagem real é clonada numa camada fixed — assim nenhum overflow/stacking
+       do card corta o zoom. ---- */
+    (function () {
+      var pAlvo = null, pClone = null, pVeu = null;
+      var pD0 = 0, pCx0 = 0, pCy0 = 0;
+
+      function pDist(t) { return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY); }
+      function pCentro(t) { return { x: (t[0].clientX + t[1].clientX) / 2, y: (t[0].clientY + t[1].clientY) / 2 }; }
+
+      document.addEventListener('touchstart', function (e) {
+        if (e.touches.length !== 2 || pAlvo) return;
+        var midia = e.target.closest('.tw-post-midia');
+        var img = midia && midia.querySelector('img');
+        if (!img) return;
+        e.preventDefault();
+        var r = img.getBoundingClientRect();
+        pD0 = pDist(e.touches);
+        var c = pCentro(e.touches); pCx0 = c.x; pCy0 = c.y;
+
+        pVeu = document.createElement('div'); pVeu.className = 'pinca-veu';
+        document.body.appendChild(pVeu);
+        pClone = img.cloneNode();
+        pClone.className = 'pinca-img';
+        pClone.style.left = r.left + 'px'; pClone.style.top = r.top + 'px';
+        pClone.style.width = r.width + 'px'; pClone.style.height = r.height + 'px';
+        pClone.style.transformOrigin = (pCx0 - r.left) + 'px ' + (pCy0 - r.top) + 'px';
+        document.body.appendChild(pClone);
+        img.style.visibility = 'hidden';
+        pAlvo = img;
+      }, { passive: false });
+
+      document.addEventListener('touchmove', function (e) {
+        if (!pAlvo || e.touches.length < 2) return;
+        e.preventDefault();
+        var c = pCentro(e.touches);
+        var esc = Math.max(1, Math.min(4, pDist(e.touches) / pD0));
+        pClone.style.transform = 'translate(' + (c.x - pCx0) + 'px,' + (c.y - pCy0) + 'px) scale(' + esc + ')';
+        pVeu.style.opacity = Math.min(0.7, (esc - 1) * 0.9);
+      }, { passive: false });
+
+      function pSoltar() {
+        if (!pAlvo) return;
+        pincaAte = Date.now();
+        var img = pAlvo, cl = pClone, v = pVeu;
+        pAlvo = null; pClone = null; pVeu = null;
+        cl.style.transition = 'transform 0.28s cubic-bezier(0.22, 1, 0.36, 1)';
+        v.style.transition = 'opacity 0.28s ease';
+        cl.style.transform = 'none'; v.style.opacity = '0';
+        setTimeout(function () { img.style.visibility = ''; cl.remove(); v.remove(); }, 300);
+      }
+      document.addEventListener('touchend', function (e) { if (pAlvo && e.touches.length < 2) pSoltar(); });
+      document.addEventListener('touchcancel', function () { pSoltar(); });
+    })();
 
     // Compartilhar: abre a folha "enviar no Direct" (se existir na página) ou copia o link.
     var shareUrl = '';

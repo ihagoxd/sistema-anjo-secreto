@@ -920,6 +920,10 @@ table.tabela tbody tr:hover { background: var(--hover); }
 }
 
 /* Lightbox (ampliar imagem na mesma guia) */
+/* Pinça direto na foto do feed (estilo Instagram): véu escuro + clone da imagem numa camada fixed */
+.pinca-veu { position: fixed; inset: 0; z-index: 600; background: #000; opacity: 0; pointer-events: none; }
+.pinca-img { position: fixed; z-index: 601; object-fit: cover; pointer-events: none; will-change: transform; max-width: none; max-height: none; }
+
 .lightbox { position: fixed; inset: 0; z-index: 500; display: grid; place-items: center; padding: 24px; background: rgba(0, 0, 0, 0.86); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); animation: lb-fade 0.18s ease both; }
 .lightbox[hidden] { display: none; }
 @keyframes lb-fade { from { opacity: 0; } to { opacity: 1; } }

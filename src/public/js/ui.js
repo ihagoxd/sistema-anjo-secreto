@@ -11,12 +11,15 @@
     document.addEventListener(ev, function (e) { e.preventDefault(); }, { passive: false });
   });
   // Pinça com 2 dedos fora das áreas com zoom próprio: bloqueia o zoom DA PÁGINA
-  // (Chrome/Android e iOS que ignoram user-scalable=no no viewport)
-  document.addEventListener('touchmove', function (e) {
+  // (Chrome/Android e iOS que ignoram user-scalable=no no viewport). O bloqueio vale
+  // já no touchstart — alguns iOS só respeitam se o gesto for barrado no INÍCIO.
+  function bloquearPinca(e) {
     if (e.touches.length < 2) return;
     if (e.target.closest('.lightbox, .cam-modal, .stview, .stcomp, .tw-post-midia, .cropper, #cropper')) return;
     e.preventDefault();
-  }, { passive: false });
+  }
+  document.addEventListener('touchstart', bloquearPinca, { passive: false });
+  document.addEventListener('touchmove', bloquearPinca, { passive: false });
 
   /* ---------- Comentários: abrir/fechar inline no feed + responder sem recarregar ---------- */
   (function () {

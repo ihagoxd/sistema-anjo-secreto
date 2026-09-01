@@ -1137,8 +1137,9 @@ button.ig-av { border: none; cursor: pointer; padding: 0; font: inherit; }
   display: flex; gap: 16px; overflow-x: auto; padding: 18px 16px 10px;
   border-bottom: 1px solid var(--line); -webkit-overflow-scrolling: touch;
   cursor: grab; user-select: none;
+  scrollbar-width: none; /* Firefox: sem barrinha sob as notas */
 }
-.notas::-webkit-scrollbar { height: 0; }
+.notas::-webkit-scrollbar { height: 0; display: none; }
 .nota { flex: 0 0 auto; width: 72px; display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; padding: 0; font: inherit; cursor: pointer; text-decoration: none; }
 .nota:hover { text-decoration: none; }
 .nota-bolha {

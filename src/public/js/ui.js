@@ -150,36 +150,45 @@
         + '</a>';
     }
     // Estado inicial da tela: "Recentes" (localStorage) + "Sugestões" com os usuários cadastrados.
+    // As sugestões ficam em cache: a tela abre instantânea (sem a lista "pular" depois).
+    var sugCache = null;
     function mostrarInicio() {
       var rec = lerRecentes();
       cabRec.hidden = !rec.length;
       var htmlRec = rec.map(function (p) { return itemHtml(p, true); }).join('');
-      lista.innerHTML = htmlRec;
+      function render(pessoas) {
+        var jaTem = {};
+        rec.forEach(function (p) { jaTem[p.usuario] = true; });
+        var sug = (pessoas || []).filter(function (p) { return !jaTem[p.usuario]; });
+        if (sug.length) {
+          lista.innerHTML = htmlRec + '<div class="busca-subtitulo">Sugestões</div>'
+            + sug.map(function (p) { return itemHtml(p, false); }).join('');
+        } else if (rec.length) {
+          lista.innerHTML = htmlRec;
+        } else {
+          lista.innerHTML = '<div class="texto-suave busca-vazio">Pesquise os colegas pelo nome ou @usuário.</div>';
+        }
+      }
+      render(sugCache);
       fetch('/buscar?q=', { headers: { 'Accept': 'application/json' } })
         .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
         .then(function (pessoas) {
+          sugCache = pessoas;
           if (tela.hidden || inp.value.trim()) return; // já fechou ou já começou a digitar
-          var jaTem = {};
-          rec.forEach(function (p) { jaTem[p.usuario] = true; });
-          var sug = pessoas.filter(function (p) { return !jaTem[p.usuario]; });
-          if (sug.length) {
-            lista.innerHTML = htmlRec + '<div class="busca-subtitulo">Sugestões</div>'
-              + sug.map(function (p) { return itemHtml(p, false); }).join('');
-          } else if (!rec.length) {
-            lista.innerHTML = '<div class="texto-suave busca-vazio">Pesquise os colegas pelo nome ou @usuário.</div>';
-          }
+          render(pessoas);
         })
-        .catch(function () {
-          if (!rec.length) lista.innerHTML = '<div class="texto-suave busca-vazio">Pesquise os colegas pelo nome ou @usuário.</div>';
-        });
+        .catch(function () {});
     }
     function abrir() {
       tela.hidden = false;
+      var mobile = window.matchMedia('(max-width: 899px)').matches;
       // Só o mobile trava o scroll do fundo; no desktop a página continua visível ao lado
-      if (window.matchMedia('(max-width: 899px)').matches) document.body.classList.add('sem-scroll');
+      if (mobile) document.body.classList.add('sem-scroll');
       inp.value = ''; btnLimparCampo.hidden = true;
       mostrarInicio();
-      window.setTimeout(function () { inp.focus(); }, 60);
+      // No celular NÃO foca sozinho: o teclado subindo na abertura causava a "engasgada"
+      // (igual ao Instagram: o teclado só abre quando a pessoa toca no campo)
+      if (!mobile) window.setTimeout(function () { inp.focus(); }, 60);
     }
     function fechar() { tela.hidden = true; document.body.classList.remove('sem-scroll'); }
 

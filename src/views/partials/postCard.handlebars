@@ -47,6 +47,10 @@
     {{#if this.imagem}}{{#if this.texto}}<div class="tw-post-texto ig-legenda"><a href="/u/{{this.usuario}}" class="ig-user">{{this.usuario}}</a>{{comMencoes this.texto}}</div>{{/if}}{{/if}}
 
     {{#unless @root.detalhe}}
+      {{! Prévia dos 2 comentários mais recentes (tom suave, diferente da legenda do autor) }}
+      {{#each (ultimos this.comentariosLista 2)}}
+        <div class="ig-prev-coment"><a href="/u/{{this.usuario}}" class="ig-user">{{this.usuario}}</a>{{comMencoes this.texto}}</div>
+      {{/each}}
       <button type="button" class="ig-vercoments" data-comentarios="{{this.id_post}}"{{#unless (num this.comentarios)}} hidden{{/unless}}>{{#if (eq (num this.comentarios) 1)}}Ver 1 comentário{{else}}Ver todos os {{num this.comentarios}} comentários{{/if}}</button>
     {{/unless}}
   </div>

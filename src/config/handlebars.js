@@ -33,6 +33,11 @@ const helpers = {
     return a || b;
   },
 
+  // Últimos N itens de uma lista (prévia de comentários no card do post)
+  ultimos(lista, n) {
+    return Array.isArray(lista) ? lista.slice(-n) : [];
+  },
+
   // Número inteiro (COUNT do pg chega como string; 0 vira falsy para {{#if}})
   num(n) {
     return parseInt(n, 10) || 0;

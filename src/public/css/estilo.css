@@ -2136,6 +2136,12 @@ a.share-item { text-decoration: none; color: inherit; }
 .ig-mais:hover { color: var(--text-soft); }
 /* Post só de texto: o texto é o conteúdo (estilo Threads), não uma legenda miúda */
 .ig-texto { margin: 0 0 2px; font-size: 16px; line-height: 1.5; letter-spacing: -0.005em; }
+/* Prévia de comentários no card: tom suave e 1 linha, para não confundir com a legenda */
+.ig-prev-coment {
+  font-size: 13.5px; line-height: 1.4; color: var(--text-soft); white-space: pre-line;
+  overflow: hidden; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;
+}
+.ig-prev-coment .ig-user { font-weight: 600; font-size: 13px; margin-right: 6px; }
 .ig-vercoments {
   display: block; background: none; border: none; padding: 0;
   font: inherit; font-size: 14px; color: var(--text-faint); cursor: pointer; text-align: left;

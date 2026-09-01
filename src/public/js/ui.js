@@ -1406,14 +1406,14 @@
       var ativo = false, moveu = false, x0 = 0, s0 = 0;
       // sem o "drag nativo" de link/imagem, que engolia o gesto do mouse
       fila.addEventListener('dragstart', function (e) { e.preventDefault(); });
-      // POINTER EVENTS (mouse E toque — redundância: se os touch events não vierem,
-      // este caminho segura o arrasto; se vierem, a camada de toque tem prioridade)
+      // TOQUE: scroll NATIVO (com inércia/momentum — fluido como o Instagram).
+      // MOUSE: arrasto via pointer events (desktop não tem scroll horizontal natural).
       fila.addEventListener('pointerdown', function (e) {
+        if (e.pointerType !== 'mouse') return;
         ativo = true; moveu = false; x0 = e.clientX; s0 = fila.scrollLeft;
       });
       fila.addEventListener('pointermove', function (e) {
         if (!ativo) return;
-        if (e.pointerType !== 'mouse' && tEixo) return; // a camada de toque assumiu
         var dx = e.clientX - x0;
         if (!moveu && Math.abs(dx) > 6) {
           moveu = true;
@@ -1423,28 +1423,6 @@
       });
       ['pointerup', 'pointerleave', 'pointercancel'].forEach(function (ev) {
         fila.addEventListener(ev, function () { ativo = false; });
-      });
-      // TOQUE: camada explícita com preventDefault — o dedo manda no eixo horizontal,
-      // sem depender do scroll nativo nem de pointer events (que vinham sendo engolidos)
-      var tAtivo = false, tX = 0, tY = 0, tS = 0, tEixo = '';
-      fila.addEventListener('touchstart', function (e) {
-        if (e.touches.length !== 1) return;
-        tAtivo = true; tEixo = ''; moveu = false;
-        tX = e.touches[0].clientX; tY = e.touches[0].clientY; tS = fila.scrollLeft;
-      }, { passive: true });
-      fila.addEventListener('touchmove', function (e) {
-        if (!tAtivo || e.touches.length !== 1) return;
-        var dx = e.touches[0].clientX - tX;
-        var dy = e.touches[0].clientY - tY;
-        if (!tEixo && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) tEixo = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
-        if (tEixo === 'h') {
-          fila.scrollLeft = tS - dx;
-          moveu = true;
-          e.preventDefault();
-        }
-      }, { passive: false });
-      ['touchend', 'touchcancel'].forEach(function (ev) {
-        fila.addEventListener(ev, function () { tAtivo = false; });
       });
       fila.addEventListener('click', function (e) {
         if (moveu) { e.preventDefault(); e.stopPropagation(); moveu = false; }

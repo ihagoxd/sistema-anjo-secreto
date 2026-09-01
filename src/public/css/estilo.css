@@ -961,13 +961,16 @@ button.story, button.story-ring { background: none; border: none; padding: 0; fo
 .stview-tap { position: absolute; top: 72px; bottom: 76px; width: 30%; z-index: 3; }
 .stview-tap.prev { left: 0; }
 .stview-tap.next { right: 0; width: 70%; }
-/* "👁 N · ❤ M" no seu story: é um botão — toca e abre a lista de quem viu */
+/* "Atividade" no seu story (ícone de pessoas, como no IG): abre a lista de quem viu */
 .stview-vistos {
   position: absolute; bottom: 16px; left: 14px; z-index: 4;
+  display: inline-flex; align-items: center; gap: 7px;
   background: rgba(255, 255, 255, 0.14); border: none; border-radius: 999px;
-  color: #fff; font: inherit; font-size: 13.5px; padding: 8px 14px; cursor: pointer;
+  color: #fff; font: inherit; font-size: 13.5px; font-weight: 600; padding: 9px 15px; cursor: pointer;
 }
 .stview-vistos:hover { background: rgba(255, 255, 255, 0.26); }
+.stview-vistos svg { flex-shrink: 0; }
+.vistos-resumo { padding: 10px 8px 4px; font-size: 13px; color: var(--text-faint); }
 /* Lixeira do próprio story (abre o cardzinho de confirmação) */
 .stview-del {
   position: absolute; bottom: 12px; right: 14px; z-index: 4;

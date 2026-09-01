@@ -391,7 +391,10 @@
         .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
         .then(function (pessoas) {
           if (!pessoas.length) { lista.innerHTML = '<div class="texto-suave" style="padding:10px 6px;">Ninguém viu ainda.</div>'; return; }
-          lista.innerHTML = pessoas.map(function (p) {
+          var curtidas = pessoas.filter(function (p) { return p.curtiu; }).length;
+          lista.innerHTML = '<div class="vistos-resumo">👁 ' + pessoas.length + (pessoas.length === 1 ? ' visualização' : ' visualizações')
+            + (curtidas ? ' · ❤ ' + curtidas + (curtidas === 1 ? ' curtida' : ' curtidas') : '') + '</div>'
+            + pessoas.map(function (p) {
             var av = p.foto_perfil ? '<img src="' + escSt(p.foto_perfil) + '" alt="">' : escSt((p.nome || '?').trim().charAt(0).toUpperCase());
             return '<a class="share-item" href="/u/' + encodeURIComponent(p.usuario) + '">'
               + '<span class="share-av">' + av + '</span>'
@@ -622,28 +625,55 @@
         delModal.setAttribute('aria-hidden', 'false');
       });
 
-      // Toque: soltar rápido = navega; segurar = pausa. Arrastar para baixo fecha.
+      // Toque: soltar rápido = navega; segurar = pausa. Arrastar: a MÍDIA acompanha o
+      // dedo (como virar página no Instagram) — pro lado troca de story, pra baixo fecha.
       ['prev', 'next'].forEach(function (lado) {
         var zona = view.querySelector('.stview-tap.' + lado);
         zona.addEventListener('pointerdown', function (e) {
           if (view.classList.contains('respondendo')) return; // digitando: toque só fecha o teclado
-          pressT = Date.now(); swipeY = e.clientY; swipeX = e.clientX; pausar(true);
+          try { zona.setPointerCapture(e.pointerId); } catch (x) {}
+          pressT = Date.now(); swipeY = e.clientY; swipeX = e.clientX;
+          mediaBox.style.transition = 'none';
+          pausar(true);
         });
-        zona.addEventListener('pointerup', function (e) {
-          if (view.classList.contains('respondendo')) { respEl.blur(); swipeY = -1; swipeX = null; return; }
+        zona.addEventListener('pointermove', function (e) {
+          if (swipeX === null || view.classList.contains('respondendo')) return;
+          var dx = e.clientX - swipeX, dy = e.clientY - swipeY;
+          if (Math.abs(dx) >= Math.abs(dy)) {
+            mediaBox.style.transform = 'translateX(' + dx + 'px)';
+            mediaBox.style.opacity = String(Math.max(0.5, 1 - Math.abs(dx) / 900));
+          } else if (dy > 0) {
+            mediaBox.style.transform = 'translateY(' + dy + 'px) scale(' + Math.max(0.85, 1 - dy / 1400) + ')';
+            mediaBox.style.opacity = '';
+          }
+        });
+        function soltarArrasto(e, cancelado) {
+          if (swipeX === null) return;
           var segurou = Date.now() - pressT > 260;
-          var dy = swipeY >= 0 ? e.clientY - swipeY : 0;
-          var dx = swipeX !== null ? e.clientX - swipeX : 0;
+          var dy = e ? e.clientY - swipeY : 0;
+          var dx = e ? e.clientX - swipeX : 0;
           swipeY = -1; swipeX = null;
-          if (dy > 80 && dy > Math.abs(dx)) { fecharView(); return; } // arrastou pra baixo: fecha
-          pausar(false);
-          if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) { // arrastou pro lado: troca de story
+          function encaixar() { // volta pro lugar com mola
+            mediaBox.style.transition = 'transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease';
+            mediaBox.style.transform = ''; mediaBox.style.opacity = '';
+            setTimeout(function () { mediaBox.style.transition = ''; }, 220);
+          }
+          if (cancelado) { encaixar(); pausar(false); return; }
+          if (dy > 80 && dy > Math.abs(dx)) { fecharView(); return; } // desceu: fecha
+          if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {    // pro lado: troca
+            pausar(false);
             if (dx < 0) proximo(); else anterior();
             return;
           }
-          if (!segurou) (lado === 'prev' ? anterior() : proximo());
+          encaixar();
+          pausar(false);
+          if (!segurou && Math.abs(dx) < 8 && Math.abs(dy) < 8) (lado === 'prev' ? anterior() : proximo());
+        }
+        zona.addEventListener('pointerup', function (e) {
+          if (view.classList.contains('respondendo')) { respEl.blur(); swipeY = -1; swipeX = null; return; }
+          soltarArrasto(e, false);
         });
-        zona.addEventListener('pointercancel', function () { swipeY = -1; pausar(false); });
+        zona.addEventListener('pointercancel', function () { soltarArrasto(null, true); });
       });
     }
 
@@ -687,9 +717,13 @@
       avEl.innerHTML = g.foto_perfil ? '<img src="' + escSt(g.foto_perfil) + '" alt="">' : escSt((g.nome || '?').trim().charAt(0).toUpperCase());
       nomeEl.textContent = g.usuario;
       tempoEl.textContent = tempoRelJs(item.criado_em);
-      delBtn.hidden = !g.eu; delBtn.dataset.confirmando = ''; delBtn.textContent = 'Apagar story';
+      delBtn.hidden = !g.eu;
       vistosEl.hidden = !g.eu;
-      if (g.eu) vistosEl.textContent = '👁 ' + (item.vistos || 0) + ' · ❤ ' + (item.curtidas || 0);
+      if (g.eu) {
+        // "Atividade" com o ícone de pessoas, como no Instagram (detalhes na folha)
+        vistosEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'
+          + '<span>Atividade</span>';
+      }
       somBtn.hidden = !item.video;
       // Rodapé de interação (só nos stories dos outros): responder, curtir, encaminhar
       rodapeEl.hidden = !!g.eu;
@@ -701,6 +735,7 @@
 
       mediaBox.innerHTML = '';
       mediaBox.classList.remove('st-anim'); // a animação de entrada só roda quando a mídia está pronta
+      mediaBox.style.transform = ''; mediaBox.style.opacity = ''; mediaBox.style.transition = '';
       var seq = ++mostrarSeq;
       view.classList.add('carregando');
       if (item.video) {
@@ -777,6 +812,7 @@
     function fecharView() {
       pararTempo();
       if (view) view.hidden = true;
+      if (mediaBox) { mediaBox.style.transform = ''; mediaBox.style.opacity = ''; mediaBox.style.transition = ''; }
       document.body.classList.remove('sem-scroll');
       atualizarAneis();
     }

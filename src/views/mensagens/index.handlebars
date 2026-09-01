@@ -6,6 +6,23 @@
       <span class="direct-lista-sub">Direct do escritório</span>
     </div>
 
+    {{! Notas (estilo Instagram): balãozinho acima do avatar, "Sua nota" primeiro.
+        Identidade pública do escritório — não toca nos canais secretos do jogo. }}
+    <div class="notas">
+      <button type="button" class="nota" data-abrir-modal="modal-humor" title="{{#if humorEu}}{{rotuloHumor humorEu}} · alterar{{else}}Deixar uma nota{{/if}}">
+        <span class="nota-bolha {{#unless humorEu}}vazia{{/unless}}">{{#if humorEu}}{{emojiHumor humorEu}} {{rotuloHumor humorEu}}{{else}}Nota…{{/if}}</span>
+        <span class="nota-av">{{#if usuario.foto_perfil}}<img src="{{usuario.foto_perfil}}" alt="">{{else}}{{inicial usuario.nome}}{{/if}}</span>
+        <span class="nota-nome">Sua nota</span>
+      </button>
+      {{#each notas}}
+        <a class="nota" href="/mensagens/u/{{this.id_usuario}}" title="{{this.nome}} · {{rotuloHumor this.humor}}">
+          <span class="nota-bolha">{{emojiHumor this.humor}} {{rotuloHumor this.humor}}</span>
+          <span class="nota-av">{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</span>
+          <span class="nota-nome">{{this.usuario}}</span>
+        </a>
+      {{/each}}
+    </div>
+
     <div class="direct-scroll">
       {{#if participaJogo}}
         <div class="direct-secao secao-secreta">
@@ -166,4 +183,33 @@
       </div>
     {{/if}}
   </section>
+</div>
+
+{{! Modal da nota (antes vivia no mural): define/limpa o status do dia }}
+<div class="modal" id="modal-humor" hidden aria-hidden="true">
+  <div class="modal-card modal-humor">
+    <div class="modal-cab">
+      <h2>Deixe uma nota</h2>
+      <p class="texto-suave">Sua nota aparece para a equipe aqui no Direct e some à meia-noite.</p>
+    </div>
+    <form action="/conta/humor" method="POST" class="humor-grade">
+      <input type="hidden" name="_csrf" value="{{csrfToken}}">
+      {{#each humores}}
+        <button type="submit" name="humor" value="{{this.chave}}" class="humor-op {{#if (eq this.chave @root.humorEu)}}sel{{/if}}">
+          <span class="humor-emoji">{{this.emoji}}</span>
+          <span class="humor-rotulo">{{this.rotulo}}</span>
+        </button>
+      {{/each}}
+    </form>
+    <div class="modal-acoes">
+      {{#if humorEu}}
+        <form action="/conta/humor" method="POST" style="margin:0;">
+          <input type="hidden" name="_csrf" value="{{csrfToken}}">
+          <input type="hidden" name="humor" value="">
+          <button type="submit" class="btn btn-secundario btn-sm">Remover nota</button>
+        </form>
+      {{/if}}
+      <button type="button" class="btn btn-secundario btn-sm" data-fechar-modal="modal-humor">Fechar</button>
+    </div>
+  </div>
 </div>

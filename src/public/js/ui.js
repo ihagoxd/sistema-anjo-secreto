@@ -246,6 +246,259 @@
     });
   })();
 
+  /* ---------- Stories (estilo Instagram) ----------
+     Publicar: folha com Câmera / Foto / Vídeo → o form #formStory envia o arquivo
+     INTACTO (qualidade original). Assistir: visualizador em tela cheia com barras
+     de progresso, toque avança/volta, segurar pausa, arrastar para baixo fecha. */
+  (function () {
+    var metaCsrfSt = document.querySelector('meta[name="csrf-token"]');
+    var CSRF = metaCsrfSt ? metaCsrfSt.getAttribute('content') : '';
+
+    // --- Publicar: escolhas da folha disparam os inputs do form invisível ---
+    function fecharSheetStory() {
+      var m = document.getElementById('modal-add-story');
+      if (m) { m.setAttribute('hidden', ''); m.setAttribute('aria-hidden', 'true'); }
+    }
+    document.addEventListener('click', function (e) {
+      var form = document.getElementById('formStory');
+      if (e.target.closest('[data-add-story]')) {
+        var m = document.getElementById('modal-add-story');
+        if (m) { m.removeAttribute('hidden'); m.setAttribute('aria-hidden', 'false'); }
+        return;
+      }
+      if (!form) return;
+      if (e.target.closest('[data-story-foto]')) {
+        fecharSheetStory();
+        var fi = form.querySelector('[data-foto]');
+        if (fi) { fi.removeAttribute('capture'); fi.click(); }
+      } else if (e.target.closest('[data-story-video]')) {
+        fecharSheetStory();
+        var vi = form.querySelector('[data-video]');
+        if (vi) vi.click();
+      } else if (e.target.closest('[data-story-camera]')) {
+        fecharSheetStory(); // a câmera abre pelo handler de [data-camera] (mesmo clique)
+      }
+    });
+    // Arquivo escolhido/capturado → publica na hora
+    document.addEventListener('change', function (e) {
+      var f = e.target.form;
+      if (!f || f.id !== 'formStory') return;
+      if (e.target.files && e.target.files.length) f.submit();
+    });
+
+    // --- Visualizador ---
+    var view = null, barras = null, mediaBox = null, avEl = null, nomeEl = null, tempoEl = null,
+      vistosEl = null, delBtn = null, somBtn = null;
+    var grupos = [], gi = 0, ii = 0;
+    var raf = 0, t0 = 0, decorrido = 0, dur = 5000, pausado = false, videoEl = null;
+    var pressT = 0, swipeY = -1;
+
+    function tempoRelJs(iso) {
+      var seg = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+      if (seg < 60) return 'agora';
+      if (seg < 3600) return Math.floor(seg / 60) + ' min';
+      return Math.floor(seg / 3600) + ' h';
+    }
+    function escSt(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+
+    function montarView() {
+      if (view) return;
+      view = document.createElement('div');
+      view.className = 'stview';
+      view.hidden = true;
+      view.innerHTML =
+        '<div class="stview-progresso"></div>'
+        + '<div class="stview-cab">'
+        + '  <span class="stview-av"></span>'
+        + '  <span class="stview-nome"></span><span class="stview-tempo"></span>'
+        + '  <button type="button" class="stview-som" hidden aria-label="Som">🔊</button>'
+        + '  <button type="button" class="stview-x" aria-label="Fechar">&times;</button>'
+        + '</div>'
+        + '<div class="stview-media"></div>'
+        + '<div class="stview-tap prev" aria-hidden="true"></div>'
+        + '<div class="stview-tap next" aria-hidden="true"></div>'
+        + '<div class="stview-vistos" hidden></div>'
+        + '<button type="button" class="stview-del" hidden>Apagar story</button>';
+      document.body.appendChild(view);
+      barras = view.querySelector('.stview-progresso');
+      mediaBox = view.querySelector('.stview-media');
+      avEl = view.querySelector('.stview-av');
+      nomeEl = view.querySelector('.stview-nome');
+      tempoEl = view.querySelector('.stview-tempo');
+      vistosEl = view.querySelector('.stview-vistos');
+      delBtn = view.querySelector('.stview-del');
+      somBtn = view.querySelector('.stview-som');
+
+      view.querySelector('.stview-x').addEventListener('click', fecharView);
+      somBtn.addEventListener('click', function () {
+        if (!videoEl) return;
+        videoEl.muted = !videoEl.muted;
+        somBtn.textContent = videoEl.muted ? '🔇' : '🔊';
+      });
+      delBtn.addEventListener('click', function () {
+        var item = grupos[gi] && grupos[gi].itens[ii];
+        if (!item) return;
+        if (delBtn.dataset.confirmando !== '1') {
+          delBtn.dataset.confirmando = '1';
+          delBtn.textContent = 'Apagar mesmo?';
+          setTimeout(function () { delBtn.dataset.confirmando = ''; delBtn.textContent = 'Apagar story'; }, 2600);
+          return;
+        }
+        fetch('/stories/' + item.id_story + '/remover', { method: 'POST', headers: { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch' } })
+          .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+          .then(function () { window.location.reload(); })
+          .catch(function () { toast('Não foi possível apagar.'); });
+      });
+
+      // Toque: soltar rápido = navega; segurar = pausa. Arrastar para baixo fecha.
+      ['prev', 'next'].forEach(function (lado) {
+        var zona = view.querySelector('.stview-tap.' + lado);
+        zona.addEventListener('pointerdown', function (e) {
+          pressT = Date.now(); swipeY = e.clientY; pausar(true);
+        });
+        zona.addEventListener('pointerup', function (e) {
+          var segurou = Date.now() - pressT > 260;
+          var desceu = swipeY >= 0 && (e.clientY - swipeY) > 80;
+          swipeY = -1;
+          if (desceu) { fecharView(); return; }
+          pausar(false);
+          if (!segurou) (lado === 'prev' ? anterior() : proximo());
+        });
+        zona.addEventListener('pointercancel', function () { swipeY = -1; pausar(false); });
+      });
+    }
+
+    function pausar(sim) {
+      pausado = sim;
+      if (videoEl) { if (sim) videoEl.pause(); else videoEl.play().catch(function () {}); }
+      else if (sim) { decorrido += performance.now() - t0; cancelAnimationFrame(raf); }
+      else { t0 = performance.now(); raf = requestAnimationFrame(tick); }
+    }
+
+    function barrasHtml(n) {
+      var h = '';
+      for (var i = 0; i < n; i++) h += '<span class="stbar"><i></i></span>';
+      barras.innerHTML = h;
+    }
+    function setBarra(idx, frac) {
+      var el = barras.children[idx] && barras.children[idx].firstChild;
+      if (el) el.style.width = (Math.max(0, Math.min(1, frac)) * 100) + '%';
+    }
+
+    function tick() {
+      if (pausado) return;
+      var frac = (decorrido + performance.now() - t0) / dur;
+      setBarra(ii, frac);
+      if (frac >= 1) { proximo(); return; }
+      raf = requestAnimationFrame(tick);
+    }
+
+    function pararTempo() { cancelAnimationFrame(raf); if (videoEl) { try { videoEl.pause(); } catch (e) {} videoEl = null; } }
+
+    function mostrar() {
+      var g = grupos[gi];
+      if (!g) { fecharView(); return; }
+      var item = g.itens[ii];
+      pararTempo();
+      pausado = false; decorrido = 0;
+
+      barrasHtml(g.itens.length);
+      for (var i = 0; i < ii; i++) setBarra(i, 1);
+
+      avEl.innerHTML = g.foto_perfil ? '<img src="' + escSt(g.foto_perfil) + '" alt="">' : escSt((g.nome || '?').trim().charAt(0).toUpperCase());
+      nomeEl.textContent = g.usuario;
+      tempoEl.textContent = tempoRelJs(item.criado_em);
+      delBtn.hidden = !g.eu; delBtn.dataset.confirmando = ''; delBtn.textContent = 'Apagar story';
+      vistosEl.hidden = !g.eu;
+      if (g.eu) vistosEl.textContent = '👁 ' + (item.vistos || 0) + (item.vistos === 1 ? ' visualização' : ' visualizações');
+      somBtn.hidden = !item.video;
+
+      mediaBox.innerHTML = '';
+      if (item.video) {
+        videoEl = document.createElement('video');
+        videoEl.src = item.video; videoEl.playsInline = true; videoEl.autoplay = true;
+        videoEl.addEventListener('loadedmetadata', function () { dur = Math.max(1000, (videoEl.duration || 10) * 1000); });
+        videoEl.addEventListener('timeupdate', function () { if (videoEl && videoEl.duration) setBarra(ii, videoEl.currentTime / videoEl.duration); });
+        videoEl.addEventListener('ended', proximo);
+        mediaBox.appendChild(videoEl);
+        videoEl.muted = false;
+        somBtn.textContent = '🔊';
+        videoEl.play().catch(function () { // autoplay com som bloqueado: toca mudo e mostra o botão
+          if (!videoEl) return;
+          videoEl.muted = true; somBtn.textContent = '🔇';
+          videoEl.play().catch(function () {});
+        });
+      } else {
+        var img = document.createElement('img');
+        img.src = item.imagem; img.alt = '';
+        mediaBox.appendChild(img);
+        dur = 5000; t0 = performance.now();
+        raf = requestAnimationFrame(tick);
+      }
+
+      if (!g.eu && !item.visto) {
+        item.visto = true;
+        fetch('/stories/' + item.id_story + '/visto', { method: 'POST', headers: { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch' } }).catch(function () {});
+      }
+    }
+
+    function proximo() {
+      var g = grupos[gi];
+      if (ii < g.itens.length - 1) { ii++; mostrar(); return; }
+      if (gi < grupos.length - 1) { gi++; ii = 0; mostrar(); return; }
+      fecharView();
+    }
+    function anterior() {
+      if (ii > 0) { ii--; mostrar(); return; }
+      if (gi > 0) { gi--; ii = grupos[gi].itens.length - 1; mostrar(); return; }
+      mostrar(); // primeiro de todos: recomeça o atual
+    }
+
+    function atualizarAneis() {
+      grupos.forEach(function (g) {
+        var tudo = g.itens.every(function (it) { return it.visto || g.eu; });
+        var anel = document.querySelector('[data-ver-stories="' + g.id_usuario + '"] .story-ring, .story-ring[data-ver-stories="' + g.id_usuario + '"]');
+        if (anel && tudo && !g.eu) { anel.classList.remove('tem'); anel.classList.add('sem'); }
+      });
+    }
+
+    function fecharView() {
+      pararTempo();
+      if (view) view.hidden = true;
+      document.body.classList.remove('sem-scroll');
+      atualizarAneis();
+    }
+
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-ver-stories]');
+      if (!b) return;
+      var idAlvo = parseInt(b.getAttribute('data-ver-stories'), 10);
+      montarView();
+      fetch('/stories/dados', { headers: { 'Accept': 'application/json' } })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+        .then(function (gs) {
+          if (!gs.length) return;
+          grupos = gs;
+          gi = Math.max(0, grupos.findIndex(function (g) { return g.id_usuario === idAlvo; }));
+          // começa no primeiro não visto (como no Instagram); se viu todos, do início
+          var g = grupos[gi];
+          ii = g.itens.findIndex(function (it) { return !it.visto && !g.eu; });
+          if (ii < 0) ii = 0;
+          document.body.classList.add('sem-scroll');
+          view.hidden = false;
+          mostrar();
+        })
+        .catch(function () { toast('Não foi possível abrir os stories.'); });
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (!view || view.hidden) return;
+      if (e.key === 'Escape') fecharView();
+      else if (e.key === 'ArrowRight') proximo();
+      else if (e.key === 'ArrowLeft') anterior();
+    });
+  })();
+
   /* ---------- Toast (aviso curto flutuante) ---------- */
   var toastTimer = null;
   function toast(msg) {

@@ -2,6 +2,7 @@
 
 const express = require('express');
 const ctrl = require('../controllers/feed.controller');
+const storiesCtrl = require('../controllers/stories.controller');
 const { exigeAutenticacao, exigeSenhaDefinitiva, bloquearAdmin } = require('../middlewares/auth.middleware');
 const { verifyCsrfAposUpload } = require('../middlewares/csrf.middleware');
 const { uploadMsg, conferirAssinaturas } = require('../config/upload');
@@ -25,6 +26,18 @@ router.post('/feed/:id_post/repostar', guard, ctrl.postRepost);
 router.post('/feed/:id_post/comentar', guard, ctrl.postComentar);
 router.post('/feed/:id_post/remover', guard, ctrl.postRemover);
 router.post('/feed/comentarios/:id_comentario/remover', guard, ctrl.postRemoverComentario);
+
+// Stories (estilo Instagram): publicar, listar para o visualizador, marcar visto, apagar
+const receberStory = (req, res, next) => {
+  uploadMsg.fields([{ name: 'imagem', maxCount: 1 }, { name: 'video', maxCount: 1 }])(req, res, function (err) {
+    if (err) { req.session.flash = { erro: err.message || 'Falha no envio do arquivo.' }; return res.redirect('/feed'); }
+    next();
+  });
+};
+router.post('/stories', guard, receberStory, conferirAssinaturas, verifyCsrfAposUpload, storiesCtrl.postCriar);
+router.get('/stories/dados', guard, storiesCtrl.getDados);
+router.post('/stories/:id_story/visto', guard, storiesCtrl.postVisto);
+router.post('/stories/:id_story/remover', guard, storiesCtrl.postRemover);
 
 router.get('/mencoes', guard, ctrl.getMencoes);
 router.get('/buscar', guard, ctrl.getBusca);

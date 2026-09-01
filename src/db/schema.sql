@@ -261,6 +261,25 @@ CREATE TABLE IF NOT EXISTS reposts (
 CREATE INDEX IF NOT EXISTS idx_reposts_usuario ON reposts(id_usuario, criado_em DESC);
 CREATE INDEX IF NOT EXISTS idx_reposts_post ON reposts(id_post);
 
+-- ---------- STORIES (estilo Instagram: foto/vídeo que expira em 24 h) ----------
+CREATE TABLE IF NOT EXISTS stories (
+  id_story    SERIAL PRIMARY KEY,
+  id_usuario  INTEGER NOT NULL REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
+  imagem      VARCHAR(300),
+  video       VARCHAR(300),
+  criado_em   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_stories_usuario ON stories(id_usuario, criado_em DESC);
+CREATE INDEX IF NOT EXISTS idx_stories_criado ON stories(criado_em);
+
+-- Quem já viu cada story (anel dourado vira cinza depois de visto, como no Instagram)
+CREATE TABLE IF NOT EXISTS story_vistos (
+  id_story    INTEGER NOT NULL REFERENCES stories(id_story) ON DELETE CASCADE,
+  id_usuario  INTEGER NOT NULL REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
+  visto_em    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (id_story, id_usuario)
+);
+
 -- ---------- ÍNDICES ----------
 CREATE INDEX IF NOT EXISTS idx_usuarios_email        ON usuarios(email);
 CREATE INDEX IF NOT EXISTS idx_participantes_campanha ON participantes(id_campanha);

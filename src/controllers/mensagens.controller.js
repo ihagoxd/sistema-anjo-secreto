@@ -19,6 +19,7 @@ const mensagemService = require('../services/mensagem.service');
 const dmService = require('../services/mensagemDireta.service');
 const usuarioModel = require('../models/usuario.model');
 const postModel = require('../models/post.model');
+const { HUMORES } = require('../config/humores');
 
 const MSG = {
   SEM_CAMPANHA: 'Nenhuma campanha em andamento.',
@@ -107,6 +108,11 @@ async function renderInbox(req, res, sel) {
 
   if (conversa && conversa.mensagens) await anexarPreviasDePost(conversa.mensagens, me);
 
+  // Notas (estilo Instagram): "Sua nota" + quem definiu o status hoje.
+  // Identidade PÚBLICA do escritório — nada aqui toca nos canais secretos do jogo.
+  const humorEu = await usuarioModel.buscarHumorHoje(me);
+  const notas = ctx.equipe.filter((u) => u.humor);
+
   res.render('mensagens/index', {
     titulo: 'Mensagens',
     semCampanha: !ctx.campanha,
@@ -116,6 +122,9 @@ async function renderInbox(req, res, sel) {
     equipe: ctx.equipe,
     conversa,
     limite: mensagemService.LIMITE,
+    humorEu,
+    humores: HUMORES,
+    notas,
   });
 }
 

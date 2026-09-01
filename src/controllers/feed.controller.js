@@ -4,7 +4,7 @@ const postService = require('../services/post.service');
 const postModel = require('../models/post.model');
 const usuarioModel = require('../models/usuario.model');
 const preferenciaService = require('../services/preferencia.service');
-const { HUMORES } = require('../config/humores');
+const storyService = require('../services/story.service');
 const { montarGostos } = require('../config/gostos');
 
 function ehAdmin(req) {
@@ -24,16 +24,22 @@ async function getFeed(req, res, next) {
     const posts = await postService.listarFeed(me);
     const comentarios = await postModel.listarComentariosDeVarios(posts.map((p) => p.id_post));
     anexarComentarios(posts, comentarios);
-    const equipe = await usuarioModel.listarAprovados(me, 30);
-    const humorEu = await usuarioModel.buscarHumorHoje(me);
+    let equipe = await usuarioModel.listarAprovados(me, 30);
+    // Anéis dos stories (estilo Instagram): dourado = tem story não visto; cinza = sem story ou tudo visto
+    const aneis = await storyService.resumoAneis(me);
+    equipe = equipe.map((u) => ({
+      ...u,
+      temStory: !!aneis[u.id_usuario],
+      storyVisto: !!(aneis[u.id_usuario] && aneis[u.id_usuario].tudoVisto),
+    }));
+    const meuAnel = aneis[me] || null;
     res.render('feed/index', {
       titulo: 'Mural',
       posts,
       limite: postService.LIMITE_TEXTO,
       equipe,
       sugestoes: equipe.slice(0, 5),
-      humorEu,
-      humores: HUMORES,
+      tenhoStory: !!meuAnel,
     });
   } catch (err) {
     next(err);

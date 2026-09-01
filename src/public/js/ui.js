@@ -1957,15 +1957,20 @@
       for (var i = 0; i < 26; i++) onda.appendChild(document.createElement('span'));
     }
 
-    // ----- Filtro de voz (chat secreto do protegido): disfarça a voz JÁ na gravação -----
+    // ----- Filtro de voz (todos os chats; padrão Grave no canal do protegido) -----
     var filtroBox = form.querySelector('[data-filtro-voz]');
-    var vozSel = 'grave';
-    if (filtroBox) filtroBox.addEventListener('click', function (e) {
-      var b = e.target.closest('[data-voz]');
-      if (!b) return;
-      vozSel = b.getAttribute('data-voz');
-      filtroBox.querySelectorAll('.dm-filtro-op').forEach(function (o) { o.classList.toggle('sel', o === b); });
-    });
+    var vozSel = 'normal';
+    if (filtroBox) {
+      var selIni = filtroBox.querySelector('.dm-filtro-op.sel');
+      if (selIni) vozSel = selIni.getAttribute('data-voz') || 'normal';
+      filtroBox.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-voz]');
+        if (!b) return;
+        vozSel = b.getAttribute('data-voz');
+        filtroBox.querySelectorAll('.dm-filtro-op').forEach(function (o) { o.classList.toggle('sel', o === b); });
+      });
+    }
+    function vozAtiva() { return filtroBox && vozSel !== 'normal' ? vozSel : null; }
 
     // Pitch shift granular ("Jungle"): dois ramos de delay varridos por rampas
     // defasadas com crossfade — só nós nativos do Web Audio, roda em tempo real.
@@ -2007,31 +2012,71 @@
       return { entrada: ent, saida: sai };
     }
 
-    // Devolve o stream que o gravador deve usar: processado (voz disfarçada) ou o original.
-    var vozCtx = null;
-    function prepararVoz(s) {
-      var AC = window.AudioContext || window.webkitAudioContext;
-      if (!filtroBox || vozSel === 'normal' || !AC) return s;
-      try {
-        vozCtx = new AC();
-        var src = vozCtx.createMediaStreamSource(s);
-        var dest = vozCtx.createMediaStreamDestination();
-        if (vozSel === 'robo') {
-          // Modulador em anel (~45 Hz) + banda de "rádio": voz de robô clássica
-          var osc = vozCtx.createOscillator(); osc.frequency.value = 45; osc.start();
-          var anel = vozCtx.createGain(); anel.gain.value = 0;
-          osc.connect(anel.gain);
-          var bp = vozCtx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 900; bp.Q.value = 0.5;
-          src.connect(anel); anel.connect(bp); bp.connect(dest);
-        } else {
-          var p = criarPitch(vozCtx, vozSel === 'grave' ? 0.74 : 1.34);
-          src.connect(p.entrada); p.saida.connect(dest);
-        }
-        return dest.stream;
-      } catch (x) {
-        if (vozCtx) { try { vozCtx.close(); } catch (e2) {} vozCtx = null; }
-        return s;
+    // ----- Conversão UNIVERSAL: todo áudio vira WAV antes de enviar -----
+    // Por quê: Chrome/Android gravam .webm, e o iPhone NÃO TOCA WebM — os áudios
+    // ficavam mudos entre aparelhos. Decodificamos no aparelho de quem envia
+    // (que sempre entende o próprio formato), aplicamos o disfarce de voz AQUI
+    // (offline — funciona até no HTTP da rede interna) e regravamos em WAV,
+    // que toca em iPhone, Android e PC.
+    function wavBytes(bufer) {
+      var canal = bufer.getChannelData(0);
+      var n = canal.length, taxa = bufer.sampleRate;
+      var b = new ArrayBuffer(44 + n * 2);
+      var v = new DataView(b);
+      function txt(off, s) { for (var i = 0; i < s.length; i++) v.setUint8(off + i, s.charCodeAt(i)); }
+      txt(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); txt(8, 'WAVE');
+      txt(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+      v.setUint32(24, taxa, true); v.setUint32(28, taxa * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+      txt(36, 'data'); v.setUint32(40, n * 2, true);
+      for (var i2 = 0; i2 < n; i2++) {
+        var s2 = Math.max(-1, Math.min(1, canal[i2]));
+        v.setInt16(44 + i2 * 2, s2 < 0 ? s2 * 0x8000 : s2 * 0x7fff, true);
       }
+      return b;
+    }
+    function paraWavProcessado(blob, cb) {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      var OF = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+      if (!AC || !OF || !blob.arrayBuffer) { cb(null); return; }
+      blob.arrayBuffer().then(function (bruto) {
+        var ctx = new AC();
+        return ctx.decodeAudioData(bruto).then(function (dec) {
+          try { ctx.close(); } catch (e) {}
+          var taxa = 24000;
+          var efeito = vozAtiva();
+          var off = new OF(1, Math.ceil(dec.duration * taxa) + taxa, taxa); // 1s de folga p/ cauda
+          var src = off.createBufferSource(); src.buffer = dec;
+          if (efeito === 'robo') {
+            var osc = off.createOscillator(); osc.frequency.value = 45; osc.start();
+            var anel = off.createGain(); anel.gain.value = 0;
+            osc.connect(anel.gain);
+            var bp = off.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 900; bp.Q.value = 0.5;
+            src.connect(anel); anel.connect(bp); bp.connect(off.destination);
+          } else if (efeito) {
+            var p = criarPitch(off, efeito === 'grave' ? 0.74 : 1.34);
+            src.connect(p.entrada); p.saida.connect(off.destination);
+          } else {
+            src.connect(off.destination);
+          }
+          src.start(0);
+          return off.startRendering().then(function (rend) {
+            cb(new Blob([wavBytes(rend)], { type: 'audio/wav' }));
+          });
+        });
+      }).catch(function () { cb(null); }); // não decodificou: envia como veio
+    }
+    // Coloca o áudio final no campo e envia.
+    function enviarAudio(blob, tipoOriginal, extOriginal) {
+      paraWavProcessado(blob, function (wav) {
+        try {
+          var f = wav ? new File([wav], 'voz.wav', { type: 'audio/wav' })
+            : new File([blob], 'voz' + extOriginal, { type: tipoOriginal });
+          var dt = new DataTransfer();
+          dt.items.add(f);
+          inputAudio.files = dt.files;
+          form.submit();
+        } catch (x) { toast('Não foi possível preparar o áudio.'); }
+      });
     }
 
     var rec = null, pedacos = [], stream = null, timer = null, t0 = 0, decorrido = 0, enviarAoParar = false;
@@ -2077,7 +2122,6 @@
       if (timer) clearInterval(timer);
       timer = null;
       desligarOnda();
-      if (vozCtx) { try { vozCtx.close(); } catch (x) {} vozCtx = null; }
       if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
       stream = null;
       linhaGrav.classList.remove('pausada');
@@ -2095,7 +2139,7 @@
         var opts = {};
         if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) opts.mimeType = 'audio/webm;codecs=opus';
         else if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported('audio/mp4')) opts.mimeType = 'audio/mp4';
-        rec = new MediaRecorder(prepararVoz(s), opts); // no chat secreto, grava já com a voz disfarçada
+        rec = new MediaRecorder(s, opts); // grava cru; o disfarce/conversão acontece no envio
         var base = (rec.mimeType || 'audio/webm').split(';')[0];
         rec.ondataavailable = function (ev) { if (ev.data && ev.data.size) pedacos.push(ev.data); };
         rec.onstop = function () {
@@ -2103,13 +2147,8 @@
           mostrarGravando(false);
           if (!enviarAoParar || !pedacos.length) { pedacos = []; return; }
           var blob = new Blob(pedacos, { type: base });
-          try {
-            var ext = base === 'audio/mp4' ? '.m4a' : base === 'audio/ogg' ? '.ogg' : '.webm';
-            var dt = new DataTransfer();
-            dt.items.add(new File([blob], 'voz' + ext, { type: base }));
-            inputAudio.files = dt.files;
-            form.submit();
-          } catch (x) { toast('Não foi possível preparar o áudio.'); }
+          var ext = base === 'audio/mp4' ? '.m4a' : base === 'audio/ogg' ? '.ogg' : '.webm';
+          enviarAudio(blob, base, ext); // → WAV universal (+ efeito de voz, se escolhido)
         };
         rec.start(250);
         t0 = Date.now();
@@ -2146,9 +2185,15 @@
         if (analyser) desenharOnda();
       }
     });
-    // Fallback sem getUserMedia: o arquivo escolhido/gravado pelo sistema é enviado direto
+    // Fallback sem getUserMedia (HTTP na rede interna): o gravador do SISTEMA entrega o
+    // arquivo — que também passa pela conversão universal + efeito de voz antes de ir.
     inputAudio.addEventListener('change', function () {
-      if (inputAudio.files && inputAudio.files.length) form.submit();
+      var f = inputAudio.files && inputAudio.files[0];
+      if (!f) return;
+      var jaUniversal = /audio\/(mp4|x-m4a|aac|mpeg|wav|x-wav)/.test(f.type);
+      if (jaUniversal && !vozAtiva()) { form.submit(); return; } // já toca em tudo e sem efeito: vai direto
+      var ext = f.name && f.name.lastIndexOf('.') > 0 ? f.name.slice(f.name.lastIndexOf('.')) : '.webm';
+      enviarAudio(f, f.type || 'audio/webm', ext);
     });
   })();
 

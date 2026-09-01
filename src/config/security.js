@@ -49,9 +49,10 @@ function helmetMiddleware() {
   });
 }
 
-// Desliga APIs sensíveis do navegador que o app não usa.
+// Desliga APIs sensíveis que o app não usa — mas MICROFONE e CÂMERA ficam
+// liberados para o próprio site (mensagem de voz e câmera do chat/story).
 function permissionsPolicy(req, res, next) {
-  res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(), usb=()');
+  res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(self), camera=(self), payment=(), usb=()');
   next();
 }
 

@@ -25,6 +25,8 @@ const EXT_AUDIO = {
   'audio/mp4': '.m4a',
   'audio/ogg': '.ogg',
   'audio/mpeg': '.mp3',
+  'audio/wav': '.wav', // formato universal: o front converte a voz p/ WAV (toca até no iPhone)
+  'audio/x-wav': '.wav',
 };
 // Vídeo gravado na câmera (MediaRecorder: webm no Chrome/Android, mp4/mov no iOS)
 const EXT_VIDEO = {
@@ -80,6 +82,8 @@ const ASSINATURAS = {
   'image/webp': [[0x52, 0x49, 0x46, 0x46]],
   'audio/webm': [[0x1a, 0x45, 0xdf, 0xa3]], // contêiner EBML (WebM)
   'audio/ogg': [[0x4f, 0x67, 0x67, 0x53]], // "OggS"
+  'audio/wav': [[0x52, 0x49, 0x46, 0x46]], // "RIFF" (+ "WAVE" no offset 8, conferido abaixo)
+  'audio/x-wav': [[0x52, 0x49, 0x46, 0x46]],
   'audio/mpeg': [[0x49, 0x44, 0x33], [0xff, 0xfb], [0xff, 0xf3], [0xff, 0xf2]],
   'video/webm': [[0x1a, 0x45, 0xdf, 0xa3]], // contêiner EBML (WebM)
 };
@@ -94,6 +98,7 @@ function assinaturaOk(buf, mimetype) {
   const sigs = ASSINATURAS[mimetype];
   if (!sigs || !sigs.some((s) => comecaCom(buf, s))) return false;
   if (mimetype === 'image/webp') return buf.length >= 12 && buf.toString('ascii', 8, 12) === 'WEBP';
+  if (mimetype === 'audio/wav' || mimetype === 'audio/x-wav') return buf.length >= 12 && buf.toString('ascii', 8, 12) === 'WAVE';
   return true;
 }
 

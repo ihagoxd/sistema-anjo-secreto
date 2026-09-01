@@ -318,9 +318,11 @@
       comp.querySelector('.stcomp-enviar').addEventListener('click', enviarStory);
       // Marcar pessoas (pode várias): cada marcada recebe no Direct o card com "Repostar"
       comp.querySelector('.stcomp-marcar').addEventListener('click', function () {
-        abrirSeletorPessoa('Marcar pessoa no story', function (p) {
-          if (compMencoes.some(function (m) { return m.id === p.id; })) return;
-          compMencoes.push({ id: p.id, usuario: p.usuario });
+        abrirSeletorPessoa('Marcar pessoas no story', function (pessoas) {
+          pessoas.forEach(function (p) {
+            if (compMencoes.some(function (m) { return m.id === p.id; })) return;
+            compMencoes.push({ id: p.id, usuario: p.usuario });
+          });
           renderMencoes();
         });
       });
@@ -791,7 +793,8 @@
         var item = grupos[gi] && grupos[gi].itens[ii];
         if (!item || !(grupos[gi] && grupos[gi].eu)) return;
         pausar(true);
-        abrirSeletorPessoa('Marcar pessoa no story', function (p) {
+        abrirSeletorPessoa('Marcar pessoas no story', function (pessoas) {
+          if (!pessoas.length) { pausar(false); return; }
           if (!mrcModal) {
             mrcModal = document.createElement('div');
             mrcModal.className = 'modal stview-fwd-modal';
@@ -799,7 +802,7 @@
             mrcModal.setAttribute('aria-hidden', 'true');
             mrcModal.innerHTML = '<div class="modal-card stdel-card">'
               + '<h3 class="mrc-titulo"></h3>'
-              + '<p class="texto-suave">A pessoa recebe o story no Direct e pode repostar.</p>'
+              + '<p class="texto-suave">Quem for marcado recebe o story no Direct e pode repostar.</p>'
               + '<div class="modal-acoes">'
               + '<button type="button" class="btn btn-secundario btn-sm" data-fechar-modal>Cancelar</button>'
               + '<button type="button" class="btn btn-primario btn-sm mrc-ok">Marcar</button>'
@@ -811,19 +814,31 @@
               var alvoP = mrcPessoa; mrcPessoa = null;
               mrcModal.setAttribute('hidden', '');
               mrcModal.setAttribute('aria-hidden', 'true');
-              fetch('/stories/' + alvoP.idStory + '/marcar', {
-                method: 'POST',
-                headers: { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch', 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({ pessoa: alvoP.id }),
-              })
-                .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
-                .then(function (d) { toast('Marcado! @' + (d.usuario || alvoP.usuario) + ' recebeu no Direct 🏷️'); })
-                .catch(function () { toast('Não foi possível marcar.'); })
-                .finally(function () { pausar(false); });
+              // marca todo mundo em sequência e conta os sucessos
+              var oks = 0;
+              var fila = alvoP.pessoas.slice();
+              (function proximaMarca() {
+                if (!fila.length) {
+                  toast(oks ? 'Marcado! ' + oks + (oks === 1 ? ' pessoa recebeu' : ' pessoas receberam') + ' no Direct 🏷️' : 'Não foi possível marcar.');
+                  pausar(false);
+                  return;
+                }
+                var p = fila.shift();
+                fetch('/stories/' + alvoP.idStory + '/marcar', {
+                  method: 'POST',
+                  headers: { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch', 'Content-Type': 'application/x-www-form-urlencoded' },
+                  body: new URLSearchParams({ pessoa: p.id }),
+                })
+                  .then(function (r) { if (r.ok) oks++; })
+                  .catch(function () {})
+                  .finally(proximaMarca);
+              })();
             });
           }
-          mrcPessoa = { id: p.id, usuario: p.usuario, idStory: item.id_story };
-          mrcModal.querySelector('.mrc-titulo').textContent = 'Marcar @' + p.usuario + ' neste story?';
+          mrcPessoa = { pessoas: pessoas, idStory: item.id_story };
+          var nomes = pessoas.map(function (p) { return '@' + p.usuario; });
+          var rot = nomes.length <= 3 ? nomes.join(', ') : nomes.slice(0, 3).join(', ') + ' e +' + (nomes.length - 3);
+          mrcModal.querySelector('.mrc-titulo').textContent = 'Marcar ' + rot + ' neste story?';
           mrcModal.hidden = false;
           mrcModal.setAttribute('aria-hidden', 'false');
         }, function () { pausar(false); });
@@ -1193,9 +1208,11 @@
         }).join(' ');
       };
       btnColab.addEventListener('click', function () {
-        abrirSeletorPessoa('Adicionar colaborador', function (p) {
-          if (colabs.some(function (c) { return c.id === p.id; })) return;
-          colabs.push({ id: p.id, usuario: p.usuario });
+        abrirSeletorPessoa('Adicionar colaboradores', function (pessoas) {
+          pessoas.forEach(function (p) {
+            if (colabs.some(function (c) { return c.id === p.id; })) return;
+            colabs.push({ id: p.id, usuario: p.usuario });
+          });
           renderColabs();
         });
       });
@@ -1423,21 +1440,34 @@
     toastTimer = setTimeout(function () { t.classList.remove('mostra'); }, 2200);
   }
 
-  /* ---------- Seletor de pessoa (folha genérica: colaborador do post, marcar no story)
-     Com CAMPO DE PESQUISA no topo: filtra ao vivo enquanto digita. ---------- */
+  /* ---------- Seletor de pessoas (folha genérica: colaboradores, marcar no story)
+     PESQUISA no topo + MULTI-SELEÇÃO com check dourado e "Confirmar (N)" embaixo —
+     marca várias de uma vez, sem confirmar uma por uma. O callback recebe a LISTA. ---------- */
   var selPessoaModal = null, selPessoaCb = null, selPessoaSeq = 0, selPessoaTimer = null, selPessoaFechar = null;
+  var selPessoaSel = {}; // id → pessoa selecionada
   function abrirSeletorPessoa(titulo, cb, aoFechar) {
     selPessoaCb = cb;
     selPessoaFechar = aoFechar || null;
+    selPessoaSel = {};
     function escSP(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+    function atualizarRodape() {
+      var n = Object.keys(selPessoaSel).length;
+      var rod = selPessoaModal.querySelector('.selp-rodape');
+      var btn = selPessoaModal.querySelector('.selp-confirmar');
+      rod.hidden = n === 0;
+      btn.textContent = 'Confirmar (' + n + ')';
+    }
     function renderizar(pessoas, lista) {
       if (!pessoas.length) { lista.innerHTML = '<div class="texto-suave" style="padding:10px 6px;">Ninguém encontrado.</div>'; return; }
       lista.innerHTML = pessoas.map(function (p) {
         var av = p.foto_perfil ? '<img src="' + escSP(p.foto_perfil) + '" alt="">' : escSP((p.nome || '?').trim().charAt(0).toUpperCase());
-        return '<button type="button" class="share-item" data-selp="' + escSP(String(p.id_usuario || '')) + '" data-selp-user="' + escSP(p.usuario) + '" data-selp-nome="' + escSP(p.nome) + '">'
+        var sel = selPessoaSel[p.id_usuario] ? ' sel' : '';
+        return '<button type="button" class="share-item' + sel + '" data-selp="' + escSP(String(p.id_usuario || '')) + '" data-selp-user="' + escSP(p.usuario) + '" data-selp-nome="' + escSP(p.nome) + '">'
           + '<span class="share-av">' + av + '</span>'
           + '<span class="share-txt"><span class="share-nome">' + escSP(p.nome) + '</span>'
-          + '<span class="share-user">@' + escSP(p.usuario) + '</span></span></button>';
+          + '<span class="share-user">@' + escSP(p.usuario) + '</span></span>'
+          + '<span class="share-check" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>'
+          + '</button>';
       }).join('');
     }
     function buscar(q, lista) {
@@ -1458,23 +1488,36 @@
         + '<button type="button" class="sheet-x" data-fechar-modal aria-label="Fechar">&times;</button></div>'
         + '<div class="selp-busca"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'
         + '<input type="text" class="selp-input" placeholder="Pesquisar…" autocomplete="off" maxlength="60"></div>'
-        + '<div class="share-lista selp-lista"></div></div>';
+        + '<div class="share-lista selp-lista"></div>'
+        + '<div class="share-rodape selp-rodape" hidden><button type="button" class="btn btn-primario share-enviar selp-confirmar">Confirmar</button></div>'
+        + '</div>';
       document.body.appendChild(selPessoaModal);
       selPessoaModal.addEventListener('click', function (e) {
         if (e.target.closest('[data-fechar-modal]') || e.target === selPessoaModal) {
           if (selPessoaFechar) { var f = selPessoaFechar; selPessoaFechar = null; f(); }
           return;
         }
+        if (e.target.closest('.selp-confirmar')) {
+          var escolhidos = Object.keys(selPessoaSel).map(function (k) { return selPessoaSel[k]; });
+          if (!escolhidos.length) return;
+          selPessoaModal.setAttribute('hidden', '');
+          selPessoaModal.setAttribute('aria-hidden', 'true');
+          selPessoaFechar = null;
+          if (selPessoaCb) selPessoaCb(escolhidos);
+          return;
+        }
         var b = e.target.closest('[data-selp]');
         if (!b) return;
-        selPessoaModal.setAttribute('hidden', '');
-        selPessoaModal.setAttribute('aria-hidden', 'true');
-        selPessoaFechar = null;
-        if (selPessoaCb) selPessoaCb({
-          id: b.getAttribute('data-selp'),
-          usuario: b.getAttribute('data-selp-user'),
-          nome: b.getAttribute('data-selp-nome'),
-        });
+        // toque marca/desmarca (check dourado); o Confirmar embaixo fecha tudo de uma vez
+        var id = b.getAttribute('data-selp');
+        if (selPessoaSel[id]) {
+          delete selPessoaSel[id];
+          b.classList.remove('sel');
+        } else {
+          selPessoaSel[id] = { id: id, usuario: b.getAttribute('data-selp-user'), nome: b.getAttribute('data-selp-nome') };
+          b.classList.add('sel');
+        }
+        atualizarRodape();
       });
       // Teclado do celular: a folha sobe junto e a lista encolhe — ninguém fica escondido
       if (window.visualViewport) {
@@ -1500,6 +1543,7 @@
     selPessoaModal.querySelector('.sheet-titulo').textContent = titulo;
     var cardSel = selPessoaModal.querySelector('.modal-card');
     cardSel.style.transform = ''; cardSel.style.maxHeight = '';
+    selPessoaModal.querySelector('.selp-rodape').hidden = true;
     var inp = selPessoaModal.querySelector('.selp-input');
     inp.value = '';
     var lista = selPessoaModal.querySelector('.selp-lista');

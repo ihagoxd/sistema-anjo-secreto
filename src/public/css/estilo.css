@@ -934,6 +934,16 @@ table.tabela tbody tr:hover { background: var(--hover); }
    (as áreas com zoom próprio — lightbox, câmera, stories — definem o seu touch-action) */
 html { touch-action: pan-x pan-y; }
 
+/* Campo de pesquisa dentro do seletor de pessoa */
+.selp-busca {
+  display: flex; align-items: center; gap: 8px; margin: 10px 0 2px;
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px;
+  color: var(--text-faint);
+}
+.selp-busca:focus-within { border-color: var(--line-strong); }
+.selp-input { flex: 1; min-width: 0; background: none; border: none; outline: none; font: inherit; font-size: 14.5px; color: var(--text); }
+.selp-input::placeholder { color: var(--text-faint); }
+
 /* Post em dupla ("fulano e beltrano", como no Instagram) */
 .ig-e { color: var(--text-soft); font-size: 13.5px; margin: 0 -2px; }
 /* Chip do colaborador no compositor */

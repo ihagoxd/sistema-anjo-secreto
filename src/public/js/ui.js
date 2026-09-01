@@ -1336,11 +1336,29 @@
     toastTimer = setTimeout(function () { t.classList.remove('mostra'); }, 2200);
   }
 
-  /* ---------- Seletor de pessoa (folha genérica: colaborador do post, marcar no story) ---------- */
-  var selPessoaModal = null, selPessoaCb = null;
+  /* ---------- Seletor de pessoa (folha genérica: colaborador do post, marcar no story)
+     Com CAMPO DE PESQUISA no topo: filtra ao vivo enquanto digita. ---------- */
+  var selPessoaModal = null, selPessoaCb = null, selPessoaSeq = 0, selPessoaTimer = null;
   function abrirSeletorPessoa(titulo, cb) {
     selPessoaCb = cb;
     function escSP(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+    function renderizar(pessoas, lista) {
+      if (!pessoas.length) { lista.innerHTML = '<div class="texto-suave" style="padding:10px 6px;">Ninguém encontrado.</div>'; return; }
+      lista.innerHTML = pessoas.map(function (p) {
+        var av = p.foto_perfil ? '<img src="' + escSP(p.foto_perfil) + '" alt="">' : escSP((p.nome || '?').trim().charAt(0).toUpperCase());
+        return '<button type="button" class="share-item" data-selp="' + escSP(String(p.id_usuario || '')) + '" data-selp-user="' + escSP(p.usuario) + '" data-selp-nome="' + escSP(p.nome) + '">'
+          + '<span class="share-av">' + av + '</span>'
+          + '<span class="share-txt"><span class="share-nome">' + escSP(p.nome) + '</span>'
+          + '<span class="share-user">@' + escSP(p.usuario) + '</span></span></button>';
+      }).join('');
+    }
+    function buscar(q, lista) {
+      var minha = ++selPessoaSeq;
+      fetch('/buscar?q=' + encodeURIComponent(q || ''), { headers: { 'Accept': 'application/json' } })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+        .then(function (pessoas) { if (minha === selPessoaSeq) renderizar(pessoas, lista); })
+        .catch(function () { if (minha === selPessoaSeq) lista.innerHTML = '<div class="texto-suave" style="padding:10px 6px;">Não foi possível carregar.</div>'; });
+    }
     if (!selPessoaModal) {
       selPessoaModal = document.createElement('div');
       selPessoaModal.className = 'modal sheet-share stview-fwd-modal';
@@ -1350,6 +1368,8 @@
         + '<div class="sheet-cab sempre"><span class="sheet-grab" aria-hidden="true"></span>'
         + '<span class="sheet-titulo"></span>'
         + '<button type="button" class="sheet-x" data-fechar-modal aria-label="Fechar">&times;</button></div>'
+        + '<div class="selp-busca"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'
+        + '<input type="text" class="selp-input" placeholder="Pesquisar…" autocomplete="off" maxlength="60"></div>'
         + '<div class="share-lista selp-lista"></div></div>';
       document.body.appendChild(selPessoaModal);
       selPessoaModal.addEventListener('click', function (e) {
@@ -1363,25 +1383,22 @@
           nome: b.getAttribute('data-selp-nome'),
         });
       });
+      selPessoaModal.querySelector('.selp-input').addEventListener('input', function () {
+        var inp = this;
+        clearTimeout(selPessoaTimer);
+        selPessoaTimer = setTimeout(function () {
+          buscar(inp.value.trim(), selPessoaModal.querySelector('.selp-lista'));
+        }, 200);
+      });
     }
     selPessoaModal.querySelector('.sheet-titulo').textContent = titulo;
+    var inp = selPessoaModal.querySelector('.selp-input');
+    inp.value = '';
     var lista = selPessoaModal.querySelector('.selp-lista');
     lista.innerHTML = '<div class="texto-suave" style="padding:10px 6px;">Carregando…</div>';
     selPessoaModal.hidden = false;
     selPessoaModal.setAttribute('aria-hidden', 'false');
-    fetch('/buscar?q=', { headers: { 'Accept': 'application/json' } })
-      .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
-      .then(function (pessoas) {
-        if (!pessoas.length) { lista.innerHTML = '<div class="texto-suave" style="padding:10px 6px;">Ninguém disponível.</div>'; return; }
-        lista.innerHTML = pessoas.map(function (p) {
-          var av = p.foto_perfil ? '<img src="' + escSP(p.foto_perfil) + '" alt="">' : escSP((p.nome || '?').trim().charAt(0).toUpperCase());
-          return '<button type="button" class="share-item" data-selp="' + escSP(String(p.id_usuario || '')) + '" data-selp-user="' + escSP(p.usuario) + '" data-selp-nome="' + escSP(p.nome) + '">'
-            + '<span class="share-av">' + av + '</span>'
-            + '<span class="share-txt"><span class="share-nome">' + escSP(p.nome) + '</span>'
-            + '<span class="share-user">@' + escSP(p.usuario) + '</span></span></button>';
-        }).join('');
-      })
-      .catch(function () { lista.innerHTML = '<div class="texto-suave" style="padding:10px 6px;">Não foi possível carregar.</div>'; });
+    buscar('', lista);
   }
 
   /* ---------- Tema (sidebar + topo mobile) ---------- */

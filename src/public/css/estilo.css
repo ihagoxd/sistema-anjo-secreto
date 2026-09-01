@@ -737,13 +737,24 @@ table.tabela tbody tr:hover { background: var(--hover); }
 
 /* Responsivo: uma coluna (lista OU conversa, como o Instagram mobile) */
 @media (max-width: 720px) {
-  /* Altura real do viewport (dvh) menos topo-mobile (54) + paddings do container (20+70)
-     + área segura do iPhone — evita o compositor ficar atrás da barra inferior fixa. */
+  /* TELA CHEIA no celular, como o Instagram: o Direct estoura o padding do
+     .container e ocupa tudo abaixo do topo — sem cartão, sem borda, sem aperto. */
   .direct {
     grid-template-columns: 1fr;
-    height: calc(100vh - 144px);
-    height: calc(100dvh - 144px - env(safe-area-inset-bottom, 0px));
+    margin: -20px -16px calc(-70px - env(safe-area-inset-bottom, 0px));
+    height: calc(100vh - 54px);
+    height: calc(100dvh - 54px);
+    min-height: 0;
+    border: none; border-radius: 0; box-shadow: none;
+    background: transparent;
   }
+  [data-theme='dark'] .direct { background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .direct-lista { border-right: none; }
+  .direct-lista-topo { padding: 18px 16px 12px; }
+  /* a lista rola por baixo da pílula flutuante, com respiro pro último item */
+  .direct-scroll { padding-bottom: calc(94px + env(safe-area-inset-bottom, 0px)); }
+  /* dentro da conversa, o campo de digitar fica ACIMA da pílula */
+  .dm-composer { padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
   .direct-conversa { display: none; }
   .direct.tem-conversa .direct-lista { display: none; }
   .direct.tem-conversa .direct-conversa { display: flex; }
@@ -2411,9 +2422,6 @@ a.share-item { text-decoration: none; color: inherit; }
   .container { padding-bottom: calc(94px + env(safe-area-inset-bottom, 0px)); }
   .pf-salvar { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
   .toast-ui { bottom: calc(88px + env(safe-area-inset-bottom, 0px)); }
-}
-@media (max-width: 720px) {
-  .direct { height: calc(100dvh - 168px - env(safe-area-inset-bottom, 0px)); }
 }
 .bi-item.ativo::after {
   content: ''; position: absolute; left: 50%; top: 50%; width: 46px; height: 46px;

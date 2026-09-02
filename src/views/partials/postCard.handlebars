@@ -55,7 +55,7 @@
     {{#unless @root.detalhe}}
       {{! Prévia dos 2 comentários mais recentes (tom suave, diferente da legenda do autor) }}
       {{#each (ultimos this.comentariosLista 2)}}
-        <div class="ig-prev-coment"><a href="/u/{{this.usuario}}" class="ig-user">{{this.usuario}}</a>{{comMencoes this.texto}}</div>
+        <div class="ig-prev-coment" data-coment-prev="{{this.id_comentario}}"><a href="/u/{{this.usuario}}" class="ig-user">{{this.usuario}}</a>{{comMencoes this.texto}}</div>
       {{/each}}
       <button type="button" class="ig-vercoments" data-comentarios="{{this.id_post}}"{{#unless (num this.comentarios)}} hidden{{/unless}}>{{#if (eq (num this.comentarios) 1)}}Ver 1 comentário{{else}}Ver todos os {{num this.comentarios}} comentários{{/if}}</button>
     {{/unless}}
@@ -76,10 +76,13 @@
               <a href="/u/{{this.usuario}}" class="tw-coment-nome">{{this.nome}}</a>
               {{#if this.votou}}<span class="tw-coment-voto" data-voto-tag title="Votou em: {{this.votou}}">votou em {{this.votou}}</span>{{/if}}
               <span class="tw-coment-meta">· {{tempoRel this.criado_em}}</span>
-              {{#if (ou (eq this.id_usuario @root.usuario.id_usuario) (eq @root.usuario.tipo_usuario "ADMINISTRADOR"))}}
-                <form action="/feed/comentarios/{{this.id_comentario}}/remover" method="POST" class="tw-coment-del">
+              {{! Pode apagar: quem comentou, o DONO do post ou o admin }}
+              {{#if (ou (ou (eq this.id_usuario @root.usuario.id_usuario) (eq ../id_usuario @root.usuario.id_usuario)) (eq @root.usuario.tipo_usuario "ADMINISTRADOR"))}}
+                <form action="/feed/comentarios/{{this.id_comentario}}/remover" method="POST" class="tw-coment-del" data-coment-del data-confirmar="{{#if (eq this.id_usuario @root.usuario.id_usuario)}}Apagar seu comentário?{{else}}Remover o comentário de {{this.nome}} do seu post?{{/if}}">
                   <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
-                  <button type="submit" class="btn-icone" aria-label="Remover">&times;</button>
+                  <button type="submit" class="btn-icone" aria-label="Remover comentário" title="{{#if (eq this.id_usuario @root.usuario.id_usuario)}}Apagar meu comentário{{else}}Remover este comentário do meu post{{/if}}">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  </button>
                 </form>
               {{/if}}
             </div>

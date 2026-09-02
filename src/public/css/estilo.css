@@ -1432,8 +1432,8 @@ body.sem-scroll { overflow: hidden; }
 .tw-coment-nome:hover { text-decoration: underline; color: var(--text); }
 .tw-coment-meta { flex-shrink: 0; color: var(--text-faint); font-size: 13px; white-space: nowrap; } /* só o horário — sempre visível */
 .tw-coment-del { margin: -4px -6px -4px auto; }
-.tw-coment-del button { font-size: 17px; line-height: 1; }
-.tw-coment-del button:hover { color: var(--st-vermelho); }
+.tw-coment-del button { width: 28px; height: 28px; display: grid; place-items: center; color: var(--text-faint); opacity: 0.75; }
+.tw-coment-del button:hover { color: var(--st-vermelho); opacity: 1; background: color-mix(in srgb, var(--st-vermelho) 12%, transparent); }
 .tw-coment-texto { font-size: 14.5px; line-height: 1.45; margin-top: 1px; white-space: pre-wrap; word-break: break-word; }
 .tw-reply { display: flex; gap: 8px; align-items: center; }
 .tw-comentarios:not(:empty) + .tw-reply { padding-top: 12px; }
@@ -2794,6 +2794,9 @@ a.share-item { text-decoration: none; color: inherit; }
 .enq-rodape button { background: none; border: none; color: var(--accent); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; padding: 4px 0; }
 .enq-rodape button:hover { text-decoration: underline; }
 .enquete.enviando { opacity: 0.6; pointer-events: none; }
+/* Comentário sendo apagado: encolhe e some */
+.tw-coment { transition: opacity 0.18s, transform 0.18s; }
+.tw-coment.saindo { opacity: 0; transform: translateX(14px); }
 /* Tag "votou em X" no comentário */
 .tw-coment-voto { display: inline-block; padding: 1px 8px; border-radius: 999px; background: color-mix(in srgb, var(--ouro) 16%, transparent); color: var(--accent-strong); font-size: 11px; font-weight: 600; white-space: nowrap; max-width: 170px; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; }
 [data-theme='dark'] .tw-coment-voto { color: var(--ouro); }

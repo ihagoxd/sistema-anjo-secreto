@@ -25,6 +25,47 @@
   (function () {
     function escaparHtml(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
     function comMencoesJs(t) { return escaparHtml(t).replace(/@([a-zA-Z0-9_.]{2,})/g, '<a href="/u/$1" class="mencao">@$1</a>'); }
+    function csrfDe(form) {
+      var i = form && form.querySelector('input[name="_csrf"]');
+      if (i) return i.value;
+      var m = document.querySelector('meta[name="csrf-token"]');
+      return m ? m.getAttribute('content') : '';
+    }
+
+    // Apagar comentário sem recarregar (quem comentou, o dono do post ou o admin):
+    // some com animação, contador e prévia do card atualizam na hora.
+    document.addEventListener('submit', function (e) {
+      var form = e.target.closest('form[data-coment-del]');
+      if (!form) return;
+      // Primeiro passa pelo card de confirmação ("Sim, remover"); só depois apaga de verdade
+      if (form.hasAttribute('data-confirmar') && form.dataset.confirmado !== '1') return;
+      e.preventDefault();
+      var item = form.closest('.tw-coment');
+      var art = form.closest('.tw-post');
+      var id = item && item.getAttribute('data-coment');
+      if (form.dataset.enviando) return;
+      form.dataset.enviando = '1';
+      if (item) item.classList.add('saindo');
+      fetch(form.action, {
+        method: 'POST',
+        headers: { 'X-CSRF-Token': csrfDe(form), 'X-Requested-With': 'fetch', 'Accept': 'application/json' },
+        body: new URLSearchParams(new FormData(form)),
+      })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+        .then(function () {
+          setTimeout(function () { if (item) item.remove(); }, 180);
+          if (art) {
+            var prev = id && art.querySelector('[data-coment-prev="' + id + '"]'); if (prev) prev.remove();
+            var span = art.querySelector('.tw-acao .post-coments');
+            var n = Math.max(0, (parseInt(span && span.textContent, 10) || 0) - 1);
+            if (span) span.textContent = n || '';
+            var ver = art.querySelector('.ig-vercoments');
+            if (ver) { ver.hidden = n === 0; ver.textContent = n === 1 ? 'Ver 1 comentário' : 'Ver todos os ' + n + ' comentários'; }
+          }
+          toast('Comentário removido');
+        })
+        .catch(function () { if (item) item.classList.remove('saindo'); delete form.dataset.enviando; toast('Não foi possível remover.'); });
+    });
 
     // "Responder" num comentário: o campo já vem com o @ da pessoa (estilo Instagram)
     document.addEventListener('click', function (e) {
@@ -117,7 +158,12 @@
             '<div class="tw-coment-main"><div class="tw-coment-top">' +
             '<a href="/u/' + encodeURIComponent(c.usuario) + '" class="tw-coment-nome">' + escaparHtml(c.nome) + '</a>' +
             (c.votou ? '<span class="tw-coment-voto" data-voto-tag title="Votou em: ' + escaparHtml(c.votou) + '">votou em ' + escaparHtml(c.votou) + '</span>' : '') +
-            '<span class="tw-coment-meta">· agora</span></div>' +
+            '<span class="tw-coment-meta">· agora</span>' +
+            '<form action="/feed/comentarios/' + c.id_comentario + '/remover" method="POST" class="tw-coment-del" data-coment-del data-confirmar="Apagar seu comentário?">' +
+            '<input type="hidden" name="_csrf" value="' + escaparHtml(csrfDe(form)) + '">' +
+            '<button type="submit" class="btn-icone" aria-label="Remover comentário" title="Apagar meu comentário">' +
+            '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>' +
+            '</button></form></div>' +
             '<div class="tw-coment-texto">' + comMencoesJs(c.texto) + '</div>' +
             '<button type="button" class="tw-coment-resp" data-coment-responder="' + escaparHtml(c.usuario) + '">Responder</button></div>';
           if (lista) lista.appendChild(el);

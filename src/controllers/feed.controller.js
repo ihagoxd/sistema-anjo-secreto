@@ -212,7 +212,12 @@ async function postRemover(req, res, next) {
 
 async function postRemoverComentario(req, res, next) {
   try {
-    await postService.removerComentario(req.params.id_comentario, req.session.usuario.id_usuario, ehAdmin(req));
+    const r = await postService.removerComentario(req.params.id_comentario, req.session.usuario.id_usuario, ehAdmin(req));
+    if ((req.get('x-requested-with') || '') === 'fetch') {
+      if (!r.ok) return res.status(r.motivo === 'SEM_PERMISSAO' ? 403 : 404).json({ ok: false });
+      return res.json({ ok: true });
+    }
+    if (!r.ok) req.session.flash = { erro: 'Não foi possível remover o comentário.' };
     res.redirect(req.get('Referer') || '/feed');
   } catch (err) {
     next(err);

@@ -223,10 +223,16 @@ async function removerPost(idPost, idUsuario, ehAdmin) {
   return { ok: true };
 }
 
+// Quem pode apagar um comentário: quem comentou, o DONO do post (modera o que não gostou) ou o admin.
 async function removerComentario(idComentario, idUsuario, ehAdmin) {
   const c = await postModel.buscarComentario(idComentario);
   if (!c) return { ok: false, motivo: 'NAO_ENCONTRADO' };
-  if (c.id_usuario !== idUsuario && !ehAdmin) return { ok: false, motivo: 'SEM_PERMISSAO' };
+  let pode = c.id_usuario === idUsuario || ehAdmin;
+  if (!pode) {
+    const post = await postModel.buscarPorId(c.id_post);
+    pode = !!(post && post.id_usuario === idUsuario);
+  }
+  if (!pode) return { ok: false, motivo: 'SEM_PERMISSAO' };
   await postModel.removerComentario(idComentario);
   return { ok: true, idPost: c.id_post };
 }

@@ -2713,6 +2713,39 @@ a.share-item { text-decoration: none; color: inherit; }
 }
 
 /* ============================================================
+   PUBLICAÇÃO FLUIDA: sem recarregar — progresso no botão, post novo desliza pro topo
+   ============================================================ */
+.post-compositor.enviando { pointer-events: none; }
+.post-compositor.enviando .compositor-topo, .post-compositor.enviando .compositor-preview,
+.post-compositor.enviando .enquete-builder, .post-compositor.enviando .colab-chips { opacity: 0.55; transition: opacity 0.2s; }
+.btn-primario.enviando { position: relative; overflow: hidden; opacity: 1 !important; cursor: progress; }
+.btn-primario.enviando::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: var(--prog, 0%);
+  background: rgba(255, 255, 255, 0.28); transition: width 0.25s ease-out;
+}
+.btn-primario.enviando::after {
+  content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, 0.35) 50%, transparent 80%);
+  transform: translateX(-100%); animation: btn-brilho 1.1s linear infinite;
+}
+@keyframes btn-brilho { to { transform: translateX(100%); } }
+.btn-primario.enviando span { position: relative; }
+.post-compositor.publicado { animation: comp-ok 0.5s var(--ease-spring); }
+@keyframes comp-ok { 0% { transform: scale(1); } 35% { transform: scale(0.985); } 100% { transform: scale(1); } }
+.tw-post.novo { animation: post-entra 0.6s var(--ease-spring) both; }
+@keyframes post-entra {
+  0% { opacity: 0; transform: translateY(-18px) scale(0.97); }
+  60% { opacity: 1; }
+  100% { opacity: 1; transform: none; }
+}
+.tw-post.novo::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ouro) 55%, transparent); animation: post-halo 1.8s ease-out 0.3s both;
+}
+.tw-post { position: relative; }
+@keyframes post-halo { 0% { opacity: 1; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .tw-post.novo, .tw-post.novo::after, .post-compositor.publicado, .btn-primario.enviando::after { animation: none; } }
+
+/* ============================================================
    ENQUETES no mural (como no WhatsApp): opções com barra de %, check dourado,
    avatares de quem votou, "Ver votos"; construtor no compositor; tag no comentário
    ============================================================ */

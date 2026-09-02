@@ -125,7 +125,7 @@ async function criarPost(idUsuario, texto, imagemPath, videoPath = null, colabor
     for (const cid of colaboradores) await notificacaoService.notificarMencao(cid, idUsuario, novo.id_post, t, 'colab');
   }
   await notificarMencoes(t, idUsuario, novo.id_post);
-  return { ok: true };
+  return { ok: true, id_post: novo.id_post };
 }
 
 function listarFeed(idUsuarioAtual) {

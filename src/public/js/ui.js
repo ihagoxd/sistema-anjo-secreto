@@ -1271,6 +1271,7 @@
         colabs = colabs.filter(function (c) { return c.id !== b.getAttribute('data-tirar'); });
         renderColabs();
       });
+      form.addEventListener('compositor:reset', function () { colabs = []; renderColabs(); });
     }
 
     // Enquete (como no WhatsApp): pergunta própria + opções numeradas (Enter pula pra
@@ -1333,6 +1334,7 @@
       }
       btnEnq.addEventListener('click', function () { if (builder.hidden) abrirEnquete(); else fecharEnquete(); });
       builder.querySelector('[data-enquete-fechar]').addEventListener('click', fecharEnquete);
+      form.addEventListener('compositor:reset', function () { if (!builder.hidden) fecharEnquete(); });
       btnAdd.addEventListener('click', function () { novaOpcao(true); renderPrevia(); atualizar(); });
       builder.addEventListener('input', renderPrevia);
       builder.addEventListener('change', renderPrevia);
@@ -1355,6 +1357,83 @@
         else if (e.target.value.trim()) novaOpcao(true);
       });
     }
+  })();
+
+  /* ---------- Publicar sem recarregar: envia por XHR (com progresso no botão), o post
+     novo desliza pro topo do mural e o compositor se limpa sozinho ---------- */
+  (function () {
+    var form = document.querySelector('.post-compositor');
+    var feed = document.querySelector('.feed');
+    if (!form || !feed) return;
+    var btn = form.querySelector('button[type="submit"]');
+    var ta = form.querySelector('[data-texto]');
+    var rotulo = btn ? btn.textContent : 'Publicar';
+    var enviando = false;
+
+    function setProgresso(p) {
+      if (!btn) return;
+      btn.style.setProperty('--prog', Math.round(p * 100) + '%');
+      btn.innerHTML = '<span>' + (p >= 1 ? 'Publicando…' : 'Enviando ' + Math.round(p * 100) + '%') + '</span>';
+    }
+    function terminar() {
+      enviando = false;
+      form.classList.remove('enviando');
+      if (btn) { btn.classList.remove('enviando'); btn.style.removeProperty('--prog'); btn.textContent = rotulo; btn.disabled = false; }
+    }
+    function limparCompositor() {
+      form.reset();
+      if (ta) { ta.value = ''; ta.style.height = ''; }
+      var prev = form.querySelector('[data-preview]'); if (prev) { prev.innerHTML = ''; prev.hidden = true; }
+      form.dispatchEvent(new CustomEvent('compositor:reset'));
+      form.dispatchEvent(new Event('input', { bubbles: true })); // reavalia o botão Publicar
+    }
+
+    form.addEventListener('submit', function (e) {
+      if (enviando) { e.preventDefault(); return; }
+      if (!window.XMLHttpRequest || !window.FormData) return; // deixa o envio normal acontecer
+      e.preventDefault();
+      enviando = true;
+      form.classList.add('enviando');
+      if (btn) { btn.classList.add('enviando'); btn.disabled = true; }
+      setProgresso(0);
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', form.getAttribute('action') || '/feed');
+      xhr.setRequestHeader('X-Requested-With', 'fetch');
+      xhr.setRequestHeader('Accept', 'application/json');
+      xhr.upload.addEventListener('progress', function (ev) { if (ev.lengthComputable) setProgresso(ev.loaded / ev.total); });
+      xhr.addEventListener('load', function () {
+        var d = null;
+        try { d = JSON.parse(xhr.responseText); } catch (x) {}
+        if (!d || !d.ok) {
+          terminar();
+          toast((d && d.erro) || 'Não foi possível publicar.');
+          return;
+        }
+        // Entra no topo do mural, animado
+        var vazio = feed.querySelector('.card-centro'); if (vazio) vazio.remove();
+        var tmp = document.createElement('div'); tmp.innerHTML = d.html.trim();
+        var card = tmp.firstElementChild;
+        if (card) {
+          card.classList.add('novo');
+          feed.insertBefore(card, feed.firstChild);
+          document.dispatchEvent(new CustomEvent('feed:novo', { detail: d.id_post }));
+          setTimeout(function () { card.classList.remove('novo'); }, 2200);
+        }
+        limparCompositor();
+        form.classList.add('publicado');
+        setTimeout(function () { form.classList.remove('publicado'); }, 600);
+        terminar();
+        toast('Publicado! ✨');
+        // No celular, garante que o post novo apareça na tela
+        if (card && window.matchMedia('(max-width: 899px)').matches) {
+          setTimeout(function () { card.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80);
+        }
+      });
+      xhr.addEventListener('error', function () { terminar(); toast('Falha de conexão ao publicar.'); });
+      xhr.addEventListener('abort', terminar);
+      xhr.send(new FormData(form));
+    });
   })();
 
   /* ---------- Enquetes: votar sem recarregar (toggle; resposta única troca o voto),
@@ -1512,6 +1591,8 @@
     document.querySelectorAll('.tw-post[data-id]').forEach(function (p) {
       maiorId = Math.max(maiorId, parseInt(p.getAttribute('data-id'), 10) || 0);
     });
+    // Post publicado por mim sem recarregar: não é "novidade" a avisar
+    document.addEventListener('feed:novo', function (e) { maiorId = Math.max(maiorId, e.detail | 0); });
     var aviso = null, buscando = false;
 
     function mostrarAviso(n) {

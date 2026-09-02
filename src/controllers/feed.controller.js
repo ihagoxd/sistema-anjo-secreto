@@ -89,6 +89,18 @@ async function postCriar(req, res, next) {
       ENQUETE_POUCAS: 'A enquete precisa de pelo menos 2 opções.',
       ENQUETE_SEM_PERGUNTA: 'Escreva a pergunta da enquete.',
     };
+    // Publicação fluida (AJAX): devolve o card do post pronto para entrar no topo do mural
+    if ((req.get('x-requested-with') || '') === 'fetch') {
+      if (!r.ok) return res.status(400).json({ ok: false, erro: ERROS[r.motivo] || 'Escreva algo ou adicione uma foto.' });
+      const me = req.session.usuario.id_usuario;
+      const post = await postService.buscarPost(r.id_post, me);
+      anotarStories([post], await storyService.resumoAneis(me));
+      await postService.anexarEnquetes([post], me);
+      return res.render('feed/_post', { layout: false, posts: [post] }, (err, html) => {
+        if (err) return next(err);
+        res.json({ ok: true, id_post: r.id_post, html });
+      });
+    }
     if (!r.ok) req.session.flash = { erro: ERROS[r.motivo] || 'Escreva algo ou adicione uma foto.' };
     else req.session.flash = { sucesso: 'Publicado! ✨' };
     res.redirect('/feed');

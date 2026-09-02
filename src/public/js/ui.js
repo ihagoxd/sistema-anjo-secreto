@@ -492,8 +492,22 @@
     var view = null, barras = null, mediaBox = null, avEl = null, nomeEl = null, tempoEl = null,
       vistosEl = null, delBtn = null, somBtn = null;
     var rodapeEl = null, respEl = null, enviarEl = null, likeEl = null, fwdEl = null, fwdModal = null, vistosModal = null, delModal = null, mrcModal = null, mrcPessoa = null;
-    var palcoEl = null, cuboEl = null, faceEl = null, vizPrevEl = null, vizNextEl = null;
+    var palcoEl = null, cuboEl = null, faceEl = null, vizPrevEl = null, vizNextEl = null, quadroEl = null;
     var swipeX = null, gesto = '', cuboDir = 0, cuboW = 0;
+    var vUltY = 0, vUltT = 0, vVel = 0; // arrasto vertical: velocidade do dedo (px/ms) p/ "flick" fechar
+    var dadosCache = null, dadosEm = 0, dadosPromessa = null; // /stories/dados em cache: abrir é instantâneo
+
+    // Busca (ou reaproveita) os stories. Fresco por 40s; fica pré-carregado no mural.
+    function carregarDados(forcar) {
+      if (!forcar && dadosCache && Date.now() - dadosEm < 40000) return Promise.resolve(dadosCache);
+      if (dadosPromessa) return dadosPromessa;
+      dadosPromessa = fetch('/stories/dados', { headers: { 'Accept': 'application/json' } })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+        .then(function (gs) { dadosCache = gs; dadosEm = Date.now(); return gs; })
+        .finally(function () { dadosPromessa = null; });
+      return dadosPromessa;
+    }
+    function invalidarDados() { dadosCache = null; dadosEm = 0; }
 
     // Pula direto para outro grupo (clique na prévia lateral do desktop)
     function irParaGrupo(idx) {
@@ -708,6 +722,7 @@
       barras = view.querySelector('.stview-progresso');
       mediaBox = view.querySelector('.stview-media');
       palcoEl = view.querySelector('.stview-palco');
+      quadroEl = view.querySelector('.stview-quadro');
       cuboEl = view.querySelector('.stview-cubo');
       faceEl = view.querySelector('.stview-face');
       vizPrevEl = view.querySelector('.stview-viz.prev');
@@ -911,7 +926,9 @@
           if (view.classList.contains('respondendo')) return; // digitando: toque só fecha o teclado
           try { zona.setPointerCapture(e.pointerId); } catch (x) {}
           pressT = Date.now(); swipeY = e.clientY; swipeX = e.clientX;
+          vUltY = e.clientY; vUltT = performance.now(); vVel = 0;
           mediaBox.style.transition = 'none';
+          if (quadroEl) quadroEl.style.transition = 'none';
           pausar(true);
         });
         zona.addEventListener('pointermove', function (e) {
@@ -926,8 +943,17 @@
             if (cuboDir !== dir) prepararCubo(w, dir);
             var ang = Math.max(-88, Math.min(88, dx / w * 90));
             cuboEl.style.transform = 'translateZ(' + (-w / 2) + 'px) rotateY(' + ang + 'deg)';
-          } else if (gesto === 'v' && dy > 0) {
-            cuboEl.style.transform = 'translateY(' + dy + 'px) scale(' + Math.max(0.85, 1 - dy / 1400) + ')';
+          } else if (gesto === 'v') {
+            // Puxar pra baixo: o QUADRO inteiro desce e encolhe, o fundo vai clareando
+            // (como no Instagram). Velocidade do dedo decide o "flick".
+            var agora = performance.now();
+            if (agora - vUltT > 0) vVel = (e.clientY - vUltY) / (agora - vUltT);
+            vUltY = e.clientY; vUltT = agora;
+            var d = Math.max(0, dy);
+            var esc = Math.max(0.8, 1 - d / 900);
+            quadroEl.style.transform = 'translateY(' + d + 'px) scale(' + esc + ')';
+            quadroEl.style.borderRadius = Math.min(28, d / 5) + 'px';
+            view.style.backgroundColor = 'rgba(0,0,0,' + Math.max(0.15, 1 - d / 420) + ')';
           }
         });
         function soltarArrasto(e, cancelado) {
@@ -942,10 +968,18 @@
             cuboEl.style.transform = cuboW ? 'translateZ(' + (-cuboW / 2) + 'px) rotateY(0deg)' : '';
             setTimeout(limparCubo, 240);
           }
-          if (cancelado) { encaixar(); pausar(false); return; }
+          function encaixarQuadro() { // solta sem fechar: volta com mola e o fundo escurece de novo
+            quadroEl.style.transition = 'transform 0.38s cubic-bezier(0.34, 1.4, 0.64, 1), border-radius 0.3s';
+            quadroEl.style.transform = ''; quadroEl.style.borderRadius = '';
+            view.style.transition = 'background-color 0.3s';
+            view.style.backgroundColor = '';
+            setTimeout(function () { quadroEl.style.transition = ''; view.style.transition = ''; }, 400);
+          }
+          if (cancelado) { if (eixo === 'v') encaixarQuadro(); else encaixar(); pausar(false); return; }
           if (eixo === 'v') {
-            if (dy > 80) { limparCubo(); fecharView(); return; }
-            encaixar(); pausar(false); return;
+            // fecha se puxou bastante OU se foi um flick rápido pra baixo
+            if (dy > 90 || (dy > 24 && vVel > 0.55)) { fecharView('arrasto'); return; }
+            encaixarQuadro(); pausar(false); return;
           }
           if (eixo === 'h') {
             var w = cuboW || palcoEl.clientWidth || window.innerWidth;
@@ -1145,19 +1179,44 @@
     }
     window.__reordenarFilaStories = reordenarFila;
 
-    function fecharView() {
+    var fechando = false;
+    // modo: 'arrasto' (puxou pra baixo: o quadro continua caindo e some) | outro (fade rápido)
+    function fecharView(modo) {
+      if (!view || view.hidden || fechando) return;
+      fechando = true;
       pararTempo();
-      if (view) view.hidden = true;
       if (cuboEl) limparCubo();
-      document.body.classList.remove('sem-scroll');
-      atualizarAneis();
+      var fim = function () {
+        view.hidden = true;
+        view.classList.remove('fechando', 'abrindo');
+        if (quadroEl) { quadroEl.style.transition = ''; quadroEl.style.transform = ''; quadroEl.style.borderRadius = ''; quadroEl.style.opacity = ''; }
+        view.style.transition = ''; view.style.backgroundColor = '';
+        document.body.classList.remove('sem-scroll');
+        fechando = false;
+        atualizarAneis();
+      };
+      var reduzir = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduzir || !quadroEl) { fim(); return; }
+      if (modo === 'arrasto') {
+        // continua o movimento do dedo: cai, encolhe e apaga; o fundo some junto
+        quadroEl.style.transition = 'transform 0.26s cubic-bezier(0.4, 0, 1, 1), opacity 0.22s ease-in, border-radius 0.2s';
+        quadroEl.style.transform = 'translateY(110vh) scale(0.7)';
+        quadroEl.style.opacity = '0';
+        view.style.transition = 'background-color 0.26s';
+        view.style.backgroundColor = 'rgba(0,0,0,0)';
+        setTimeout(fim, 270);
+      } else {
+        view.classList.add('fechando');
+        setTimeout(fim, 200);
+      }
     }
 
     // Abre o visualizador num usuário (idAlvo); com idStory, cai NAQUELE story exato.
-    function abrirViewer(idAlvo, idStory, aoFalhar) {
+    // origemEl: o avatar tocado — o visualizador "nasce" dali (zoom), como no Instagram.
+    function abrirViewer(idAlvo, idStory, aoFalhar, origemEl) {
       montarView();
-      fetch('/stories/dados', { headers: { 'Accept': 'application/json' } })
-        .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+      if (fechando) return;
+      carregarDados(false)
         .then(function (gs) {
           grupos = gs;
           gi = grupos.findIndex(function (g) { return g.id_usuario === idAlvo; });
@@ -1173,17 +1232,36 @@
             if (ii < 0) ii = 0;
           }
           document.body.classList.add('sem-scroll');
+          // ponto de origem do zoom = centro do avatar tocado (ou centro da tela)
+          var ox = '50%', oy = '50%';
+          if (origemEl && origemEl.getBoundingClientRect) {
+            var r = origemEl.getBoundingClientRect();
+            ox = Math.round(r.left + r.width / 2) + 'px'; oy = Math.round(r.top + r.height / 2) + 'px';
+          }
+          view.style.setProperty('--st-ox', ox); view.style.setProperty('--st-oy', oy);
+          view.classList.remove('fechando');
+          view.classList.add('abrindo');
           view.hidden = false;
+          setTimeout(function () { view.classList.remove('abrindo'); }, 340);
           mostrar();
         })
         .catch(function () { toast('Não foi possível abrir os stories.'); });
     }
 
+    // Pré-carrega os stories no mural (abrir vira instantâneo) e ao encostar num avatar
+    if (document.querySelector('.stories, .notas, .conv-av[data-ver-stories]')) {
+      setTimeout(function () { carregarDados(true).catch(function () {}); }, 600);
+      document.addEventListener('visibilitychange', function () { if (!document.hidden) carregarDados(true).catch(function () {}); });
+    }
+    document.addEventListener('pointerdown', function (e) {
+      if (e.target.closest('[data-ver-stories], [data-abrir-story]')) carregarDados(false).catch(function () {});
+    }, { passive: true });
+
     document.addEventListener('click', function (e) {
       var b = e.target.closest('[data-ver-stories]');
       if (b) {
         e.preventDefault(); // um <a> promovido a "tem story" abre o viewer, não navega
-        abrirViewer(parseInt(b.getAttribute('data-ver-stories'), 10), null, null);
+        abrirViewer(parseInt(b.getAttribute('data-ver-stories'), 10), null, null, b.querySelector('.story-ring, img') || b);
         return;
       }
       // Cartão de story na DM: abre o visualizador naquele story exato

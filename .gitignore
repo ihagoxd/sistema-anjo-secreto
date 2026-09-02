@@ -22,6 +22,8 @@ Thumbs.db
 # Uploads (manter a pasta, ignorar conteúdo)
 src/public/uploads/*
 !src/public/uploads/.gitkeep
+# Originais guardados pelo scripts/otimizar-uploads.js (fora da pasta pública)
+uploads-originais/
 
 # Documentos internos de planejamento (não publicar)
 PROGRESSO.md

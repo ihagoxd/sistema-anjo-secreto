@@ -43,6 +43,12 @@ app.use(helmetMiddleware());
 app.use(permissionsPolicy);
 
 // --- Arquivos estáticos (não passam por sessão/rate limit) ---
+// Uploads têm nome único (carimbo + aleatório) e nunca mudam de conteúdo depois de
+// publicados: o navegador pode guardar por 1 ano sem perguntar de novo. Assim a foto
+// do perfil/post/story só baixa UMA vez por aparelho.
+app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads'), {
+  maxAge: '365d', immutable: true, index: false, etag: true,
+}));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Páginas HTML NUNCA são cacheadas: sem isso o navegador guardava o HTML antigo,

@@ -6,6 +6,7 @@
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
+const { otimizarImagem } = require('./imagem');
 
 const UPLOAD_DIR = path.join(__dirname, '..', 'public', 'uploads');
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
@@ -112,7 +113,9 @@ function todosArquivos(req) {
 }
 
 // Confere assinaturas; se algo não for imagem válida, apaga tudo e volta.
-function conferirAssinaturas(req, res, next) {
+// Depois, OTIMIZA as imagens no lugar (redimensiona/re-encoda sem perda visível):
+// foto de 4 MB do celular vira ~300 KB — é isso que faz mural e stories abrirem rápido.
+async function conferirAssinaturas(req, res, next) {
   try {
     for (const f of todosArquivos(req)) {
       const buf = Buffer.alloc(16);
@@ -123,6 +126,11 @@ function conferirAssinaturas(req, res, next) {
         req.session.flash = { erro: 'Arquivo rejeitado: o conteúdo não corresponde ao tipo declarado.' };
         return res.redirect(req.get('Referer') || '/participante');
       }
+    }
+    for (const f of todosArquivos(req)) {
+      if (!EXT_POR_TIPO[f.mimetype]) continue; // só imagens (áudio/vídeo passam direto)
+      const r = await otimizarImagem(f.path, f.mimetype);
+      if (r.ok) f.size = r.depois;
     }
     next();
   } catch (e) {

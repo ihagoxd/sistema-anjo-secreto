@@ -671,8 +671,10 @@
         + '<div class="stview-quadro">'
         + '<div class="stview-progresso"></div>'
         + '<div class="stview-cab">'
-        + '  <span class="stview-av"></span>'
-        + '  <span class="stview-nome"></span><span class="stview-tempo"></span>'
+        + '  <a class="stview-autor" href="#" title="Ver perfil">'
+        + '    <span class="stview-av"></span>'
+        + '    <span class="stview-nome"></span>'
+        + '  </a><span class="stview-tempo"></span>'
         + '  <span class="stview-esp" aria-hidden="true"></span>'
         + '  <button type="button" class="stview-som" hidden aria-label="Som">🔊</button>'
         + '  <button type="button" class="stview-x" aria-label="Fechar">&times;</button>'
@@ -722,6 +724,12 @@
       somBtn = view.querySelector('.stview-som');
 
       view.querySelector('.stview-x').addEventListener('click', fecharView);
+      // Clique no autor: navegação normal do link, sem disparar pausa/troca de story
+      var autorEl = view.querySelector('.stview-autor');
+      ['pointerdown', 'pointerup', 'touchstart', 'touchend'].forEach(function (ev) {
+        autorEl.addEventListener(ev, function (e) { e.stopPropagation(); }, { passive: true });
+      });
+      autorEl.addEventListener('click', function (e) { e.stopPropagation(); pararTempo(); });
 
       // --- Responder / curtir / encaminhar (nos stories dos outros) ---
       rodapeEl = view.querySelector('.stview-rodape');
@@ -1007,6 +1015,8 @@
 
       avEl.innerHTML = g.foto_perfil ? '<img src="' + escSt(g.foto_perfil) + '" alt="">' : escSt((g.nome || '?').trim().charAt(0).toUpperCase());
       nomeEl.textContent = g.usuario;
+      // Nome/foto do autor levam ao perfil dele (como no Instagram)
+      view.querySelector('.stview-autor').setAttribute('href', '/u/' + encodeURIComponent(g.usuario));
       tempoEl.textContent = tempoRelJs(item.criado_em);
       delBtn.hidden = !g.eu;
       view.querySelector('.stview-marcar').hidden = !g.eu;
@@ -1104,7 +1114,32 @@
           if (tudo && !g.eu) { av.classList.remove('st-tem'); av.classList.add('st-visto'); }
         });
       });
+      reordenarFila();
     }
+
+    // Fileira do mural, como no Instagram: não vistos na frente, depois os já vistos,
+    // depois quem não tem story — mantendo a ordem relativa (mais recente primeiro).
+    function reordenarFila() {
+      var fila = document.querySelector('.stories');
+      if (!fila) return;
+      var itens = Array.prototype.slice.call(fila.querySelectorAll('.story[data-usuario-id]'));
+      if (itens.length < 2) return;
+      function peso(el) {
+        var anel = el.querySelector('.story-ring');
+        if (!anel) return 2;
+        if (anel.classList.contains('tem')) return 0;
+        if (anel.classList.contains('visto')) return 1;
+        return 2;
+      }
+      var ordenados = itens.map(function (el, i) { return { el: el, k: peso(el), i: i }; })
+        .sort(function (a, b) { return a.k - b.k || a.i - b.i; });
+      var mudou = ordenados.some(function (o, idx) { return o.el !== itens[idx]; });
+      if (!mudou) return;
+      var ref = itens[0];
+      ordenados.forEach(function (o) { fila.insertBefore(o.el, ref); });
+      // "ref" (primeiro original) já foi movido para o lugar certo pelo insertBefore em cadeia
+    }
+    window.__reordenarFilaStories = reordenarFila;
 
     function fecharView() {
       pararTempo();
@@ -1274,6 +1309,7 @@
           anel.classList.toggle('visto', !!mapa[id].tudoVisto);
           if (!el.hasAttribute('data-ver-stories')) el.setAttribute('data-ver-stories', id);
         });
+        if (window.__reordenarFilaStories) window.__reordenarFilaStories();
       } catch (e) {}
     }
 

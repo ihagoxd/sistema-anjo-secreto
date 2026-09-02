@@ -39,15 +39,18 @@ async function getFeed(req, res, next) {
       ...u,
       temStory: !!aneis[u.id_usuario],
       storyVisto: !!(aneis[u.id_usuario] && aneis[u.id_usuario].tudoVisto),
+      storyUltimo: aneis[u.id_usuario] ? new Date(aneis[u.id_usuario].ultimo).getTime() : 0,
     }));
     anotarStories(posts, aneis);
     const sugestoes = equipe.slice(0, 5); // sidebar segue em ordem alfabética
-    // Fileira de stories: quem postou vai pra FRENTE (não vistos primeiro, depois já
-    // vistos), quem não tem story fica atrás — como no Instagram.
+    // Fileira de stories, como no Instagram: não vistos primeiro (o story MAIS RECENTE
+    // na frente), depois os já vistos (também do mais recente pro mais antigo), e por
+    // último quem não tem story (ordem alfabética).
     equipe.sort((a, b) => {
       const ka = a.temStory ? (a.storyVisto ? 1 : 0) : 2;
       const kb = b.temStory ? (b.storyVisto ? 1 : 0) : 2;
-      return ka - kb;
+      if (ka !== kb) return ka - kb;
+      return b.storyUltimo - a.storyUltimo;
     });
     const meuAnel = aneis[me] || null;
     res.render('feed/index', {

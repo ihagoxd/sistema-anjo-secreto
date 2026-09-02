@@ -43,7 +43,8 @@ async function listarAtivos(meId) {
 async function resumoAneis(meId) {
   const res = await db.query(
     `SELECT s.id_usuario,
-            bool_and(v.id_usuario IS NOT NULL) AS tudo_visto
+            bool_and(v.id_usuario IS NOT NULL) AS tudo_visto,
+            MAX(s.criado_em) AS ultimo
        FROM stories s
        LEFT JOIN story_vistos v ON v.id_story = s.id_story AND v.id_usuario = $1
       WHERE ${ATIVO}
@@ -51,7 +52,7 @@ async function resumoAneis(meId) {
     [meId]
   );
   const mapa = {};
-  res.rows.forEach((r) => { mapa[r.id_usuario] = { tem: true, tudoVisto: r.tudo_visto }; });
+  res.rows.forEach((r) => { mapa[r.id_usuario] = { tem: true, tudoVisto: r.tudo_visto, ultimo: r.ultimo }; });
   return mapa;
 }
 

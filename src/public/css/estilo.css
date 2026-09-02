@@ -2231,6 +2231,9 @@ html.mini #loader .anjo .anjo-traco { display: none; }
 .aviso-data { font-size: 12px; color: var(--text-faint); }
 .aviso-acoes { display: flex; gap: 8px; margin-left: auto; }
 .aviso-card .aviso-ok { background: linear-gradient(135deg, var(--av-a), var(--av-b)); color: var(--av-on); border-color: transparent; font-weight: 700; }
+/* Crédito discreto no pé do card */
+.aviso-credito { display: block; margin-top: 14px; padding-top: 10px; border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-faint); opacity: 0.7; text-align: right; position: relative; }
+.aviso-credito strong { font-weight: 600; color: var(--text-soft); }
 .aviso-card .aviso-ok:hover { filter: brightness(1.06); color: var(--av-on); }
 /* Peças da animação: brilho que varre o card + faíscas */
 .aviso-brilho { position: absolute; top: 0; bottom: 0; left: -60%; width: 40%; background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.35), transparent); transform: skewX(-18deg); pointer-events: none; opacity: 0; }

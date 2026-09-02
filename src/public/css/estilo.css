@@ -2689,6 +2689,29 @@ a.share-item { text-decoration: none; color: inherit; }
 }
 .bi-badge { border-color: transparent; }
 
+/* ============================================================
+   MODO "APP" (adicionado à tela de início do iPhone/Android — display-mode: standalone)
+   Com a página inteira rolando, o iOS faz a barra fixa "boiar": ela acompanha o dedo
+   no elástico do fim da página, treme e os toques erram o alvo. A cura definitiva é
+   o body NÃO rolar: quem rola é o .conteudo, e a barra inferior fica fora dele,
+   parada de verdade. Só vale no modo app — no navegador comum nada muda.
+   ============================================================ */
+@media (display-mode: standalone) and (max-width: 899px) {
+  html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+  .app { height: 100dvh; min-height: 0; overflow: hidden; }
+  .conteudo {
+    height: 100dvh; overflow-y: auto; overflow-x: clip;
+    -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain;
+  }
+  body.sem-scroll .conteudo, body.travado .conteudo { overflow: hidden; }
+  /* Barra e topo em camadas próprias: sem tremida, toque cai no lugar certo */
+  .barra-inferior { transform: translateZ(0); -webkit-transform: translateZ(0); }
+  .topo-mobile { transform: translateZ(0); -webkit-transform: translateZ(0); }
+  /* Ícones grandes o bastante para o dedo, sem "fantasma" de hover */
+  .bi-item, .bi-perfil { min-height: 60px; }
+  .bi-item:hover { color: var(--text); }
+}
+
 /* --- Segurar a bolha (mobile) abre o menu de ações da mensagem --- */
 .dm-bolha { transition: transform 0.18s var(--ease-out); }
 .dm-bolha.segurando { transform: scale(0.965); }

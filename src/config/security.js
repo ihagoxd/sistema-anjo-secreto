@@ -35,6 +35,7 @@ function helmetMiddleware() {
         imgSrc: ["'self'", 'data:', 'blob:'],
         mediaSrc: ["'self'", 'blob:'],
         connectSrc: ["'self'"],
+        workerSrc: ["'self'"], // service worker das notificações push (/sw.js)
         fontSrc: ["'self'", 'data:'],
         objectSrc: ["'none'"],
         frameAncestors: ["'self'"],

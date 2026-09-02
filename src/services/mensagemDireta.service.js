@@ -41,7 +41,7 @@ async function enviar(idRemetente, idDestinatario, texto, imagem = null, audio =
   }
 
   await dmModel.inserir({ idRemetente, idDestinatario, texto: texto2, imagem, audio, video, story, respondendoA: citada });
-  await notificacaoService.notificarMensagemDireta(idDestinatario, idRemetente);
+  await notificacaoService.notificarMensagemDireta(idDestinatario, idRemetente, { texto: texto2, imagem, audio, video, story });
   return { ok: true };
 }
 

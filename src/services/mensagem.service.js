@@ -57,7 +57,7 @@ async function enviarMensagemAnonima(idCampanha, idRemetente, alvo, texto, image
   }
 
   await mensagemModel.inserir({ idCampanha, idOrigem: idRemetente, idDestino: destino, tipo, mensagem, imagem, audio, video, respondendoA: citada });
-  await notificacaoService.notificarMensagemJogo(destino, alvo);
+  await notificacaoService.notificarMensagemJogo(destino, alvo, { texto: mensagem, imagem, audio, video });
   return { ok: true };
 }
 

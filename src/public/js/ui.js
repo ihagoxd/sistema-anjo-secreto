@@ -1676,82 +1676,493 @@
     });
   })();
 
-  /* ---------- Notificações: marca como lidas ao abrir o sino ---------- */
+  /* ---------- Central de notificações ----------
+     Tempo real por SSE (com polling de reserva), toasts ricos deslizantes no topo
+     (arrastáveis, com barra de tempo), som (WebAudio) e vibração, badge no sino,
+     no título da aba e no ícone do app (PWA), página com abas/seções/remover/
+     carregar mais, preferências por usuário e push via service worker. */
   (function () {
     var metaCsrf = document.querySelector('meta[name="csrf-token"]');
     var CSRF = metaCsrf ? metaCsrf.getAttribute('content') : '';
-    document.addEventListener('click', function (e) {
-      var b = e.target.closest('[data-abrir-notif]');
-      if (!b) return;
-      if (!document.querySelector('.js-notif-badge')) return; // nada não lido
-      fetch('/notificacoes/ler-todas', { method: 'POST', headers: { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch' } }).catch(function () {});
-      document.querySelectorAll('.js-notif-badge').forEach(function (x) { x.remove(); });
-    });
-
-    /* --- Tempo (quase) real: polling + toast na tela + Notification do navegador --- */
-    if (!document.querySelector('[data-abrir-notif]')) return; // só p/ usuário logado
-
+    var HEAD = { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch', 'Content-Type': 'application/json' };
+    function post(url, body) {
+      return fetch(url, { method: 'POST', headers: HEAD, body: JSON.stringify(body || {}) }).then(function (r) { return r.json(); });
+    }
+    function getJson(url) { return fetch(url, { headers: { 'X-Requested-With': 'fetch' } }).then(function (r) { return r.json(); }); }
+    function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
     function inicial(nome) { return (String(nome || '').trim()[0] || '?').toUpperCase(); }
 
-    function ensureBadge(count) {
-      document.querySelectorAll('.js-notif-badge').forEach(function (el) { if (count > 0) el.textContent = count; else el.remove(); });
-      if (count > 0 && !document.querySelector('.js-notif-badge')) {
+    var sino = document.querySelector('[data-abrir-notif]');
+    var pagina = document.querySelector('[data-notif-pagina]');
+    var painel = document.getElementById('painelNotif');
+    if (!sino && !pagina) return; // só p/ usuário logado (participante)
+
+    /* ---- Preferências (cache local para resposta imediata; o servidor manda) ---- */
+    var PADRAO = { som: true, vibrar: true, banner: true, navegador: true, push: true, mensagens: true, social: true, aniversario: true, sistema: true };
+    var prefs = Object.assign({}, PADRAO);
+    try { var pc = JSON.parse(localStorage.getItem('notifPrefs') || 'null'); if (pc) Object.assign(prefs, pc); } catch (e) {}
+    function guardarPrefs() { try { localStorage.setItem('notifPrefs', JSON.stringify(prefs)); } catch (e) {} }
+
+    /* ---- Badge: sino, sidebar, título da aba e ícone do app ---- */
+    var tituloBase = document.title.replace(/^\(\d+\)\s*/, '');
+    var contagem = 0;
+    var b0 = document.querySelector('.js-notif-badge');
+    if (b0) contagem = parseInt(b0.textContent, 10) || 0;
+    function setContagem(n) {
+      contagem = Math.max(0, n | 0);
+      document.querySelectorAll('.js-notif-badge').forEach(function (el) { if (contagem > 0) el.textContent = contagem; else el.remove(); });
+      if (contagem > 0 && !document.querySelector('.js-notif-badge')) {
         var side = document.querySelector('.side-sino');
-        if (side) { var s = document.createElement('span'); s.className = 'nav-badge js-notif-badge'; s.textContent = count; side.appendChild(s); }
+        if (side) { var s = document.createElement('span'); s.className = 'nav-badge js-notif-badge'; s.textContent = contagem; side.appendChild(s); }
         var topo = document.querySelector('.btn-sino');
-        if (topo) { var t = document.createElement('span'); t.className = 'sino-badge js-notif-badge'; t.textContent = count; topo.appendChild(t); }
+        if (topo) { var t = document.createElement('span'); t.className = 'sino-badge js-notif-badge'; t.textContent = contagem; topo.appendChild(t); }
       }
+      document.title = contagem > 0 ? '(' + contagem + ') ' + tituloBase : tituloBase;
+      try { if (navigator.setAppBadge) { if (contagem > 0) navigator.setAppBadge(contagem); else navigator.clearAppBadge(); } } catch (e) {}
+    }
+    setContagem(contagem);
+    function balancarSino() {
+      document.querySelectorAll('.btn-sino, .side-sino').forEach(function (el) { el.classList.remove('tocando'); void el.offsetWidth; el.classList.add('tocando'); });
     }
 
-    // Adiciona a notificação nova no topo do painel do sino (mantém a lista fresca).
+    /* ---- HTML de um item (espelho do partial notifItem) ---- */
+    function htmlAvatar(n) {
+      if (!n.temAtor) return '<span class="notif-av so-emoji">' + n.emoji + '</span>';
+      var av1 = n.ator_foto ? '<img src="' + esc(n.ator_foto) + '" alt="">' : esc(inicial(n.ator_nome));
+      var dupla = !!n.ator2_nome;
+      var h = '<span class="notif-av' + (dupla ? ' dupla' : '') + '">';
+      if (dupla) h += '<span class="notif-av2">' + (n.ator2_foto ? '<img src="' + esc(n.ator2_foto) + '" alt="">' : esc(inicial(n.ator2_nome))) + '</span>';
+      h += '<span class="notif-av1">' + av1 + '</span><span class="notif-emoji">' + n.emoji + '</span></span>';
+      return h;
+    }
+    function hrefDe(n) {
+      var ids = (n.ids || [n.id]).join(',');
+      return '/notificacoes/' + n.id + '/abrir' + (n.vezes ? '?ids=' + ids : '');
+    }
+    function htmlItem(n, tempo) {
+      var ids = (n.ids || [n.id]).join(',');
+      return '<div class="notif-item' + (n.lida ? '' : ' nova') + ' tipo-' + esc(n.tipo) + '" data-notif-id="' + n.id + '" data-notif-ids="' + ids + '">'
+        + '<a class="notif-corpo" href="' + hrefDe(n) + '">' + htmlAvatar(n)
+        + '<div class="notif-txt"><span class="notif-linha"><strong>' + esc(n.titulo) + '</strong> ' + esc(n.texto) + '</span>'
+        + (n.detalhe ? '<span class="notif-detalhe">' + esc(n.detalhe) + '</span>' : '')
+        + '<span class="notif-tempo">' + esc(tempo || 'agora') + '</span></div>'
+        + (n.imagem ? '<span class="notif-thumb"><img src="' + esc(n.imagem) + '" alt=""></span>' : '')
+        + (n.lida ? '' : '<span class="notif-dot"></span>') + '</a>'
+        + '<button type="button" class="notif-x" data-notif-excluir aria-label="Remover notificação" title="Remover">'
+        + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>';
+    }
+    function tempoRelJs(iso) {
+      var d = new Date(iso);
+      var seg = Math.floor((Date.now() - d.getTime()) / 1000);
+      if (seg < 45) return 'agora';
+      if (seg < 3600) return 'há ' + Math.floor(seg / 60) + ' min';
+      if (seg < 86400) return 'há ' + Math.floor(seg / 3600) + ' h';
+      if (seg < 604800) return 'há ' + Math.floor(seg / 86400) + ' d';
+      return ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-2);
+    }
+    // Nova notificação entra no topo do painel do sino e da seção "Hoje" da página.
     function prependPainel(n) {
       var lista = document.querySelector('#painelNotif .notif-lista');
       if (!lista) return;
       var vazio = lista.querySelector('.notif-vazio'); if (vazio) vazio.remove();
-      var a = document.createElement('a');
-      a.className = 'notif-item nova';
-      a.href = '/notificacoes/' + n.id + '/abrir';
-      var av = n.temAtor ? (n.ator_foto ? '<img src="' + n.ator_foto + '" alt="">' : inicial(n.ator_nome)) + '<span class="notif-emoji">' + n.emoji + '</span>' : n.emoji;
-      a.innerHTML = '<span class="notif-av ' + (n.temAtor ? '' : 'so-emoji') + '">' + av + '</span>'
-        + '<div class="notif-txt"><span class="notif-linha">' + n.texto + '</span><span class="notif-tempo">agora</span></div>'
-        + '<span class="notif-dot"></span>';
-      lista.insertBefore(a, lista.firstChild);
+      lista.insertAdjacentHTML('afterbegin', htmlItem(n, 'agora'));
+    }
+    function inserirNaPagina(n) {
+      if (!pagina) return;
+      var filtro = pagina.getAttribute('data-filtro') || 'todas';
+      if (filtro !== 'todas' && filtro !== 'nao-lidas' && filtro !== n.categoria) return;
+      var vazio = pagina.querySelector('[data-notif-vazio]'); if (vazio) vazio.hidden = true;
+      var sec = pagina.querySelector('.notif-secao[data-secao="Hoje"]');
+      if (!sec) {
+        sec = document.createElement('section'); sec.className = 'notif-secao'; sec.setAttribute('data-secao', 'Hoje');
+        sec.innerHTML = '<h3 class="notif-secao-titulo">Hoje</h3>';
+        pagina.insertBefore(sec, pagina.firstChild);
+      }
+      sec.querySelector('.notif-secao-titulo').insertAdjacentHTML('afterend', htmlItem(n, 'agora'));
     }
 
-    function browserNotif(n) {
+    /* ---- Som (WebAudio, sem arquivo) e vibração ---- */
+    var audioCtx = null;
+    function prepararAudio() {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      if (!audioCtx) { try { audioCtx = new AC(); } catch (e) { return; } }
+      if (audioCtx.state === 'suspended') audioCtx.resume().catch(function () {});
+    }
+    ['pointerdown', 'keydown', 'touchend'].forEach(function (ev) { document.addEventListener(ev, prepararAudio, { passive: true }); });
+    function tocarSom() {
+      if (!audioCtx || audioCtx.state !== 'running') return;
+      try {
+        var t0 = audioCtx.currentTime;
+        [[880, 0], [1174.66, 0.11]].forEach(function (nota) {
+          var o = audioCtx.createOscillator(); var g = audioCtx.createGain();
+          o.type = 'sine'; o.frequency.value = nota[0];
+          g.gain.setValueAtTime(0.0001, t0 + nota[1]);
+          g.gain.exponentialRampToValueAtTime(0.16, t0 + nota[1] + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.0001, t0 + nota[1] + 0.34);
+          o.connect(g); g.connect(audioCtx.destination);
+          o.start(t0 + nota[1]); o.stop(t0 + nota[1] + 0.36);
+        });
+      } catch (e) {}
+    }
+    function vibrar() { try { if (navigator.vibrate) navigator.vibrate([50, 40, 80]); } catch (e) {} }
+
+    /* ---- Toasts ricos: pilha no topo, barra de tempo, pausa no hover, arrastar p/ dispensar ---- */
+    var pilha = null;
+    var DURACAO = 6500;
+    function fecharToast(el, rapido) {
+      if (!el || el.classList.contains('saindo')) return;
+      el.classList.add('saindo');
+      setTimeout(function () { el.remove(); }, rapido ? 120 : 260);
+    }
+    function toastRico(n) {
+      if (!pilha) { pilha = document.createElement('div'); pilha.className = 'ntoasts'; document.body.appendChild(pilha); }
+      while (pilha.querySelectorAll('.ntoast:not(.saindo)').length >= 3) fecharToast(pilha.querySelector('.ntoast:not(.saindo)'), true);
+      var el = document.createElement('div');
+      el.className = 'ntoast';
+      el.setAttribute('role', 'status');
+      el.innerHTML = '<a class="ntoast-corpo" href="' + hrefDe(n) + '">' + htmlAvatar(n)
+        + '<div class="ntoast-txt"><div class="ntoast-cab"><span class="ntoast-app">Anjo Secreto</span><span class="ntoast-tempo">agora</span></div>'
+        + '<div class="ntoast-linha"><strong>' + esc(n.titulo) + '</strong> ' + esc(n.texto) + '</div>'
+        + (n.detalhe ? '<div class="ntoast-detalhe">' + esc(n.detalhe) + '</div>' : '') + '</div>'
+        + (n.imagem ? '<span class="notif-thumb"><img src="' + esc(n.imagem) + '" alt=""></span>' : '')
+        + '</a><button type="button" class="ntoast-x" aria-label="Fechar">&times;</button>'
+        + '<span class="ntoast-barra"><i></i></span>';
+      pilha.appendChild(el);
+
+      var barra = el.querySelector('.ntoast-barra i');
+      var timer = null, restante = DURACAO, inicio = 0;
+      function correr() {
+        inicio = Date.now();
+        barra.style.transitionDuration = restante + 'ms';
+        barra.style.transform = 'scaleX(0)';
+        timer = setTimeout(function () { fecharToast(el); }, restante);
+      }
+      function pausar() {
+        if (!timer) return;
+        clearTimeout(timer); timer = null;
+        restante = Math.max(1200, restante - (Date.now() - inicio));
+        var w = el.getBoundingClientRect().width || 1;
+        var frac = barra.getBoundingClientRect().width / w;
+        barra.style.transitionDuration = '0ms';
+        barra.style.transform = 'scaleX(' + frac + ')';
+      }
+      requestAnimationFrame(function () { requestAnimationFrame(correr); });
+      el.addEventListener('mouseenter', pausar);
+      el.addEventListener('mouseleave', function () { if (!timer) correr(); });
+      el.querySelector('.ntoast-x').addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); fecharToast(el); });
+      // Navegação manual (o pointer capture do arrasto engole o click do link)
+      el.addEventListener('click', function (e) { e.preventDefault(); });
+
+      var px = 0, py = 0, dx = 0, dy = 0, arrastando = false, moveu = false;
+      el.addEventListener('pointerdown', function (e) {
+        if (e.target.closest('.ntoast-x') || e.button > 0) return;
+        arrastando = true; moveu = false; px = e.clientX; py = e.clientY; dx = dy = 0;
+        pausar();
+        try { el.setPointerCapture(e.pointerId); } catch (x) {}
+        el.style.transition = 'none';
+      });
+      el.addEventListener('pointermove', function (e) {
+        if (!arrastando) return;
+        dx = e.clientX - px; dy = Math.min(0, e.clientY - py);
+        if (Math.abs(dx) > 6 || Math.abs(dy) > 6) moveu = true;
+        el.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
+        el.style.opacity = String(Math.max(0.25, 1 - (Math.abs(dx) + Math.abs(dy)) / 220));
+      });
+      function soltar() {
+        if (!arrastando) return;
+        arrastando = false;
+        if (Math.abs(dx) > 90 || dy < -50) { fecharToast(el, true); return; }
+        el.style.transition = 'transform 0.3s var(--ease-spring), opacity 0.2s';
+        el.style.transform = ''; el.style.opacity = '';
+        if (!moveu) { fecharToast(el, true); window.location.href = hrefDe(n); return; }
+        correr();
+      }
+      el.addEventListener('pointerup', soltar);
+      el.addEventListener('pointercancel', soltar);
+    }
+
+    /* ---- Aviso do navegador (aba em segundo plano). Com push ativo neste aparelho,
+       o service worker já cuida — evita duplicar. ---- */
+    function pushAtivoAqui() { try { return !!localStorage.getItem('notifPushEndpoint'); } catch (e) { return false; } }
+    function avisoNavegador(n) {
       if (!('Notification' in window) || Notification.permission !== 'granted') return;
-      try { new Notification('Anjo Secreto', { body: n.emoji + ' ' + n.texto, icon: '/favicon.svg', tag: 'anjo-notif-' + n.id }); } catch (x) {}
+      if (pushAtivoAqui()) return;
+      var titulo = n.emoji + ' ' + n.titulo;
+      var corpo = n.detalhe ? n.texto + ' · ' + n.detalhe : n.texto;
+      var opts = { body: corpo, icon: n.ator_foto || '/img/icon-512.png', badge: '/img/icon-512.png', tag: 'anjo-' + n.id, data: { url: hrefDe(n) } };
+      if (n.imagem) opts.image = n.imagem;
+      try {
+        if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.ready.then(function (reg) { reg.showNotification(titulo, opts); });
+          return;
+        }
+        var nt = new Notification(titulo, opts);
+        nt.onclick = function () { try { window.focus(); } catch (x) {} window.location.href = opts.data.url; nt.close(); };
+      } catch (e) {}
     }
 
-    // Pede permissão de notificação quando o usuário abre o sino (gesto do usuário).
-    document.addEventListener('click', function (e) {
-      if (!e.target.closest('[data-abrir-notif]')) return;
-      if ('Notification' in window && Notification.permission === 'default') { try { Notification.requestPermission(); } catch (x) {} }
+    /* ---- Receber uma notificação nova (SSE ou polling) ---- */
+    var vistos = {};
+    function receber(n, dados) {
+      if (!n || vistos[n.id]) return;
+      vistos[n.id] = 1;
+      dados = dados || {};
+      prependPainel(n);
+      inserirNaPagina(n);
+      setContagem(dados.count != null ? dados.count : contagem + 1);
+      if (dados.silenciada) return;
+      // Já está na conversa/post em questão: só atualiza o badge, sem alarde.
+      if (n.link && window.location.pathname === n.link) return;
+      var p = Object.assign({}, prefs, dados.prefs || {});
+      balancarSino();
+      if (p.banner) toastRico(n);
+      if (p.som) tocarSom();
+      if (p.vibrar) vibrar();
+      if (document.hidden && p.navegador) avisoNavegador(n);
+    }
+
+    /* ---- Conexão: SSE em tempo real; polling de reserva se o SSE falhar ---- */
+    var ultimaNotif = 0;
+    document.querySelectorAll('[data-notif-id]').forEach(function (el) { ultimaNotif = Math.max(ultimaNotif, parseInt(el.getAttribute('data-notif-id'), 10) || 0); });
+    var es = null, falhasSSE = 0, pollTimer = null;
+    function conectar() {
+      if (!window.EventSource || es) return;
+      try { es = new EventSource('/notificacoes/stream'); } catch (e) { es = null; iniciarPolling(); return; }
+      es.addEventListener('notificacao', function (ev) {
+        try { var d = JSON.parse(ev.data); if (d.n && d.n.id > ultimaNotif) ultimaNotif = d.n.id; receber(d.n, d); } catch (e) {}
+      });
+      es.addEventListener('contagem', function (ev) { try { setContagem(JSON.parse(ev.data).count); } catch (e) {} });
+      es.onopen = function () { falhasSSE = 0; if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } };
+      es.onerror = function () { falhasSSE++; if (falhasSSE >= 4) { try { es.close(); } catch (e) {} es = null; iniciarPolling(); } };
+    }
+    function checar() {
+      if (document.hidden) return;
+      getJson('/notificacoes/novas?ultima=' + ultimaNotif).then(function (d) {
+        setContagem(d.count);
+        if (ultimaNotif > 0 && d.novas && d.novas.length) d.novas.slice().reverse().forEach(function (n) { receber(n, { count: d.count }); });
+        if (d.ultima) ultimaNotif = Math.max(ultimaNotif, d.ultima);
+      }).catch(function () {});
+    }
+    function iniciarPolling() { if (pollTimer) return; pollTimer = setInterval(checar, 30000); }
+    if (window.EventSource) conectar(); else iniciarPolling();
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) return;
+      if (!es && window.EventSource) { falhasSSE = 0; conectar(); }
+      checar();
     });
 
-    var ultimaNotif = 0;
-    var prim = document.querySelector('#painelNotif .notif-item');
-    if (prim) { var m = (prim.getAttribute('href') || '').match(/\/notificacoes\/(\d+)\//); if (m) ultimaNotif = parseInt(m[1], 10); }
-
-    function checarNotifs() {
-      if (document.hidden) return;
-      fetch('/notificacoes/novas?ultima=' + ultimaNotif, { headers: { 'X-Requested-With': 'fetch' } })
-        .then(function (r) { return r.json(); })
-        .then(function (d) {
-          ensureBadge(d.count);
-          if (ultimaNotif > 0 && d.novas && d.novas.length) {
-            d.novas.slice().reverse().forEach(function (n) {
-              toast(n.emoji + ' ' + n.texto);
-              browserNotif(n);
-              prependPainel(n);
-            });
-          }
-          if (d.ultima) ultimaNotif = Math.max(ultimaNotif, d.ultima);
-        })
-        .catch(function () {});
+    /* ---- Sino: abrir marca tudo como lido; ao fechar, tira o destaque ---- */
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-abrir-notif]');
+      if (!b) return;
+      if ('Notification' in window && Notification.permission === 'default' && prefs.navegador) {
+        try { Notification.requestPermission().then(sincronizarPush); } catch (x) {}
+      }
+      if (contagem <= 0) return;
+      post('/notificacoes/ler-todas').catch(function () {});
+      setContagem(0);
+    });
+    if (painel) {
+      new MutationObserver(function () {
+        if (!painel.hidden) return;
+        painel.querySelectorAll('.notif-item.nova').forEach(function (el) { el.classList.remove('nova'); var d = el.querySelector('.notif-dot'); if (d) d.remove(); });
+      }).observe(painel, { attributes: true, attributeFilter: ['hidden'] });
     }
-    window.setInterval(checarNotifs, 25000);
-    document.addEventListener('visibilitychange', function () { if (!document.hidden) checarNotifs(); });
+
+    /* ---- Ações: remover, limpar tudo, carregar mais, abrir preferências pelo sino ---- */
+    function verificarVazio() {
+      if (pagina) {
+        pagina.querySelectorAll('.notif-secao').forEach(function (s) { if (!s.querySelector('.notif-item') && !s.hasAttribute('data-notif-mais-lista')) s.remove(); });
+        var maisLista = pagina.querySelector('[data-notif-mais-lista]');
+        if (maisLista && !maisLista.querySelector('.notif-item')) maisLista.hidden = true;
+        var vazio = pagina.querySelector('[data-notif-vazio]');
+        if (vazio) vazio.hidden = !!pagina.querySelector('.notif-item');
+        if (!pagina.querySelector('.notif-item')) { var lim = document.querySelector('[data-notif-limpar]'); if (lim) lim.remove(); }
+      }
+      var lista = document.querySelector('#painelNotif .notif-lista');
+      if (lista && !lista.querySelector('.notif-item') && !lista.querySelector('.notif-vazio')) lista.innerHTML = '<div class="notif-vazio">🔔<div>Nenhuma notificação ainda.</div></div>';
+    }
+    function carregarMais(btn) {
+      btn.disabled = true; btn.textContent = 'Carregando…';
+      var ultima = pagina.getAttribute('data-ultima') || '0', filtro = pagina.getAttribute('data-filtro') || 'todas';
+      getJson('/notificacoes/lista?filtro=' + encodeURIComponent(filtro) + '&antes=' + encodeURIComponent(ultima)).then(function (d) {
+        var alvo = pagina.querySelector('[data-notif-mais-lista]');
+        if (d.itens && d.itens.length) {
+          alvo.hidden = false;
+          d.itens.forEach(function (n) { alvo.insertAdjacentHTML('beforeend', htmlItem(n, tempoRelJs(n.criado_em))); });
+          pagina.setAttribute('data-ultima', d.ultimaId);
+        }
+        if (d.temMais) { btn.disabled = false; btn.textContent = 'Carregar mais'; pagina.appendChild(btn); } else btn.remove();
+      }).catch(function () { btn.disabled = false; btn.textContent = 'Carregar mais'; });
+    }
+    document.addEventListener('click', function (e) {
+      var x = e.target.closest('[data-notif-excluir]');
+      if (x) {
+        e.preventDefault(); e.stopPropagation();
+        var item = x.closest('.notif-item');
+        var id = item.getAttribute('data-notif-id'), ids = item.getAttribute('data-notif-ids');
+        // O mesmo item pode estar no painel E na página: some dos dois.
+        document.querySelectorAll('.notif-item[data-notif-id="' + id + '"]').forEach(function (el) {
+          el.classList.add('saindo');
+          setTimeout(function () { el.remove(); verificarVazio(); }, 220);
+        });
+        post('/notificacoes/' + id + '/excluir', { ids: ids }).then(function (d) { if (d && d.count != null) setContagem(d.count); }).catch(function () {});
+        return;
+      }
+      var lim = e.target.closest('[data-notif-limpar]');
+      if (lim) {
+        if (lim.getAttribute('data-confirma') !== '1') {
+          lim.setAttribute('data-confirma', '1');
+          lim.setAttribute('data-txt', lim.textContent);
+          lim.textContent = 'Confirmar: limpar tudo?';
+          setTimeout(function () { if (lim.getAttribute('data-confirma') === '1') { lim.removeAttribute('data-confirma'); lim.textContent = lim.getAttribute('data-txt'); } }, 4000);
+          return;
+        }
+        lim.disabled = true;
+        post('/notificacoes/limpar').then(function () {
+          document.querySelectorAll('.notif-item').forEach(function (el) { el.remove(); });
+          var m = document.querySelector('[data-notif-mais]'); if (m) m.remove();
+          setContagem(0); verificarVazio(); lim.remove();
+          toast('Notificações limpas');
+        }).catch(function () { lim.disabled = false; });
+        return;
+      }
+      var mais = e.target.closest('[data-notif-mais]');
+      if (mais && pagina) { carregarMais(mais); return; }
+      // Engrenagem dentro do painel do sino: fecha o painel ao abrir as preferências
+      var eng = e.target.closest('#painelNotif [data-abrir-modal="notifPrefs"]');
+      if (eng && painel) { painel.setAttribute('hidden', ''); painel.setAttribute('aria-hidden', 'true'); }
+    });
+
+    /* ---- Preferências (modal) + push (service worker) ---- */
+    var prefsModal = document.querySelector('[data-notif-prefs]');
+    var estadoEl = prefsModal && prefsModal.querySelector('[data-push-estado]');
+    var btnAtivar = prefsModal && prefsModal.querySelector('[data-push-ativar]');
+    var btnDesativar = prefsModal && prefsModal.querySelector('[data-push-desativar]');
+    var chavePush = null, pushDisponivel = false;
+
+    function suportePush() { return !!(window.isSecureContext && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window); }
+    function estado(txt, classe) { if (!estadoEl) return; estadoEl.textContent = txt; estadoEl.className = 'prefs-estado' + (classe ? ' ' + classe : ''); }
+    function aplicarPrefsUI() {
+      if (!prefsModal) return;
+      prefsModal.querySelectorAll('[data-pref]').forEach(function (i) { i.checked = prefs[i.getAttribute('data-pref')] !== false; });
+    }
+    function carregarPrefs() {
+      return getJson('/notificacoes/preferencias').then(function (d) {
+        if (d.prefs) { Object.assign(prefs, d.prefs); guardarPrefs(); aplicarPrefsUI(); }
+        pushDisponivel = !!(d.push && d.push.disponivel);
+        chavePush = d.push ? d.push.chave : null;
+      }).catch(function () {});
+    }
+    function b64ToU8(b64) {
+      var pad = '='.repeat((4 - b64.length % 4) % 4);
+      var s = (b64 + pad).replace(/-/g, '+').replace(/_/g, '/');
+      var raw = atob(s); var arr = new Uint8Array(raw.length);
+      for (var i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+      return arr;
+    }
+    function atualizarEstadoPush() {
+      if (!prefsModal) return;
+      btnAtivar.hidden = true; btnDesativar.hidden = true;
+      if (!('Notification' in window)) {
+        return estado('Este navegador não mostra notificações. No iPhone, adicione o app à Tela de Início (Compartilhar › Tela de Início) e abra por lá.', 'erro');
+      }
+      if (Notification.permission === 'denied') {
+        return estado('Bloqueadas nas configurações do navegador. Libere em "Configurações do site › Notificações" e volte aqui.', 'erro');
+      }
+      if (!suportePush()) {
+        if (Notification.permission === 'granted') {
+          return estado('Avisos ativos enquanto o app estiver aberto (cartão na tela, som, vibração e aviso do navegador em segundo plano). Para receber com o app fechado, o sistema precisa estar em HTTPS.', 'ok');
+        }
+        btnAtivar.hidden = false; btnAtivar.textContent = 'Permitir avisos do navegador';
+        return estado('Sem HTTPS, este aparelho avisa enquanto o app estiver aberto (cartão na tela, som e vibração). Permita os avisos do navegador para ser avisado também em segundo plano.');
+      }
+      if (!pushDisponivel) return estado('Push indisponível no servidor no momento.', 'erro');
+      navigator.serviceWorker.getRegistration('/').then(function (reg) { return reg ? reg.pushManager.getSubscription() : null; }).then(function (sub) {
+        if (sub) {
+          estado('Ativas neste aparelho ✓ Você recebe mesmo com o app fechado.', 'ok');
+          btnDesativar.hidden = false;
+          try { localStorage.setItem('notifPushEndpoint', sub.endpoint); } catch (e) {}
+        } else {
+          estado('Receba avisos neste aparelho mesmo com o app fechado.');
+          btnAtivar.hidden = false; btnAtivar.textContent = 'Ativar notificações';
+        }
+      }).catch(function () { estado('Não foi possível verificar o estado do push.', 'erro'); });
+    }
+    function inscreverPush() {
+      if (!chavePush) return Promise.resolve(false);
+      return navigator.serviceWorker.register('/sw.js').then(function () { return navigator.serviceWorker.ready; }).then(function (reg) {
+        return reg.pushManager.getSubscription().then(function (sub) {
+          return sub || reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToU8(chavePush) });
+        });
+      }).then(function (sub) {
+        return post('/notificacoes/push/inscrever', { subscription: sub.toJSON() }).then(function (d) {
+          if (d.ok) { try { localStorage.setItem('notifPushEndpoint', sub.endpoint); } catch (e) {} }
+          return !!d.ok;
+        });
+      }).catch(function (e) { console.warn('[push]', e); return false; });
+    }
+    function ativarPush() {
+      prepararAudio();
+      if (!('Notification' in window)) return;
+      var pedir = function () {
+        try { return Promise.resolve(Notification.requestPermission()); } catch (e) { return new Promise(function (res) { Notification.requestPermission(res); }); }
+      };
+      pedir().then(function (perm) {
+        if (perm !== 'granted') { atualizarEstadoPush(); return; }
+        if (!suportePush()) { atualizarEstadoPush(); toast('Avisos do navegador ativados'); return; }
+        var pronto = chavePush ? Promise.resolve() : carregarPrefs();
+        return pronto.then(inscreverPush).then(function (ok) {
+          atualizarEstadoPush();
+          toast(ok ? 'Notificações ativadas neste aparelho' : 'Não foi possível ativar o push');
+        });
+      }).catch(function () { atualizarEstadoPush(); });
+    }
+    function desativarPush() {
+      navigator.serviceWorker.getRegistration('/').then(function (reg) { return reg ? reg.pushManager.getSubscription() : null; }).then(function (sub) {
+        if (!sub) return;
+        var endpoint = sub.endpoint;
+        return sub.unsubscribe().then(function () { return post('/notificacoes/push/cancelar', { endpoint: endpoint }); });
+      }).then(function () {
+        try { localStorage.removeItem('notifPushEndpoint'); } catch (e) {}
+        atualizarEstadoPush(); toast('Push desativado neste aparelho');
+      }).catch(function () { atualizarEstadoPush(); });
+    }
+    // Ao carregar (1x por sessão): mantém a inscrição deste aparelho viva no servidor.
+    function sincronizarPush() {
+      if (!suportePush() || Notification.permission !== 'granted' || !prefs.push) return;
+      try { if (sessionStorage.getItem('pushSync')) return; sessionStorage.setItem('pushSync', '1'); } catch (e) {}
+      navigator.serviceWorker.register('/sw.js').then(function () { return navigator.serviceWorker.ready; })
+        .then(function (reg) { return reg.pushManager.getSubscription(); })
+        .then(function (sub) {
+          if (sub) return post('/notificacoes/push/inscrever', { subscription: sub.toJSON() }).then(function () { try { localStorage.setItem('notifPushEndpoint', sub.endpoint); } catch (e) {} });
+          return carregarPrefs().then(inscreverPush);
+        }).catch(function () {});
+    }
+    sincronizarPush();
+
+    if (prefsModal) {
+      aplicarPrefsUI();
+      var modalPrefs = prefsModal.closest('.modal');
+      new MutationObserver(function () { if (!modalPrefs.hidden) carregarPrefs().then(atualizarEstadoPush); })
+        .observe(modalPrefs, { attributes: true, attributeFilter: ['hidden'] });
+      prefsModal.addEventListener('change', function (e) {
+        var i = e.target.closest('[data-pref]'); if (!i) return;
+        var k = i.getAttribute('data-pref');
+        prefs[k] = i.checked; guardarPrefs();
+        post('/notificacoes/preferencias', prefs).catch(function () {});
+        if (k === 'som' && i.checked) { prepararAudio(); setTimeout(tocarSom, 60); }
+        if (k === 'vibrar' && i.checked) vibrar();
+      });
+      prefsModal.querySelector('[data-notif-testar]').addEventListener('click', function (ev) {
+        var btn = ev.currentTarget; btn.disabled = true; prepararAudio();
+        post('/notificacoes/testar').then(function () { toast('Teste enviado'); }).catch(function () { toast('Não foi possível enviar'); })
+          .then(function () { setTimeout(function () { btn.disabled = false; }, 1500); });
+      });
+      btnAtivar.addEventListener('click', ativarPush);
+      btnDesativar.addEventListener('click', desativarPush);
+    }
   })();
 
   /* ---------- Aniversário: modal 1x por dia + "Presentear" ---------- */

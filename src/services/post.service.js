@@ -16,7 +16,7 @@ async function notificarMencoes(texto, idAtor, idPost) {
   const usernames = extrair(texto);
   if (!usernames.length) return;
   const alvos = await usuarioModel.resolverMencoes(usernames);
-  for (const u of alvos) await notificacaoService.notificarMencao(u.id_usuario, idAtor, idPost);
+  for (const u of alvos) await notificacaoService.notificarMencao(u.id_usuario, idAtor, idPost, texto);
 }
 
 async function criarPost(idUsuario, texto, imagemPath, videoPath = null, colaboradorId = null) {
@@ -39,7 +39,7 @@ async function criarPost(idUsuario, texto, imagemPath, videoPath = null, colabor
   });
   if (colaboradores.length) {
     await postModel.adicionarColaboradores(novo.id_post, colaboradores);
-    for (const cid of colaboradores) await notificacaoService.notificarMencao(cid, idUsuario, novo.id_post);
+    for (const cid of colaboradores) await notificacaoService.notificarMencao(cid, idUsuario, novo.id_post, t, 'colab');
   }
   await notificarMencoes(t, idUsuario, novo.id_post);
   return { ok: true };
@@ -80,7 +80,7 @@ async function alternarCurtida(idPost, idUsuario) {
   if (curtiu) await postModel.descurtir(idPost, idUsuario);
   else {
     await postModel.curtir(idPost, idUsuario);
-    await notificacaoService.notificarCurtida(post.id_usuario, idUsuario, idPost);
+    await notificacaoService.notificarCurtida(post.id_usuario, idUsuario, idPost, post.imagem);
   }
   const total = await postModel.contarCurtidas(idPost);
   // Quem aparece na linha "Curtido por fulano e outras pessoas" (o curtidor mais recente)
@@ -104,7 +104,7 @@ async function alternarRepost(idPost, idUsuario) {
     await postModel.desfazerRepost(idPost, idUsuario);
   } else {
     await postModel.repostar(idPost, idUsuario);
-    await notificacaoService.notificarRepost(post.id_usuario, idUsuario, idPost);
+    await notificacaoService.notificarRepost(post.id_usuario, idUsuario, idPost, post.imagem);
   }
   const total = await postModel.contarReposts(idPost);
   return { ok: true, repostou: !jah, total };
@@ -121,7 +121,7 @@ async function comentar(idPost, idUsuario, texto) {
   if (!t) return { ok: false, motivo: 'VAZIO' };
   if (t.length > 500) return { ok: false, motivo: 'LONGO' };
   const novo = await postModel.adicionarComentario(idPost, idUsuario, t);
-  await notificacaoService.notificarComentario(post.id_usuario, idUsuario, idPost);
+  await notificacaoService.notificarComentario(post.id_usuario, idUsuario, idPost, t, post.imagem);
   await notificarMencoes(t, idUsuario, idPost);
   return { ok: true, idComentario: novo.id_comentario, texto: t };
 }

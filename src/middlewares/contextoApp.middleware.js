@@ -26,6 +26,9 @@ async function carregarContextoApp(req, res, next) {
   try {
     const u = req.session.usuario;
     if (!u || req.method !== 'GET') return next();
+    // Rotas de dados das notificações (SSE, polling, JSON) não renderizam layout:
+    // pular o carregamento pesado evita consultas inúteis a cada conexão.
+    if (/^\/notificacoes\/(stream|novas|lista|preferencias|push\/)/.test(req.path)) return next();
     const me = u.id_usuario;
 
     // Aniversários primeiro (podem gerar notificações), depois carrega badge/recentes.
@@ -56,7 +59,7 @@ async function carregarContextoApp(req, res, next) {
     }
 
     res.locals.notifNaoLidas = await notificacaoService.contarNaoLidas(me);
-    res.locals.notifRecentes = await notificacaoService.listar(me, 8);
+    res.locals.notifRecentes = (await notificacaoService.listar(me, { limite: 8 })).itens;
 
     // Campanha ativa: alimenta o contador de não lidas e a roleta de revelação.
     const campanha = await campanhaService.buscarCampanhaAtiva();

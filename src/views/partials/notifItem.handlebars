@@ -1,0 +1,22 @@
+{{! Um item de notificação (painel do sino e página). Contexto: objeto renderizado pelo notificacao.service }}
+<div class="notif-item {{#unless lida}}nova{{/unless}} tipo-{{tipo}}" data-notif-id="{{id}}" data-notif-ids="{{lista ids}}">
+  <a class="notif-corpo" href="/notificacoes/{{id}}/abrir{{#if vezes}}?ids={{lista ids}}{{/if}}">
+    <span class="notif-av {{#unless temAtor}}so-emoji{{/unless}} {{#if ator2_nome}}dupla{{/if}}">
+      {{#if temAtor}}
+        {{#if ator2_nome}}<span class="notif-av2">{{#if ator2_foto}}<img src="{{ator2_foto}}" alt="">{{else}}{{inicial ator2_nome}}{{/if}}</span>{{/if}}
+        <span class="notif-av1">{{#if ator_foto}}<img src="{{ator_foto}}" alt="">{{else}}{{inicial ator_nome}}{{/if}}</span>
+        <span class="notif-emoji">{{emoji}}</span>
+      {{else}}{{emoji}}{{/if}}
+    </span>
+    <div class="notif-txt">
+      <span class="notif-linha"><strong>{{titulo}}</strong> {{texto}}</span>
+      {{#if detalhe}}<span class="notif-detalhe">{{detalhe}}</span>{{/if}}
+      <span class="notif-tempo">{{tempoRel criado_em}}</span>
+    </div>
+    {{#if imagem}}<span class="notif-thumb"><img src="{{imagem}}" alt=""></span>{{/if}}
+    {{#unless lida}}<span class="notif-dot"></span>{{/unless}}
+  </a>
+  <button type="button" class="notif-x" data-notif-excluir aria-label="Remover notificação" title="Remover">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+</div>

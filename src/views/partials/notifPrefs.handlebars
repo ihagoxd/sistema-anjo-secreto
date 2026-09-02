@@ -1,0 +1,41 @@
+{{! Preferências de notificação: como avisar, o que avisar e push neste aparelho }}
+<div class="modal notif-modal" id="notifPrefs" hidden aria-hidden="true">
+  <div class="modal-card notif-card notif-prefs" data-notif-prefs>
+    <div class="notif-cab">
+      <h2>Preferências</h2>
+      <button type="button" class="btn-icone" data-fechar-modal="notifPrefs" aria-label="Fechar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="prefs-corpo">
+      <section class="prefs-bloco prefs-aparelho">
+        <div class="prefs-titulo">📱 Neste aparelho</div>
+        <p class="prefs-estado" data-push-estado>Verificando…</p>
+        <div class="prefs-acoes">
+          <button type="button" class="btn btn-primario btn-sm" data-push-ativar hidden>Ativar notificações</button>
+          <button type="button" class="btn btn-secundario btn-sm" data-push-desativar hidden>Desativar neste aparelho</button>
+          <button type="button" class="btn btn-secundario btn-sm" data-notif-testar>Enviar um teste</button>
+        </div>
+      </section>
+
+      <section class="prefs-bloco">
+        <div class="prefs-titulo">🔔 Como avisar</div>
+        <label class="pref-linha"><span class="pref-txt"><strong>Aviso na tela</strong><small>Cartão deslizante no topo quando algo chega</small></span><input type="checkbox" class="pref-switch" data-pref="banner" checked></label>
+        <label class="pref-linha"><span class="pref-txt"><strong>Som</strong><small>Toque curto ao receber</small></span><input type="checkbox" class="pref-switch" data-pref="som" checked></label>
+        <label class="pref-linha"><span class="pref-txt"><strong>Vibração</strong><small>No celular, ao receber</small></span><input type="checkbox" class="pref-switch" data-pref="vibrar" checked></label>
+        <label class="pref-linha"><span class="pref-txt"><strong>Aviso do navegador</strong><small>Quando a aba estiver em segundo plano</small></span><input type="checkbox" class="pref-switch" data-pref="navegador" checked></label>
+        <label class="pref-linha"><span class="pref-txt"><strong>Push com o app fechado</strong><small>Celular e computador (precisa ativar acima)</small></span><input type="checkbox" class="pref-switch" data-pref="push" checked></label>
+      </section>
+
+      <section class="prefs-bloco">
+        <div class="prefs-titulo">✨ O que avisar</div>
+        <label class="pref-linha"><span class="pref-txt"><strong>Mensagens</strong><small>Direct, seu anjo e seu protegido</small></span><input type="checkbox" class="pref-switch" data-pref="mensagens" checked></label>
+        <label class="pref-linha"><span class="pref-txt"><strong>Mural</strong><small>Curtidas, comentários, reposts e menções</small></span><input type="checkbox" class="pref-switch" data-pref="social" checked></label>
+        <label class="pref-linha"><span class="pref-txt"><strong>Aniversários</strong><small>Quem faz aniversário hoje</small></span><input type="checkbox" class="pref-switch" data-pref="aniversario" checked></label>
+        <label class="pref-linha"><span class="pref-txt"><strong>Sistema</strong><small>Sorteio e avisos gerais</small></span><input type="checkbox" class="pref-switch" data-pref="sistema" checked></label>
+        <p class="prefs-nota">Categorias desligadas continuam guardadas na central, só não avisam.</p>
+      </section>
+    </div>
+  </div>
+</div>

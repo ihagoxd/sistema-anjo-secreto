@@ -16,6 +16,7 @@
 const crypto = require('crypto');
 const db = require('../config/db');
 const sorteioModel = require('../models/sorteio.model');
+const notificacaoService = require('./notificacao.service');
 
 const MIN_PARTICIPANTES = 3;
 
@@ -74,6 +75,20 @@ async function sincronizarParticipantes(client, idCampanha) {
   );
 }
 
+// Depois do sorteio (feito/refeito), avisa cada participante — fora da transação
+// e à prova de falha: um problema no aviso nunca desfaz o sorteio.
+async function avisarParticipantes(idCampanha, refeito) {
+  try {
+    const res = await db.query(
+      `SELECT id_usuario FROM participantes WHERE id_campanha = $1 AND ativo = TRUE`,
+      [idCampanha]
+    );
+    await notificacaoService.notificarSorteio(res.rows.map((r) => r.id_usuario), refeito);
+  } catch (err) {
+    console.error('[sorteio] aviso aos participantes falhou:', err.message);
+  }
+}
+
 /**
  * Inicia o sorteio (RASCUNHO → EM_ANDAMENTO). Uma vez por campanha.
  */
@@ -102,6 +117,7 @@ async function iniciarSorteio(idCampanha) {
     await client.query(`UPDATE campanhas SET status = 'EM_ANDAMENTO' WHERE id_campanha = $1`, [idCampanha]);
 
     await client.query('COMMIT');
+    await avisarParticipantes(idCampanha, false);
     return { ok: true, total };
   } catch (err) {
     await client.query('ROLLBACK');
@@ -139,6 +155,7 @@ async function refazerSorteio(idCampanha) {
     const total = await gravarPares(client, idCampanha, ids);
 
     await client.query('COMMIT');
+    await avisarParticipantes(idCampanha, true);
     return { ok: true, total };
   } catch (err) {
     await client.query('ROLLBACK');

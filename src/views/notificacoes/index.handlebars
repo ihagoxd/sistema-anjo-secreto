@@ -1,26 +1,40 @@
-<div class="pagina-cabecalho">
+<div class="pagina-cabecalho notif-pg-cab">
   <div>
     <h1>Notificações</h1>
     <p class="subtitulo">Tudo o que rolou por aqui</p>
   </div>
+  <div class="notif-pg-acoes">
+    <button type="button" class="btn btn-secundario btn-sm" data-abrir-modal="notifPrefs">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Preferências
+    </button>
+    {{#unless vazia}}<button type="button" class="btn btn-secundario btn-sm" data-notif-limpar>Limpar tudo</button>{{/unless}}
+  </div>
 </div>
 
-<div class="card notif-pagina">
-  {{#each itens}}
-    <a class="notif-item {{#unless this.lida}}nova{{/unless}}" href="/notificacoes/{{this.id}}/abrir">
-      <span class="notif-av {{#unless this.temAtor}}so-emoji{{/unless}}">
-        {{#if this.temAtor}}
-          {{#if this.ator_foto}}<img src="{{this.ator_foto}}" alt="">{{else}}{{inicial this.ator_nome}}{{/if}}
-          <span class="notif-emoji">{{this.emoji}}</span>
-        {{else}}{{this.emoji}}{{/if}}
-      </span>
-      <div class="notif-txt">
-        <span class="notif-linha">{{this.texto}}{{#if this.vezes}} <span class="notif-vezes">{{this.vezes}}×</span>{{/if}}</span>
-        <span class="notif-tempo">{{tempoRel this.criado_em}}</span>
-      </div>
-      {{#unless this.lida}}<span class="notif-dot"></span>{{/unless}}
-    </a>
-  {{else}}
-    <div class="notif-vazio">🔔<div>Nenhuma notificação por enquanto.<br>Quando alguém curtir, comentar ou te mandar mensagem, aparece aqui.</div></div>
+<nav class="notif-tabs" aria-label="Filtrar notificações">
+  {{#each filtros}}
+    <a class="notif-tab {{#if ativo}}ativo{{/if}}" href="/notificacoes?filtro={{chave}}">{{rotulo}}</a>
   {{/each}}
+</nav>
+
+<div class="card notif-pagina" data-notif-pagina data-filtro="{{filtro}}" data-ultima="{{ultimaId}}">
+  {{#each secoes}}
+    <section class="notif-secao" data-secao="{{rotulo}}">
+      <h3 class="notif-secao-titulo">{{rotulo}}</h3>
+      {{#each itens}}{{> notifItem this}}{{/each}}
+    </section>
+  {{/each}}
+
+  <div class="notif-vazio" {{#unless vazia}}hidden{{/unless}} data-notif-vazio>
+    {{#if (eq filtro "nao-lidas")}}✅<div>Você está em dia!<br>Nenhuma notificação não lida.</div>
+    {{else if (eq filtro "todas")}}🔔<div>Nenhuma notificação por enquanto.<br>Quando alguém curtir, comentar ou te mandar mensagem, aparece aqui.</div>
+    {{else}}🔔<div>Nada por aqui ainda.</div>{{/if}}
+  </div>
+
+  <div class="notif-secao notif-secao-mais" hidden data-notif-mais-lista>
+    <h3 class="notif-secao-titulo">Mais antigas</h3>
+  </div>
+
+  {{#if temMais}}<button type="button" class="notif-mais" data-notif-mais>Carregar mais</button>{{/if}}
 </div>

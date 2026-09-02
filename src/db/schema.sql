@@ -211,6 +211,36 @@ CREATE TABLE IF NOT EXISTS notificacoes (
 );
 CREATE INDEX IF NOT EXISTS idx_notif_usuario ON notificacoes(id_usuario, criado_em DESC);
 CREATE INDEX IF NOT EXISTS idx_notif_nao_lidas ON notificacoes(id_usuario) WHERE lida = FALSE;
+-- Notificações ricas: prévia do conteúdo (trecho da mensagem/comentário) e miniatura (post)
+ALTER TABLE notificacoes ADD COLUMN IF NOT EXISTS detalhe TEXT;
+ALTER TABLE notificacoes ADD COLUMN IF NOT EXISTS imagem  TEXT;
+ALTER TABLE notificacoes ADD COLUMN IF NOT EXISTS lida_em TIMESTAMPTZ;
+
+-- Preferências de notificação por usuário (som, vibração, banner, push, tipos silenciados).
+-- Guardadas como JSON: chaves ausentes assumem o padrão (tudo ligado).
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS notif_prefs JSONB NOT NULL DEFAULT '{}'::jsonb;
+
+-- ---------- PUSH (Web Push: avisos no celular/desktop mesmo com o app fechado) ----------
+-- Cada navegador/aparelho que ativou as notificações vira uma inscrição.
+-- Só funciona sob HTTPS (exigência dos navegadores); no HTTP fica inativo sem quebrar nada.
+CREATE TABLE IF NOT EXISTS push_inscricoes (
+  id_inscricao SERIAL PRIMARY KEY,
+  id_usuario   INTEGER NOT NULL REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
+  endpoint     TEXT NOT NULL UNIQUE,
+  p256dh       TEXT NOT NULL,
+  auth         TEXT NOT NULL,
+  agente       TEXT,
+  criado_em    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  usado_em     TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_push_usuario ON push_inscricoes(id_usuario);
+
+-- Configurações internas geradas pelo próprio app (ex.: par de chaves VAPID do push).
+CREATE TABLE IF NOT EXISTS app_config (
+  chave     TEXT PRIMARY KEY,
+  valor     TEXT NOT NULL,
+  criado_em TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 
 -- ---------- LOGS DO SISTEMA (auditoria) ----------
 -- acao: catálogo padronizado (LOGIN_SUCESSO, SORTEIO_INICIADO, ...)

@@ -1225,8 +1225,11 @@
         var i = form.querySelector(s);
         return i && i.files && i.files.length;
       });
-      // Enquete aberta: precisa da pergunta (texto) e de pelo menos 2 opções
-      if (builder && !builder.hidden) return !!ta.value.trim() && opcoesPreenchidas() >= 2;
+      // Enquete aberta: precisa da pergunta e de pelo menos 2 opções (a legenda é opcional)
+      if (builder && !builder.hidden) {
+        var perg = builder.querySelector('[data-enq-pergunta]');
+        return !!(perg && perg.value.trim()) && opcoesPreenchidas() >= 2;
+      }
       return !!(ta.value.trim() || temMidia);
     }
     function atualizar() { btn.disabled = !temConteudo(); }
@@ -1270,11 +1273,16 @@
       });
     }
 
-    // Enquete (como no WhatsApp): o texto vira a pergunta; opções abaixo, Enter pula pra próxima
+    // Enquete (como no WhatsApp): pergunta própria + opções numeradas (Enter pula pra
+    // próxima), interruptor de várias respostas e PRÉVIA ao vivo de como vai ficar.
     var btnEnq = form.querySelector('[data-enquete-btn]');
     if (btnEnq && builder) {
       var lista = builder.querySelector('[data-enq-opcoes]');
       var btnAdd = builder.querySelector('[data-enq-add]');
+      var perguntaEl = builder.querySelector('[data-enq-pergunta]');
+      var multiplaEl = builder.querySelector('[data-enq-multipla]');
+      var contEl = builder.querySelector('[data-enq-cont]');
+      var previaEl = builder.querySelector('[data-enq-previa]');
       var MAX_OPCOES = 10;
       var placeholderOriginal = ta.getAttribute('placeholder');
       function novaOpcao(foco) {
@@ -1282,38 +1290,61 @@
         if (n >= MAX_OPCOES) return null;
         var linha = document.createElement('div');
         linha.className = 'enq-b-linha';
-        linha.innerHTML = '<input type="text" name="enquete_opcao[]" maxlength="100" placeholder="Opção ' + (n + 1) + '" autocomplete="off">'
-          + '<button type="button" class="enq-b-tirar" data-enq-tirar aria-label="Remover opção">&times;</button>';
+        linha.innerHTML = '<span class="enq-b-num">' + (n + 1) + '</span>'
+          + '<input type="text" name="enquete_opcao[]" maxlength="100" placeholder="Opção ' + (n + 1) + '" autocomplete="off">'
+          + '<button type="button" class="enq-b-tirar" data-enq-tirar aria-label="Remover opção" title="Remover">&times;</button>';
         lista.appendChild(linha);
-        btnAdd.hidden = lista.children.length >= MAX_OPCOES;
+        renumerar();
         if (foco) linha.querySelector('input').focus();
         return linha;
       }
       function renumerar() {
-        Array.prototype.forEach.call(lista.querySelectorAll('input'), function (i, idx) { i.placeholder = 'Opção ' + (idx + 1); });
+        Array.prototype.forEach.call(lista.children, function (l, idx) {
+          l.querySelector('.enq-b-num').textContent = idx + 1;
+          l.querySelector('input').placeholder = 'Opção ' + (idx + 1);
+        });
         btnAdd.hidden = lista.children.length >= MAX_OPCOES;
+        if (contEl) contEl.textContent = lista.children.length + '/' + MAX_OPCOES;
+      }
+      // Prévia: usa o mesmo desenho do card (opções sem votos ainda)
+      function renderPrevia() {
+        if (!previaEl || !window.__htmlEnquete) return;
+        var opcoes = Array.prototype.map.call(lista.querySelectorAll('input'), function (i, idx) {
+          return { id_opcao: idx, texto: i.value.trim() || ('Opção ' + (idx + 1)), vazia: !i.value.trim(), votos: 0, votei: false, votantes: [], pct: 0 };
+        });
+        previaEl.innerHTML = window.__htmlEnquete({
+          pergunta: perguntaEl.value.trim() || 'Sua pergunta aparece aqui', multipla: !!(multiplaEl && multiplaEl.checked), opcoes: opcoes, total: 0,
+        }, { previa: true });
       }
       function abrirEnquete() {
         builder.hidden = false; btnEnq.classList.add('ativo');
         if (!lista.children.length) { novaOpcao(false); novaOpcao(false); }
-        ta.setAttribute('placeholder', 'Pergunta da enquete');
-        if (!ta.value.trim()) ta.focus(); else lista.querySelector('input').focus();
+        ta.setAttribute('placeholder', 'Legenda (opcional)');
+        renderPrevia();
+        perguntaEl.focus();
         atualizar();
       }
       function fecharEnquete() {
         builder.hidden = true; btnEnq.classList.remove('ativo');
-        lista.innerHTML = '';
-        var chk = builder.querySelector('input[name="enquete_multipla"]'); if (chk) chk.checked = false;
+        lista.innerHTML = ''; perguntaEl.value = '';
+        if (multiplaEl) multiplaEl.checked = false;
         ta.setAttribute('placeholder', placeholderOriginal);
         atualizar();
       }
       btnEnq.addEventListener('click', function () { if (builder.hidden) abrirEnquete(); else fecharEnquete(); });
       builder.querySelector('[data-enquete-fechar]').addEventListener('click', fecharEnquete);
-      btnAdd.addEventListener('click', function () { novaOpcao(true); atualizar(); });
+      btnAdd.addEventListener('click', function () { novaOpcao(true); renderPrevia(); atualizar(); });
+      builder.addEventListener('input', renderPrevia);
+      builder.addEventListener('change', renderPrevia);
       lista.addEventListener('click', function (e) {
         var b = e.target.closest('[data-enq-tirar]'); if (!b) return;
-        if (lista.children.length <= 2) { b.parentNode.querySelector('input').value = ''; atualizar(); return; }
-        b.parentNode.remove(); renumerar(); atualizar();
+        if (lista.children.length <= 2) { b.parentNode.querySelector('input').value = ''; renderPrevia(); atualizar(); return; }
+        b.parentNode.remove(); renumerar(); renderPrevia(); atualizar();
+      });
+      perguntaEl.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        var primeiro = lista.querySelector('input'); if (primeiro) primeiro.focus();
       });
       lista.addEventListener('keydown', function (e) {
         if (e.key !== 'Enter') return;
@@ -1334,8 +1365,16 @@
     function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
     function inicial(n) { return (String(n || '?').trim().charAt(0) || '?').toUpperCase(); }
 
-    function htmlEnquete(e) {
-      var h = '<div class="enq-cab">📊 ' + (e.multipla ? 'Escolha uma ou mais opções' : 'Escolha uma opção') + '</div>';
+    // opts.souAutor → lápis para editar a pergunta; opts.previa → sem rodapé de votos
+    function htmlEnquete(e, opts) {
+      opts = opts || {};
+      var h = '';
+      if (e.pergunta) {
+        h += '<div class="enq-titulo"><span class="enq-icone" aria-hidden="true">📊</span><h4 class="enq-pergunta" data-enq-pergunta-txt>' + esc(e.pergunta) + '</h4>'
+          + (opts.souAutor ? '<button type="button" class="enq-editar" data-enq-editar title="Editar pergunta" aria-label="Editar pergunta"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>' : '')
+          + '</div>';
+      }
+      h += '<div class="enq-cab">' + (e.multipla ? 'Escolha uma ou mais opções' : 'Escolha uma opção') + '</div>';
       e.opcoes.forEach(function (o) {
         var avs = (o.votantes || []).slice(0, 3).map(function (v) {
           return v.foto ? '<img src="' + esc(v.foto) + '" alt="">' : '<span>' + esc(inicial(v.nome)) + '</span>';
@@ -1343,13 +1382,53 @@
         h += '<button type="button" class="enq-opcao' + (o.votei ? ' votei' : '') + (e.multipla ? ' multipla' : '') + '" data-opcao="' + o.id_opcao + '" style="--p:' + o.pct + '%" aria-pressed="' + !!o.votei + '">'
           + '<span class="enq-barra"></span>'
           + '<span class="enq-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>'
-          + '<span class="enq-txt">' + esc(o.texto) + '</span>'
+          + '<span class="enq-txt' + (o.vazia ? ' vazia' : '') + '">' + esc(o.texto) + '</span>'
           + (avs ? '<span class="enq-avs">' + avs + '</span>' : '')
           + '<span class="enq-n">' + o.votos + '</span></button>';
       });
-      h += '<div class="enq-rodape"><span class="enq-total">' + (e.total === 1 ? '1 voto' : e.total + ' votos') + '</span><button type="button" data-enq-votos>Ver votos</button></div>';
+      if (!opts.previa) h += '<div class="enq-rodape"><span class="enq-total">' + (e.total === 1 ? '1 voto' : e.total + ' votos') + '</span><button type="button" data-enq-votos>Ver votos</button></div>';
+      else h += '<div class="enq-rodape"><span class="enq-total">0 votos</span><span class="enq-total">é assim que vai aparecer</span></div>';
       return h;
     }
+    window.__htmlEnquete = htmlEnquete;
+    function souAutorDe(box) { return box.getAttribute('data-autor') && box.getAttribute('data-autor') === box.getAttribute('data-me'); }
+
+    // Autor edita a pergunta no próprio card: clica no lápis, digita, Enter salva / Esc cancela
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-enq-editar]');
+      if (!b) return;
+      var titulo = b.closest('.enq-titulo');
+      var box = b.closest('.enquete');
+      var h4 = titulo.querySelector('[data-enq-pergunta-txt]');
+      if (!h4 || titulo.querySelector('.enq-pergunta-edit')) return;
+      var atual = h4.textContent;
+      var inp = document.createElement('input');
+      inp.type = 'text'; inp.className = 'enq-pergunta-edit'; inp.maxLength = 200; inp.value = atual;
+      h4.replaceWith(inp); b.hidden = true;
+      inp.focus(); inp.select();
+      var fechou = false;
+      function restaurar(texto) {
+        if (fechou) return; fechou = true;
+        h4.textContent = texto; inp.replaceWith(h4); b.hidden = false;
+      }
+      function salvar() {
+        var novo = inp.value.trim();
+        if (!novo || novo === atual) { restaurar(atual); return; }
+        fetch('/feed/' + box.getAttribute('data-enquete') + '/enquete/pergunta', {
+          method: 'POST',
+          headers: { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch', 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ pergunta: novo }),
+        })
+          .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+          .then(function (d) { restaurar(d.pergunta); toast('Pergunta atualizada'); })
+          .catch(function () { restaurar(atual); toast('Não foi possível salvar.'); });
+      }
+      inp.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Enter') { ev.preventDefault(); salvar(); }
+        else if (ev.key === 'Escape') { ev.preventDefault(); restaurar(atual); }
+      });
+      inp.addEventListener('blur', function () { setTimeout(function () { if (!fechou) salvar(); }, 120); });
+    });
 
     // Atualiza a tag "votou em" nos MEUS comentários daquele post
     function atualizarTags(art, me, votou) {
@@ -1381,7 +1460,7 @@
           .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
           .then(function (d) {
             if (!d || !d.ok) return Promise.reject();
-            box.innerHTML = htmlEnquete(d.enquete);
+            box.innerHTML = htmlEnquete(d.enquete, { souAutor: souAutorDe(box) });
             atualizarTags(box.closest('.tw-post'), d.me, d.votou);
           })
           .catch(function () { toast('Não foi possível votar.'); })

@@ -19,18 +19,22 @@ const SELECT_POST = `
          (SELECT COUNT(*) FROM reposts r WHERE r.id_post = p.id_post)::int AS reposts,
          EXISTS(SELECT 1 FROM post_curtidas c WHERE c.id_post = p.id_post AND c.id_usuario = $1) AS curtiu,
          EXISTS(SELECT 1 FROM reposts r WHERE r.id_post = p.id_post AND r.id_usuario = $1) AS repostou,
-         p.enquete_multipla,
+         p.enquete_multipla, p.enquete_pergunta,
          EXISTS(SELECT 1 FROM enquete_opcoes o WHERE o.id_post = p.id_post) AS tem_enquete
     FROM posts p
     JOIN usuarios u ON u.id_usuario = p.id_usuario
     LEFT JOIN usuarios uc ON uc.id_usuario = p.id_colaborador`;
 
-async function criar({ idUsuario, texto, imagem, video = null, idColaborador = null, enqueteMultipla = false }) {
+async function criar({ idUsuario, texto, imagem, video = null, idColaborador = null, enqueteMultipla = false, enquetePergunta = null }) {
   const res = await db.query(
-    `INSERT INTO posts (id_usuario, texto, imagem, video, id_colaborador, enquete_multipla) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id_post`,
-    [idUsuario, texto, imagem, video, idColaborador, !!enqueteMultipla]
+    `INSERT INTO posts (id_usuario, texto, imagem, video, id_colaborador, enquete_multipla, enquete_pergunta) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id_post`,
+    [idUsuario, texto, imagem, video, idColaborador, !!enqueteMultipla, enquetePergunta]
   );
   return res.rows[0];
+}
+
+async function atualizarPergunta(idPost, pergunta) {
+  await db.query(`UPDATE posts SET enquete_pergunta = $2 WHERE id_post = $1`, [idPost, pergunta]);
 }
 
 // ---------- Enquetes ----------
@@ -44,7 +48,7 @@ async function criarOpcoes(idPost, textos) {
 async function listarEnquetesDeVarios(ids, idUsuarioAtual) {
   if (!ids || !ids.length) return [];
   const res = await db.query(
-    `SELECT o.id_post, o.id_opcao, o.texto, o.ordem, p.enquete_multipla,
+    `SELECT o.id_post, o.id_opcao, o.texto, o.ordem, p.enquete_multipla, p.enquete_pergunta, p.id_usuario AS id_autor,
             (SELECT COUNT(*)::int FROM enquete_votos v WHERE v.id_opcao = o.id_opcao) AS votos,
             EXISTS(SELECT 1 FROM enquete_votos v WHERE v.id_opcao = o.id_opcao AND v.id_usuario = $2) AS votei,
             COALESCE((SELECT json_agg(json_build_object('nome', u.nome, 'usuario', u.usuario, 'foto', u.foto_perfil) ORDER BY v.criado_em DESC)
@@ -237,5 +241,5 @@ module.exports = {
   curtir, descurtir, jaCurtiu, contarCurtidas, listarCurtidores,
   repostar, desfazerRepost, jaRepostou, contarReposts,
   adicionarComentario, listarComentarios, listarComentariosDeVarios, buscarComentario, removerComentario,
-  criarOpcoes, listarEnquetesDeVarios, buscarOpcao, alternarVoto, votoDoUsuario,
+  criarOpcoes, listarEnquetesDeVarios, buscarOpcao, alternarVoto, votoDoUsuario, atualizarPergunta,
 };

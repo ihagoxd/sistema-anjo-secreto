@@ -23,7 +23,7 @@
     {{/if}}
   </header>
 
-  {{#unless this.imagem}}{{#if this.texto}}<div class="tw-post-texto ig-texto{{#if this.enquete}} enq-pergunta{{/if}}">{{comMencoes this.texto}}</div>{{/if}}{{/unless}}
+  {{#unless this.imagem}}{{#if this.texto}}<div class="tw-post-texto ig-texto{{#if this.enquete}}{{#unless this.enquete.pergunta}} enq-pergunta{{/unless}}{{/if}}">{{comMencoes this.texto}}</div>{{/if}}{{/unless}}
   {{#if this.enquete}}{{> enquete this}}{{/if}}
 
   {{#if this.imagem}}<div class="tw-post-midia" data-post-id="{{this.id_post}}" data-img="{{this.imagem}}" role="button" tabindex="0" aria-label="Ampliar imagem (clique 2x para curtir)"><img src="{{this.imagem}}" alt="Foto" draggable="false"></div>{{/if}}

@@ -80,12 +80,14 @@ async function postCriar(req, res, next) {
     };
     // Enquete (opcional): opções vêm como enquete_opcao[] (multer) ou enquete_opcao
     const opcoes = req.body['enquete_opcao[]'] || req.body.enquete_opcao || null;
-    const enquete = opcoes ? { opcoes, multipla: req.body.enquete_multipla === '1' } : null;
+    const enquete = (opcoes || req.body.enquete_pergunta)
+      ? { pergunta: req.body.enquete_pergunta, opcoes: opcoes || [], multipla: req.body.enquete_multipla === '1' }
+      : null;
     const r = await postService.criarPost(req.session.usuario.id_usuario, req.body.texto, um('imagem'), um('video'), req.body.colaborador || null, enquete);
     const ERROS = {
       LONGO: 'Texto longo demais.',
       ENQUETE_POUCAS: 'A enquete precisa de pelo menos 2 opções.',
-      ENQUETE_SEM_PERGUNTA: 'Escreva a pergunta da enquete no texto do post.',
+      ENQUETE_SEM_PERGUNTA: 'Escreva a pergunta da enquete.',
     };
     if (!r.ok) req.session.flash = { erro: ERROS[r.motivo] || 'Escreva algo ou adicione uma foto.' };
     else req.session.flash = { sucesso: 'Publicado! ✨' };
@@ -123,6 +125,16 @@ async function postVotar(req, res, next) {
     const r = await postService.votar(req.params.id_post, req.body.id_opcao, req.session.usuario.id_usuario);
     if (!r.ok) return res.status(404).json({ ok: false, erro: 'Enquete não encontrada.' });
     res.json({ ok: true, enquete: r.enquete, votou: r.votou, me: req.session.usuario.id_usuario });
+  } catch (err) {
+    next(err);
+  }
+}
+// Autor edita a pergunta da enquete (AJAX → JSON).
+async function postEnquetePergunta(req, res, next) {
+  try {
+    const r = await postService.editarPergunta(Number(req.params.id_post), req.session.usuario.id_usuario, req.body.pergunta);
+    if (!r.ok) return res.status(r.motivo === 'SEM_PERMISSAO' ? 403 : 400).json({ ok: false });
+    res.json({ ok: true, pergunta: r.pergunta });
   } catch (err) {
     next(err);
   }
@@ -288,4 +300,4 @@ async function getMencoes(req, res, next) {
   }
 }
 
-module.exports = { getFeed, getPost, postCriar, postCurtir, getCurtidas, postRepost, postVotar, getEnquete, postComentar, postRemover, postRemoverComentario, getPerfil, getPerfilReposts, getPerfilGostos, getMencoes, getBusca, getNovidades };
+module.exports = { getFeed, getPost, postCriar, postCurtir, getCurtidas, postRepost, postVotar, getEnquete, postEnquetePergunta, postComentar, postRemover, postRemoverComentario, getPerfil, getPerfilReposts, getPerfilGostos, getMencoes, getBusca, getNovidades };

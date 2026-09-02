@@ -238,6 +238,9 @@ CREATE INDEX IF NOT EXISTS idx_push_usuario ON push_inscricoes(id_usuario);
 -- ---------- ENQUETES (post do mural com opções para votar, como no WhatsApp) ----------
 -- O texto do post é a pergunta; as opções ficam aqui. enquete_multipla: pode marcar várias.
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS enquete_multipla BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS enquete_pergunta VARCHAR(200); -- a pergunta da enquete (o texto do post vira legenda opcional)
+-- (a restrição posts_conteudo passa a aceitar post SÓ com enquete — ver o fim do arquivo,
+--  depois do bloco de posts que a recria)
 CREATE TABLE IF NOT EXISTS enquete_opcoes (
   id_opcao  SERIAL PRIMARY KEY,
   id_post   INTEGER NOT NULL REFERENCES posts(id_post) ON DELETE CASCADE,
@@ -403,3 +406,9 @@ CREATE INDEX IF NOT EXISTS idx_mensagens_destino      ON mensagens_anonimas(id_u
 CREATE INDEX IF NOT EXISTS idx_mensagens_campanha     ON mensagens_anonimas(id_campanha);
 CREATE INDEX IF NOT EXISTS idx_logs_usuario           ON logs_sistema(id_usuario);
 CREATE INDEX IF NOT EXISTS idx_logs_acao              ON logs_sistema(acao);
+
+-- ---------- AJUSTES FINAIS (dependem de blocos acima) ----------
+-- Um post pode ser SÓ a enquete (sem legenda, foto ou vídeo). Fica por último porque o
+-- bloco de posts recria a restrição sem a coluna enquete_pergunta.
+ALTER TABLE posts DROP CONSTRAINT IF EXISTS posts_conteudo;
+ALTER TABLE posts ADD CONSTRAINT posts_conteudo CHECK (texto IS NOT NULL OR imagem IS NOT NULL OR video IS NOT NULL OR enquete_pergunta IS NOT NULL);

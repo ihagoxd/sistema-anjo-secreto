@@ -23,17 +23,35 @@ async function notificarMencoes(texto, idAtor, idPost) {
 const ENQ_MIN = 2;
 const ENQ_MAX = 10;
 const ENQ_OPCAO_MAX = 100;
+const ENQ_PERGUNTA_MAX = 200;
 
-// Normaliza as opções vindas do formulário: sem vazias, sem repetidas, no máximo 10.
+function limparPergunta(p) {
+  return String(p || '').trim().replace(/\s+/g, ' ').slice(0, ENQ_PERGUNTA_MAX);
+}
+
+// Normaliza a enquete vinda do formulário: pergunta obrigatória, opções sem vazias/repetidas, no máximo 10.
 function normalizarEnquete(bruto) {
   if (!bruto) return { ok: true, enquete: null };
   const lista = (Array.isArray(bruto.opcoes) ? bruto.opcoes : [bruto.opcoes])
     .map((o) => String(o || '').trim().replace(/\s+/g, ' ').slice(0, ENQ_OPCAO_MAX)).filter(Boolean);
   const unicas = [];
   lista.forEach((o) => { if (!unicas.some((u) => u.toLowerCase() === o.toLowerCase())) unicas.push(o); });
-  if (!unicas.length) return { ok: true, enquete: null };
+  const pergunta = limparPergunta(bruto.pergunta);
+  if (!unicas.length && !pergunta) return { ok: true, enquete: null };
+  if (!pergunta) return { ok: false, motivo: 'ENQUETE_SEM_PERGUNTA' };
   if (unicas.length < ENQ_MIN) return { ok: false, motivo: 'ENQUETE_POUCAS' };
-  return { ok: true, enquete: { opcoes: unicas.slice(0, ENQ_MAX), multipla: !!bruto.multipla } };
+  return { ok: true, enquete: { pergunta, opcoes: unicas.slice(0, ENQ_MAX), multipla: !!bruto.multipla } };
+}
+
+// Autor edita a pergunta da enquete depois de publicada.
+async function editarPergunta(idPost, idUsuario, pergunta) {
+  const post = await postModel.buscarPorId(idPost);
+  if (!post) return { ok: false, motivo: 'NAO_ENCONTRADO' };
+  if (post.id_usuario !== idUsuario) return { ok: false, motivo: 'SEM_PERMISSAO' };
+  const p = limparPergunta(pergunta);
+  if (!p) return { ok: false, motivo: 'ENQUETE_SEM_PERGUNTA' };
+  await postModel.atualizarPergunta(idPost, p);
+  return { ok: true, pergunta: p };
 }
 
 // Linhas do banco (uma por opção) → objeto pronto para a view/JSON, com porcentagens.
@@ -50,7 +68,7 @@ function montarEnquete(linhas) {
     votantes: l.votantes || [], pct: base ? Math.round((l.votos / base) * 100) : 0,
   }));
   const votei = opcoes.some((o) => o.votei);
-  return { multipla, opcoes, total: pessoas.size, votei };
+  return { multipla, opcoes, total: pessoas.size, votei, pergunta: linhas[0].enquete_pergunta || null, id_autor: linhas[0].id_autor };
 }
 
 // Anexa "enquete" a cada post que tem uma.
@@ -84,8 +102,7 @@ async function criarPost(idUsuario, texto, imagemPath, videoPath = null, colabor
   const t = String(texto || '').trim();
   const e = normalizarEnquete(enqueteBruta);
   if (!e.ok) return e;
-  if (e.enquete && !t) return { ok: false, motivo: 'ENQUETE_SEM_PERGUNTA' };
-  if (!t && !imagemPath && !videoPath) return { ok: false, motivo: 'VAZIO' };
+  if (!t && !imagemPath && !videoPath && !e.enquete) return { ok: false, motivo: 'VAZIO' };
   if (t.length > LIMITE_TEXTO) return { ok: false, motivo: 'LONGO' };
 
   // Colaboradores (post em dupla/trio, "fulano e +N"): valida cada um; inválidos são ignorados.
@@ -100,6 +117,7 @@ async function criarPost(idUsuario, texto, imagemPath, videoPath = null, colabor
   const novo = await postModel.criar({
     idUsuario, texto: t || null, imagem: imagemPath || null, video: videoPath || null,
     idColaborador: colaboradores[0] || null, enqueteMultipla: !!(e.enquete && e.enquete.multipla),
+    enquetePergunta: e.enquete ? e.enquete.pergunta : null,
   });
   if (e.enquete) await postModel.criarOpcoes(novo.id_post, e.enquete.opcoes);
   if (colaboradores.length) {
@@ -218,5 +236,5 @@ module.exports = {
   criarPost, listarFeed, buscarPost, perfilPublico,
   alternarCurtida, listarCurtidores, alternarRepost, listarRepostados, comentar, listarComentarios,
   removerPost, removerComentario,
-  anexarEnquetes, buscarEnquete, votar, montarEnquete,
+  anexarEnquetes, buscarEnquete, votar, montarEnquete, editarPergunta,
 };

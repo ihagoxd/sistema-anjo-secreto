@@ -5,12 +5,14 @@
  * A configuração do banco fica em src/config/db.js (variáveis DB_*).
  */
 require('dotenv').config();
+const { fuso } = require('./fuso'); // fixa o fuso (America/Sao_Paulo) antes de qualquer Date
 
 const SESSION_SECRET_PADRAO = 'troque-este-segredo-em-desenvolvimento';
 
 const env = {
   nodeEnv: process.env.NODE_ENV || 'development',
   port: parseInt(process.env.PORT, 10) || 3000,
+  fuso,
 
   // Sessão
   sessionSecret: process.env.SESSION_SECRET || SESSION_SECRET_PADRAO,

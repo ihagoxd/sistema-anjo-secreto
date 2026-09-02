@@ -9,8 +9,19 @@ const Handlebars = require('handlebars');
 const path = require('path');
 const humores = require('./humores');
 const mencoes = require('./mencoes');
+const { fuso } = require('./fuso');
 
 const viewsDir = path.join(__dirname, '..', 'views');
+
+// Todas as horas/datas exibidas saem no fuso da aplicação (Brasília por padrão),
+// independentemente do fuso do servidor.
+const PT = 'pt-BR';
+const tz = (opts) => Object.assign({ timeZone: fuso }, opts);
+
+// "aaaa-mm-dd" de um instante, no fuso da aplicação (p/ comparar "mesmo dia").
+function diaLocal(d) {
+  return d.toLocaleDateString('en-CA', { timeZone: fuso });
+}
 
 const helpers = {
   // Ano atual (rodapé)
@@ -42,6 +53,10 @@ const helpers = {
   },
   juntar(arr) {
     return Array.isArray(arr) ? arr.join(', ') : '';
+  },
+  // Ids separados por vírgula, sem espaço (querystring/data-attr)
+  lista(arr) {
+    return Array.isArray(arr) ? arr.join(',') : '';
   },
 
   // Últimos N itens de uma lista (prévia de comentários no card do post)
@@ -110,7 +125,7 @@ const helpers = {
     if (!data) return '';
     const d = new Date(data);
     if (Number.isNaN(d.getTime())) return '';
-    return d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+    return d.toLocaleDateString(PT, tz({ month: 'long', year: 'numeric' }));
   },
 
   // Emoji / rótulo do status do dia (humor)
@@ -130,7 +145,7 @@ const helpers = {
     if (seg < 3600) return `há ${Math.floor(seg / 60)} min`;
     if (seg < 86400) return `há ${Math.floor(seg / 3600)} h`;
     if (seg < 604800) return `há ${Math.floor(seg / 86400)} d`;
-    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+    return d.toLocaleDateString(PT, tz({ day: '2-digit', month: 'short' }));
   },
 
   // Hora da mensagem no chat (estilo WhatsApp): hoje → "14:32"; outro dia → "28/08 14:32"
@@ -138,10 +153,10 @@ const helpers = {
     if (!data) return '';
     const d = new Date(data);
     if (Number.isNaN(d.getTime())) return '';
-    const hm = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    return d.toDateString() === new Date().toDateString()
+    const hm = d.toLocaleTimeString(PT, tz({ hour: '2-digit', minute: '2-digit' }));
+    return diaLocal(d) === diaLocal(new Date())
       ? hm
-      : `${d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} ${hm}`;
+      : `${d.toLocaleDateString(PT, tz({ day: '2-digit', month: '2-digit' }))} ${hm}`;
   },
 
   // Formata TIMESTAMP para pt-BR (dd/mm/aaaa hh:mm)
@@ -149,7 +164,7 @@ const helpers = {
     if (!data) return '-';
     const d = new Date(data);
     if (Number.isNaN(d.getTime())) return '-';
-    return d.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+    return d.toLocaleString(PT, tz({ dateStyle: 'short', timeStyle: 'short' }));
   },
 
   // Rótulo amigável para os códigos de ação dos logs.

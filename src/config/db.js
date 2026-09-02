@@ -4,6 +4,7 @@
 require('dotenv').config();
 const fs = require('fs');
 const { Pool } = require('pg');
+const { fuso } = require('./fuso');
 
 // TLS na conexão com o banco (essencial em nuvem / banco gerenciado).
 // DB_SSL=true liga; por padrão valida o certificado do servidor.
@@ -22,6 +23,9 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD || 'postgres',
   database: process.env.DB_NAME || 'anjo_secreto',
   ssl,
+  // Fuso da sessão SQL igual ao da aplicação: CURRENT_DATE, ::date e afins
+  // passam a significar "hoje em Brasília", não "hoje em UTC" (o servidor roda em UTC).
+  options: `-c timezone=${fuso}`,
 });
 
 pool.on('error', (err) => {

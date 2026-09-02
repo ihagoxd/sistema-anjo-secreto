@@ -177,6 +177,7 @@ const helpers = {
       CAMPANHA_CRIADA: 'Criou campanha', CAMPANHA_EDITADA: 'Editou campanha', CAMPANHA_ENCERRADA: 'Encerrou campanha',
       PARTICIPANTE_ADICIONADO: 'Adicionou participante', PARTICIPANTE_REMOVIDO: 'Removeu participante',
       SORTEIO_INICIADO: 'Iniciou sorteio', SORTEIO_REFEITO: 'Refez sorteio', SORTEIO_REVELADO: 'Revelou sorteio',
+      AVISO_CRIADO: 'Publicou aviso', AVISO_EDITADO: 'Editou aviso', AVISO_EXCLUIDO: 'Excluiu aviso',
     };
     return mapa[acao] || acao;
   },

@@ -24,6 +24,7 @@ const feedRoutes = require('./routes/feed.routes');
 const contaRoutes = require('./routes/conta.routes');
 const mensagensRoutes = require('./routes/mensagens.routes');
 const notificacoesRoutes = require('./routes/notificacoes.routes');
+const avisosRoutes = require('./routes/avisos.routes');
 
 const app = express();
 app.set('trust proxy', 1); // para req.ip / cookie secure atrás de proxy
@@ -95,6 +96,7 @@ app.use('/', feedRoutes);
 app.use('/', contaRoutes);
 app.use('/mensagens', mensagensRoutes);
 app.use('/notificacoes', notificacoesRoutes);
+app.use('/avisos', avisosRoutes);
 app.use('/admin', adminRoutes);
 app.use('/participante', participanteRoutes);
 

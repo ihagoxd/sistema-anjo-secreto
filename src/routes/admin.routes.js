@@ -6,6 +6,7 @@ const usuarioCtrl = require('../controllers/usuario.controller');
 const campanhaCtrl = require('../controllers/campanha.controller');
 const participanteCtrl = require('../controllers/participanteAdmin.controller');
 const sorteioCtrl = require('../controllers/sorteio.controller');
+const avisoCtrl = require('../controllers/aviso.controller');
 const { exigeAutenticacao, exigeAdmin, exigeSenhaDefinitiva } = require('../middlewares/auth.middleware');
 
 const router = express.Router();
@@ -32,6 +33,12 @@ router.post('/usuarios/:id_usuario/inativar', usuarioCtrl.postInativar);
 router.post('/usuarios/:id_usuario/ativar', usuarioCtrl.postAtivar);
 router.post('/usuarios/:id_usuario/excluir', usuarioCtrl.postExcluir);
 router.post('/usuarios/:id_usuario/resetar-senha', usuarioCtrl.postResetarSenha);
+
+// Avisos (cards da administração na tela de todo mundo)
+router.get('/avisos', avisoCtrl.getAdmin);
+router.post('/avisos', avisoCtrl.postSalvar);
+router.post('/avisos/:id(\\d+)/alternar', avisoCtrl.postAlternar);
+router.post('/avisos/:id(\\d+)/excluir', avisoCtrl.postExcluir);
 
 // Campanhas
 router.get('/campanhas', campanhaCtrl.getLista);

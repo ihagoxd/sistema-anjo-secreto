@@ -9,6 +9,7 @@
  * Também gera (1x por sessão/dia) as notificações de aniversário para o usuário.
  */
 const notificacaoService = require('../services/notificacao.service');
+const avisoService = require('../services/aviso.service');
 const usuarioModel = require('../models/usuario.model');
 const preferenciaService = require('../services/preferencia.service');
 const campanhaService = require('../services/campanha.service');
@@ -56,6 +57,13 @@ async function carregarContextoApp(req, res, next) {
         });
       }
       res.locals.aniversariantes = enriquecidos;
+    }
+
+    // Avisos da administração ainda não vistos: viram um card animado sobre a tela.
+    // (Não na própria página de criar avisos, onde já tem a prévia; nem na página do aviso.)
+    if (!/^\/(admin\/avisos|avisos\/)/.test(req.path)) {
+      const pendentes = await avisoService.pendentesPara(me);
+      if (pendentes.length) res.locals.avisosPendentes = pendentes;
     }
 
     res.locals.notifNaoLidas = await notificacaoService.contarNaoLidas(me);

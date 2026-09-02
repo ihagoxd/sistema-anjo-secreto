@@ -235,6 +235,34 @@ CREATE TABLE IF NOT EXISTS push_inscricoes (
 );
 CREATE INDEX IF NOT EXISTS idx_push_usuario ON push_inscricoes(id_usuario);
 
+-- ---------- AVISOS (cards da administração que aparecem na tela de todo mundo) ----------
+-- tema: dourado | azul | verde | roxo | vermelho | escuro
+CREATE TABLE IF NOT EXISTS avisos (
+  id_aviso     SERIAL PRIMARY KEY,
+  titulo       VARCHAR(80) NOT NULL,
+  mensagem     TEXT NOT NULL,
+  emoji        VARCHAR(16) NOT NULL DEFAULT '📢',
+  tema         VARCHAR(20) NOT NULL DEFAULT 'dourado',
+  link         VARCHAR(300),
+  link_texto   VARCHAR(40),
+  ativo        BOOLEAN NOT NULL DEFAULT TRUE,
+  expira_em    TIMESTAMPTZ,
+  criado_por   INTEGER REFERENCES usuarios(id_usuario) ON DELETE SET NULL,
+  criado_em    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  atualizado_em TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+DROP TRIGGER IF EXISTS trg_avisos_atualizado ON avisos;
+CREATE TRIGGER trg_avisos_atualizado BEFORE UPDATE ON avisos
+  FOR EACH ROW EXECUTE FUNCTION fn_atualizar_timestamp();
+
+-- Quem já viu (clicou "Entendi") cada aviso — o card não volta a aparecer.
+CREATE TABLE IF NOT EXISTS avisos_vistos (
+  id_aviso    INTEGER NOT NULL REFERENCES avisos(id_aviso) ON DELETE CASCADE,
+  id_usuario  INTEGER NOT NULL REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
+  visto_em    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (id_aviso, id_usuario)
+);
+
 -- Configurações internas geradas pelo próprio app (ex.: par de chaves VAPID do push).
 CREATE TABLE IF NOT EXISTS app_config (
   chave     TEXT PRIMARY KEY,

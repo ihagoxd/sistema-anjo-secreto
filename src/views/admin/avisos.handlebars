@@ -1,0 +1,131 @@
+<div class="pagina-cabecalho">
+  <div>
+    <h1>Avisos</h1>
+    <p class="subtitulo">Cards que aparecem na tela de todo mundo: atualizações, recados, datas importantes.</p>
+  </div>
+  <a href="/admin" class="btn btn-secundario btn-sm">Voltar</a>
+</div>
+
+<div class="avisos-editor" data-aviso-editor>
+  <form class="form card avisos-form" action="/admin/avisos" method="POST" novalidate>
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+    {{#if editando}}<input type="hidden" name="id_aviso" value="{{editando.id_aviso}}">{{/if}}
+    <h2 class="avisos-form-titulo">{{#if editando}}Editar aviso{{else}}Novo aviso{{/if}}</h2>
+
+    <div class="linha-campos avisos-linha-emoji">
+      <div class="campo campo-emoji">
+        <label for="av-emoji">Emoji</label>
+        <input type="text" id="av-emoji" name="emoji" value="{{modelo.emoji}}" maxlength="{{limites.emoji}}" data-av-in="emoji" autocomplete="off">
+        <div class="emoji-atalhos" data-emoji-atalhos>
+          <button type="button">📢</button><button type="button">🎉</button><button type="button">✨</button><button type="button">🚀</button>
+          <button type="button">🎁</button><button type="button">📅</button><button type="button">⚠️</button><button type="button">💡</button>
+          <button type="button">🙏</button><button type="button">🎂</button><button type="button">🛠️</button><button type="button">❤️</button>
+        </div>
+      </div>
+      <div class="campo">
+        <label for="av-titulo">Título</label>
+        <input type="text" id="av-titulo" name="titulo" value="{{modelo.titulo}}" maxlength="{{limites.titulo}}" placeholder="Ex.: Chegou o Direct novo!" data-av-in="titulo" required>
+      </div>
+    </div>
+
+    <div class="campo">
+      <label for="av-msg">Mensagem</label>
+      <textarea id="av-msg" name="mensagem" maxlength="{{limites.mensagem}}" rows="5" placeholder="Escreva o recado. Quebras de linha são mantidas." data-av-in="mensagem" required>{{modelo.mensagem}}</textarea>
+      <p class="ajuda"><span data-av-contador>0</span>/{{limites.mensagem}}</p>
+    </div>
+
+    <div class="campo">
+      <label>Tema do card</label>
+      <div class="tema-opcoes" data-av-temas>
+        {{#each temas}}
+          <label class="tema-opcao tema-{{chave}}" title="{{rotulo}}">
+            <input type="radio" name="tema" value="{{chave}}" {{#if ativo}}checked{{/if}} data-av-in="tema">
+            <span class="tema-amostra"></span>
+            <span class="tema-rotulo">{{rotulo}}</span>
+          </label>
+        {{/each}}
+      </div>
+    </div>
+
+    <div class="linha-campos">
+      <div class="campo">
+        <label for="av-link">Link (opcional)</label>
+        <input type="text" id="av-link" name="link" value="{{modelo.link}}" maxlength="{{limites.link}}" placeholder="https://… ou /mensagens" data-av-in="link" autocomplete="off">
+      </div>
+      <div class="campo">
+        <label for="av-link-texto">Texto do botão</label>
+        <input type="text" id="av-link-texto" name="link_texto" value="{{modelo.link_texto}}" maxlength="{{limites.linkTexto}}" placeholder="Saiba mais" data-av-in="link_texto" autocomplete="off">
+      </div>
+    </div>
+
+    <div class="linha-campos">
+      <div class="campo">
+        <label for="av-expira">Válido até (opcional)</label>
+        <input type="date" id="av-expira" name="expira_em" value="{{expiraISO}}">
+        <p class="ajuda">Depois dessa data o card para de aparecer sozinho.</p>
+      </div>
+      <div class="campo">
+        <label for="av-ativo">Publicação</label>
+        <select id="av-ativo" name="ativo">
+          <option value="1" {{#if modelo.ativo}}selected{{/if}}>Publicado (aparece para todos)</option>
+          <option value="0" {{#unless modelo.ativo}}selected{{/unless}}>Rascunho (só eu vejo aqui)</option>
+        </select>
+        {{#if editando}}
+          <label class="check-linha" style="margin-top:10px;"><input type="checkbox" name="reexibir" value="1"> Mostrar de novo para quem já viu</label>
+        {{else}}
+          <p class="ajuda">Ao publicar, todo mundo recebe uma notificação e o card na tela.</p>
+        {{/if}}
+      </div>
+    </div>
+
+    <div class="avisos-form-acoes">
+      <button type="submit" class="btn btn-primario">{{#if editando}}Salvar alterações{{else}}Publicar aviso{{/if}}</button>
+      {{#if editando}}<a href="/admin/avisos" class="btn btn-secundario">Cancelar</a>{{/if}}
+    </div>
+  </form>
+
+  <aside class="avisos-previa">
+    <div class="avisos-previa-cab">
+      <strong>Prévia</strong>
+      <span class="texto-suave">É assim que vai aparecer na tela de cada pessoa</span>
+      <button type="button" class="btn btn-secundario btn-sm" data-av-replay>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        Repetir animação
+      </button>
+    </div>
+    <div class="avisos-palco" data-av-palco>
+      <div class="avisos-palco-fundo" aria-hidden="true">
+        <span class="fake-linha l1"></span><span class="fake-linha l2"></span><span class="fake-card"></span><span class="fake-linha l3"></span><span class="fake-card c2"></span>
+      </div>
+      <div class="aviso-slot" data-av-previa>
+        {{> avisoCard modelo}}
+      </div>
+    </div>
+  </aside>
+</div>
+
+<h2 class="avisos-lista-titulo">Avisos publicados</h2>
+<div class="avisos-lista">
+  {{#each avisos}}
+    <div class="card aviso-item {{#unless ativo}}inativo{{/unless}} {{#if expirado}}expirado{{/if}}">
+      <div class="aviso-item-emoji tema-{{tema}}">{{emoji}}</div>
+      <div class="aviso-item-txt">
+        <strong>{{titulo}}</strong>
+        <span class="aviso-item-msg">{{mensagem}}</span>
+        <span class="aviso-item-meta">
+          {{#if expirado}}<span class="badge encerrada">Expirado</span>{{else if ativo}}<span class="badge andamento">Publicado</span>{{else}}<span class="badge rascunho">Rascunho</span>{{/if}}
+          · {{formatarData criado_em}}{{#if autor_nome}} · por {{autor_nome}}{{/if}}
+          {{#if expira_em}} · válido até {{formatarData expira_em}}{{/if}}
+          · <strong>{{vistos}}</strong>/{{destinatarios}} viram
+        </span>
+      </div>
+      <div class="aviso-item-acoes">
+        <a class="btn btn-secundario btn-sm" href="/admin/avisos?editar={{id_aviso}}">Editar</a>
+        <form action="/admin/avisos/{{id_aviso}}/alternar" method="POST"><input type="hidden" name="_csrf" value="{{@root.csrfToken}}"><button type="submit" class="btn btn-secundario btn-sm">{{#if ativo}}Desativar{{else}}Publicar{{/if}}</button></form>
+        <form action="/admin/avisos/{{id_aviso}}/excluir" method="POST" data-confirmar="Excluir o aviso &quot;{{titulo}}&quot;?"><input type="hidden" name="_csrf" value="{{@root.csrfToken}}"><button type="submit" class="btn btn-secundario btn-sm btn-perigo">Excluir</button></form>
+      </div>
+    </div>
+  {{else}}
+    <div class="card texto-suave" style="text-align:center;padding:28px;">Nenhum aviso ainda. O primeiro que você publicar aparece aqui.</div>
+  {{/each}}
+</div>

@@ -1,0 +1,10 @@
+{{! Avisos pendentes: aparecem um de cada vez, com animação, sobre qualquer página }}
+<div class="modal aviso-modal" id="avisoModal" data-aviso-modal aria-hidden="false">
+  <div class="aviso-palco">
+    {{#each avisosPendentes}}
+      <div class="aviso-slot" {{#unless @first}}hidden{{/unless}}>
+        {{> avisoCard this}}
+      </div>
+    {{/each}}
+  </div>
+</div>

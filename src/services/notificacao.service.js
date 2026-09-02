@@ -82,6 +82,11 @@ const TIPOS = {
     titulo: (r) => (r.detalhe === 'refeito' ? 'O sorteio foi refeito!' : 'O sorteio saiu!'),
     texto: () => 'Toque para descobrir quem é o seu protegido',
   },
+  AVISO: {
+    emoji: '📢', categoria: 'sistema', temAtor: false,
+    titulo: () => 'Novo aviso',
+    texto: () => 'da administração',
+  },
   TESTE: {
     emoji: '🔔', categoria: 'sistema', temAtor: false,
     titulo: () => 'Notificação de teste',
@@ -151,6 +156,7 @@ function renderizar(row) {
     titulo: def.titulo(row, vezes),
     texto: def.texto(row, vezes),
     detalhe: row.tipo === 'SORTEIO' ? null : (row.detalhe || null),
+    ref: row.ref || null,
     imagem: row.imagem || null,
     temAtor,
     ator_nome: temAtor ? row.ator_nome : null,
@@ -376,6 +382,16 @@ async function gerarAniversarios(idUsuario, aniversariantes) {
   }
 }
 
+// Aviso da administração publicado: avisa cada destinatário (sino, toast e push).
+async function notificarAviso(idsUsuarios, aviso) {
+  const detalhe = previaTexto(`${aviso.emoji || ''} ${aviso.titulo} — ${aviso.mensagem}`);
+  for (const id of idsUsuarios) {
+    await seguro(() => criar({
+      idUsuario: id, tipo: 'AVISO', idAtor: null, link: '/avisos/' + aviso.id_aviso, ref: aviso.id_aviso, detalhe,
+    }));
+  }
+}
+
 function notificarTeste(idUsuario) {
   return criar({ idUsuario, tipo: 'TESTE', idAtor: null, link: '/notificacoes' });
 }
@@ -401,6 +417,7 @@ module.exports = {
   notificarRepost,
   notificarMencao,
   notificarSorteio,
+  notificarAviso,
   gerarAniversarios,
   notificarTeste,
 };

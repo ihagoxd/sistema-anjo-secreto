@@ -1,0 +1,21 @@
+{{! Card de aviso da administração. Contexto: um aviso (titulo, mensagem, emoji, tema, link, link_texto, criado_em).
+    Usado na prévia do admin, no modal que aparece para todo mundo e na página /avisos/:id. }}
+<div class="aviso-card tema-{{tema}}" data-aviso-id="{{id_aviso}}">
+  <span class="aviso-brilho" aria-hidden="true"></span>
+  <span class="aviso-faisca f1" aria-hidden="true">✦</span>
+  <span class="aviso-faisca f2" aria-hidden="true">✦</span>
+  <span class="aviso-faisca f3" aria-hidden="true">✧</span>
+  <div class="aviso-topo">
+    <span class="aviso-emoji" data-av-emoji>{{emoji}}</span>
+    <span class="aviso-tag">Aviso da administração</span>
+  </div>
+  <h3 class="aviso-titulo" data-av-titulo>{{titulo}}</h3>
+  <p class="aviso-msg" data-av-msg>{{mensagem}}</p>
+  <div class="aviso-rodape">
+    <span class="aviso-data" data-av-data>{{#if criado_em}}{{formatarData criado_em}}{{else}}agora{{/if}}</span>
+    <div class="aviso-acoes">
+      <a class="btn btn-secundario btn-sm aviso-link" data-av-link href="{{#if link}}{{link}}{{else}}#{{/if}}" {{#unless link}}hidden{{/unless}} {{#if link}}target="_blank" rel="noopener"{{/if}}>{{#if link_texto}}{{link_texto}}{{else}}Saiba mais{{/if}}</a>
+      <button type="button" class="btn btn-primario btn-sm aviso-ok" data-aviso-ok>Entendi</button>
+    </div>
+  </div>
+</div>

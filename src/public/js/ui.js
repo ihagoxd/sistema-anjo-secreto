@@ -4048,4 +4048,102 @@
     removerLoader(loader);
     revelar(true);
   }
+
+  /* ---------- Avisos da administração: card animado na tela de todo mundo
+     (um de cada vez, "Entendi" marca como visto) + prévia AO VIVO no editor do admin ---------- */
+  (function () {
+    var metaCsrf = document.querySelector('meta[name="csrf-token"]');
+    var CSRF = metaCsrf ? metaCsrf.getAttribute('content') : '';
+    function animar(slot) { if (!slot) return; slot.classList.remove('animar'); void slot.offsetWidth; slot.classList.add('animar'); }
+    function marcarVisto(id) {
+      return fetch('/avisos/' + id + '/visto', { method: 'POST', headers: { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch' } }).catch(function () {});
+    }
+
+    // --- Para todo mundo: avisos pendentes, em sequência
+    var modal = document.querySelector('[data-aviso-modal]');
+    if (modal) {
+      var slots = Array.prototype.slice.call(modal.querySelectorAll('.aviso-slot'));
+      var idx = 0;
+      function mostrar(i) { slots.forEach(function (s, j) { s.hidden = j !== i; }); animar(slots[i]); }
+      // Espera a cortina do loader (primeira entrada) terminar antes de chamar atenção
+      var atraso = document.documentElement.classList.contains('mini') ? 400 : 2100;
+      setTimeout(function () { mostrar(0); }, atraso);
+      // O fundo não fecha o aviso (o fechamento genérico de modais não vale aqui)
+      modal.addEventListener('click', function (e) { if (e.target === modal) e.stopPropagation(); }, true);
+      modal.addEventListener('click', function (e) {
+        var ok = e.target.closest('[data-aviso-ok]');
+        var link = e.target.closest('[data-av-link]');
+        if (!ok && !link) return;
+        var slot = slots[idx];
+        var card = slot.querySelector('.aviso-card');
+        marcarVisto(card.getAttribute('data-aviso-id'));
+        if (link) return; // o link abre em outra aba; o card continua até o "Entendi"
+        slot.classList.add('saindo');
+        setTimeout(function () {
+          slot.classList.remove('saindo'); slot.hidden = true;
+          idx++;
+          if (idx < slots.length) mostrar(idx);
+          else { modal.setAttribute('hidden', ''); modal.setAttribute('aria-hidden', 'true'); }
+        }, 300);
+      });
+    }
+
+    // --- Página do aviso (/avisos/:id): entra animado; "Entendi" marca visto e volta
+    var pagina = document.querySelector('[data-aviso-pagina]');
+    if (pagina) {
+      setTimeout(function () { animar(pagina); }, 150);
+      pagina.addEventListener('click', function (e) {
+        if (!e.target.closest('[data-aviso-ok]')) return;
+        var id = pagina.querySelector('.aviso-card').getAttribute('data-aviso-id');
+        marcarVisto(id).then(function () { if (window.history.length > 1) window.history.back(); else window.location.href = '/notificacoes'; });
+      });
+    }
+
+    // --- Admin: editor com prévia ao vivo
+    var editor = document.querySelector('[data-aviso-editor]');
+    if (!editor) return;
+    var previa = editor.querySelector('[data-av-previa]');
+    var card = previa.querySelector('.aviso-card');
+    var el = {
+      emoji: card.querySelector('[data-av-emoji]'), titulo: card.querySelector('[data-av-titulo]'),
+      msg: card.querySelector('[data-av-msg]'), link: card.querySelector('[data-av-link]'), data: card.querySelector('[data-av-data]'),
+    };
+    var contador = editor.querySelector('[data-av-contador]');
+    function val(nome) {
+      var i = editor.querySelector('[data-av-in="' + nome + '"]' + (nome === 'tema' ? ':checked' : ''));
+      return i ? i.value : '';
+    }
+    function atualizar() {
+      el.emoji.textContent = val('emoji').trim() || '📢';
+      el.titulo.textContent = val('titulo').trim() || 'Título do aviso';
+      el.msg.textContent = val('mensagem').trim() || 'A mensagem aparece aqui, do jeitinho que você escrever.';
+      var link = val('link').trim();
+      el.link.hidden = !link;
+      el.link.textContent = val('link_texto').trim() || 'Saiba mais';
+      el.link.setAttribute('href', link ? (/^(https?:\/\/|\/)/i.test(link) ? link : 'https://' + link) : '#');
+      card.className = 'aviso-card tema-' + (val('tema') || 'dourado');
+      if (contador) contador.textContent = val('mensagem').length;
+    }
+    editor.addEventListener('input', atualizar);
+    editor.addEventListener('change', function (e) {
+      atualizar();
+      if (e.target.matches('[data-av-in="tema"]')) animar(previa);
+    });
+    editor.querySelector('[data-av-replay]').addEventListener('click', function () { animar(previa); });
+    var atalhos = editor.querySelector('[data-emoji-atalhos]');
+    if (atalhos) {
+      atalhos.addEventListener('click', function (e) {
+        var b = e.target.closest('button'); if (!b) return;
+        editor.querySelector('[data-av-in="emoji"]').value = b.textContent;
+        atualizar(); animar(previa);
+      });
+    }
+    // Na prévia, "Entendi" só repete a animação e o link vazio não navega
+    previa.addEventListener('click', function (e) {
+      if (e.target.closest('[data-aviso-ok]')) { e.preventDefault(); animar(previa); }
+      if (e.target.closest('[data-av-link]') && el.link.getAttribute('href') === '#') e.preventDefault();
+    });
+    atualizar();
+    setTimeout(function () { animar(previa); }, 350);
+  })();
 })();

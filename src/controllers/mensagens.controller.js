@@ -124,7 +124,12 @@ async function renderInbox(req, res, sel) {
   // Notas (estilo Instagram): "Sua nota" + quem definiu o status hoje.
   // Identidade PÚBLICA do escritório — nada aqui toca nos canais secretos do jogo.
   const humorEu = await usuarioModel.buscarHumorHoje(me);
-  const notas = ctx.equipe.filter((u) => u.humor);
+  // Ordem da fileira: quem tem story NÃO visto na frente; depois as demais notas
+  // (com story já visto ou sem story), mantendo a ordem da equipe.
+  const notas = ctx.equipe.filter((u) => u.humor)
+    .map((u, i) => ({ u, i, k: u.temStory && !u.storyVisto ? 0 : 1 }))
+    .sort((a, b) => a.k - b.k || a.i - b.i)
+    .map((x) => x.u);
 
   res.render('mensagens/index', {
     titulo: 'Mensagens',

@@ -1117,8 +1117,9 @@
       reordenarFila();
     }
 
-    // Fileira do mural, como no Instagram: não vistos na frente, depois os já vistos,
-    // depois quem não tem story — mantendo a ordem relativa (mais recente primeiro).
+    // Fileira do mural, como no Instagram: story não visto na frente, depois quem
+    // deixou uma nota hoje, depois os stories já vistos, depois quem não tem nada —
+    // mantendo a ordem relativa (mais recente primeiro).
     function reordenarFila() {
       var fila = document.querySelector('.stories');
       if (!fila) return;
@@ -1126,10 +1127,11 @@
       if (itens.length < 2) return;
       function peso(el) {
         var anel = el.querySelector('.story-ring');
-        if (!anel) return 2;
-        if (anel.classList.contains('tem')) return 0;
-        if (anel.classList.contains('visto')) return 1;
-        return 2;
+        var temNota = !!el.querySelector('.story-badge');
+        if (anel && anel.classList.contains('tem')) return 0;
+        if (temNota) return 1;
+        if (anel && anel.classList.contains('visto')) return 2;
+        return 3;
       }
       var ordenados = itens.map(function (el, i) { return { el: el, k: peso(el), i: i }; })
         .sort(function (a, b) { return a.k - b.k || a.i - b.i; });

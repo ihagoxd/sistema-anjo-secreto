@@ -43,12 +43,17 @@ async function getFeed(req, res, next) {
     }));
     anotarStories(posts, aneis);
     const sugestoes = equipe.slice(0, 5); // sidebar segue em ordem alfabética
-    // Fileira de stories, como no Instagram: não vistos primeiro (o story MAIS RECENTE
-    // na frente), depois os já vistos (também do mais recente pro mais antigo), e por
-    // último quem não tem story (ordem alfabética).
+    // Fileira de stories, como no Instagram: (0) story não visto, com o MAIS RECENTE na
+    // frente; (1) quem deixou uma NOTA hoje (mesmo sem story novo); (2) story já visto,
+    // do mais recente pro mais antigo; (3) o resto, em ordem alfabética.
+    const pesoFila = (u) => {
+      if (u.temStory && !u.storyVisto) return 0;
+      if (u.humor) return 1;
+      if (u.temStory) return 2;
+      return 3;
+    };
     equipe.sort((a, b) => {
-      const ka = a.temStory ? (a.storyVisto ? 1 : 0) : 2;
-      const kb = b.temStory ? (b.storyVisto ? 1 : 0) : 2;
+      const ka = pesoFila(a), kb = pesoFila(b);
       if (ka !== kb) return ka - kb;
       return b.storyUltimo - a.storyUltimo;
     });

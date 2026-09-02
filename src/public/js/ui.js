@@ -110,11 +110,13 @@
           var el = document.createElement('div');
           el.className = 'tw-coment';
           el.setAttribute('data-coment', c.id_comentario);
+          el.setAttribute('data-uid', c.id_usuario);
           var av = c.foto_perfil ? '<img src="' + c.foto_perfil + '" alt="">' : escaparHtml((c.nome || '?').trim().charAt(0).toUpperCase());
           el.innerHTML =
             '<a href="/u/' + encodeURIComponent(c.usuario) + '" class="tw-coment-av">' + av + '</a>' +
             '<div class="tw-coment-main"><div class="tw-coment-top">' +
             '<a href="/u/' + encodeURIComponent(c.usuario) + '" class="tw-coment-nome">' + escaparHtml(c.nome) + '</a>' +
+            (c.votou ? '<span class="tw-coment-voto" data-voto-tag title="Votou em: ' + escaparHtml(c.votou) + '">votou em ' + escaparHtml(c.votou) + '</span>' : '') +
             '<span class="tw-coment-meta">· agora</span></div>' +
             '<div class="tw-coment-texto">' + comMencoesJs(c.texto) + '</div>' +
             '<button type="button" class="tw-coment-resp" data-coment-responder="' + escaparHtml(c.usuario) + '">Responder</button></div>';
@@ -1213,11 +1215,18 @@
     var ta = form.querySelector('[data-texto]');
     var btn = form.querySelector('button[type="submit"]');
     if (!ta || !btn) return;
+    var builder = form.querySelector('[data-enquete-builder]');
+    function opcoesPreenchidas() {
+      if (!builder || builder.hidden) return 0;
+      return Array.prototype.filter.call(builder.querySelectorAll('input[name="enquete_opcao[]"]'), function (i) { return i.value.trim(); }).length;
+    }
     function temConteudo() {
       var temMidia = ['[data-foto]', '[data-video]'].some(function (s) {
         var i = form.querySelector(s);
         return i && i.files && i.files.length;
       });
+      // Enquete aberta: precisa da pergunta (texto) e de pelo menos 2 opções
+      if (builder && !builder.hidden) return !!ta.value.trim() && opcoesPreenchidas() >= 2;
       return !!(ta.value.trim() || temMidia);
     }
     function atualizar() { btn.disabled = !temConteudo(); }
@@ -1259,6 +1268,157 @@
         colabs = colabs.filter(function (c) { return c.id !== b.getAttribute('data-tirar'); });
         renderColabs();
       });
+    }
+
+    // Enquete (como no WhatsApp): o texto vira a pergunta; opções abaixo, Enter pula pra próxima
+    var btnEnq = form.querySelector('[data-enquete-btn]');
+    if (btnEnq && builder) {
+      var lista = builder.querySelector('[data-enq-opcoes]');
+      var btnAdd = builder.querySelector('[data-enq-add]');
+      var MAX_OPCOES = 10;
+      var placeholderOriginal = ta.getAttribute('placeholder');
+      function novaOpcao(foco) {
+        var n = lista.children.length;
+        if (n >= MAX_OPCOES) return null;
+        var linha = document.createElement('div');
+        linha.className = 'enq-b-linha';
+        linha.innerHTML = '<input type="text" name="enquete_opcao[]" maxlength="100" placeholder="Opção ' + (n + 1) + '" autocomplete="off">'
+          + '<button type="button" class="enq-b-tirar" data-enq-tirar aria-label="Remover opção">&times;</button>';
+        lista.appendChild(linha);
+        btnAdd.hidden = lista.children.length >= MAX_OPCOES;
+        if (foco) linha.querySelector('input').focus();
+        return linha;
+      }
+      function renumerar() {
+        Array.prototype.forEach.call(lista.querySelectorAll('input'), function (i, idx) { i.placeholder = 'Opção ' + (idx + 1); });
+        btnAdd.hidden = lista.children.length >= MAX_OPCOES;
+      }
+      function abrirEnquete() {
+        builder.hidden = false; btnEnq.classList.add('ativo');
+        if (!lista.children.length) { novaOpcao(false); novaOpcao(false); }
+        ta.setAttribute('placeholder', 'Pergunta da enquete');
+        if (!ta.value.trim()) ta.focus(); else lista.querySelector('input').focus();
+        atualizar();
+      }
+      function fecharEnquete() {
+        builder.hidden = true; btnEnq.classList.remove('ativo');
+        lista.innerHTML = '';
+        var chk = builder.querySelector('input[name="enquete_multipla"]'); if (chk) chk.checked = false;
+        ta.setAttribute('placeholder', placeholderOriginal);
+        atualizar();
+      }
+      btnEnq.addEventListener('click', function () { if (builder.hidden) abrirEnquete(); else fecharEnquete(); });
+      builder.querySelector('[data-enquete-fechar]').addEventListener('click', fecharEnquete);
+      btnAdd.addEventListener('click', function () { novaOpcao(true); atualizar(); });
+      lista.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-enq-tirar]'); if (!b) return;
+        if (lista.children.length <= 2) { b.parentNode.querySelector('input').value = ''; atualizar(); return; }
+        b.parentNode.remove(); renumerar(); atualizar();
+      });
+      lista.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        var inputs = lista.querySelectorAll('input');
+        var idx = Array.prototype.indexOf.call(inputs, e.target);
+        if (idx < inputs.length - 1) inputs[idx + 1].focus();
+        else if (e.target.value.trim()) novaOpcao(true);
+      });
+    }
+  })();
+
+  /* ---------- Enquetes: votar sem recarregar (toggle; resposta única troca o voto),
+     barras animadas, tag "votou em X" nos meus comentários e folha "Ver votos" ---------- */
+  (function () {
+    var metaCsrf = document.querySelector('meta[name="csrf-token"]');
+    var CSRF = metaCsrf ? metaCsrf.getAttribute('content') : '';
+    function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+    function inicial(n) { return (String(n || '?').trim().charAt(0) || '?').toUpperCase(); }
+
+    function htmlEnquete(e) {
+      var h = '<div class="enq-cab">📊 ' + (e.multipla ? 'Escolha uma ou mais opções' : 'Escolha uma opção') + '</div>';
+      e.opcoes.forEach(function (o) {
+        var avs = (o.votantes || []).slice(0, 3).map(function (v) {
+          return v.foto ? '<img src="' + esc(v.foto) + '" alt="">' : '<span>' + esc(inicial(v.nome)) + '</span>';
+        }).join('');
+        h += '<button type="button" class="enq-opcao' + (o.votei ? ' votei' : '') + (e.multipla ? ' multipla' : '') + '" data-opcao="' + o.id_opcao + '" style="--p:' + o.pct + '%" aria-pressed="' + !!o.votei + '">'
+          + '<span class="enq-barra"></span>'
+          + '<span class="enq-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>'
+          + '<span class="enq-txt">' + esc(o.texto) + '</span>'
+          + (avs ? '<span class="enq-avs">' + avs + '</span>' : '')
+          + '<span class="enq-n">' + o.votos + '</span></button>';
+      });
+      h += '<div class="enq-rodape"><span class="enq-total">' + (e.total === 1 ? '1 voto' : e.total + ' votos') + '</span><button type="button" data-enq-votos>Ver votos</button></div>';
+      return h;
+    }
+
+    // Atualiza a tag "votou em" nos MEUS comentários daquele post
+    function atualizarTags(art, me, votou) {
+      if (!art || !me) return;
+      art.querySelectorAll('.tw-coment[data-uid="' + me + '"]').forEach(function (c) {
+        var tag = c.querySelector('[data-voto-tag]');
+        if (votou) {
+          if (!tag) {
+            tag = document.createElement('span'); tag.className = 'tw-coment-voto'; tag.setAttribute('data-voto-tag', '');
+            var nome = c.querySelector('.tw-coment-nome'); if (nome) nome.insertAdjacentElement('afterend', tag);
+          }
+          tag.textContent = 'votou em ' + votou; tag.title = 'Votou em: ' + votou;
+        } else if (tag) tag.remove();
+      });
+    }
+
+    document.addEventListener('click', function (e) {
+      var op = e.target.closest('.enq-opcao');
+      if (op) {
+        var box = op.closest('.enquete');
+        if (!box || box.classList.contains('enviando')) return;
+        var idPost = box.getAttribute('data-enquete');
+        box.classList.add('enviando');
+        fetch('/feed/' + idPost + '/votar', {
+          method: 'POST',
+          headers: { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch', 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ id_opcao: op.getAttribute('data-opcao') }),
+        })
+          .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+          .then(function (d) {
+            if (!d || !d.ok) return Promise.reject();
+            box.innerHTML = htmlEnquete(d.enquete);
+            atualizarTags(box.closest('.tw-post'), d.me, d.votou);
+          })
+          .catch(function () { toast('Não foi possível votar.'); })
+          .finally(function () { box.classList.remove('enviando'); });
+        return;
+      }
+      var ver = e.target.closest('[data-enq-votos]');
+      if (ver) {
+        var caixa = ver.closest('.enquete');
+        fetch('/feed/' + caixa.getAttribute('data-enquete') + '/enquete', { headers: { 'X-Requested-With': 'fetch' } })
+          .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+          .then(function (d) { abrirVotos(d.enquete); })
+          .catch(function () { toast('Não foi possível carregar os votos.'); });
+      }
+    });
+
+    var modal = null;
+    function abrirVotos(e) {
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.className = 'modal sheet-share'; modal.id = 'modal-votos'; modal.setAttribute('aria-hidden', 'true');
+        modal.innerHTML = '<div class="modal-card share-card"><div class="sheet-cab sempre"><span class="sheet-grab" aria-hidden="true"></span>'
+          + '<span class="sheet-titulo">Votos</span><button type="button" class="sheet-x" data-fechar-modal aria-label="Fechar">&times;</button></div>'
+          + '<div class="votos-lista"></div></div>';
+        document.body.appendChild(modal);
+      }
+      var lista = modal.querySelector('.votos-lista');
+      lista.innerHTML = e.opcoes.map(function (o) {
+        var pessoas = (o.votantes || []).map(function (v) {
+          var av = v.foto ? '<img src="' + esc(v.foto) + '" alt="">' : esc(inicial(v.nome));
+          return '<a class="share-item" href="/u/' + encodeURIComponent(v.usuario) + '"><span class="share-av">' + av + '</span>'
+            + '<span class="share-txt"><span class="share-nome">' + esc(v.nome) + '</span><span class="share-user">@' + esc(v.usuario) + '</span></span></a>';
+        }).join('');
+        return '<div><div class="votos-op"><span>' + esc(o.texto) + '</span><small>' + o.votos + ' · ' + o.pct + '%</small></div>'
+          + (pessoas || '<div class="votos-vazio">Ninguém ainda.</div>') + '</div>';
+      }).join('');
+      modal.hidden = false; modal.setAttribute('aria-hidden', 'false');
     }
   })();
 

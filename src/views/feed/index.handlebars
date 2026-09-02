@@ -52,6 +52,16 @@
         <textarea name="texto" maxlength="{{limite}}" placeholder="No que você está pensando?" autocomplete="off" data-mencoes data-texto></textarea>
       </div>
       <div class="compositor-preview" data-preview hidden></div>
+      {{! Enquete (como no WhatsApp): o texto do post é a pergunta; as opções são montadas pelo JS }}
+      <div class="enquete-builder" data-enquete-builder hidden>
+        <div class="enq-b-cab">
+          <span>📊 Enquete</span>
+          <button type="button" class="btn-icone" data-enquete-fechar aria-label="Remover enquete" title="Remover enquete">&times;</button>
+        </div>
+        <div class="enq-b-opcoes" data-enq-opcoes></div>
+        <button type="button" class="enq-b-add" data-enq-add>+ Adicionar opção</button>
+        <label class="check-linha"><input type="checkbox" name="enquete_multipla" value="1"> Permitir várias respostas</label>
+      </div>
       {{! Colaboradores (post em dupla/trio, como no Instagram) — os chips são montados pelo JS }}
       <div class="colab-chips" data-colab-chip hidden></div>
       <input type="hidden" name="colaborador" value="" data-colab-id>
@@ -62,6 +72,9 @@
           </button>
           <button type="button" class="comp-acao" data-colab-btn aria-label="Adicionar colaborador" title="Adicionar colaborador">
             <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </button>
+          <button type="button" class="comp-acao" data-enquete-btn aria-label="Enquete" title="Enquete">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
           </button>
           <button type="button" class="comp-acao" data-camera aria-label="Câmera" title="Câmera">
             <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>

@@ -235,6 +235,25 @@ CREATE TABLE IF NOT EXISTS push_inscricoes (
 );
 CREATE INDEX IF NOT EXISTS idx_push_usuario ON push_inscricoes(id_usuario);
 
+-- ---------- ENQUETES (post do mural com opções para votar, como no WhatsApp) ----------
+-- O texto do post é a pergunta; as opções ficam aqui. enquete_multipla: pode marcar várias.
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS enquete_multipla BOOLEAN NOT NULL DEFAULT FALSE;
+CREATE TABLE IF NOT EXISTS enquete_opcoes (
+  id_opcao  SERIAL PRIMARY KEY,
+  id_post   INTEGER NOT NULL REFERENCES posts(id_post) ON DELETE CASCADE,
+  texto     VARCHAR(100) NOT NULL,
+  ordem     SMALLINT NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_enq_opcoes_post ON enquete_opcoes(id_post);
+CREATE TABLE IF NOT EXISTS enquete_votos (
+  id_opcao   INTEGER NOT NULL REFERENCES enquete_opcoes(id_opcao) ON DELETE CASCADE,
+  id_post    INTEGER NOT NULL REFERENCES posts(id_post) ON DELETE CASCADE,
+  id_usuario INTEGER NOT NULL REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
+  criado_em  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (id_opcao, id_usuario)
+);
+CREATE INDEX IF NOT EXISTS idx_enq_votos_post ON enquete_votos(id_post, id_usuario);
+
 -- ---------- AVISOS (cards da administração que aparecem na tela de todo mundo) ----------
 -- tema: dourado | azul | verde | roxo | vermelho | escuro
 CREATE TABLE IF NOT EXISTS avisos (

@@ -24,6 +24,8 @@ router.post('/feed', guard, receberImagem, conferirAssinaturas, verifyCsrfAposUp
 router.post('/feed/:id_post/curtir', guard, ctrl.postCurtir);
 router.get('/feed/:id_post/curtidas', guard, ctrl.getCurtidas);
 router.post('/feed/:id_post/repostar', guard, ctrl.postRepost);
+router.post('/feed/:id_post/votar', guard, ctrl.postVotar);
+router.get('/feed/:id_post/enquete', guard, ctrl.getEnquete);
 router.post('/feed/:id_post/comentar', guard, ctrl.postComentar);
 router.post('/feed/:id_post/remover', guard, ctrl.postRemover);
 router.post('/feed/comentarios/:id_comentario/remover', guard, ctrl.postRemoverComentario);

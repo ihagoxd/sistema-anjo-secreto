@@ -63,6 +63,10 @@ const helpers = {
   ultimos(lista, n) {
     return Array.isArray(lista) ? lista.slice(-n) : [];
   },
+  // Primeiros N itens (avatares de quem votou na enquete)
+  primeiros(lista, n) {
+    return Array.isArray(lista) ? lista.slice(0, n) : [];
+  },
 
   // Número inteiro (COUNT do pg chega como string; 0 vira falsy para {{#if}})
   num(n) {

@@ -19,8 +19,72 @@ async function notificarMencoes(texto, idAtor, idPost) {
   for (const u of alvos) await notificacaoService.notificarMencao(u.id_usuario, idAtor, idPost, texto);
 }
 
-async function criarPost(idUsuario, texto, imagemPath, videoPath = null, colaboradorId = null) {
+// ---------- Enquetes (como no WhatsApp) ----------
+const ENQ_MIN = 2;
+const ENQ_MAX = 10;
+const ENQ_OPCAO_MAX = 100;
+
+// Normaliza as opções vindas do formulário: sem vazias, sem repetidas, no máximo 10.
+function normalizarEnquete(bruto) {
+  if (!bruto) return { ok: true, enquete: null };
+  const lista = (Array.isArray(bruto.opcoes) ? bruto.opcoes : [bruto.opcoes])
+    .map((o) => String(o || '').trim().replace(/\s+/g, ' ').slice(0, ENQ_OPCAO_MAX)).filter(Boolean);
+  const unicas = [];
+  lista.forEach((o) => { if (!unicas.some((u) => u.toLowerCase() === o.toLowerCase())) unicas.push(o); });
+  if (!unicas.length) return { ok: true, enquete: null };
+  if (unicas.length < ENQ_MIN) return { ok: false, motivo: 'ENQUETE_POUCAS' };
+  return { ok: true, enquete: { opcoes: unicas.slice(0, ENQ_MAX), multipla: !!bruto.multipla } };
+}
+
+// Linhas do banco (uma por opção) → objeto pronto para a view/JSON, com porcentagens.
+// Resposta única: % sobre o total de votos. Várias respostas: % sobre quem votou (pessoas).
+function montarEnquete(linhas) {
+  if (!linhas || !linhas.length) return null;
+  const multipla = !!linhas[0].enquete_multipla;
+  const pessoas = new Set();
+  let somaVotos = 0;
+  linhas.forEach((l) => { somaVotos += l.votos; (l.votantes || []).forEach((v) => pessoas.add(v.usuario)); });
+  const base = multipla ? pessoas.size : somaVotos;
+  const opcoes = linhas.map((l) => ({
+    id_opcao: l.id_opcao, texto: l.texto, votos: l.votos, votei: !!l.votei,
+    votantes: l.votantes || [], pct: base ? Math.round((l.votos / base) * 100) : 0,
+  }));
+  const votei = opcoes.some((o) => o.votei);
+  return { multipla, opcoes, total: pessoas.size, votei };
+}
+
+// Anexa "enquete" a cada post que tem uma.
+async function anexarEnquetes(posts, idUsuarioAtual) {
+  const ids = posts.filter((p) => p.tem_enquete).map((p) => p.id_post);
+  if (!ids.length) return;
+  const linhas = await postModel.listarEnquetesDeVarios(ids, idUsuarioAtual);
+  const porPost = {};
+  linhas.forEach((l) => { (porPost[l.id_post] = porPost[l.id_post] || []).push(l); });
+  posts.forEach((p) => { p.enquete = montarEnquete(porPost[p.id_post]); });
+}
+
+async function buscarEnquete(idPost, idUsuarioAtual) {
+  return montarEnquete(await postModel.listarEnquetesDeVarios([Number(idPost)], idUsuarioAtual));
+}
+
+// Votar/desvotar numa opção. Devolve a enquete atualizada + "votou em" do usuário.
+async function votar(idPost, idOpcao, idUsuario) {
+  idPost = Number(idPost); idOpcao = Number(idOpcao);
+  const op = await postModel.buscarOpcao(idOpcao);
+  if (!op || op.id_post !== idPost) return { ok: false, motivo: 'NAO_ENCONTRADA' };
+  const atual = await buscarEnquete(idPost, idUsuario);
+  if (!atual) return { ok: false, motivo: 'NAO_ENCONTRADA' };
+  await postModel.alternarVoto(idPost, idOpcao, idUsuario, atual.multipla);
+  const enquete = await buscarEnquete(idPost, idUsuario);
+  const votou = await postModel.votoDoUsuario(idPost, idUsuario);
+  return { ok: true, enquete, votou };
+}
+
+async function criarPost(idUsuario, texto, imagemPath, videoPath = null, colaboradorId = null, enqueteBruta = null) {
   const t = String(texto || '').trim();
+  const e = normalizarEnquete(enqueteBruta);
+  if (!e.ok) return e;
+  if (e.enquete && !t) return { ok: false, motivo: 'ENQUETE_SEM_PERGUNTA' };
   if (!t && !imagemPath && !videoPath) return { ok: false, motivo: 'VAZIO' };
   if (t.length > LIMITE_TEXTO) return { ok: false, motivo: 'LONGO' };
 
@@ -35,8 +99,9 @@ async function criarPost(idUsuario, texto, imagemPath, videoPath = null, colabor
 
   const novo = await postModel.criar({
     idUsuario, texto: t || null, imagem: imagemPath || null, video: videoPath || null,
-    idColaborador: colaboradores[0] || null,
+    idColaborador: colaboradores[0] || null, enqueteMultipla: !!(e.enquete && e.enquete.multipla),
   });
+  if (e.enquete) await postModel.criarOpcoes(novo.id_post, e.enquete.opcoes);
   if (colaboradores.length) {
     await postModel.adicionarColaboradores(novo.id_post, colaboradores);
     for (const cid of colaboradores) await notificacaoService.notificarMencao(cid, idUsuario, novo.id_post, t, 'colab');
@@ -153,4 +218,5 @@ module.exports = {
   criarPost, listarFeed, buscarPost, perfilPublico,
   alternarCurtida, listarCurtidores, alternarRepost, listarRepostados, comentar, listarComentarios,
   removerPost, removerComentario,
+  anexarEnquetes, buscarEnquete, votar, montarEnquete,
 };

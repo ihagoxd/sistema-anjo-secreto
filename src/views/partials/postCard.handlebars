@@ -23,7 +23,8 @@
     {{/if}}
   </header>
 
-  {{#unless this.imagem}}{{#if this.texto}}<div class="tw-post-texto ig-texto">{{comMencoes this.texto}}</div>{{/if}}{{/unless}}
+  {{#unless this.imagem}}{{#if this.texto}}<div class="tw-post-texto ig-texto{{#if this.enquete}} enq-pergunta{{/if}}">{{comMencoes this.texto}}</div>{{/if}}{{/unless}}
+  {{#if this.enquete}}{{> enquete this}}{{/if}}
 
   {{#if this.imagem}}<div class="tw-post-midia" data-post-id="{{this.id_post}}" data-img="{{this.imagem}}" role="button" tabindex="0" aria-label="Ampliar imagem (clique 2x para curtir)"><img src="{{this.imagem}}" alt="Foto" draggable="false"></div>{{/if}}
   {{#if this.video}}<div class="ig-video"><video src="{{this.video}}" controls playsinline preload="metadata"></video></div>{{/if}}
@@ -68,11 +69,12 @@
     </div>
     <div class="tw-comentarios">
       {{#each this.comentariosLista}}
-        <div class="tw-coment" data-coment="{{this.id_comentario}}">
+        <div class="tw-coment" data-coment="{{this.id_comentario}}" data-uid="{{this.id_usuario}}">
           <a href="/u/{{this.usuario}}" class="tw-coment-av">{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</a>
           <div class="tw-coment-main">
             <div class="tw-coment-top">
               <a href="/u/{{this.usuario}}" class="tw-coment-nome">{{this.nome}}</a>
+              {{#if this.votou}}<span class="tw-coment-voto" data-voto-tag title="Votou em: {{this.votou}}">votou em {{this.votou}}</span>{{/if}}
               <span class="tw-coment-meta">· {{tempoRel this.criado_em}}</span>
               {{#if (ou (eq this.id_usuario @root.usuario.id_usuario) (eq @root.usuario.tipo_usuario "ADMINISTRADOR"))}}
                 <form action="/feed/comentarios/{{this.id_comentario}}/remover" method="POST" class="tw-coment-del">

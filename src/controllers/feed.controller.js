@@ -32,6 +32,7 @@ async function getFeed(req, res, next) {
     const posts = await postService.listarFeed(me);
     const comentarios = await postModel.listarComentariosDeVarios(posts.map((p) => p.id_post));
     anexarComentarios(posts, comentarios);
+    await postService.anexarEnquetes(posts, me);
     let equipe = await usuarioModel.listarAprovados(me, 30);
     // Anéis dos stories (estilo Instagram): dourado = tem story não visto; cinza = sem story ou tudo visto
     const aneis = await storyService.resumoAneis(me);
@@ -77,8 +78,16 @@ async function postCriar(req, res, next) {
       const f = (req.files && req.files[campo] && req.files[campo][0]) || null;
       return f ? '/uploads/' + f.filename : null;
     };
-    const r = await postService.criarPost(req.session.usuario.id_usuario, req.body.texto, um('imagem'), um('video'), req.body.colaborador || null);
-    if (!r.ok) req.session.flash = { erro: r.motivo === 'LONGO' ? 'Texto longo demais.' : 'Escreva algo ou adicione uma foto.' };
+    // Enquete (opcional): opções vêm como enquete_opcao[] (multer) ou enquete_opcao
+    const opcoes = req.body['enquete_opcao[]'] || req.body.enquete_opcao || null;
+    const enquete = opcoes ? { opcoes, multipla: req.body.enquete_multipla === '1' } : null;
+    const r = await postService.criarPost(req.session.usuario.id_usuario, req.body.texto, um('imagem'), um('video'), req.body.colaborador || null, enquete);
+    const ERROS = {
+      LONGO: 'Texto longo demais.',
+      ENQUETE_POUCAS: 'A enquete precisa de pelo menos 2 opções.',
+      ENQUETE_SEM_PERGUNTA: 'Escreva a pergunta da enquete no texto do post.',
+    };
+    if (!r.ok) req.session.flash = { erro: ERROS[r.motivo] || 'Escreva algo ou adicione uma foto.' };
     else req.session.flash = { sucesso: 'Publicado! ✨' };
     res.redirect('/feed');
   } catch (err) {
@@ -103,6 +112,26 @@ async function getCurtidas(req, res, next) {
     const lista = await postService.listarCurtidores(req.params.id_post);
     if (!lista) return res.status(404).json({ erro: 'Post não encontrado.' });
     res.json(lista);
+  } catch (err) {
+    next(err);
+  }
+}
+
+// Enquete: votar/desvotar (AJAX → JSON) e consultar (folha "Ver votos").
+async function postVotar(req, res, next) {
+  try {
+    const r = await postService.votar(req.params.id_post, req.body.id_opcao, req.session.usuario.id_usuario);
+    if (!r.ok) return res.status(404).json({ ok: false, erro: 'Enquete não encontrada.' });
+    res.json({ ok: true, enquete: r.enquete, votou: r.votou, me: req.session.usuario.id_usuario });
+  } catch (err) {
+    next(err);
+  }
+}
+async function getEnquete(req, res, next) {
+  try {
+    const e = await postService.buscarEnquete(req.params.id_post, req.session.usuario.id_usuario);
+    if (!e) return res.status(404).json({ ok: false });
+    res.json({ ok: true, enquete: e });
   } catch (err) {
     next(err);
   }
@@ -136,6 +165,7 @@ async function postComentar(req, res, next) {
           nome: u.nome,
           usuario: u.usuario,
           foto_perfil: u.foto_perfil || null,
+          votou: await postModel.votoDoUsuario(Number(req.params.id_post), u.id_usuario),
         },
       });
     }
@@ -173,6 +203,7 @@ async function getPost(req, res, next) {
       return res.redirect('/feed');
     }
     anotarStories([post], await storyService.resumoAneis(req.session.usuario.id_usuario));
+    await postService.anexarEnquetes([post], req.session.usuario.id_usuario);
     res.render('feed/post', { titulo: 'Publicação', posts: [post], detalhe: true });
   } catch (err) {
     next(err);
@@ -202,6 +233,7 @@ async function renderPerfil(req, res, aba) {
   // Comentários (para expandir inline nos cards do perfil, igual ao mural).
   const comentarios = await postModel.listarComentariosDeVarios(posts.map((p) => p.id_post));
   anexarComentarios(posts, comentarios);
+  await postService.anexarEnquetes(posts, me);
   const aneis = await storyService.resumoAneis(me);
   anotarStories(posts, aneis);
   // Anel + toque no avatar do CABEÇALHO do perfil abre o story (segurar amplia a foto)
@@ -256,4 +288,4 @@ async function getMencoes(req, res, next) {
   }
 }
 
-module.exports = { getFeed, getPost, postCriar, postCurtir, getCurtidas, postRepost, postComentar, postRemover, postRemoverComentario, getPerfil, getPerfilReposts, getPerfilGostos, getMencoes, getBusca, getNovidades };
+module.exports = { getFeed, getPost, postCriar, postCurtir, getCurtidas, postRepost, postVotar, getEnquete, postComentar, postRemover, postRemoverComentario, getPerfil, getPerfilReposts, getPerfilGostos, getMencoes, getBusca, getNovidades };

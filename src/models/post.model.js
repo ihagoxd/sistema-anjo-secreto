@@ -18,17 +18,73 @@ const SELECT_POST = `
          (SELECT COUNT(*) FROM post_comentarios m WHERE m.id_post = p.id_post)::int AS comentarios,
          (SELECT COUNT(*) FROM reposts r WHERE r.id_post = p.id_post)::int AS reposts,
          EXISTS(SELECT 1 FROM post_curtidas c WHERE c.id_post = p.id_post AND c.id_usuario = $1) AS curtiu,
-         EXISTS(SELECT 1 FROM reposts r WHERE r.id_post = p.id_post AND r.id_usuario = $1) AS repostou
+         EXISTS(SELECT 1 FROM reposts r WHERE r.id_post = p.id_post AND r.id_usuario = $1) AS repostou,
+         p.enquete_multipla,
+         EXISTS(SELECT 1 FROM enquete_opcoes o WHERE o.id_post = p.id_post) AS tem_enquete
     FROM posts p
     JOIN usuarios u ON u.id_usuario = p.id_usuario
     LEFT JOIN usuarios uc ON uc.id_usuario = p.id_colaborador`;
 
-async function criar({ idUsuario, texto, imagem, video = null, idColaborador = null }) {
+async function criar({ idUsuario, texto, imagem, video = null, idColaborador = null, enqueteMultipla = false }) {
   const res = await db.query(
-    `INSERT INTO posts (id_usuario, texto, imagem, video, id_colaborador) VALUES ($1, $2, $3, $4, $5) RETURNING id_post`,
-    [idUsuario, texto, imagem, video, idColaborador]
+    `INSERT INTO posts (id_usuario, texto, imagem, video, id_colaborador, enquete_multipla) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id_post`,
+    [idUsuario, texto, imagem, video, idColaborador, !!enqueteMultipla]
   );
   return res.rows[0];
+}
+
+// ---------- Enquetes ----------
+async function criarOpcoes(idPost, textos) {
+  for (let i = 0; i < textos.length; i++) {
+    await db.query(`INSERT INTO enquete_opcoes (id_post, texto, ordem) VALUES ($1, $2, $3)`, [idPost, textos[i], i]);
+  }
+}
+
+// Opções (com contagem, quem votou e se EU votei) de vários posts de uma vez.
+async function listarEnquetesDeVarios(ids, idUsuarioAtual) {
+  if (!ids || !ids.length) return [];
+  const res = await db.query(
+    `SELECT o.id_post, o.id_opcao, o.texto, o.ordem, p.enquete_multipla,
+            (SELECT COUNT(*)::int FROM enquete_votos v WHERE v.id_opcao = o.id_opcao) AS votos,
+            EXISTS(SELECT 1 FROM enquete_votos v WHERE v.id_opcao = o.id_opcao AND v.id_usuario = $2) AS votei,
+            COALESCE((SELECT json_agg(json_build_object('nome', u.nome, 'usuario', u.usuario, 'foto', u.foto_perfil) ORDER BY v.criado_em DESC)
+                        FROM enquete_votos v JOIN usuarios u ON u.id_usuario = v.id_usuario
+                       WHERE v.id_opcao = o.id_opcao), '[]'::json) AS votantes
+       FROM enquete_opcoes o
+       JOIN posts p ON p.id_post = o.id_post
+      WHERE o.id_post = ANY($1)
+      ORDER BY o.id_post, o.ordem, o.id_opcao`,
+    [ids, idUsuarioAtual]
+  );
+  return res.rows;
+}
+
+async function buscarOpcao(idOpcao) {
+  const res = await db.query(`SELECT id_opcao, id_post FROM enquete_opcoes WHERE id_opcao = $1`, [idOpcao]);
+  return res.rows[0] || null;
+}
+
+// Vota/desvota (toggle). Na enquete de resposta única, trocar de opção substitui o voto anterior.
+async function alternarVoto(idPost, idOpcao, idUsuario, multipla) {
+  const ja = await db.query(`SELECT 1 FROM enquete_votos WHERE id_opcao = $1 AND id_usuario = $2`, [idOpcao, idUsuario]);
+  if (ja.rowCount) {
+    await db.query(`DELETE FROM enquete_votos WHERE id_opcao = $1 AND id_usuario = $2`, [idOpcao, idUsuario]);
+    return false;
+  }
+  if (!multipla) await db.query(`DELETE FROM enquete_votos WHERE id_post = $1 AND id_usuario = $2`, [idPost, idUsuario]);
+  await db.query(`INSERT INTO enquete_votos (id_opcao, id_post, id_usuario) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`, [idOpcao, idPost, idUsuario]);
+  return true;
+}
+
+// "votou em X" de um usuário num post (texto das opções, na ordem).
+async function votoDoUsuario(idPost, idUsuario) {
+  const res = await db.query(
+    `SELECT string_agg(o.texto, ', ' ORDER BY o.ordem) AS votou
+       FROM enquete_votos v JOIN enquete_opcoes o ON o.id_opcao = v.id_opcao
+      WHERE v.id_post = $1 AND v.id_usuario = $2`,
+    [idPost, idUsuario]
+  );
+  return (res.rows[0] && res.rows[0].votou) || null;
 }
 
 async function listarFeed(idUsuarioAtual, limite = 50) {
@@ -144,9 +200,13 @@ async function adicionarComentario(idPost, idUsuario, texto) {
   );
   return res.rows[0];
 }
+// "votou": em post com enquete, a(s) opção(ões) que o autor do comentário escolheu (tag no comentário)
+const VOTOU = `(SELECT string_agg(o.texto, ', ' ORDER BY o.ordem)
+                  FROM enquete_votos v JOIN enquete_opcoes o ON o.id_opcao = v.id_opcao
+                 WHERE v.id_post = m.id_post AND v.id_usuario = m.id_usuario) AS votou`;
 async function listarComentarios(idPost) {
   const res = await db.query(
-    `SELECT m.id_comentario, m.texto, m.criado_em, m.id_usuario, u.nome, u.usuario, u.foto_perfil
+    `SELECT m.id_comentario, m.texto, m.criado_em, m.id_usuario, u.nome, u.usuario, u.foto_perfil, ${VOTOU}
        FROM post_comentarios m JOIN usuarios u ON u.id_usuario = m.id_usuario
       WHERE m.id_post = $1 ORDER BY m.criado_em ASC`,
     [idPost]
@@ -156,7 +216,7 @@ async function listarComentarios(idPost) {
 async function listarComentariosDeVarios(ids) {
   if (!ids || !ids.length) return [];
   const res = await db.query(
-    `SELECT m.id_comentario, m.id_post, m.texto, m.criado_em, m.id_usuario, u.nome, u.usuario, u.foto_perfil
+    `SELECT m.id_comentario, m.id_post, m.texto, m.criado_em, m.id_usuario, u.nome, u.usuario, u.foto_perfil, ${VOTOU}
        FROM post_comentarios m JOIN usuarios u ON u.id_usuario = m.id_usuario
       WHERE m.id_post = ANY($1) ORDER BY m.criado_em ASC`,
     [ids]
@@ -177,4 +237,5 @@ module.exports = {
   curtir, descurtir, jaCurtiu, contarCurtidas, listarCurtidores,
   repostar, desfazerRepost, jaRepostou, contarReposts,
   adicionarComentario, listarComentarios, listarComentariosDeVarios, buscarComentario, removerComentario,
+  criarOpcoes, listarEnquetesDeVarios, buscarOpcao, alternarVoto, votoDoUsuario,
 };

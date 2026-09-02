@@ -2712,6 +2712,58 @@ a.share-item { text-decoration: none; color: inherit; }
   .bi-item:hover { color: var(--text); }
 }
 
+/* ============================================================
+   ENQUETES no mural (como no WhatsApp): opções com barra de %, check dourado,
+   avatares de quem votou, "Ver votos"; construtor no compositor; tag no comentário
+   ============================================================ */
+.enq-pergunta { font-weight: 700; }
+.enquete { margin: 8px 0 6px; display: flex; flex-direction: column; gap: 8px; }
+.enq-cab { font-size: 12px; color: var(--text-faint); font-weight: 600; display: flex; gap: 6px; align-items: center; }
+.enq-opcao {
+  position: relative; display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 12px;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2); color: var(--text);
+  font: inherit; font-size: 14px; text-align: left; cursor: pointer; overflow: hidden;
+  transition: border-color 0.15s, transform 0.1s, box-shadow 0.15s;
+}
+.enq-opcao:hover { border-color: var(--line-strong); }
+.enq-opcao:active { transform: scale(0.985); }
+.enq-barra { position: absolute; left: 0; top: 0; bottom: 0; width: var(--p, 0%); background: color-mix(in srgb, var(--ouro) 17%, transparent); transition: width 0.5s var(--ease-out); z-index: 0; }
+.enq-opcao > *:not(.enq-barra) { position: relative; z-index: 1; }
+.enq-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--line-strong); display: grid; place-items: center; flex-shrink: 0; color: var(--on-ouro); transition: background 0.15s, border-color 0.15s, transform 0.2s var(--ease-spring); }
+.enq-opcao.multipla .enq-check { border-radius: 6px; }
+.enq-check svg { width: 12px; height: 12px; opacity: 0; transition: opacity 0.12s; }
+.enq-opcao.votei { border-color: var(--ouro); box-shadow: 0 0 0 1px color-mix(in srgb, var(--ouro) 35%, transparent); }
+.enq-opcao.votei .enq-check { background: var(--ouro); border-color: var(--ouro); transform: scale(1.08); }
+.enq-opcao.votei .enq-check svg { opacity: 1; }
+.enq-txt { flex: 1; min-width: 0; word-break: break-word; line-height: 1.35; }
+.enq-avs { display: flex; flex-shrink: 0; padding-left: 6px; }
+.enq-avs img, .enq-avs span { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--surface); margin-left: -7px; object-fit: cover; background: var(--accent-soft); color: var(--accent-strong); font-size: 9px; font-weight: 700; display: grid; place-items: center; box-sizing: content-box; }
+.enq-n { font-weight: 700; font-size: 13px; color: var(--text-soft); min-width: 22px; text-align: right; flex-shrink: 0; }
+.enq-rodape { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; color: var(--text-faint); padding: 0 2px; }
+.enq-rodape button { background: none; border: none; color: var(--accent); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; padding: 4px 0; }
+.enq-rodape button:hover { text-decoration: underline; }
+.enquete.enviando { opacity: 0.6; pointer-events: none; }
+/* Tag "votou em X" no comentário */
+.tw-coment-voto { display: inline-block; padding: 1px 8px; border-radius: 999px; background: color-mix(in srgb, var(--ouro) 16%, transparent); color: var(--accent-strong); font-size: 11px; font-weight: 600; white-space: nowrap; max-width: 170px; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; }
+[data-theme='dark'] .tw-coment-voto { color: var(--ouro); }
+/* Construtor no compositor */
+.enquete-builder { margin-top: 10px; padding: 12px; border: 1px dashed var(--line-strong); border-radius: 12px; display: flex; flex-direction: column; gap: 8px; }
+.enquete-builder[hidden] { display: none; }
+.enq-b-cab { display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 13px; }
+.enq-b-linha { display: flex; gap: 6px; align-items: center; }
+.enq-b-linha input { flex: 1; min-width: 0; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--text); font: inherit; font-size: 14px; }
+.enq-b-linha input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
+.enq-b-tirar { border: none; background: transparent; color: var(--text-faint); font-size: 18px; line-height: 1; cursor: pointer; width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; }
+.enq-b-tirar:hover { background: var(--hover); color: var(--text); }
+.enq-b-add { align-self: flex-start; background: none; border: none; color: var(--accent); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; padding: 2px 0; }
+.enq-b-add[hidden] { display: none; }
+.comp-acao.ativo { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
+/* Folha "Ver votos" */
+.votos-lista { display: flex; flex-direction: column; gap: 14px; max-height: 62vh; overflow-y: auto; padding: 2px 0; }
+.votos-op { font-weight: 700; font-size: 13.5px; margin-bottom: 4px; display: flex; justify-content: space-between; gap: 10px; }
+.votos-op small { color: var(--text-faint); font-weight: 500; flex-shrink: 0; }
+.votos-vazio { font-size: 13px; color: var(--text-faint); padding: 2px 0 0 4px; }
+
 /* --- Segurar a bolha (mobile) abre o menu de ações da mensagem --- */
 .dm-bolha { transition: transform 0.18s var(--ease-out); }
 .dm-bolha.segurando { transform: scale(0.965); }

@@ -58,6 +58,15 @@
       </div>
     </div>
 
+    <div class="campo">
+      <label for="av-freq">Quantas vezes aparece</label>
+      <select id="av-freq" name="frequencia">
+        <option value="uma_vez" {{#unless diario}}selected{{/unless}}>Uma vez — some depois que a pessoa fecha ou clica "Entendi"</option>
+        <option value="diario" {{#if diario}}selected{{/if}}>Todo dia — fechou, some só naquele dia; volta no dia seguinte até a validade</option>
+      </select>
+      <p class="ajuda">"Todo dia" é bom para lembretes com prazo (combine com "Válido até"). "Uma vez" é o ideal para novidades e atualizações.</p>
+    </div>
+
     <div class="linha-campos">
       <div class="campo">
         <label for="av-expira">Válido até (opcional)</label>
@@ -114,6 +123,7 @@
         <span class="aviso-item-msg">{{mensagem}}</span>
         <span class="aviso-item-meta">
           {{#if expirado}}<span class="badge encerrada">Expirado</span>{{else if ativo}}<span class="badge andamento">Publicado</span>{{else}}<span class="badge rascunho">Rascunho</span>{{/if}}
+          {{#if (eq frequencia "diario")}}· 🔁 todo dia{{else}}· uma vez{{/if}}
           · {{formatarData criado_em}}{{#if autor_nome}} · por {{autor_nome}}{{/if}}
           {{#if expira_em}} · válido até {{formatarData expira_em}}{{/if}}
           · <strong>{{vistos}}</strong>/{{destinatarios}} viram

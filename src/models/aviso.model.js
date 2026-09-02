@@ -6,25 +6,25 @@
 const db = require('../config/db');
 
 const COLUNAS = `a.id_aviso, a.titulo, a.mensagem, a.emoji, a.tema, a.link, a.link_texto,
-                 a.ativo, a.expira_em, a.criado_por, a.criado_em, a.atualizado_em`;
+                 a.ativo, a.frequencia, a.expira_em, a.criado_por, a.criado_em, a.atualizado_em`;
 
-async function criar({ titulo, mensagem, emoji, tema, link, linkTexto, ativo, expiraEm, criadoPor }) {
+async function criar({ titulo, mensagem, emoji, tema, link, linkTexto, ativo, frequencia, expiraEm, criadoPor }) {
   const res = await db.query(
-    `INSERT INTO avisos (titulo, mensagem, emoji, tema, link, link_texto, ativo, expira_em, criado_por)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    `INSERT INTO avisos (titulo, mensagem, emoji, tema, link, link_texto, ativo, frequencia, expira_em, criado_por)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
      RETURNING id_aviso`,
-    [titulo, mensagem, emoji, tema, link, linkTexto, ativo, expiraEm, criadoPor]
+    [titulo, mensagem, emoji, tema, link, linkTexto, ativo, frequencia, expiraEm, criadoPor]
   );
   return res.rows[0];
 }
 
-async function atualizar(idAviso, { titulo, mensagem, emoji, tema, link, linkTexto, ativo, expiraEm }) {
+async function atualizar(idAviso, { titulo, mensagem, emoji, tema, link, linkTexto, ativo, frequencia, expiraEm }) {
   const res = await db.query(
     `UPDATE avisos
-        SET titulo = $2, mensagem = $3, emoji = $4, tema = $5, link = $6, link_texto = $7, ativo = $8, expira_em = $9
+        SET titulo = $2, mensagem = $3, emoji = $4, tema = $5, link = $6, link_texto = $7, ativo = $8, frequencia = $9, expira_em = $10
       WHERE id_aviso = $1
       RETURNING id_aviso`,
-    [idAviso, titulo, mensagem, emoji, tema, link, linkTexto, ativo, expiraEm]
+    [idAviso, titulo, mensagem, emoji, tema, link, linkTexto, ativo, frequencia, expiraEm]
   );
   return res.rows[0] || null;
 }
@@ -63,7 +63,9 @@ async function excluir(idAviso) {
   return res.rowCount;
 }
 
-// Avisos que este usuário ainda precisa ver (ativos, não expirados, não vistos, não criados por ele).
+// Avisos que este usuário ainda precisa ver hoje (ativos, não expirados, não criados por ele):
+//  - uma_vez: some para sempre depois de visto;
+//  - diario:  volta todo dia — só fica escondido se foi fechado HOJE.
 async function pendentesPara(idUsuario, limite = 3) {
   const res = await db.query(
     `SELECT ${COLUNAS}
@@ -71,7 +73,11 @@ async function pendentesPara(idUsuario, limite = 3) {
       WHERE a.ativo = TRUE
         AND (a.expira_em IS NULL OR a.expira_em > now())
         AND a.criado_por IS DISTINCT FROM $1
-        AND NOT EXISTS (SELECT 1 FROM avisos_vistos v WHERE v.id_aviso = a.id_aviso AND v.id_usuario = $1)
+        AND NOT EXISTS (
+          SELECT 1 FROM avisos_vistos v
+           WHERE v.id_aviso = a.id_aviso AND v.id_usuario = $1
+             AND (a.frequencia <> 'diario' OR v.visto_em::date = CURRENT_DATE)
+        )
       ORDER BY a.criado_em DESC
       LIMIT $2`,
     [idUsuario, limite]
@@ -81,7 +87,8 @@ async function pendentesPara(idUsuario, limite = 3) {
 
 async function marcarVisto(idAviso, idUsuario) {
   await db.query(
-    `INSERT INTO avisos_vistos (id_aviso, id_usuario) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+    `INSERT INTO avisos_vistos (id_aviso, id_usuario) VALUES ($1, $2)
+     ON CONFLICT (id_aviso, id_usuario) DO UPDATE SET visto_em = now()`,
     [idAviso, idUsuario]
   );
 }

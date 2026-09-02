@@ -2231,6 +2231,13 @@ html.mini #loader .anjo .anjo-traco { display: none; }
 .aviso-data { font-size: 12px; color: var(--text-faint); }
 .aviso-acoes { display: flex; gap: 8px; margin-left: auto; }
 .aviso-card .aviso-ok { background: linear-gradient(135deg, var(--av-a), var(--av-b)); color: var(--av-on); border-color: transparent; font-weight: 700; }
+/* X no canto: fecha (no modo "todo dia", só até amanhã) */
+.aviso-x {
+  position: absolute; top: 14px; right: 12px; z-index: 2; width: 32px; height: 32px; border: none; border-radius: 50%;
+  background: transparent; color: var(--text-faint); cursor: pointer; display: grid; place-items: center; transition: background 0.14s, color 0.14s;
+}
+.aviso-x:hover { background: var(--hover); color: var(--text); }
+.aviso-card .aviso-topo { padding-right: 36px; }
 /* Crédito discreto no pé do card */
 .aviso-credito { display: block; margin-top: 14px; padding-top: 10px; border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-faint); opacity: 0.7; text-align: right; position: relative; }
 .aviso-credito strong { font-weight: 600; color: var(--text-soft); }

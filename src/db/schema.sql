@@ -255,7 +255,11 @@ DROP TRIGGER IF EXISTS trg_avisos_atualizado ON avisos;
 CREATE TRIGGER trg_avisos_atualizado BEFORE UPDATE ON avisos
   FOR EACH ROW EXECUTE FUNCTION fn_atualizar_timestamp();
 
--- Quem já viu (clicou "Entendi") cada aviso — o card não volta a aparecer.
+-- frequencia: uma_vez (some depois do "Entendi"/X) | diario (fechou, volta no dia seguinte até a validade)
+ALTER TABLE avisos ADD COLUMN IF NOT EXISTS frequencia VARCHAR(12) NOT NULL DEFAULT 'uma_vez';
+
+-- Quem já viu (clicou "Entendi"/X) cada aviso — no modo "uma_vez" o card não volta;
+-- no modo "diario" a data em visto_em decide se volta hoje.
 CREATE TABLE IF NOT EXISTS avisos_vistos (
   id_aviso    INTEGER NOT NULL REFERENCES avisos(id_aviso) ON DELETE CASCADE,
   id_usuario  INTEGER NOT NULL REFERENCES usuarios(id_usuario) ON DELETE CASCADE,

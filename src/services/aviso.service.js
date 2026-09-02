@@ -8,6 +8,7 @@ const avisoModel = require('../models/aviso.model');
 const notificacaoService = require('./notificacao.service');
 
 const TEMAS = ['dourado', 'azul', 'verde', 'roxo', 'vermelho', 'escuro'];
+const FREQUENCIAS = ['uma_vez', 'diario'];
 const LIMITES = { titulo: 80, mensagem: 600, emoji: 16, link: 300, linkTexto: 40 };
 
 function limpar(s, max) {
@@ -23,6 +24,7 @@ function validar(body) {
   let link = limpar(body.link, LIMITES.link) || null;
   const linkTexto = limpar(body.link_texto, LIMITES.linkTexto) || null;
   const ativo = body.ativo !== '0' && body.ativo !== 'false' && body.ativo !== false;
+  const frequencia = FREQUENCIAS.includes(body.frequencia) ? body.frequencia : 'uma_vez';
 
   if (titulo.length < 2) return { ok: false, erro: 'Dê um título ao aviso (mínimo 2 caracteres).' };
   if (!mensagem) return { ok: false, erro: 'Escreva a mensagem do aviso.' };
@@ -39,7 +41,7 @@ function validar(body) {
     expiraEm = d;
   }
 
-  return { ok: true, dados: { titulo, mensagem, emoji, tema, link, linkTexto: link ? (linkTexto || 'Saiba mais') : null, ativo, expiraEm } };
+  return { ok: true, dados: { titulo, mensagem, emoji, tema, link, linkTexto: link ? (linkTexto || 'Saiba mais') : null, ativo, frequencia, expiraEm } };
 }
 
 async function criar(body, criadoPor) {
@@ -73,4 +75,4 @@ function excluir(id) { return avisoModel.excluir(id); }
 function pendentesPara(idUsuario) { return avisoModel.pendentesPara(idUsuario); }
 function marcarVisto(idAviso, idUsuario) { return avisoModel.marcarVisto(idAviso, idUsuario); }
 
-module.exports = { TEMAS, LIMITES, validar, criar, atualizar, listar, buscarPorId, alternarAtivo, excluir, pendentesPara, marcarVisto };
+module.exports = { TEMAS, FREQUENCIAS, LIMITES, validar, criar, atualizar, listar, buscarPorId, alternarAtivo, excluir, pendentesPara, marcarVisto };

@@ -19,7 +19,7 @@ async function getAdmin(req, res, next) {
     const avisos = await avisoService.listar();
     let editando = null;
     if (req.query.editar) editando = await avisoService.buscarPorId(Number(req.query.editar));
-    const modelo = editando || { emoji: '📢', tema: 'dourado', ativo: true };
+    const modelo = editando || { emoji: '📢', tema: 'dourado', ativo: true, frequencia: 'uma_vez' };
     res.render('admin/avisos', {
       titulo: 'Avisos',
       pagina: 'admin-avisos',
@@ -28,6 +28,7 @@ async function getAdmin(req, res, next) {
       modelo,
       expiraISO: modelo.expira_em ? new Date(modelo.expira_em).toLocaleDateString('en-CA') : '',
       temas: avisoService.TEMAS.map((t) => ({ chave: t, rotulo: TEMAS_ROTULO[t], ativo: t === modelo.tema })),
+      diario: modelo.frequencia === 'diario',
       limites: avisoService.LIMITES,
     });
   } catch (err) {

@@ -2248,17 +2248,26 @@ html.mini #loader .anjo .anjo-traco { display: none; }
 .aviso-faisca.f1 { top: 18px; right: 26px; }
 .aviso-faisca.f2 { top: 50px; right: 72px; font-size: 10px; }
 .aviso-faisca.f3 { top: 92px; right: 32px; font-size: 12px; }
+/* Entrada (uma vez) + LOOPS suaves que assumem depois: emoji flutuando, faíscas
+   piscando, brilho varrendo de tempos em tempos, clarão respirando, faixa deslizando */
 .aviso-slot.animar .aviso-card { animation: aviso-entra 0.75s var(--ease-spring) both; }
-.aviso-slot.animar .aviso-emoji { animation: aviso-emoji 0.8s var(--ease-spring) 0.25s both; }
+.aviso-slot.animar .aviso-card::before { background-image: linear-gradient(90deg, var(--av-a), var(--av-b), var(--av-a)); background-size: 200% 100%; animation: aviso-faixa 6s linear 1.2s infinite; }
+.aviso-slot.animar .aviso-card::after { animation: aviso-respira 4.5s ease-in-out 1.2s infinite; }
+.aviso-slot.animar .aviso-emoji {
+  animation: aviso-emoji 0.8s var(--ease-spring) 0.25s both, aviso-flutua 3.4s ease-in-out 1.3s infinite;
+}
 .aviso-slot.animar .aviso-titulo, .aviso-slot.animar .aviso-msg, .aviso-slot.animar .aviso-rodape { animation: aviso-sobe 0.55s var(--ease-out) both; }
 .aviso-slot.animar .aviso-titulo { animation-delay: 0.3s; }
 .aviso-slot.animar .aviso-msg { animation-delay: 0.4s; }
 .aviso-slot.animar .aviso-rodape { animation-delay: 0.5s; }
-.aviso-slot.animar .aviso-brilho { animation: aviso-brilho 1.1s ease-out 0.45s both; }
-.aviso-slot.animar .aviso-faisca { animation: aviso-faisca 1.2s ease-out both; }
-.aviso-slot.animar .aviso-faisca.f1 { animation-delay: 0.5s; }
-.aviso-slot.animar .aviso-faisca.f2 { animation-delay: 0.65s; }
-.aviso-slot.animar .aviso-faisca.f3 { animation-delay: 0.8s; }
+.aviso-slot.animar .aviso-brilho {
+  animation: aviso-brilho 1.1s ease-out 0.45s both, aviso-brilho-loop 7s ease-out 3.5s infinite;
+}
+.aviso-slot.animar .aviso-faisca { animation: aviso-faisca 1.2s ease-out both, aviso-pisca 2.8s ease-in-out infinite; }
+.aviso-slot.animar .aviso-faisca.f1 { animation-delay: 0.5s, 2.2s; }
+.aviso-slot.animar .aviso-faisca.f2 { animation-delay: 0.65s, 3.1s; }
+.aviso-slot.animar .aviso-faisca.f3 { animation-delay: 0.8s, 2.7s; }
+.aviso-slot.animar .aviso-ok { animation: aviso-botao 5s ease-in-out 2.5s infinite; }
 .aviso-slot.saindo .aviso-card { animation: aviso-sai 0.3s ease-in both; }
 @keyframes aviso-entra { 0% { opacity: 0; transform: translateY(44px) scale(0.84) rotateX(14deg); } 100% { opacity: 1; transform: none; } }
 @keyframes aviso-emoji { 0% { transform: scale(0) rotate(-25deg); } 60% { transform: scale(1.18) rotate(6deg); } 100% { transform: none; } }
@@ -2266,6 +2275,13 @@ html.mini #loader .anjo .anjo-traco { display: none; }
 @keyframes aviso-brilho { 0% { left: -60%; opacity: 0; } 20% { opacity: 1; } 100% { left: 130%; opacity: 0; } }
 @keyframes aviso-faisca { 0% { opacity: 0; transform: scale(0); } 40% { opacity: 1; transform: scale(1.25) rotate(20deg); } 100% { opacity: 0; transform: scale(0.4) translateY(-16px) rotate(60deg); } }
 @keyframes aviso-sai { to { opacity: 0; transform: translateY(-22px) scale(0.92); } }
+/* loops */
+@keyframes aviso-flutua { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-4px) rotate(-4deg); } }
+@keyframes aviso-pisca { 0%, 100% { opacity: 0; transform: scale(0.4) rotate(0); } 50% { opacity: 0.9; transform: scale(1.1) rotate(25deg); } }
+@keyframes aviso-brilho-loop { 0% { left: -60%; opacity: 0; } 4% { opacity: 0.8; } 18% { left: 130%; opacity: 0; } 100% { left: 130%; opacity: 0; } }
+@keyframes aviso-respira { 0%, 100% { opacity: 0.7; transform: scale(1); } 50% { opacity: 1; transform: scale(1.12); } }
+@keyframes aviso-faixa { from { background-position: 0% 0; } to { background-position: 200% 0; } }
+@keyframes aviso-botao { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--av-a) 50%, transparent); } 12% { box-shadow: 0 0 0 7px transparent; } }
 /* Modal sobre a tela (acima do painel de notificações, abaixo dos toasts) */
 .aviso-modal { z-index: 300; perspective: 1000px; }
 .aviso-palco { width: 100%; max-width: 440px; }
@@ -2316,7 +2332,7 @@ html.mini #loader .anjo .anjo-traco { display: none; }
 .aviso-item-meta { font-size: 12px; color: var(--text-faint); }
 .aviso-item-acoes { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
 @media (max-width: 720px) { .aviso-item { flex-wrap: wrap; } .aviso-item-acoes { width: 100%; justify-content: flex-start; } .campo-emoji { flex-basis: 100%; max-width: none; } }
-@media (prefers-reduced-motion: reduce) { .aviso-slot.animar .aviso-card, .aviso-slot.animar .aviso-emoji, .aviso-slot.animar .aviso-titulo, .aviso-slot.animar .aviso-msg, .aviso-slot.animar .aviso-rodape, .aviso-slot.animar .aviso-brilho, .aviso-slot.animar .aviso-faisca { animation: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .aviso-slot.animar .aviso-card, .aviso-slot.animar .aviso-card::before, .aviso-slot.animar .aviso-card::after, .aviso-slot.animar .aviso-emoji, .aviso-slot.animar .aviso-titulo, .aviso-slot.animar .aviso-msg, .aviso-slot.animar .aviso-rodape, .aviso-slot.animar .aviso-brilho, .aviso-slot.animar .aviso-faisca, .aviso-slot.animar .aviso-ok { animation: none; opacity: 1; } }
 
 /* Modal de aniversário */
 .aniversario-modal .modal-card { text-align: center; overflow: hidden; }

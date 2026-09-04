@@ -18,9 +18,11 @@ const MSG_REGISTRO = {
   USUARIO_EXISTE: 'Esse usuário já está em uso. Escolha outro.',
 };
 
+// Participante entra direto no FEED (nunca no painel, que mostra o protegido —
+// alguém do lado poderia ver). O painel fica a um toque, quando a pessoa quiser.
 function destinoDoUsuario(u) {
   if (u.senha_provisoria) return '/trocar-senha';
-  return u.tipo_usuario === 'ADMINISTRADOR' ? '/admin' : '/participante';
+  return u.tipo_usuario === 'ADMINISTRADOR' ? '/admin' : '/feed';
 }
 
 function guardarNaSessao(req, u) {
@@ -99,7 +101,7 @@ async function postTrocarSenha(req, res, next) {
     req.session.usuario.senha_provisoria = false;
     await registrarLog({ idUsuario: req.session.usuario.id_usuario, acao: 'SENHA_TROCADA', ip: req.ip });
     req.session.flash = { sucesso: 'Senha atualizada com sucesso.' };
-    return res.redirect(req.session.usuario.tipo_usuario === 'ADMINISTRADOR' ? '/admin' : '/participante');
+    return res.redirect(req.session.usuario.tipo_usuario === 'ADMINISTRADOR' ? '/admin' : '/feed');
   } catch (err) {
     next(err);
   }

@@ -60,7 +60,7 @@ async function getFeed(req, res, next) {
     });
     const meuAnel = aneis[me] || null;
     res.render('feed/index', {
-      titulo: 'Mural',
+      titulo: 'Feed',
       posts,
       limite: postService.LIMITE_TEXTO,
       equipe,

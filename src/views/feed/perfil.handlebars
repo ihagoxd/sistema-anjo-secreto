@@ -1,6 +1,6 @@
 <div class="tw-perfil">
   <div class="tw-topbar">
-    <a href="/feed" class="tw-back" aria-label="Voltar ao mural">
+    <a href="/feed" class="tw-back" aria-label="Voltar ao feed">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
     </a>
     <div class="tw-topbar-txt">
@@ -116,8 +116,8 @@
       <div class="tw-vazio">
         {{#if (eq alvo.id_usuario usuario.id_usuario)}}
           <div class="tw-vazio-tit">Você ainda não publicou nada</div>
-          <p>Quando você compartilhar algo no mural, aparece aqui no seu perfil.</p>
-          <a href="/feed" class="btn btn-primario btn-sm">Publicar no mural</a>
+          <p>Quando você compartilhar algo no feed, aparece aqui no seu perfil.</p>
+          <a href="/feed" class="btn btn-primario btn-sm">Publicar no feed</a>
         {{else}}
           <div class="tw-vazio-tit">Nada por aqui ainda</div>
           <p>{{alvo.nome}} ainda não publicou nada.</p>

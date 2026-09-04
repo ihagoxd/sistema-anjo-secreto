@@ -49,7 +49,7 @@ function bloquearAdmin(req, res, next) {
 // Para páginas de visitante (login/registro): se já está logado, vai para o painel.
 function somenteVisitante(req, res, next) {
   if (req.session.usuario) {
-    const destino = req.session.usuario.tipo_usuario === 'ADMINISTRADOR' ? '/admin' : '/participante';
+    const destino = req.session.usuario.tipo_usuario === 'ADMINISTRADOR' ? '/admin' : '/feed';
     return res.redirect(destino);
   }
   return next();

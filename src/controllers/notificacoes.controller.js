@@ -8,7 +8,7 @@ const FILTROS = [
   { chave: 'todas', rotulo: 'Todas' },
   { chave: 'nao-lidas', rotulo: 'Não lidas' },
   { chave: 'mensagens', rotulo: 'Mensagens' },
-  { chave: 'social', rotulo: 'Mural' },
+  { chave: 'social', rotulo: 'Feed' },
   { chave: 'aniversario', rotulo: 'Aniversários' },
 ];
 const LIMITE_PAGINA = 30;

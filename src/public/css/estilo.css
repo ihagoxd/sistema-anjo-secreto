@@ -2855,6 +2855,20 @@ a.share-item { text-decoration: none; color: inherit; }
 .votos-op small { color: var(--text-faint); font-weight: 500; flex-shrink: 0; }
 .votos-vazio { font-size: 13px; color: var(--text-faint); padding: 2px 0 0 4px; }
 
+/* --- Folha "O iPhone comprimiu esse vídeo" (480p pela Fototeca): explica o caminho do original --- */
+.vq-modal { z-index: 660; } /* acima do visualizador/compositor de story */
+.vq-card { max-width: 440px; }
+.vq-topo { display: flex; align-items: center; gap: 12px; padding: 6px 0 4px; }
+.vq-topo > div { display: flex; flex-direction: column; line-height: 1.3; }
+.vq-topo strong { font-size: 15.5px; }
+.vq-topo small { font-size: 12.5px; color: var(--text-faint); }
+.vq-icone { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; font-size: 22px; background: color-mix(in srgb, var(--st-vermelho) 16%, transparent); flex-shrink: 0; }
+.vq-txt { margin: 10px 0 8px; font-size: 13.5px; color: var(--text-soft); line-height: 1.5; }
+.vq-passos { margin: 0 0 14px; padding-left: 20px; font-size: 13.5px; line-height: 1.55; display: flex; flex-direction: column; gap: 6px; }
+.vq-passos li::marker { color: var(--ouro); font-weight: 700; }
+.vq-acoes { display: flex; flex-direction: column; gap: 8px; }
+.vq-acoes .btn { width: 100%; }
+
 /* --- Segurar a bolha (mobile) abre o menu de ações da mensagem --- */
 .dm-bolha { transition: transform 0.18s var(--ease-out); }
 .dm-bolha.segurando { transform: scale(0.965); }

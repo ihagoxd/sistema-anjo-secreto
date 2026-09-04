@@ -326,6 +326,74 @@
     var metaCsrfSt = document.querySelector('meta[name="csrf-token"]');
     var CSRF = metaCsrfSt ? metaCsrfSt.getAttribute('content') : '';
 
+    // --- Vídeo comprimido pelo iPhone ---
+    // Ao escolher um vídeo pela "Fototeca", o iOS recomprime para 480×360 (~0,7 Mbps)
+    // ANTES de entregar ao site — é o seletor nativo do sistema, não dá para desligar
+    // pelo navegador. O jeito de mandar o original é pelo app Arquivos ("Escolher Arquivo").
+    // Aqui a gente detecta o vídeo miúdo e explica o caminho na hora.
+    var EH_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    function medirVideo(file) {
+      return new Promise(function (resolve) {
+        if (!file || file.type.indexOf('video/') !== 0 || !window.URL) return resolve(null);
+        var v = document.createElement('video');
+        var url = URL.createObjectURL(file);
+        var pronto = false;
+        function fim(r) { if (pronto) return; pronto = true; try { URL.revokeObjectURL(url); } catch (e) {} resolve(r); }
+        v.preload = 'metadata'; v.muted = true; v.playsInline = true;
+        v.onloadedmetadata = function () { fim({ w: v.videoWidth, h: v.videoHeight, dur: v.duration }); };
+        v.onerror = function () { fim(null); };
+        setTimeout(function () { fim(null); }, 4000);
+        v.src = url;
+      });
+    }
+    function videoComprimido(info, file) {
+      if (!info || !info.w) return false;
+      var maior = Math.max(info.w, info.h);
+      // 480×360 é a assinatura do iOS; abaixo de 720 no lado maior consideramos "reduzido"
+      var kbps = info.dur ? (file.size * 8 / info.dur / 1000) : 0;
+      return maior <= 640 || (maior < 720 && kbps && kbps < 1500);
+    }
+    var vqModal = null;
+    // Folha explicativa. onContinuar() = enviar assim mesmo; onTrocar() = desistir e escolher de novo.
+    function folhaVideoComprimido(info, onContinuar, onTrocar) {
+      if (!vqModal) {
+        vqModal = document.createElement('div');
+        vqModal.className = 'modal sheet-share vq-modal';
+        vqModal.setAttribute('aria-hidden', 'true'); vqModal.hidden = true;
+        vqModal.innerHTML = '<div class="modal-card share-card vq-card">'
+          + '<div class="sheet-cab sempre"><span class="sheet-grab" aria-hidden="true"></span><span class="sheet-titulo">Qualidade do vídeo</span>'
+          + '<button type="button" class="sheet-x" data-vq-trocar aria-label="Fechar">&times;</button></div>'
+          + '<div class="vq-topo"><span class="vq-icone">📉</span><div><strong>O iPhone comprimiu esse vídeo</strong>'
+          + '<small data-vq-dims></small></div></div>'
+          + '<p class="vq-txt">Ao escolher pela <strong>Fototeca</strong>, o iOS reduz o vídeo para 480p antes de entregar ao site. É do sistema, não do app. Para enviar na qualidade original:</p>'
+          + '<ol class="vq-passos">'
+          + '<li>No app <strong>Fotos</strong>, abra o vídeo → <strong>Compartilhar</strong> → <strong>Salvar em Arquivos</strong>.</li>'
+          + '<li>Volte aqui, toque em <strong>+</strong> e escolha <strong>Escolher Arquivo</strong> (em vez de Fototeca).</li>'
+          + '</ol>'
+          + '<div class="vq-acoes"><button type="button" class="btn btn-primario" data-vq-trocar>Vou enviar pelo Arquivos</button>'
+          + '<button type="button" class="btn btn-secundario" data-vq-continuar>Enviar assim mesmo</button></div>'
+          + '</div>';
+        document.body.appendChild(vqModal);
+      }
+      vqModal.querySelector('[data-vq-dims]').textContent = info.w + '×' + info.h + (info.dur ? ' · ' + Math.round(info.dur) + 's' : '');
+      var fechar = function () { vqModal.hidden = true; vqModal.setAttribute('aria-hidden', 'true'); vqModal.onclick = null; };
+      vqModal.onclick = function (e) {
+        if (e.target.closest('[data-vq-continuar]')) { fechar(); onContinuar && onContinuar(); }
+        else if (e.target.closest('[data-vq-trocar]') || e.target === vqModal) { fechar(); onTrocar && onTrocar(); }
+      };
+      vqModal.hidden = false; vqModal.setAttribute('aria-hidden', 'false');
+    }
+    // Uso: checarVideo(file).then(function (ok) { if (ok) segue; })
+    function checarVideo(file) {
+      if (!EH_IOS || !file || file.type.indexOf('video/') !== 0) return Promise.resolve(true);
+      return medirVideo(file).then(function (info) {
+        if (!videoComprimido(info, file)) return true;
+        return new Promise(function (resolve) { folhaVideoComprimido(info, function () { resolve(true); }, function () { resolve(false); }); });
+      });
+    }
+    window.__checarVideo = checarVideo;
+    window.__folhaVideoComprimido = folhaVideoComprimido;
+
     // --- Publicar: o + abre direto a galeria do celular (foto OU vídeo num seletor só).
     // Depois de escolher, abre o COMPOSITOR (preview em tela cheia + "Compartilhar no
     // story", como no Instagram) e publica por AJAX — sem recarregar a página. ---
@@ -449,7 +517,9 @@
         ? file.type.indexOf('video/') === 0
         : e.target.hasAttribute('data-video');
       e.target.value = ''; // libera para escolher de novo depois
-      abrirComposer(file, ehVideo);
+      if (!ehVideo) { abrirComposer(file, false); return; }
+      // Vídeo do iPhone comprimido pela Fototeca? Explica antes de abrir o compositor
+      checarVideo(file).then(function (ok) { if (ok) abrirComposer(file, true); });
     });
 
     // --- "Repostar esse story" (card de menção no Direct): monta a ARTE e abre o
@@ -4070,7 +4140,18 @@
     }
     document.addEventListener('change', function (e) {
       var input = e.target.closest('[data-foto], [data-video]');
-      if (input) mostrarPreview(input.form);
+      if (!input) return;
+      var f = input.files && input.files[0];
+      // Vídeo comprimido pelo iPhone (post / Direct): avisa; "trocar" limpa a escolha
+      if (f && f.type.indexOf('video/') === 0 && window.__checarVideo) {
+        window.__checarVideo(f).then(function (ok) {
+          if (!ok) { input.value = ''; }
+          mostrarPreview(input.form);
+          input.form && input.form.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+        return;
+      }
+      mostrarPreview(input.form);
     });
 
     // Botão "Foto" → abre a galeria

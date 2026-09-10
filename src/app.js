@@ -29,6 +29,22 @@ const avisosRoutes = require('./routes/avisos.routes');
 const app = express();
 app.set('trust proxy', 1); // para req.ip / cookie secure atrás de proxy
 
+// --- HTTP puro atrás do proxy → manda pra HTTPS ---
+// Em produção o site é servido pelo Cloudflare (túnel). Se alguém chega por
+// http://anjo... (link antigo, digitou sem https, "Always Use HTTPS" desligado
+// no painel), o cookie de sessão (secure) nunca chega e o login "não pega".
+// Só age quando o proxy avisa X-Forwarded-Proto: http — acesso direto na LAN
+// (sem proxy) continua funcionando como sempre.
+if (env.servirHttps) {
+  app.use((req, res, next) => {
+    const proto = String(req.headers['x-forwarded-proto'] || '').split(',')[0].trim().toLowerCase();
+    if (proto !== 'http') return next();
+    const destino = `https://${req.headers.host}${req.originalUrl}`;
+    // 301 para GET/HEAD; 308 preserva método e corpo para o resto.
+    return res.redirect(req.method === 'GET' || req.method === 'HEAD' ? 301 : 308, destino);
+  });
+}
+
 // --- View engine (Handlebars) ---
 app.engine('handlebars', hbs);
 app.set('view engine', 'handlebars');

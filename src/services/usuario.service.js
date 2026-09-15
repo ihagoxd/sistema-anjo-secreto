@@ -134,10 +134,18 @@ function gerarSenhaProvisoria(tamanho = 8) {
   return s;
 }
 
-async function resetarSenha(idUsuario) {
+// Redefine a senha de alguém (quem esqueceu, por exemplo). O admin pode escolher
+// a senha provisória ou deixar em branco para gerar uma. Seja qual for, ela vale
+// só para o próximo login: o usuário é obrigado a criar a senha dele na hora.
+async function resetarSenha(idUsuario, senhaEscolhida, idAtor) {
   const alvo = await usuarioModel.buscarPorId(idUsuario);
   if (!alvo) return { ok: false, motivo: 'NAO_ENCONTRADO' };
-  const senhaProvisoria = gerarSenhaProvisoria();
+  if (idAtor != null && Number(idAtor) === Number(idUsuario)) return { ok: false, motivo: 'SELF_SENHA' };
+
+  const escolhida = String(senhaEscolhida || '').trim();
+  if (escolhida && escolhida.length < SENHA_MIN) return { ok: false, motivo: 'SENHA_CURTA' };
+  const senhaProvisoria = escolhida || gerarSenhaProvisoria();
+
   const senhaHash = await bcrypt.hash(senhaProvisoria, env.bcryptRounds);
   await usuarioModel.resetarSenha(idUsuario, senhaHash);
   return { ok: true, usuario: alvo, senhaProvisoria };

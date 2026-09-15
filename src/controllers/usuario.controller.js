@@ -16,6 +16,7 @@ const MSG = {
   SELF_EXCLUIR: 'Você não pode excluir a sua própria conta.',
   EM_CAMPANHA_ATIVA: 'Não dá para excluir: este usuário está numa campanha em andamento. Encerre/refaça o sorteio ou apenas inative-o.',
   ULTIMO_ADMIN: 'Não é possível: este é o último administrador ativo.',
+  SELF_SENHA: 'Para trocar a sua própria senha, saia e entre de novo com a opção de troca, ou peça a outro administrador.',
 };
 
 function flash(req, tipo, msg) {
@@ -57,7 +58,19 @@ async function getEditar(req, res, next) {
       flash(req, 'erro', MSG.NAO_ENCONTRADO);
       return res.redirect('/admin/usuarios');
     }
-    res.render('admin/usuarioEditar', { titulo: 'Editar usuário', alvo });
+    // Senha recém-redefinida (vem da sessão, mostrada UMA vez num cartão fixo
+    // com botão de copiar — não some como o aviso do topo).
+    let senhaResetada = null;
+    if (req.session.senhaResetada && Number(req.session.senhaResetada.id) === Number(alvo.id_usuario)) {
+      senhaResetada = req.session.senhaResetada.senha;
+    }
+    delete req.session.senhaResetada;
+    res.render('admin/usuarioEditar', {
+      titulo: 'Editar usuário',
+      alvo,
+      senhaResetada,
+      ehProprio: Number(alvo.id_usuario) === Number(req.session.usuario.id_usuario),
+    });
   } catch (err) {
     next(err);
   }
@@ -131,14 +144,16 @@ async function postExcluir(req, res, next) {
 // ---------- Reset de senha ----------
 async function postResetarSenha(req, res, next) {
   try {
-    const r = await usuarioService.resetarSenha(req.params.id_usuario);
-    if (r.ok) {
-      await registrarLog({ idUsuario: req.session.usuario.id_usuario, acao: 'SENHA_RESETADA', entidade: 'usuario', idReferencia: r.usuario.id_usuario, ip: req.ip });
-      flash(req, 'sucesso', `Senha provisória de "${r.usuario.nome}": ${r.senhaProvisoria} — anote e repasse. Ele(a) trocará no próximo acesso.`);
-    } else {
-      flash(req, 'erro', MSG[r.motivo] || 'Não foi possível resetar a senha.');
+    const idAtor = req.session.usuario.id_usuario;
+    const r = await usuarioService.resetarSenha(req.params.id_usuario, req.body.senha, idAtor);
+    if (!r.ok) {
+      flash(req, 'erro', MSG[r.motivo] || 'Não foi possível redefinir a senha.');
+      return res.redirect(`/admin/usuarios/${req.params.id_usuario}/editar`);
     }
-    res.redirect('/admin/usuarios');
+    await registrarLog({ idUsuario: idAtor, acao: 'SENHA_RESETADA', descricao: `usuario: ${r.usuario.usuario}`, entidade: 'usuario', idReferencia: r.usuario.id_usuario, ip: req.ip });
+    // A senha vai pela sessão (não pela URL) e a tela de edição mostra o cartão.
+    req.session.senhaResetada = { id: r.usuario.id_usuario, senha: r.senhaProvisoria };
+    res.redirect(`/admin/usuarios/${r.usuario.id_usuario}/editar`);
   } catch (err) {
     next(err);
   }

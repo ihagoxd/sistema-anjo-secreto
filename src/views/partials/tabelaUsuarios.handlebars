@@ -57,10 +57,9 @@
                 {{/if}}
               {{/unless}}
 
-              <form action="/admin/usuarios/{{this.id_usuario}}/resetar-senha" method="POST" data-confirmar="Gerar nova senha provisória para {{this.nome}}?">
-                <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
-                <button type="submit" class="btn btn-secundario btn-sm">Resetar senha</button>
-              </form>
+              {{#unless (eq this.id_usuario @root.usuario.id_usuario)}}
+                <a href="/admin/usuarios/{{this.id_usuario}}/editar#senha-nova" class="btn btn-secundario btn-sm">Redefinir senha</a>
+              {{/unless}}
 
               {{#unless (eq this.id_usuario @root.usuario.id_usuario)}}
                 <form action="/admin/usuarios/{{this.id_usuario}}/excluir" method="POST" data-confirmar="EXCLUIR permanentemente {{this.nome}}? Isso apaga posts, mensagens e todos os dados dele(a). Não dá para desfazer.">

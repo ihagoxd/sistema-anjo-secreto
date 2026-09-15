@@ -6,6 +6,20 @@
   <a href="/admin/usuarios" class="btn btn-secundario btn-sm">Voltar</a>
 </div>
 
+{{#if senhaResetada}}
+  <div class="card senha-prov-card">
+    <h3>Senha provisória de {{alvo.nome}}</h3>
+    <div class="senha-prov-linha">
+      <code class="senha-prov" id="senha-prov">{{senhaResetada}}</code>
+      <button type="button" class="btn btn-primario btn-sm" data-copiar-texto="{{senhaResetada}}" data-copiar-aviso="Senha copiada!">Copiar</button>
+    </div>
+    <p class="ajuda">
+      Passe essa senha para {{alvo.nome}}. Ela só aparece aqui, agora. No próximo login,
+      o app obriga a pessoa a criar a senha definitiva dela antes de continuar.
+    </p>
+  </div>
+{{/if}}
+
 <form class="form card" action="/admin/usuarios/{{alvo.id_usuario}}/editar" method="POST" novalidate>
   <input type="hidden" name="_csrf" value="{{csrfToken}}">
 
@@ -30,3 +44,22 @@
 
   <button type="submit" class="btn btn-primario">Salvar</button>
 </form>
+
+{{#unless ehProprio}}
+<form class="form card" action="/admin/usuarios/{{alvo.id_usuario}}/resetar-senha" method="POST" novalidate
+      data-confirmar="Redefinir a senha de {{alvo.nome}}? A senha atual deixa de valer na hora.">
+  <input type="hidden" name="_csrf" value="{{csrfToken}}">
+  <h3>Redefinir senha</h3>
+  <p class="texto-suave">
+    Para quem esqueceu a senha. Você define uma senha provisória e repassa; no próximo login
+    a pessoa é obrigada a criar a senha definitiva dela.
+  </p>
+  <div class="campo">
+    <label for="senha-nova">Senha provisória</label>
+    <input type="text" id="senha-nova" name="senha" minlength="6" maxlength="72" autocomplete="off"
+           autocapitalize="none" spellcheck="false" placeholder="Deixe em branco para gerar uma automática">
+    <p class="ajuda">Mínimo de 6 caracteres. Se deixar em branco, o app cria uma senha curta e fácil de ditar.</p>
+  </div>
+  <button type="submit" class="btn btn-secundario">Redefinir senha</button>
+</form>
+{{/unless}}

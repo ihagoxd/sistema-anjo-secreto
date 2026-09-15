@@ -2184,6 +2184,23 @@
     });
   })();
 
+  /* ---------- Copiar texto (ex.: senha provisória na tela de usuário) ---------- */
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-copiar-texto]');
+    if (!b) return;
+    var texto = b.getAttribute('data-copiar-texto') || '';
+    var aviso = b.getAttribute('data-copiar-aviso') || 'Copiado!';
+    function feito() { toast(aviso); }
+    function fallback() {
+      var t = document.createElement('textarea'); t.value = texto; t.setAttribute('readonly', '');
+      t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select();
+      try { document.execCommand('copy'); feito(); } catch (x) { toast('Não foi possível copiar. Anote: ' + texto); }
+      document.body.removeChild(t);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(texto).then(feito).catch(fallback);
+    else fallback();
+  });
+
   /* ---------- Modais (genérico: abrir/fechar por id) ---------- */
   function abrirModal(m) { if (m) { m.removeAttribute('hidden'); m.setAttribute('aria-hidden', 'false'); } }
   function fecharModal(m) { if (m) { m.setAttribute('hidden', ''); m.setAttribute('aria-hidden', 'true'); } }

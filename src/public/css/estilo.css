@@ -3046,6 +3046,11 @@ a.share-item { text-decoration: none; color: inherit; }
 .log-lista .atv-txt { gap: 4px 8px; }
 .log-det { color: var(--text-soft); font-size: 13px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
 
+/* --- Senha provisória (admin > editar usuário) --- */
+.senha-prov-card { border-color: color-mix(in srgb, var(--st-verde) 45%, var(--line)); background: color-mix(in srgb, var(--st-verde) 7%, var(--surface)); margin-bottom: 16px; }
+.senha-prov-linha { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 10px 0 8px; }
+.senha-prov { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 26px; font-weight: 700; letter-spacing: 0.12em; padding: 8px 14px; border-radius: var(--radius); background: var(--surface); border: 1px dashed var(--line-strong); user-select: all; -webkit-user-select: all; word-break: break-all; }
+
 /* --- Acessibilidade: nada disso roda para quem prefere menos movimento --- */
 @media (prefers-reduced-motion: reduce) {
   .dm-msgs .dm-bolha, .tw-acao svg, .bi-item.ativo svg, .story-ring,

@@ -70,18 +70,23 @@ function limiteGeral() {
 }
 
 // ------------------------------------------------------------
-//  Rate limit do LOGIN — barra força-bruta sem punir quem acerta.
+//  Rate limit do LOGIN — só barra robô de força-bruta, nunca gente.
 //  Por IP; logins bem-sucedidos não contam (skipSuccessfulRequests).
+//  O teto é alto de propósito (padrão 60 falhas / 10 min): atrás do
+//  Cloudflare o "IP" é a rede inteira de quem acessa, e o limite antigo
+//  (5 falhas / 15 min) travava todo mundo do mesmo Wi-Fi ou da mesma
+//  operadora quando um errava a senha. LOGIN_MAX_TENTATIVAS=0 desliga.
 // ------------------------------------------------------------
 function limiteLogin() {
+  if (!env.loginMaxTentativas) return (req, res, next) => next();
   return rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutos
+    windowMs: 10 * 60 * 1000, // 10 minutos
     limit: env.loginMaxTentativas, // nº de FALHAS toleradas por IP
     standardHeaders: 'draft-7',
     legacyHeaders: false,
     skipSuccessfulRequests: true,
     handler: (req, res) => {
-      req.session.flash = { erro: 'Muitas tentativas de login. Aguarde alguns minutos e tente de novo.' };
+      req.session.flash = { erro: 'Muitas tentativas de login vindas da sua rede. Aguarde 10 minutos e tente de novo.' };
       res.status(429).redirect('/login');
     },
   });

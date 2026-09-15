@@ -19,7 +19,12 @@ const env = {
 
   // Segurança / autenticação
   bcryptRounds: parseInt(process.env.BCRYPT_ROUNDS, 10) || 12,
-  loginMaxTentativas: parseInt(process.env.LOGIN_MAX_TENTATIVAS, 10) || 5,
+  // Falhas de login toleradas por IP a cada 10 min. Atrás do Cloudflare um IP é
+  // uma rede inteira (escritório, operadora de celular), então o teto é alto:
+  // só um robô chega lá. 0 desliga o limite.
+  loginMaxTentativas: process.env.LOGIN_MAX_TENTATIVAS != null && process.env.LOGIN_MAX_TENTATIVAS !== ''
+    ? Math.max(0, parseInt(process.env.LOGIN_MAX_TENTATIVAS, 10) || 0)
+    : 60,
 
   // Admin inicial (usado pelo seed — src/db/seed.js)
   adminInicialNome: process.env.ADMIN_INICIAL_NOME || 'Administrador',

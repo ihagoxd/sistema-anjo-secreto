@@ -4182,6 +4182,59 @@
     window.addEventListener('scroll', function () { if (!box.hidden) fechar(); }, true);
   })();
 
+  /* ---------- Colar imagem (Ctrl+V / "Colar" no celular) anexa a foto ----------
+     Vale para o compositor do post, o campo de comentário e o Direct: a imagem da
+     área de transferência (print, foto copiada de outro app) entra no seletor de
+     foto do formulário e a prévia aparece como se tivesse sido escolhida na galeria.
+     Texto colado segue normal — só intercepta quando há imagem. */
+  (function () {
+    var EXT = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/gif': 'gif', 'image/webp': 'webp' };
+    function imagemColada(e) {
+      var cd = e.clipboardData;
+      if (!cd) return null;
+      var itens = cd.items || [];
+      for (var i = 0; i < itens.length; i++) {
+        if (itens[i].kind === 'file' && /^image\//.test(itens[i].type || '')) {
+          var f = itens[i].getAsFile();
+          if (f) return f;
+        }
+      }
+      var arqs = cd.files || [];
+      for (var j = 0; j < arqs.length; j++) if (/^image\//.test(arqs[j].type || '')) return arqs[j];
+      return null;
+    }
+    // Onde a imagem entra: (1) o formulário em foco; (2) a folha de comentários aberta;
+    // (3) o compositor do post / do chat. O seletor de story (data-story-picker) fica de fora.
+    function seletorDestino(e) {
+      var form = e.target && e.target.closest ? e.target.closest('form') : null;
+      var sel = form && form.querySelector('[data-reply-input], [data-foto]:not([data-story-picker])');
+      if (sel) return sel;
+      var bloco = document.querySelector('.tw-comentarios-bloco:not([hidden])');
+      sel = bloco && bloco.querySelector('[data-reply-input]');
+      if (sel) return sel;
+      return document.querySelector('form.post-compositor [data-foto], form [data-foto]:not([data-story-picker])');
+    }
+    document.addEventListener('paste', function (e) {
+      var f = imagemColada(e);
+      if (!f) return; // texto: deixa o navegador colar normalmente
+      var input = seletorDestino(e);
+      if (!input) return;
+      e.preventDefault();
+      var tipo = f.type || 'image/png';
+      if (!EXT[tipo]) { toast('Só dá para colar imagem PNG, JPG, GIF ou WEBP.'); return; }
+      var nome = 'colada-' + Date.now() + '.' + EXT[tipo];
+      var arq;
+      try { arq = new File([f], nome, { type: tipo }); } catch (x) { arq = f; }
+      var dt = new DataTransfer();
+      dt.items.add(arq);
+      input.files = dt.files;
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      var campo = input.form && input.form.querySelector('textarea, input[name="texto"]');
+      if (campo && document.activeElement !== campo) campo.focus();
+      toast('Imagem colada 📎');
+    });
+  })();
+
   /* ---------- Compositor: emoji + foto + câmera + preview ---------- */
   (function () {
     // Preview do anexo (imagem OU vídeo escolhido/capturado)

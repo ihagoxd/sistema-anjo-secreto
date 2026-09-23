@@ -1441,7 +1441,34 @@ body.sem-scroll { overflow: hidden; }
 .tw-reply-av img { width: 100%; height: 100%; object-fit: cover; }
 .tw-reply input { flex: 1; min-width: 0; padding: 9px 14px; border: 1px solid var(--line-strong, var(--line)); border-radius: 999px; background: var(--surface-2); color: var(--text); font: inherit; font-size: 14px; }
 .tw-reply input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
+.tw-reply input.visualmente-oculto { padding: 0; border: 0; flex: none; }
 .tw-reply button { flex-shrink: 0; }
+
+/* Comentário com foto: a foto do comentário (clique amplia) e o botão/prévia no campo de resposta */
+.tw-coment-img {
+  margin-top: 6px; width: max-content; max-width: min(260px, 100%); border-radius: 12px; overflow: hidden;
+  border: 1px solid var(--line); background: var(--surface-2); cursor: zoom-in;
+}
+.tw-coment-img img { display: block; max-width: 100%; max-height: 300px; object-fit: contain; }
+.tw-coment-img:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ig-prev-foto { color: var(--text-faint); margin-left: 4px; }
+.tw-reply { flex-wrap: wrap; }
+.tw-reply-prev { flex-basis: 100%; display: flex; padding: 0 0 2px 40px; }
+.tw-reply-prev[hidden] { display: none; }
+.tw-reply-prev-item { position: relative; display: inline-block; }
+.tw-reply-prev-item img { display: block; max-height: 140px; max-width: 200px; border-radius: 12px; border: 1px solid var(--line); }
+.tw-reply-prev-x {
+  position: absolute; top: 6px; right: 6px; width: 26px; height: 26px; border: none; border-radius: 50%;
+  background: rgba(0, 0, 0, 0.62); color: #fff; cursor: pointer; font-size: 16px; line-height: 1; display: grid; place-items: center;
+}
+.tw-reply-prev-x:hover { background: var(--st-vermelho); }
+.tw-reply-foto {
+  width: 36px; height: 36px; flex-shrink: 0; border: none; border-radius: 50%; background: transparent;
+  color: var(--accent); display: grid; place-items: center; cursor: pointer; transition: background 0.12s, transform 0.1s;
+}
+.tw-reply-foto:hover { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.tw-reply-foto:active { transform: scale(0.9); }
+.tw-reply.tem-foto .tw-reply-foto { color: var(--accent-strong); background: color-mix(in srgb, var(--accent) 18%, transparent); }
 
 /* Perfil estilo Instagram */
 .ig-perfil { max-width: 700px; }

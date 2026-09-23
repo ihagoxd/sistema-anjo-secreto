@@ -197,16 +197,19 @@ function listarRepostados(idAutor, idUsuarioAtual) {
   return postModel.listarRepostadosPor(idAutor, idUsuarioAtual);
 }
 
-async function comentar(idPost, idUsuario, texto) {
+// Comentário: texto, foto ou os dois. Se a validação falhar, a foto já gravada é apagada.
+async function comentar(idPost, idUsuario, texto, imagemPath = null) {
+  const falha = (motivo) => { if (imagemPath) apagarUpload(imagemPath); return { ok: false, motivo }; };
   const post = await postModel.buscarPorId(idPost);
-  if (!post) return { ok: false, motivo: 'NAO_ENCONTRADO' };
+  if (!post) return falha('NAO_ENCONTRADO');
   const t = String(texto || '').trim();
-  if (!t) return { ok: false, motivo: 'VAZIO' };
-  if (t.length > 500) return { ok: false, motivo: 'LONGO' };
-  const novo = await postModel.adicionarComentario(idPost, idUsuario, t);
-  await notificacaoService.notificarComentario(post.id_usuario, idUsuario, idPost, t, post.imagem);
+  if (!t && !imagemPath) return falha('VAZIO');
+  if (t.length > 500) return falha('LONGO');
+  const novo = await postModel.adicionarComentario(idPost, idUsuario, t || null, imagemPath);
+  // Prévia da notificação: o texto; se veio só a foto, "📷 Foto". Miniatura: a do post, senão a do comentário.
+  await notificacaoService.notificarComentario(post.id_usuario, idUsuario, idPost, t || '📷 Foto', post.imagem || imagemPath);
   await notificarMencoes(t, idUsuario, idPost);
-  return { ok: true, idComentario: novo.id_comentario, texto: t };
+  return { ok: true, idComentario: novo.id_comentario, texto: t || null, imagem: imagemPath };
 }
 
 function listarComentarios(idPost) {
@@ -219,6 +222,8 @@ async function removerPost(idPost, idUsuario, ehAdmin) {
   if (!post) return { ok: false, motivo: 'NAO_ENCONTRADO' };
   if (post.id_usuario !== idUsuario && !ehAdmin) return { ok: false, motivo: 'SEM_PERMISSAO' };
   if (post.imagem) apagarUpload(post.imagem);
+  // Fotos dos comentários somem junto (o banco apaga as linhas em cascata; o disco não)
+  (await postModel.listarImagensComentarios(idPost)).forEach(apagarUpload);
   await postModel.remover(idPost);
   return { ok: true };
 }
@@ -234,6 +239,7 @@ async function removerComentario(idComentario, idUsuario, ehAdmin) {
   }
   if (!pode) return { ok: false, motivo: 'SEM_PERMISSAO' };
   await postModel.removerComentario(idComentario);
+  if (c.imagem) apagarUpload(c.imagem);
   return { ok: true, idPost: c.id_post };
 }
 

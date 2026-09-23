@@ -322,7 +322,8 @@ ALTER TABLE posts ADD COLUMN IF NOT EXISTS video TEXT;
 ALTER TABLE posts DROP CONSTRAINT IF EXISTS posts_texto_check;
 ALTER TABLE posts DROP CONSTRAINT IF EXISTS posts_check;
 ALTER TABLE posts DROP CONSTRAINT IF EXISTS posts_conteudo;
-ALTER TABLE posts ADD CONSTRAINT posts_conteudo CHECK (texto IS NOT NULL OR imagem IS NOT NULL OR video IS NOT NULL);
+-- (a restrição posts_conteudo é recriada no fim do arquivo, já com enquete_pergunta —
+--  recriá-la aqui sem essa coluna falhava assim que existia um post só com enquete)
 -- Colaborador do post (post em dupla, como no Instagram: "fulano e beltrano")
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS id_colaborador INTEGER REFERENCES usuarios(id_usuario) ON DELETE SET NULL;
 -- Vários colaboradores por post ("fulano e +N")
@@ -349,6 +350,11 @@ CREATE TABLE IF NOT EXISTS post_comentarios (
   criado_em     TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_coment_post ON post_comentarios(id_post);
+-- Comentário com foto (texto vira opcional quando há imagem; nunca os dois vazios)
+ALTER TABLE post_comentarios ADD COLUMN IF NOT EXISTS imagem TEXT;
+ALTER TABLE post_comentarios ALTER COLUMN texto DROP NOT NULL;
+ALTER TABLE post_comentarios DROP CONSTRAINT IF EXISTS pc_conteudo;
+ALTER TABLE post_comentarios ADD CONSTRAINT pc_conteudo CHECK (texto IS NOT NULL OR imagem IS NOT NULL);
 
 -- Reposts (repostar publicação de alguém)
 CREATE TABLE IF NOT EXISTS reposts (

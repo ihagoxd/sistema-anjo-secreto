@@ -55,7 +55,7 @@
     {{#unless @root.detalhe}}
       {{! Prévia dos 2 comentários mais recentes (tom suave, diferente da legenda do autor) }}
       {{#each (ultimos this.comentariosLista 2)}}
-        <div class="ig-prev-coment" data-coment-prev="{{this.id_comentario}}"><a href="/u/{{this.usuario}}" class="ig-user">{{this.usuario}}</a>{{comMencoes this.texto}}</div>
+        <div class="ig-prev-coment" data-coment-prev="{{this.id_comentario}}"><a href="/u/{{this.usuario}}" class="ig-user">{{this.usuario}}</a>{{comMencoes this.texto}}{{#if this.imagem}}<span class="ig-prev-foto">📷{{#unless this.texto}} Foto{{/unless}}</span>{{/if}}</div>
       {{/each}}
       <button type="button" class="ig-vercoments" data-comentarios="{{this.id_post}}"{{#unless (num this.comentarios)}} hidden{{/unless}}>{{#if (eq (num this.comentarios) 1)}}Ver 1 comentário{{else}}Ver todos os {{num this.comentarios}} comentários{{/if}}</button>
     {{/unless}}
@@ -86,7 +86,8 @@
                 </form>
               {{/if}}
             </div>
-            <div class="tw-coment-texto">{{comMencoes this.texto}}</div>
+            {{#if this.texto}}<div class="tw-coment-texto">{{comMencoes this.texto}}</div>{{/if}}
+            {{#if this.imagem}}<div class="tw-coment-img" data-img="{{this.imagem}}" role="button" tabindex="0" aria-label="Ampliar imagem"><img src="{{this.imagem}}" alt="Imagem do comentário" loading="lazy" draggable="false"></div>{{/if}}
             <button type="button" class="tw-coment-resp" data-coment-responder="{{this.usuario}}">Responder</button>
           </div>
         </div>
@@ -104,10 +105,18 @@
       <button type="button" class="sheet-emoji" data-emoji-rapido>😂</button>
     </div>
 
-    <form class="tw-reply" action="/feed/{{this.id_post}}/comentar" method="POST" data-reply>
+    <form class="tw-reply" action="/feed/{{this.id_post}}/comentar" method="POST" enctype="multipart/form-data" data-reply>
       <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
+      {{! Prévia da foto escolhida (aparece acima do campo; o × tira a foto) }}
+      <div class="tw-reply-prev" data-reply-prev hidden>
+        <span class="tw-reply-prev-item"><img src="" alt="Foto escolhida"><button type="button" class="tw-reply-prev-x" data-reply-prev-x aria-label="Remover foto" title="Remover foto">&times;</button></span>
+      </div>
       <span class="tw-reply-av" aria-hidden="true">{{#if @root.usuario.foto_perfil}}<img src="{{@root.usuario.foto_perfil}}" alt="">{{else}}{{inicial @root.usuario.nome}}{{/if}}</span>
-      <input type="text" name="texto" placeholder="Adicione um comentário…" maxlength="500" autocomplete="off" data-mencoes required>
+      <input type="text" name="texto" placeholder="Adicione um comentário…" maxlength="500" autocomplete="off" data-mencoes>
+      <button type="button" class="tw-reply-foto" data-reply-foto aria-label="Comentar com foto" title="Comentar com foto">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      </button>
+      <input type="file" name="imagem" accept="image/png,image/jpeg,image/gif,image/webp" class="visualmente-oculto" data-reply-input tabindex="-1">
       <button type="submit" class="btn btn-primario btn-sm">Enviar</button>
     </form>
   </div>

@@ -128,21 +128,64 @@
         .forEach(function (b) { fecharComentarios(b); });
     });
 
+    // Comentar com foto: o botão da câmera abre a galeria, a foto escolhida aparece
+    // numa prévia acima do campo (o × tira), e o comentário pode ir só com a foto.
+    function fotoDoReply(form) {
+      var input = form && form.querySelector('[data-reply-input]');
+      return (input && input.files && input.files[0]) || null;
+    }
+    function mostrarPrevReply(form) {
+      var prev = form.querySelector('[data-reply-prev]');
+      var img = prev && prev.querySelector('img');
+      if (!prev || !img) return;
+      var f = fotoDoReply(form);
+      if (img.dataset.url) { try { URL.revokeObjectURL(img.dataset.url); } catch (x) {} delete img.dataset.url; }
+      if (f) { img.src = img.dataset.url = URL.createObjectURL(f); prev.hidden = false; }
+      else { img.removeAttribute('src'); prev.hidden = true; }
+      form.classList.toggle('tem-foto', !!f);
+    }
+    function limparFotoReply(form) {
+      var input = form.querySelector('[data-reply-input]');
+      if (input) input.value = '';
+      mostrarPrevReply(form);
+    }
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-reply-foto]');
+      if (b && b.form) { var input = b.form.querySelector('[data-reply-input]'); if (input) input.click(); return; }
+      var x = e.target.closest('[data-reply-prev-x]');
+      if (x && x.form) { limparFotoReply(x.form); var t = x.form.querySelector('input[name="texto"]'); if (t) t.focus(); }
+    });
+    document.addEventListener('change', function (e) {
+      var input = e.target.closest('[data-reply-input]');
+      if (!input || !input.form) return;
+      var f = input.files && input.files[0];
+      if (f && f.size > 15 * 1024 * 1024) { input.value = ''; toast('A foto passa de 15 MB.'); }
+      mostrarPrevReply(input.form);
+      if (f) { var t = input.form.querySelector('input[name="texto"]'); if (t) t.focus(); }
+    });
+
     // Responder via AJAX: adiciona o comentário na hora, sem recarregar a página
     document.addEventListener('submit', function (e) {
       var form = e.target.closest('form.tw-reply[data-reply]');
       if (!form) return;
       e.preventDefault();
       var inp = form.querySelector('input[name="texto"]');
-      if (!inp || !(inp.value || '').trim()) return;
+      var foto = fotoDoReply(form);
+      if (!foto && (!inp || !(inp.value || '').trim())) { if (inp) inp.focus(); return; }
+      if (form.dataset.enviando) return;
+      form.dataset.enviando = '1';
       var btn = form.querySelector('button[type="submit"]');
-      if (btn) btn.disabled = true;
+      if (btn) { btn.disabled = true; if (foto) btn.textContent = 'Enviando…'; }
+      var erroServidor = null;
       fetch(form.action, {
         method: 'POST',
         headers: { 'X-Requested-With': 'fetch', 'Accept': 'application/json' },
-        body: new URLSearchParams(new FormData(form)),
+        body: new FormData(form), // multipart: leva a foto junto (o _csrf vai no corpo)
       })
-        .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+        .then(function (r) {
+          if (r.ok) return r.json();
+          return r.json().then(function (d) { erroServidor = d && d.erro; return Promise.reject(); }, function () { return Promise.reject(); });
+        })
         .then(function (d) {
           if (!d || !d.ok) return Promise.reject();
           var bloco = form.closest('.tw-comentarios-bloco');
@@ -164,10 +207,13 @@
             '<button type="submit" class="btn-icone" aria-label="Remover comentário" title="Apagar meu comentário">' +
             '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>' +
             '</button></form></div>' +
-            '<div class="tw-coment-texto">' + comMencoesJs(c.texto) + '</div>' +
+            (c.texto ? '<div class="tw-coment-texto">' + comMencoesJs(c.texto) + '</div>' : '') +
+            (c.imagem ? '<div class="tw-coment-img" data-img="' + escaparHtml(c.imagem) + '" role="button" tabindex="0" aria-label="Ampliar imagem"><img src="' + escaparHtml(c.imagem) + '" alt="Imagem do comentário" draggable="false"></div>' : '') +
             '<button type="button" class="tw-coment-resp" data-coment-responder="' + escaparHtml(c.usuario) + '">Responder</button></div>';
           if (lista) lista.appendChild(el);
-          inp.value = '';
+          if (inp) inp.value = '';
+          limparFotoReply(form);
+          if (lista && c.imagem) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
           // incrementa o contador do ícone e o "Ver todos os N comentários"
           var art = bloco.closest('.tw-post');
           if (art) {
@@ -178,8 +224,8 @@
             if (ver) { ver.hidden = false; ver.textContent = n === 1 ? 'Ver 1 comentário' : 'Ver todos os ' + n + ' comentários'; }
           }
         })
-        .catch(function () { toast('Não foi possível comentar.'); })
-        .finally(function () { if (btn) btn.disabled = false; });
+        .catch(function () { toast(erroServidor || 'Não foi possível comentar.'); })
+        .finally(function () { delete form.dataset.enviando; if (btn) { btn.disabled = false; btn.textContent = 'Enviar'; } });
     });
   })();
 
@@ -3117,6 +3163,16 @@
       var g = e.target.closest('.gg-img');
       if (!g) return;
       abrirLB(g.getAttribute('data-img'), null);
+    });
+    // Foto de comentário: clique (ou Enter) amplia no lightbox — não curte o post.
+    document.addEventListener('click', function (e) {
+      var c = e.target.closest('.tw-coment-img');
+      if (c) abrirLB(c.getAttribute('data-img'), null);
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      var c = e.target.closest && e.target.closest('.tw-coment-img');
+      if (c) { e.preventDefault(); abrirLB(c.getAttribute('data-img'), null); }
     });
 
     /* ---- Pinça direto na foto do feed (estilo Instagram): dois dedos ampliam

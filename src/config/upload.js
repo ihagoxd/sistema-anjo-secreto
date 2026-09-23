@@ -74,6 +74,16 @@ const uploadMsg = multer({
   },
 });
 
+// Foto de comentário (só imagem; 15 MB cabe a foto crua do celular — o sharp reduz depois).
+const uploadComentario = multer({
+  storage,
+  limits: { fileSize: 15 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (TIPOS_PERMITIDOS.includes(file.mimetype)) return cb(null, true);
+    cb(new Error('Envie apenas imagens (PNG, JPG, GIF ou WEBP).'));
+  },
+});
+
 // --- Verificação por magic bytes (o conteúdo bate com o tipo declarado?) ---
 const ASSINATURAS = {
   'image/png': [[0x89, 0x50, 0x4e, 0x47]],
@@ -123,7 +133,10 @@ async function conferirAssinaturas(req, res, next) {
       try { fs.readSync(fd, buf, 0, 16, 0); } finally { fs.closeSync(fd); }
       if (!assinaturaOk(buf, f.mimetype)) {
         todosArquivos(req).forEach((g) => { try { fs.unlinkSync(g.path); } catch (e) {} });
-        req.session.flash = { erro: 'Arquivo rejeitado: o conteúdo não corresponde ao tipo declarado.' };
+        const erro = 'Arquivo rejeitado: o conteúdo não corresponde ao tipo declarado.';
+        // Envio via fetch (comentário com foto, etc.): responde em JSON em vez de redirecionar
+        if ((req.get('x-requested-with') || '') === 'fetch') return res.status(400).json({ ok: false, erro });
+        req.session.flash = { erro };
         return res.redirect(req.get('Referer') || '/participante');
       }
     }
@@ -146,4 +159,4 @@ function apagarUpload(caminhoPublico) {
   fs.unlink(abs, () => {});
 }
 
-module.exports = { upload, uploadMsg, UPLOAD_DIR, conferirAssinaturas, apagarUpload };
+module.exports = { upload, uploadMsg, uploadComentario, UPLOAD_DIR, conferirAssinaturas, apagarUpload };

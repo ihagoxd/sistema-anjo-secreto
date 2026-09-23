@@ -197,10 +197,10 @@ async function contarReposts(idPost) {
 }
 
 // ---------- Comentários ----------
-async function adicionarComentario(idPost, idUsuario, texto) {
+async function adicionarComentario(idPost, idUsuario, texto, imagem = null) {
   const res = await db.query(
-    `INSERT INTO post_comentarios (id_post, id_usuario, texto) VALUES ($1, $2, $3) RETURNING id_comentario`,
-    [idPost, idUsuario, texto]
+    `INSERT INTO post_comentarios (id_post, id_usuario, texto, imagem) VALUES ($1, $2, $3, $4) RETURNING id_comentario`,
+    [idPost, idUsuario, texto || null, imagem || null]
   );
   return res.rows[0];
 }
@@ -210,7 +210,7 @@ const VOTOU = `(SELECT string_agg(o.texto, ', ' ORDER BY o.ordem)
                  WHERE v.id_post = m.id_post AND v.id_usuario = m.id_usuario) AS votou`;
 async function listarComentarios(idPost) {
   const res = await db.query(
-    `SELECT m.id_comentario, m.texto, m.criado_em, m.id_usuario, u.nome, u.usuario, u.foto_perfil, ${VOTOU}
+    `SELECT m.id_comentario, m.texto, m.imagem, m.criado_em, m.id_usuario, u.nome, u.usuario, u.foto_perfil, ${VOTOU}
        FROM post_comentarios m JOIN usuarios u ON u.id_usuario = m.id_usuario
       WHERE m.id_post = $1 ORDER BY m.criado_em ASC`,
     [idPost]
@@ -220,7 +220,7 @@ async function listarComentarios(idPost) {
 async function listarComentariosDeVarios(ids) {
   if (!ids || !ids.length) return [];
   const res = await db.query(
-    `SELECT m.id_comentario, m.id_post, m.texto, m.criado_em, m.id_usuario, u.nome, u.usuario, u.foto_perfil, ${VOTOU}
+    `SELECT m.id_comentario, m.id_post, m.texto, m.imagem, m.criado_em, m.id_usuario, u.nome, u.usuario, u.foto_perfil, ${VOTOU}
        FROM post_comentarios m JOIN usuarios u ON u.id_usuario = m.id_usuario
       WHERE m.id_post = ANY($1) ORDER BY m.criado_em ASC`,
     [ids]
@@ -229,8 +229,13 @@ async function listarComentariosDeVarios(ids) {
 }
 
 async function buscarComentario(idComentario) {
-  const res = await db.query(`SELECT id_comentario, id_usuario, id_post FROM post_comentarios WHERE id_comentario = $1`, [idComentario]);
+  const res = await db.query(`SELECT id_comentario, id_usuario, id_post, imagem FROM post_comentarios WHERE id_comentario = $1`, [idComentario]);
   return res.rows[0] || null;
+}
+// Fotos dos comentários de um post (para apagar do disco junto com o post).
+async function listarImagensComentarios(idPost) {
+  const res = await db.query(`SELECT imagem FROM post_comentarios WHERE id_post = $1 AND imagem IS NOT NULL`, [idPost]);
+  return res.rows.map((r) => r.imagem);
 }
 async function removerComentario(idComentario) {
   await db.query(`DELETE FROM post_comentarios WHERE id_comentario = $1`, [idComentario]);
@@ -240,6 +245,6 @@ module.exports = {
   criar, listarFeed, listarPorUsuario, listarRepostadosPor, buscarPorId, buscarFeedUm, remover, contarNovosDesde, adicionarColaboradores,
   curtir, descurtir, jaCurtiu, contarCurtidas, listarCurtidores,
   repostar, desfazerRepost, jaRepostou, contarReposts,
-  adicionarComentario, listarComentarios, listarComentariosDeVarios, buscarComentario, removerComentario,
+  adicionarComentario, listarComentarios, listarComentariosDeVarios, buscarComentario, removerComentario, listarImagensComentarios,
   criarOpcoes, listarEnquetesDeVarios, buscarOpcao, alternarVoto, votoDoUsuario, atualizarPergunta,
 };

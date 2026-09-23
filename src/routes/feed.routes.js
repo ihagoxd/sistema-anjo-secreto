@@ -5,7 +5,7 @@ const ctrl = require('../controllers/feed.controller');
 const storiesCtrl = require('../controllers/stories.controller');
 const { exigeAutenticacao, exigeSenhaDefinitiva, bloquearAdmin } = require('../middlewares/auth.middleware');
 const { verifyCsrfAposUpload } = require('../middlewares/csrf.middleware');
-const { uploadMsg, conferirAssinaturas } = require('../config/upload');
+const { uploadMsg, uploadComentario, conferirAssinaturas } = require('../config/upload');
 
 const router = express.Router();
 const guard = [exigeAutenticacao, exigeSenhaDefinitiva, bloquearAdmin];
@@ -27,7 +27,19 @@ router.post('/feed/:id_post/repostar', guard, ctrl.postRepost);
 router.post('/feed/:id_post/votar', guard, ctrl.postVotar);
 router.get('/feed/:id_post/enquete', guard, ctrl.getEnquete);
 router.post('/feed/:id_post/enquete/pergunta', guard, ctrl.postEnquetePergunta);
-router.post('/feed/:id_post/comentar', guard, ctrl.postComentar);
+// Comentário com foto opcional (multipart). Sem multipart o multer só passa adiante
+// e o corpo urlencoded já foi lido e validado (CSRF) antes; com multipart o CSRF é
+// conferido depois do upload. Erro de arquivo responde em JSON quando veio via fetch.
+const receberFotoComentario = (req, res, next) => {
+  uploadComentario.fields([{ name: 'imagem', maxCount: 1 }])(req, res, function (err) {
+    if (!err) return next();
+    const erro = err.code === 'LIMIT_FILE_SIZE' ? 'A foto passa de 15 MB.' : (err.message || 'Falha no envio da foto.');
+    if ((req.get('x-requested-with') || '') === 'fetch') return res.status(400).json({ ok: false, erro });
+    req.session.flash = { erro };
+    res.redirect(req.get('Referer') || '/feed');
+  });
+};
+router.post('/feed/:id_post/comentar', guard, receberFotoComentario, conferirAssinaturas, verifyCsrfAposUpload, ctrl.postComentar);
 router.post('/feed/:id_post/remover', guard, ctrl.postRemover);
 router.post('/feed/comentarios/:id_comentario/remover', guard, ctrl.postRemoverComentario);
 

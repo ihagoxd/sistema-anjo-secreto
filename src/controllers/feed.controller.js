@@ -174,17 +174,21 @@ async function postRepost(req, res, next) {
 
 async function postComentar(req, res, next) {
   try {
-    const r = await postService.comentar(req.params.id_post, req.session.usuario.id_usuario, req.body.texto);
+    // Foto opcional do comentário (multipart; já conferida e otimizada pelo upload)
+    const f = req.files && req.files.imagem && req.files.imagem[0];
+    const imagem = f ? '/uploads/' + f.filename : null;
+    const r = await postService.comentar(req.params.id_post, req.session.usuario.id_usuario, req.body.texto, imagem);
     // Pedido via AJAX (comentário inline no feed): responde em JSON, sem recarregar.
     const querJson = req.xhr || (req.get('Accept') || '').includes('application/json');
     if (querJson) {
-      if (!r.ok) return res.status(400).json({ ok: false });
+      if (!r.ok) return res.status(400).json({ ok: false, erro: r.motivo === 'LONGO' ? 'Comentário longo demais.' : 'Escreva algo ou escolha uma foto.' });
       const u = req.session.usuario;
       return res.json({
         ok: true,
         comentario: {
           id_comentario: r.idComentario,
           texto: r.texto,
+          imagem: r.imagem,
           id_usuario: u.id_usuario,
           nome: u.nome,
           usuario: u.usuario,

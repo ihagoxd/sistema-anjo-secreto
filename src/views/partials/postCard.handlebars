@@ -55,7 +55,7 @@
     {{#unless @root.detalhe}}
       {{! Prévia dos 2 comentários mais recentes (tom suave, diferente da legenda do autor) }}
       {{#each (ultimos this.comentariosLista 2)}}
-        <div class="ig-prev-coment" data-coment-prev="{{this.id_comentario}}"><a href="/u/{{this.usuario}}" class="ig-user">{{this.usuario}}</a>{{comMencoes this.texto}}{{#if this.imagem}}<img class="ig-prev-thumb" src="{{this.imagem}}" alt="Foto do comentário" data-img="{{this.imagem}}" role="button" tabindex="0" title="Ampliar foto" loading="lazy" draggable="false">{{/if}}</div>
+        <div class="ig-prev-coment{{#if this.imagem}} tem-foto{{/if}}" data-coment-prev="{{this.id_comentario}}"><span class="ig-prev-txt"><a href="/u/{{this.usuario}}" class="ig-user">{{this.usuario}}</a>{{comMencoes this.texto}}</span>{{#if this.imagem}}<img class="ig-prev-thumb" src="{{this.imagem}}" alt="Foto do comentário" data-img="{{this.imagem}}" role="button" tabindex="0" title="Ampliar foto" loading="lazy" draggable="false">{{/if}}</div>
       {{/each}}
       <button type="button" class="ig-vercoments" data-comentarios="{{this.id_post}}"{{#unless (num this.comentarios)}} hidden{{/unless}}>{{#if (eq (num this.comentarios) 1)}}Ver 1 comentário{{else}}Ver todos os {{num this.comentarios}} comentários{{/if}}</button>
     {{/unless}}

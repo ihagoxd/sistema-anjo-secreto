@@ -3164,14 +3164,15 @@
       if (!g) return;
       abrirLB(g.getAttribute('data-img'), null);
     });
-    // Foto de comentário: clique (ou Enter) amplia no lightbox — não curte o post.
+    // Foto de comentário (na lista ou a miniatura da prévia do card): clique (ou Enter)
+    // amplia no lightbox — não curte o post.
     document.addEventListener('click', function (e) {
-      var c = e.target.closest('.tw-coment-img');
+      var c = e.target.closest('.tw-coment-img, .ig-prev-thumb');
       if (c) abrirLB(c.getAttribute('data-img'), null);
     });
     document.addEventListener('keydown', function (e) {
       if (e.key !== 'Enter' && e.key !== ' ') return;
-      var c = e.target.closest && e.target.closest('.tw-coment-img');
+      var c = e.target.closest && e.target.closest('.tw-coment-img, .ig-prev-thumb');
       if (c) { e.preventDefault(); abrirLB(c.getAttribute('data-img'), null); }
     });
 

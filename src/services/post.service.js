@@ -205,7 +205,13 @@ async function comentar(idPost, idUsuario, texto, imagemPath = null) {
   const t = String(texto || '').trim();
   if (!t && !imagemPath) return falha('VAZIO');
   if (t.length > 500) return falha('LONGO');
-  const novo = await postModel.adicionarComentario(idPost, idUsuario, t || null, imagemPath);
+  let novo;
+  try {
+    novo = await postModel.adicionarComentario(idPost, idUsuario, t || null, imagemPath);
+  } catch (e) {
+    if (imagemPath) apagarUpload(imagemPath); // não deixa a foto órfã no disco se o banco recusar
+    throw e;
+  }
   // Prévia da notificação: o texto; se veio só a foto, "📷 Foto". Miniatura: a do post, senão a do comentário.
   await notificacaoService.notificarComentario(post.id_usuario, idUsuario, idPost, t || '📷 Foto', post.imagem || imagemPath);
   await notificarMencoes(t, idUsuario, idPost);

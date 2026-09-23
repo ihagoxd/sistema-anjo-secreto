@@ -1451,7 +1451,13 @@ body.sem-scroll { overflow: hidden; }
 }
 .tw-coment-img img { display: block; max-width: 100%; max-height: 300px; object-fit: contain; }
 .tw-coment-img:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.ig-prev-foto { color: var(--text-faint); margin-left: 4px; }
+/* Miniatura da foto do comentário na prévia do card (bem pequena, como no Twitter); clique amplia */
+.ig-prev-thumb {
+  display: inline-block; vertical-align: middle; width: 24px; height: 24px; margin-left: 5px;
+  border-radius: 5px; object-fit: cover; border: 1px solid var(--line); cursor: zoom-in; background: var(--surface-2);
+}
+.ig-prev-thumb:hover { border-color: var(--line-strong, var(--line)); }
+.ig-prev-thumb:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .tw-reply { flex-wrap: wrap; }
 .tw-reply-prev { flex-basis: 100%; display: flex; padding: 0 0 2px 40px; }
 .tw-reply-prev[hidden] { display: none; }

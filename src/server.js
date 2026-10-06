@@ -5,10 +5,11 @@
  */
 const app = require('./app');
 const env = require('./config/env');
-const { pool } = require('./config/db');
+const { pool, aquecer } = require('./config/db');
 
 const server = app.listen(env.port, () => {
   console.log(`[server] Anjo Secreto rodando em http://localhost:${env.port} (${env.nodeEnv})`);
+  aquecer(3); // conexões com o banco prontas antes do primeiro clique
 });
 
 // Encerramento gracioso: fecha o servidor e o pool do banco.

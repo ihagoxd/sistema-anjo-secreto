@@ -125,7 +125,7 @@
       <div class="lado-titulo">Equipe</div>
       {{#each sugestoes}}
         <a class="sug" href="/u/{{this.usuario}}">
-          <span class="sug-av">{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</span>
+          <span class="sug-av">{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="" loading="lazy">{{else}}{{inicial this.nome}}{{/if}}</span>
           <div class="sug-txt">
             <div class="sug-nome">{{this.nome}}</div>
             <div class="sug-user">@{{this.usuario}}</div>

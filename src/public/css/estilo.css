@@ -3180,3 +3180,7 @@ table.tabela tr.linha-pendente { background: color-mix(in srgb, var(--st-amarelo
   .atencao-item { flex-wrap: wrap; }
   .atencao-item .btn { margin-left: 30px; }
 }
+
+/* Navegação dentro do app (html.mini): sem overlay de carregamento — a página já chega
+   visível no HTML; o loader só existe na primeira entrada da sessão. */
+html.mini #loader { display: none !important; }

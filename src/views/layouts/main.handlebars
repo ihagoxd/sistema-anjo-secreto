@@ -13,13 +13,18 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="csrf-token" content="{{csrfToken}}">
+  <link rel="preload" href="/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/css/estilo.css?v={{assetVer}}">
   <script nonce="{{cspNonce}}">
     (function () {
       try { document.documentElement.setAttribute('data-theme', localStorage.getItem('tema') || 'dark'); }
       catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
-      document.documentElement.classList.add('preparando');
-      try { if (sessionStorage.getItem('anjoVisto')) document.documentElement.classList.add('mini'); } catch (e) {}
+      // Só a PRIMEIRA página da sessão esconde o conteúdo e mostra a intro do anjo.
+      // Nas demais (html.mini) o conteúdo aparece junto com o HTML — nada de esperar
+      // o ui.js (250 KB) baixar e rodar para "revelar" a página.
+      var mini = false;
+      try { mini = !!sessionStorage.getItem('anjoVisto'); } catch (e) {}
+      document.documentElement.classList.add(mini ? 'mini' : 'preparando');
     })();
   </script>
 </head>

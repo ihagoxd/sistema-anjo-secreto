@@ -66,6 +66,16 @@ app.use(permissionsPolicy);
 app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads'), {
   maxAge: '365d', immutable: true, index: false, etag: true,
 }));
+// CSS e JS levam ?v=assetVer no HTML (muda a cada deploy), então o navegador pode
+// guardá-los por 30 dias SEM revalidar: navegar entre páginas vira só o HTML — antes,
+// cada clique conferia css + js + fonte com o servidor (3 idas e voltas pelo Cloudflare).
+// Fonte e imagens do app mudam raramente: 30 dias também (trocar o nome do arquivo se mudar).
+const estaticoLongo = { maxAge: '30d', immutable: true, index: false, etag: true };
+app.use('/css', express.static(path.join(__dirname, 'public', 'css'), estaticoLongo));
+app.use('/js', express.static(path.join(__dirname, 'public', 'js'), estaticoLongo));
+app.use('/fonts', express.static(path.join(__dirname, 'public', 'fonts'), estaticoLongo));
+app.use('/img', express.static(path.join(__dirname, 'public', 'img'), { maxAge: '7d', index: false, etag: true }));
+// O resto (sw.js, manifest, favicon) continua revalidando a cada uso.
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Páginas HTML NUNCA são cacheadas: sem isso o navegador guardava o HTML antigo,
@@ -79,6 +89,24 @@ app.use((req, res, next) => {
 // --- Parsers ---
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+// --- Medição de desempenho (PERF_LOG=1): tempo total e consultas de cada página ---
+// Só para diagnosticar lentidão; desligado não custa nada.
+if (process.env.PERF_LOG === '1') {
+  const { medicao } = require('./config/db');
+  app.use((req, res, next) => {
+    const t0 = process.hrtime.bigint();
+    medicao.run({ n: 0, ms: 0, lentas: [], lenta: Number(process.env.PERF_LENTA_MS) || 20 }, () => {
+      res.on('finish', () => {
+        const m = medicao.getStore() || { n: 0, ms: 0, lentas: [] };
+        const total = Number(process.hrtime.bigint() - t0) / 1e6;
+        if (/\.(css|js|png|jpg|svg|woff2|webmanifest)(\?|$)/.test(req.path)) return;
+        console.log(`[perf] ${req.method} ${req.originalUrl} ${res.statusCode} ${total.toFixed(0)}ms · ${m.n} consultas (${m.ms.toFixed(0)}ms no banco)${m.lentas.length ? '\n   lentas: ' + m.lentas.join('\n           ') : ''}`);
+      });
+      next();
+    });
+  });
+}
 
 // --- Sessão + contexto de view + CSRF ---
 app.use(sessao);

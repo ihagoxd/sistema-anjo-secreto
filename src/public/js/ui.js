@@ -4733,8 +4733,8 @@
     document.documentElement.classList.remove('preparando');
     document.body.classList.add('pronto');
     if (rapido) {
-      document.body.classList.add('entrada-rapida');
-      // sem contarNumeros(): re-animar os contadores a cada troca de aba dava "engasgada"
+      // Navegação: o conteúdo já está na tela desde o HTML (html.mini não esconde nada),
+      // então não há o que animar — e sem contarNumeros(), que dava "engasgada" a cada aba.
       return;
     }
     var alvos = document.querySelectorAll('.container > *:not(.modal)');

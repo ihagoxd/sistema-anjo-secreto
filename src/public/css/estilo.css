@@ -3291,3 +3291,70 @@ body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
 .post-edit-acoes .btn { border-radius: 999px; }
 .post-edit-dica { font-size: 12px; color: var(--text-faint); margin-right: auto; }
 .ig-legenda .post-edit-box, .ig-texto .post-edit-box { display: block; }
+
+/* ============================================================
+   PRESENTE DE ANJO — post premium: dourado, brilho passando, selo e estrelinhas
+   ============================================================ */
+.tw-post.post-presente {
+  position: relative; overflow: hidden;
+  border-color: color-mix(in srgb, var(--ouro) 60%, var(--line));
+  background:
+    radial-gradient(120% 70% at 50% -10%, color-mix(in srgb, var(--ouro) 26%, transparent), transparent 62%),
+    linear-gradient(165deg, color-mix(in srgb, var(--ouro) 12%, var(--surface)) 0%, var(--surface) 48%, color-mix(in srgb, var(--ouro) 9%, var(--surface)) 100%);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ouro) 28%, transparent), 0 14px 44px color-mix(in srgb, var(--ouro) 20%, transparent), inset 0 1px 0 color-mix(in srgb, #fff 18%, transparent);
+  animation: presente-aura 4s ease-in-out infinite;
+}
+@keyframes presente-aura {
+  0%, 100% { box-shadow: 0 0 0 1px color-mix(in srgb, var(--ouro) 28%, transparent), 0 14px 44px color-mix(in srgb, var(--ouro) 18%, transparent), inset 0 1px 0 color-mix(in srgb, #fff 18%, transparent); }
+  50% { box-shadow: 0 0 0 1px color-mix(in srgb, var(--ouro) 55%, transparent), 0 18px 56px color-mix(in srgb, var(--ouro) 34%, transparent), inset 0 1px 0 color-mix(in srgb, #fff 28%, transparent); }
+}
+.presente-brilho {
+  position: absolute; inset: -40% -60%; pointer-events: none; z-index: 0;
+  background: linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, 0.07) 46%, rgba(255, 236, 170, 0.26) 50%, rgba(255, 255, 255, 0.07) 54%, transparent 62%);
+  transform: translateX(-70%); animation: presente-brilho 5.2s ease-in-out infinite;
+}
+@keyframes presente-brilho { 0%, 58% { transform: translateX(-70%); } 100% { transform: translateX(70%); } }
+.presente-estrelas { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.presente-estrelas i { position: absolute; font-style: normal; font-size: 13px; color: var(--ouro); opacity: 0; text-shadow: 0 0 10px color-mix(in srgb, var(--ouro) 80%, transparent); animation: presente-estrela 3.8s ease-in-out infinite; }
+@keyframes presente-estrela { 0%, 100% { opacity: 0; transform: scale(0.5) rotate(0deg); } 45% { opacity: 1; transform: scale(1.15) rotate(30deg); } 70% { opacity: 0.6; } }
+.presente-selo {
+  position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 7px; margin: 0 0 12px;
+  padding: 6px 12px 6px 9px; border-radius: 999px;
+  background: linear-gradient(100deg, #c99a2e, #ffe08a 35%, #f5c842 50%, #ffe9a8 65%, #c99a2e); background-size: 250% 100%;
+  color: #2b1d04; font-weight: 800; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--ouro) 40%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  animation: presente-selo 3.2s linear infinite;
+}
+@keyframes presente-selo { to { background-position: -250% 0; } }
+.presente-selo .asa { font-size: 16px; line-height: 1; display: inline-block; animation: presente-asa 2.4s ease-in-out infinite; }
+.presente-selo .asa-2 { animation-delay: 1.2s; }
+@keyframes presente-asa { 0%, 100% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-3px) rotate(6deg); } }
+.post-presente > .ig-cab, .post-presente > .ig-texto, .post-presente > .tw-post-midia, .post-presente > .ig-video, .post-presente > .ig-acoes, .post-presente > .ig-rodape, .post-presente > .tw-comentarios-bloco, .post-presente > .enquete { position: relative; z-index: 1; }
+.post-presente .tw-post-midia img, .post-presente .ig-video video { outline: 2px solid color-mix(in srgb, var(--ouro) 55%, transparent); outline-offset: -2px; }
+.post-presente .ig-texto, .post-presente .ig-legenda { font-size: 16.5px; }
+.post-presente .ig-cab .ig-av { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px color-mix(in srgb, var(--ouro) 70%, transparent); }
+/* Compositor com o modo ligado: já mostra a cara do post premium */
+.comp-presente .comp-presente-ic { font-size: 19px; line-height: 1; filter: grayscale(1); opacity: 0.6; transition: filter 0.15s, opacity 0.15s, transform 0.15s; }
+.comp-presente.ativo .comp-presente-ic { filter: none; opacity: 1; transform: scale(1.12); }
+.comp-presente.ativo { background: color-mix(in srgb, var(--ouro) 20%, transparent); }
+.post-compositor.presente {
+  border-color: color-mix(in srgb, var(--ouro) 60%, var(--line));
+  background: radial-gradient(120% 70% at 50% -10%, color-mix(in srgb, var(--ouro) 22%, transparent), transparent 62%), linear-gradient(165deg, color-mix(in srgb, var(--ouro) 10%, var(--surface)), var(--surface) 55%);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ouro) 30%, transparent), 0 12px 36px color-mix(in srgb, var(--ouro) 18%, transparent);
+}
+.presente-aviso { display: flex; align-items: center; gap: 10px; margin: 2px 0 10px; padding: 9px 12px; border-radius: 12px; font-size: 13.5px; color: var(--text-soft); background: color-mix(in srgb, var(--ouro) 12%, transparent); border: 1px dashed color-mix(in srgb, var(--ouro) 50%, transparent); animation: tour-entra 0.35s ease-out both; }
+.presente-aviso[hidden] { display: none; }
+.presente-aviso-ic { font-size: 20px; animation: presente-asa 2.4s ease-in-out infinite; }
+.presente-aviso strong { color: var(--text); }
+@media (prefers-reduced-motion: reduce) { .tw-post.post-presente, .presente-brilho, .presente-estrelas i, .presente-selo, .presente-selo .asa, .presente-aviso-ic { animation: none !important; } }
+/* Presente de Anjo: reforço do dourado + anjinho flutuando de marca-d'água */
+.tw-post.post-presente {
+  background:
+    radial-gradient(120% 70% at 50% -10%, color-mix(in srgb, var(--ouro) 34%, transparent), transparent 62%),
+    radial-gradient(60% 50% at 100% 100%, color-mix(in srgb, var(--ouro) 16%, transparent), transparent 70%),
+    linear-gradient(165deg, color-mix(in srgb, var(--ouro) 16%, var(--surface)) 0%, var(--surface) 50%, color-mix(in srgb, var(--ouro) 12%, var(--surface)) 100%);
+}
+.presente-anjo-marca { position: absolute; right: 14px; bottom: 46px; font-size: 58px; line-height: 1; opacity: 0.14; pointer-events: none; z-index: 0; animation: presente-flutua 5.5s ease-in-out infinite; filter: drop-shadow(0 0 18px color-mix(in srgb, var(--ouro) 60%, transparent)); }
+@keyframes presente-flutua { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-8px) rotate(5deg); } }
+.tw-post.post-presente.novo, .tw-post.post-presente { animation: presente-aura 4s ease-in-out infinite; }
+@media (max-width: 640px) { .presente-anjo-marca { font-size: 46px; right: 8px; bottom: 48px; } }

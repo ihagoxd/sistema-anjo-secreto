@@ -78,6 +78,8 @@
           <div class="enquete enq-previa" data-enq-previa></div>
         </div>
       </div>
+      {{! Presente de Anjo ligado: avisa que o post sai em destaque }}
+      <div class="presente-aviso" data-presente-aviso hidden><span class="presente-aviso-ic" aria-hidden="true">👼</span><span>Esse post sai em destaque como <strong>Presente de Anjo</strong> — dourado, com brilho ✨</span></div>
       {{! Colaboradores (post em dupla/trio, como no Instagram) — os chips são montados pelo JS }}
       <div class="colab-chips" data-colab-chip hidden></div>
       <input type="hidden" name="colaborador" value="" data-colab-id>
@@ -95,7 +97,11 @@
           <button type="button" class="comp-acao" data-camera aria-label="Câmera" title="Câmera">
             <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
           </button>
+          <button type="button" class="comp-acao comp-presente" data-presente-btn aria-pressed="false" aria-label="Presente de Anjo" title="Presente de Anjo: o post sai em destaque, dourado">
+            <span class="comp-presente-ic" aria-hidden="true">🎁</span>
+          </button>
         </div>
+        <input type="hidden" name="presente_anjo" value="" data-presente-input>
         <input type="file" name="imagem" accept="image/png,image/jpeg,image/gif,image/webp" class="visualmente-oculto" data-foto>
         <input type="file" name="video" accept="video/webm,video/mp4,video/quicktime" class="visualmente-oculto" data-video tabindex="-1">
         <button type="submit" class="btn btn-primario">Publicar</button>

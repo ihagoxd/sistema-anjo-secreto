@@ -320,6 +320,28 @@
     });
   })();
 
+  /* ---------- Presente de Anjo (compositor): liga/desliga o modo premium ---------- */
+  (function () {
+    var form = document.querySelector('form.post-compositor');
+    var btn = form && form.querySelector('[data-presente-btn]');
+    var input = form && form.querySelector('[data-presente-input]');
+    var aviso = form && form.querySelector('[data-presente-aviso]');
+    var ta = form && form.querySelector('textarea[name="texto"]');
+    if (!form || !btn || !input) return;
+    var placeholderNormal = ta ? ta.getAttribute('placeholder') : '';
+    function aplicar(ligado) {
+      input.value = ligado ? '1' : '';
+      btn.classList.toggle('ativo', ligado);
+      btn.setAttribute('aria-pressed', ligado ? 'true' : 'false');
+      form.classList.toggle('presente', ligado);
+      if (aviso) aviso.hidden = !ligado;
+      if (ta) ta.setAttribute('placeholder', ligado ? 'Conte como foi o presente do seu anjo… 🎁' : placeholderNormal);
+      if (ligado && ta) ta.focus();
+    }
+    btn.addEventListener('click', function () { aplicar(input.value !== '1'); });
+    form.addEventListener('reset', function () { setTimeout(function () { aplicar(false); }, 0); }); // publicou: volta ao normal
+  })();
+
   /* ---------- Admin ---------- */
   (function () {
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }

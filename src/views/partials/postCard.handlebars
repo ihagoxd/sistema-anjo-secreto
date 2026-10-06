@@ -1,4 +1,11 @@
-<article class="tw-post ig-post{{#if @root.detalhe}} tw-post-det{{/if}}" data-id="{{this.id_post}}">
+<article class="tw-post ig-post{{#if @root.detalhe}} tw-post-det{{/if}}{{#if this.presente_anjo}} post-presente{{/if}}" data-id="{{this.id_post}}">
+  {{#if this.presente_anjo}}
+    {{! Presente de Anjo: brilho que passa, estrelinhas e o selo dourado }}
+    <span class="presente-brilho" aria-hidden="true"></span>
+    <span class="presente-estrelas" aria-hidden="true"><i style="left:6%;top:10px;animation-delay:0s">✦</i><i style="left:22%;top:34px;animation-delay:1.1s">✧</i><i style="right:14%;top:8px;animation-delay:.6s">✦</i><i style="right:4%;top:40px;animation-delay:1.8s">✧</i><i style="left:48%;top:4px;animation-delay:2.4s">✦</i><i style="right:32%;top:48px;animation-delay:3s">✧</i></span>
+    <span class="presente-anjo-marca" aria-hidden="true">👼</span>
+    <div class="presente-selo"><span class="asa" aria-hidden="true">👼</span><span>Presente de Anjo</span><span class="asa asa-2" aria-hidden="true">🎁</span></div>
+  {{/if}}
   <header class="ig-cab">
     {{#if this.temStory}}
       <button type="button" class="ig-av av-story {{#if this.storyVisto}}visto{{else}}tem{{/if}}" data-ver-stories="{{this.id_usuario}}" title="Ver o story de {{this.usuario}}">{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</button>

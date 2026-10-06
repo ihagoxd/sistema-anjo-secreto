@@ -330,6 +330,8 @@ ALTER TABLE posts DROP CONSTRAINT IF EXISTS posts_conteudo;
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS id_colaborador INTEGER REFERENCES usuarios(id_usuario) ON DELETE SET NULL;
 -- O dono pode editar o texto da publicação depois de postar (mostra "editado")
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS editado_em TIMESTAMPTZ;
+-- Post "Presente de Anjo": card premium dourado (a pessoa marca antes de publicar)
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS presente_anjo BOOLEAN NOT NULL DEFAULT FALSE;
 -- Vários colaboradores por post ("fulano e +N")
 CREATE TABLE IF NOT EXISTS post_colaboradores (
   id_post     INTEGER NOT NULL REFERENCES posts(id_post) ON DELETE CASCADE,

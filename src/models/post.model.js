@@ -6,7 +6,7 @@
 const db = require('../config/db');
 
 const SELECT_POST = `
-  SELECT p.id_post, p.texto, p.imagem, p.video, p.criado_em, p.editado_em,
+  SELECT p.id_post, p.texto, p.imagem, p.video, p.criado_em, p.editado_em, p.presente_anjo,
          u.id_usuario, u.nome, u.usuario, u.foto_perfil,
          uc.id_usuario AS id_colaborador, uc.usuario AS usuario_colab, uc.nome AS nome_colab,
          (SELECT array_agg(u3.usuario ORDER BY u3.usuario)
@@ -25,10 +25,10 @@ const SELECT_POST = `
     JOIN usuarios u ON u.id_usuario = p.id_usuario
     LEFT JOIN usuarios uc ON uc.id_usuario = p.id_colaborador`;
 
-async function criar({ idUsuario, texto, imagem, video = null, idColaborador = null, enqueteMultipla = false, enquetePergunta = null }) {
+async function criar({ idUsuario, texto, imagem, video = null, idColaborador = null, enqueteMultipla = false, enquetePergunta = null, presenteAnjo = false }) {
   const res = await db.query(
-    `INSERT INTO posts (id_usuario, texto, imagem, video, id_colaborador, enquete_multipla, enquete_pergunta) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id_post`,
-    [idUsuario, texto, imagem, video, idColaborador, !!enqueteMultipla, enquetePergunta]
+    `INSERT INTO posts (id_usuario, texto, imagem, video, id_colaborador, enquete_multipla, enquete_pergunta, presente_anjo) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id_post`,
+    [idUsuario, texto, imagem, video, idColaborador, !!enqueteMultipla, enquetePergunta, !!presenteAnjo]
   );
   return res.rows[0];
 }

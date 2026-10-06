@@ -84,7 +84,7 @@ async function postCriar(req, res, next) {
     const enquete = (opcoes || req.body.enquete_pergunta)
       ? { pergunta: req.body.enquete_pergunta, opcoes: opcoes || [], multipla: req.body.enquete_multipla === '1' }
       : null;
-    const r = await postService.criarPost(req.session.usuario.id_usuario, req.body.texto, um('imagem'), um('video'), req.body.colaborador || null, enquete);
+    const r = await postService.criarPost(req.session.usuario.id_usuario, req.body.texto, um('imagem'), um('video'), req.body.colaborador || null, enquete, req.body.presente_anjo === '1');
     const ERROS = {
       LONGO: 'Texto longo demais.',
       ENQUETE_POUCAS: 'A enquete precisa de pelo menos 2 opções.',

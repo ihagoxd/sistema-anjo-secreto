@@ -98,7 +98,8 @@ async function votar(idPost, idOpcao, idUsuario) {
   return { ok: true, enquete, votou };
 }
 
-async function criarPost(idUsuario, texto, imagemPath, videoPath = null, colaboradorId = null, enqueteBruta = null) {
+// presenteAnjo: a pessoa marcou "Presente de Anjo" antes de publicar → card premium dourado.
+async function criarPost(idUsuario, texto, imagemPath, videoPath = null, colaboradorId = null, enqueteBruta = null, presenteAnjo = false) {
   const t = String(texto || '').trim();
   const e = normalizarEnquete(enqueteBruta);
   if (!e.ok) return e;
@@ -118,6 +119,7 @@ async function criarPost(idUsuario, texto, imagemPath, videoPath = null, colabor
     idUsuario, texto: t || null, imagem: imagemPath || null, video: videoPath || null,
     idColaborador: colaboradores[0] || null, enqueteMultipla: !!(e.enquete && e.enquete.multipla),
     enquetePergunta: e.enquete ? e.enquete.pergunta : null,
+    presenteAnjo: !!presenteAnjo,
   });
   if (e.enquete) await postModel.criarOpcoes(novo.id_post, e.enquete.opcoes);
   if (colaboradores.length) {

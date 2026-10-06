@@ -3357,8 +3357,8 @@ body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
 }
 .post-presente .tw-post-midia img, .post-presente .ig-video video { border-radius: 14px; }
 .post-presente .ig-video video { background: #000; }
-.presente-laco { position: absolute; top: -18px; right: -10px; z-index: 3; font-size: 42px; line-height: 1; pointer-events: none; transform: rotate(14deg); filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.45)); animation: presente-laco 3.4s ease-in-out infinite; }
-@keyframes presente-laco { 0%, 100% { transform: rotate(10deg) scale(1); } 50% { transform: rotate(18deg) scale(1.06); } }
+.presente-laco { position: absolute; top: -16px; right: -8px; z-index: 3; font-size: 40px; line-height: 1; pointer-events: none; transform: rotate(8deg); filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.45)); animation: presente-laco 3.4s ease-in-out infinite; }
+@keyframes presente-laco { 0%, 100% { transform: rotate(6deg) scale(1); } 50% { transform: rotate(12deg) scale(1.08) translateY(-2px); } }
 .presente-faiscas { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
 .presente-faiscas i { position: absolute; font-size: 18px; color: #fff3c4; text-shadow: 0 0 12px var(--ouro), 0 0 24px color-mix(in srgb, var(--ouro) 70%, transparent); }
 .presente-faiscas i:nth-child(1) { left: -8px; top: 18%; }

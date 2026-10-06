@@ -3274,3 +3274,6 @@ body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
 /* Exemplo da seção secreta (tour sem campanha): parece real, mas não leva a lugar nenhum */
 .tour-demo .conv { cursor: default; }
 .tour-demo .secao-hint { color: var(--ouro); }
+/* Fundo desfocado atrás do tutorial: o véu borra a página toda; nos passos com holofote,
+   um recorte (clip-path) deixa a área iluminada nítida. */
+.tour-veu { backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px); background: rgba(3, 5, 10, 0.18); transition: clip-path 0.5s cubic-bezier(0.22, 1, 0.36, 1); }

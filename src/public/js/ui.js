@@ -5072,6 +5072,7 @@
       if (p.centro || !el) {
         foco.classList.add('centro'); card.classList.add('centro');
         card.style.top = ''; card.style.left = ''; card.style.bottom = '';
+        veu.style.clipPath = ''; // card central: a página inteira fica desfocada atrás
         return;
       }
       foco.classList.remove('centro'); card.classList.remove('centro');
@@ -5094,6 +5095,10 @@
       foco.style.top = (r.top - pad) + 'px'; foco.style.left = (r.left - pad) + 'px';
       foco.style.width = (r.width + pad * 2) + 'px'; foco.style.height = (r.height + pad * 2) + 'px';
       foco.style.borderRadius = (r.height <= 64 ? (r.height + pad * 2) / 2 : 16) + 'px';
+      // Recorte no véu desfocado: a área iluminada fica nítida, o resto borrado
+      var L = (r.left - pad).toFixed(0) + 'px', T = (r.top - pad).toFixed(0) + 'px';
+      var R = (r.left + r.width + pad).toFixed(0) + 'px', B = (r.top + r.height + pad).toFixed(0) + 'px';
+      veu.style.clipPath = 'polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0, ' + L + ' ' + T + ', ' + L + ' ' + B + ', ' + R + ' ' + B + ', ' + R + ' ' + T + ', ' + L + ' ' + T + ')';
       var ch = card.offsetHeight, cw = card.offsetWidth, mobile = vw <= 640;
       var left = mobile ? 10 : Math.max(12, Math.min(vw - cw - 12, r.left + r.width / 2 - cw / 2));
       var top;

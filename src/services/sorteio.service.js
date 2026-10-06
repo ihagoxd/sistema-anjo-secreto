@@ -16,6 +16,7 @@
 const crypto = require('crypto');
 const db = require('../config/db');
 const sorteioModel = require('../models/sorteio.model');
+const usuarioModel = require('../models/usuario.model');
 const notificacaoService = require('./notificacao.service');
 
 const MIN_PARTICIPANTES = 3;
@@ -127,6 +128,9 @@ async function iniciarSorteio(idCampanha) {
 
     await client.query('COMMIT');
     await avisarParticipantes(idCampanha, false);
+    // A campanha começou: todo participante vê o tutorial passo a passo na próxima vez
+    // que abrir o feed (termina na roleta que revela o protegido).
+    try { await usuarioModel.reabrirTutorialParaTodos(); } catch (err) { console.error('[sorteio] tutorial:', err.message); }
     return { ok: true, total };
   } catch (err) {
     await client.query('ROLLBACK');

@@ -3,6 +3,18 @@
 (function () {
   'use strict';
 
+  /* ---------- Tutorial em andamento? ----------
+     Os cards automáticos (aviso da administração, roleta do sorteio, aniversário)
+     esperam o passo a passo terminar — nada abre por cima do holofote. */
+  function tourPendente() {
+    if (document.getElementById('tour-start')) return true;
+    try { return !!sessionStorage.getItem('anjoTour'); } catch (e) { return false; } // continuando em outra página
+  }
+  function aposTour(fn) {
+    if (!tourPendente()) return fn();
+    document.addEventListener('tour:fim', function h() { document.removeEventListener('tour:fim', h); fn(); });
+  }
+
   /* ---------- Sem zoom da página no mobile (sensação de app) ----------
      O iOS ignora user-scalable=no no viewport; bloqueamos o gesto de pinça
      via eventos "gesture*" (Safari). O lightbox/cropper têm zoom próprio
@@ -2860,11 +2872,13 @@
     var visto = false;
     try { visto = !!sessionStorage.getItem(chave); } catch (e) {}
     if (!visto) {
-      window.setTimeout(function () {
-        if (window.__roletaAtiva) return; // a roleta tem prioridade; o aniversário aparece na próxima
-        abrirModal(av);
-        try { sessionStorage.setItem(chave, '1'); } catch (e) {}
-      }, 1400);
+      aposTour(function () {
+        window.setTimeout(function () {
+          if (window.__roletaAtiva) return; // a roleta tem prioridade; o aniversário aparece na próxima
+          abrirModal(av);
+          try { sessionStorage.setItem(chave, '1'); } catch (e) {}
+        }, 1400);
+      });
     }
   })();
 
@@ -2921,7 +2935,7 @@
       window.setTimeout(passo, 400);
     }
 
-    window.setTimeout(function () { abrirModal(modal); girar(); }, 700);
+    aposTour(function () { window.setTimeout(function () { abrirModal(modal); girar(); }, 700); });
   })();
 
   /* ---------- Cropper genérico: círculo (avatar) ou quadrado (galeria) ----------
@@ -4783,9 +4797,14 @@
       var slots = Array.prototype.slice.call(modal.querySelectorAll('.aviso-slot'));
       var idx = 0;
       function mostrar(i) { slots.forEach(function (s, j) { s.hidden = j !== i; }); animar(slots[i]); }
-      // Espera a cortina do loader (primeira entrada) terminar antes de chamar atenção
+      // Espera a cortina do loader (primeira entrada) terminar antes de chamar atenção.
+      // Com o tutorial em andamento, o card (e o fundo escuro dele) nem aparecem até ele acabar.
       var atraso = document.documentElement.classList.contains('mini') ? 400 : 2100;
-      setTimeout(function () { mostrar(0); }, atraso);
+      if (tourPendente()) { modal.hidden = true; modal.setAttribute('aria-hidden', 'true'); }
+      aposTour(function () {
+        modal.hidden = false; modal.setAttribute('aria-hidden', 'false');
+        setTimeout(function () { mostrar(0); }, atraso);
+      });
       // O fundo não fecha o aviso (o fechamento genérico de modais não vale aqui)
       modal.addEventListener('click', function (e) { if (e.target === modal) e.stopPropagation(); }, true);
       modal.addEventListener('click', function (e) {
@@ -4864,4 +4883,315 @@
     atualizar();
     setTimeout(function () { animar(previa); }, 350);
   })();
+
+  /* ---------- Tutorial passo a passo (feed) ----------
+     Passa por DENTRO das telas: abre os comentários, o sino, a pesquisa, vai até
+     Mensagens (Direct × chat do anjo), os gostos e o Meu painel. Holofote sobre cada
+     área + card com emoji, título e texto; progresso estilo stories (avança sozinho,
+     segurar pausa, setas do teclado, "Pular" sempre à mão). Começa pelo marcador
+     #tour-start (feed) e continua nas outras páginas pelo sessionStorage. No final,
+     "Entendi" avisa o servidor; com sorteio feito, a roleta revela o protegido. */
+  (function () {
+    var CHAVE = 'anjoTour';
+    var gatilho = document.getElementById('tour-start');
+    var estado = null;
+    try { estado = JSON.parse(sessionStorage.getItem(CHAVE) || 'null'); } catch (e) { estado = null; }
+    if (!gatilho && !estado) return;
+    if (gatilho && !estado) estado = { i: 0, nome: gatilho.getAttribute('data-nome') || '', sorteio: gatilho.getAttribute('data-sorteio') === '1' };
+    var NOME = estado.nome || '', SORTEIO = !!estado.sorteio;
+    var metaCsrf = document.querySelector('meta[name="csrf-token"]');
+    var CSRF = metaCsrf ? metaCsrf.getAttribute('content') : '';
+    var DUR = 12000; // ms por passo quando ninguém toca em nada (o 1º e o último esperam o toque)
+    function salvar() { try { sessionStorage.setItem(CHAVE, JSON.stringify({ i: i, nome: NOME, sorteio: SORTEIO })); } catch (e) {} }
+    function limpar() { try { sessionStorage.removeItem(CHAVE); sessionStorage.removeItem('anjoTourManual'); } catch (e) {} }
+
+    function abrirComentarios() {
+      var art = document.querySelector('.tw-post'); if (!art) return;
+      var bloco = art.querySelector('.tw-comentarios-bloco');
+      if (bloco && bloco.hasAttribute('hidden')) { var b = art.querySelector('[data-comentarios]'); if (b) b.click(); }
+    }
+    function fecharComentarios() {
+      var art = document.querySelector('.tw-post'); if (!art) return;
+      var bloco = art.querySelector('.tw-comentarios-bloco');
+      if (bloco && !bloco.hasAttribute('hidden')) { var x = bloco.querySelector('.sheet-x') || art.querySelector('[data-comentarios]'); if (x) x.click(); }
+    }
+    function abrirSino() { var m = document.getElementById('painelNotif'); if (m) { m.classList.add('tour-mostra'); m.removeAttribute('hidden'); m.setAttribute('aria-hidden', 'false'); } }
+    function fecharSino() { var m = document.getElementById('painelNotif'); if (m) { m.classList.remove('tour-mostra'); m.setAttribute('hidden', ''); m.setAttribute('aria-hidden', 'true'); } }
+    function abrirBusca() { var t = document.getElementById('buscaTela'); if (t && t.hasAttribute('hidden')) { var b = document.querySelector('[data-busca-abrir]'); if (b) b.click(); } }
+    function fecharBusca() { var t = document.getElementById('buscaTela'); if (t && !t.hasAttribute('hidden')) { var x = t.querySelector('[data-busca-fechar], .busca-voltar, .btn-icone'); if (x) x.click(); else t.setAttribute('hidden', ''); } }
+    // Sem campanha em andamento a seção secreta não existe: monta um EXEMPLO igual ao real
+    // (some ao sair da página / terminar o tour) só para explicar como vai funcionar.
+    function montarDemoSecreta() {
+      if (document.querySelector('.secao-secreta')) return;
+      var scroll = document.querySelector('.direct-scroll'); if (!scroll) return;
+      var box = document.createElement('div'); box.className = 'tour-demo';
+      box.innerHTML = '<div class="direct-secao secao-secreta"><span>🎭 Anjo Secreto</span><span class="secao-hint">exemplo · aparece quando a campanha começar</span></div>'
+        + '<a class="conv fixado conv-secreto tour-demo-anjo" href="#" tabindex="-1"><span class="conv-av anjo-av">😇</span><div class="conv-txt"><div class="conv-nome">Seu anjo <span class="tag-secreto">anônimo</span></div><div class="conv-sub">você não sabe quem é</div></div></a>'
+        + '<a class="conv fixado conv-secreto sigilo tour-demo-protegido" href="#" tabindex="-1"><span class="conv-av"><span class="sig-emoji" aria-hidden="true">👀</span><span class="conv-mascara">🎭</span></span><div class="conv-txt"><div class="conv-nome"><span class="sig-generico">Seu protegido</span></div><div class="conv-sub">você é o anjo secreto dele(a)</div></div></a>';
+      scroll.insertBefore(box, scroll.firstChild);
+      box.addEventListener('click', function (e) { e.preventDefault(); });
+    }
+    function removerDemo() { Array.prototype.forEach.call(document.querySelectorAll('.tour-demo'), function (d) { d.remove(); }); }
+    // Animação de "clique" no alvo apontado (dedinho + onda), antes de abrir/entrar
+    function clicar(cb) {
+      var p = PASSOS[i];
+      var el = p && p.clica ? alvoDe(p) : null;
+      if (!el) return cb();
+      var r = el.getBoundingClientRect();
+      var dedo = document.createElement('span'); dedo.className = 'tour-dedo'; dedo.textContent = '👆';
+      dedo.style.left = (r.left + r.width / 2) + 'px'; dedo.style.top = (r.top + r.height / 2) + 'px';
+      document.body.appendChild(dedo);
+      foco.classList.add('clicando');
+      setTimeout(function () { foco.classList.remove('clicando'); dedo.remove(); cb(); }, 720);
+    }
+
+    var PASSOS = [
+      { pagina: '/feed', centro: true, emoji: '🎁', titulo: 'Bem-vindo(a), {nome}!', texto: 'Esse é o <strong>Anjo Secreto</strong> do escritório. Em dois minutos eu te levo por dentro de cada tela — pode só assistir ou tocar em avançar.' },
+      { pagina: '/feed', alvo: ['.stories'], emoji: '📸', titulo: 'Stories', texto: 'Fotos e vídeos que somem em 24 horas. Toque no <strong>+</strong> do seu avatar para publicar. Anel dourado = story que você ainda não viu.' },
+      { pagina: '/feed', alvo: ['form.post-compositor'], emoji: '✍️', titulo: 'Publicar no feed', texto: 'Escreva aqui. Dá para marcar colegas com <strong>@nome</strong> e colar uma foto direto com Ctrl+V.' },
+      { pagina: '/feed', alvo: ['form.post-compositor .compositor-acoes'], emoji: '📎', titulo: 'Foto, dupla, enquete e câmera', texto: 'Da esquerda para a direita: <strong>foto</strong> da galeria, <strong>post em dupla</strong> (marca um colega como coautor), <strong>enquete</strong> para a equipe votar e a <strong>câmera</strong>.' },
+      { pagina: '/feed', alvo: ['.tw-post .ig-acoes'], emoji: '❤️', titulo: 'Curtir, comentar, repostar', texto: 'Dois toques na foto curtem. Repostar leva a publicação para o seu perfil. O último ícone copia o link.' },
+      { pagina: '/feed', alvo: ['.tw-post [data-comentarios]'], clica: true, emoji: '💬', titulo: 'Este balão abre os comentários', texto: 'Cada publicação tem a sua conversa. Vou tocar nele para você ver por dentro…' },
+      { pagina: '/feed', se: '.tw-post .tw-reply', alvo: ['.tw-post .tw-reply'], emoji: '📷', titulo: 'Comentar — até com foto', texto: 'Escreva, use os emojis rápidos ou toque no ícone de imagem para <strong>comentar com uma foto</strong>. "Responder" já puxa o @ da pessoa.', antes: abrirComentarios, depois: fecharComentarios, espera: 500 },
+      { pagina: '/feed', alvo: ['.side-sino', '.btn-sino'], clica: true, emoji: '🔔', titulo: 'O sino guarda as notificações', texto: 'Curtidas, comentários, menções, mensagens e aniversários chegam aqui. Tocando nele…' },
+      { pagina: '/feed', se: '#painelNotif .notif-card', alvo: ['#painelNotif .notif-card'], emoji: '🔔', titulo: 'Painel de notificações', texto: 'Tudo numa lista, e na <strong>engrenagem</strong> você escolhe o que quer receber e ativa o aviso no celular (mesmo com o app fechado).', antes: abrirSino, depois: fecharSino, espera: 350 },
+      { pagina: '/feed', alvo: ['.side-link[data-busca-abrir]', '.bi-item[data-busca-abrir]'], clica: true, emoji: '🔍', titulo: 'Pesquisar', texto: 'Aqui você encontra qualquer colega. Vou abrir…' },
+      { pagina: '/feed', se: '#buscaTela .busca-campo', alvo: ['#buscaTela .busca-campo'], emoji: '🔍', titulo: 'Busca por nome ou @usuário', texto: 'Digite e toque na pessoa para abrir o perfil, os posts e os gostos dela.', antes: abrirBusca, depois: fecharBusca, espera: 400 },
+      { pagina: '/feed', alvo: ['.side-link[href="/mensagens"]', '.bi-item[href="/mensagens"]'], clica: true, emoji: '💌', titulo: 'Mensagens', texto: 'Aqui moram o <strong>Direct do escritório</strong> e o <strong>chat secreto do Anjo</strong>. Vamos entrar para ver a diferença…' },
+      { pagina: '/mensagens', se: '.direct-scroll', alvo: ['.direct-secao.secao-secreta'], emoji: '🎭', titulo: 'A parte secreta: Campanha do Anjo', texto: SORTEIO ? 'Esta seção só aparece com a campanha em andamento — e a sua já está! Duas conversas anônimas moram aqui.' : 'Esta seção <strong>aparece quando a campanha começar</strong> (montei um exemplo para você ver). Duas conversas anônimas vão morar aqui.', antes: montarDemoSecreta, espera: 150 },
+      { pagina: '/mensagens', se: '.direct-scroll', alvo: ['.conv-secreto[href="/mensagens/anjo"]', '.tour-demo-anjo'], emoji: '😇', titulo: 'Seu anjo (anônimo)', texto: 'Conversa com <strong>quem tirou você</strong>. Você não sabe quem é — o app esconde o nome. Pode mandar recados, pedir dicas e agradecer os mimos.', antes: montarDemoSecreta },
+      { pagina: '/mensagens', se: '.direct-scroll', alvo: ['.conv-secreto[href="/mensagens/protegido"]', '.tour-demo-protegido'], emoji: '🤫', titulo: 'Seu protegido (sigilo)', texto: 'Conversa com <strong>quem você tirou</strong>: ele(a) recebe tudo sem saber que é você. O nome fica escondido na lista — o olhinho mostra só para você. Só não vale assinar!', antes: montarDemoSecreta },
+      { pagina: '/mensagens', alvo: ['.direct-secao:not(.secao-secreta)', '.direct-lista-topo'], irmaos: true, emoji: '💬', titulo: 'Direct do escritório', texto: 'Daqui para baixo é o chat normal, <strong>com nome e foto</strong>, com qualquer colega: texto, foto, áudio, vídeo e stories. Nada de segredo aqui.' },
+      { pagina: '/mensagens', alvo: ['.notas'], emoji: '📝', titulo: 'Nota do dia', texto: 'Deixe um status rápido do seu dia (em reunião, de férias, precisando de café…). Ele aparece no seu avatar para todo mundo até a meia-noite.' },
+      { pagina: '/mensagens', alvo: ['.side-link[href="/participante/preferencias"]', '.bi-item[href="/participante/preferencias"]'], clica: true, emoji: '💛', titulo: 'Preferências', texto: 'Seus gostos ficam aqui — é o que o seu anjo vai consultar. Vamos lá…' },
+      { pagina: '/participante/preferencias', alvo: ['.pf-form', 'form.card'], emoji: '💛', titulo: 'Seus gostos', texto: 'Lanche, bebida, hobbies, o que não gosta, fotos de ideias: é o <strong>mapa</strong> que o seu anjo usa para acertar. Mantenha atualizado!' },
+      { pagina: '/participante/preferencias', alvo: ['.side-link[href="/participante"]', '.bi-item[href="/participante"]'], clica: true, emoji: '🎯', titulo: 'Meu painel', texto: 'Por último, o painel: é onde você descobre <strong>quem tirou</strong>. Vamos ver…' },
+      { pagina: '/participante', alvo: ['.painel-hero'], emoji: '🎯', titulo: 'Meu painel', texto: SORTEIO ? 'Aqui mora <strong>quem você tirou</strong>. Em "Ver o que gosta" você abre os gostos e as fotos de ideias da pessoa. Só você vê esta tela — cuidado com olhares por cima do ombro.' : 'Quando o sorteio rolar, <strong>quem você tirou</strong> aparece aqui, com um atalho para os gostos da pessoa. Só você vê esta tela.' },
+      SORTEIO
+        ? { pagina: '/participante', centro: true, final: true, logo: true, titulo: 'Hora do sorteio!', texto: 'O sorteio já rolou e tem alguém esperando por você. Toque em <strong>Entendi</strong> para descobrir quem você tirou. 🤫' }
+        : { pagina: '/participante', centro: true, final: true, logo: true, titulo: 'Tudo pronto!', texto: '<strong>A campanha do Anjo vai começar em breve.</strong> Quando o sorteio rolar, você recebe um aviso e descobre quem tirou por aqui. Até lá: publique, converse e cuide em segredo. 😉' },
+    ];
+
+    function visivel(el) {
+      if (!el) return false;
+      var r = el.getBoundingClientRect();
+      return r.width > 2 && r.height > 2 && getComputedStyle(el).visibility !== 'hidden';
+    }
+    function alvoDe(p) {
+      if (!p.alvo) return null;
+      for (var a = 0; a < p.alvo.length; a++) {
+        var els = document.querySelectorAll(p.alvo[a]);
+        for (var b = 0; b < els.length; b++) if (visivel(els[b])) return els[b];
+      }
+      return null;
+    }
+    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    function aqui(p) { return location.pathname === p.pagina; }
+    // Este passo dá para mostrar nesta página? (alvo presente; passos de outra página contam como "ir para lá")
+    // (passos que ABREM algo antes — comentários, sino, busca — valem se o gatilho existir, mesmo fechado)
+    function cabe(p) { return p.centro || (p.se ? !!document.querySelector(p.se) : !!alvoDe(p)); }
+    var DEBUG = false; try { DEBUG = localStorage.getItem('tourDebug') === '1'; } catch (e) {}
+    function log() { if (DEBUG) console.log.apply(console, ['[tour]'].concat(Array.prototype.slice.call(arguments))); }
+
+    var i = Math.min(Math.max(parseInt(estado.i, 10) || 0, 0), PASSOS.length - 1);
+    var veu = document.createElement('div'); veu.className = 'tour-veu';
+    var foco = document.createElement('div'); foco.className = 'tour-foco centro';
+    var card = document.createElement('div'); card.className = 'tour-card centro';
+    card.setAttribute('role', 'dialog'); card.setAttribute('aria-live', 'polite'); card.setAttribute('aria-label', 'Tutorial');
+    var timer = null, fimEm = 0, restante = DUR, pausado = false, acabou = false, pressaoEm = 0, montado = false, trocando = false;
+    function liberarModais() { if (gatilho) gatilho.remove(); limpar(); document.dispatchEvent(new CustomEvent('tour:fim')); }
+
+    function montar() {
+      if (montado) return;
+      montado = true;
+      document.body.appendChild(veu); document.body.appendChild(foco); document.body.appendChild(card);
+      document.body.classList.add('em-tour');
+    }
+    // Vai para o passo k: pula os que não cabem nesta página; se o passo é de outra página, navega.
+    function irPara(k, recuando) {
+      if (acabou) return;
+      log('irPara', k, 'de', i, location.pathname);
+      var atual = PASSOS[i];
+      if (atual && atual.depois && aqui(atual)) { try { atual.depois(); } catch (e) {} }
+      while (k >= 0 && k < PASSOS.length && aqui(PASSOS[k]) && !cabe(PASSOS[k])) k += recuando ? -1 : 1;
+      if (k < 0) k = 0;
+      if (k >= PASSOS.length) return terminar();
+      trocando = true; clearTimeout(timer);
+      // Passo que "aponta e clica": anima o toque no alvo antes de abrir/entrar
+      clicar(function () {
+        i = k; salvar();
+        if (!aqui(PASSOS[i])) {
+          // Próxima tela: a página atual some num fade e a próxima continua o tour
+          // (se nenhum passo de lá couber, o próprio destino pula adiante ao carregar)
+          var destino = PASSOS[i].pagina;
+          document.body.classList.add('tour-trocando');
+          setTimeout(function () { location.href = destino; }, 280);
+          return;
+        }
+        render();
+      });
+    }
+    // Troca de card com fade: o atual some, o novo entra (nada "pisca" de uma vez)
+    function render() {
+      montar();
+      if (card.innerHTML) {
+        card.classList.add('saindo');
+        setTimeout(function () { if (!acabou) { card.classList.remove('saindo'); pintar(); } }, 200);
+      } else pintar();
+    }
+    function pintar() {
+      var p = PASSOS[i], ultimo = !!p.final;
+      if (p.antes) { try { p.antes(); } catch (e) {} }
+      var automatico = !ultimo && i > 0 && !manual; // o 1º e o último esperam a pessoa; no ritmo dela, nenhum avança sozinho
+      var segs = PASSOS.map(function (_, k) { return '<span class="tour-seg' + (k < i ? ' feita' : k === i && automatico ? ' atual' : '') + '"><i></i></span>'; }).join('');
+      var podeVoltar = i > 0 && aqui(PASSOS[i - 1]) && !ultimo;
+      var icone = p.logo ? '<img class="tour-logo" src="/img/logo.png" alt="Mendes Anjo">' : '<span class="tour-emoji" aria-hidden="true">' + p.emoji + '</span>';
+      card.innerHTML = '<div class="tour-prog" style="--dur:' + DUR + 'ms">' + segs + '</div>'
+        + '<div class="tour-corpo">' + icone
+        + '<h3 class="tour-titulo">' + esc(p.titulo.replace('{nome}', NOME)) + '</h3>'
+        + '<p class="tour-texto">' + p.texto + '</p>'
+        + '<div class="tour-acoes"><span class="tour-passo">' + (i + 1) + ' / ' + PASSOS.length + '</span>'
+        + (podeVoltar ? '<button type="button" class="btn btn-secundario btn-sm tour-voltar" data-tour-voltar>Voltar</button>' : '')
+        + (ultimo ? '' : '<button type="button" class="tour-pular" data-tour-pular>' + (i === 0 ? 'Agora não' : 'Pular') + '</button>')
+        + '<button type="button" class="btn btn-primario btn-sm tour-prox" data-tour-prox>' + (ultimo ? 'Entendi ✨' : i === 0 ? 'Vamos lá <span class="seta">➜</span>' : 'Próximo <span class="seta">➜</span>') + '</button></div>'
+        + (i === 0 ? '<div class="tour-dica">Avança sozinho, como um vídeo — ou toque em Próximo para ir no seu ritmo.</div>' : '')
+        + '<div class="tour-rodape">Desenvolvido por <strong>Ihago Martins</strong></div>'
+        + '</div>';
+      card.classList.remove('entrando'); void card.offsetWidth; card.classList.add('entrando');
+      // Alvo que precisa abrir algo (comentários, sino, busca): espera a animação antes de medir
+      setTimeout(function () { if (!acabou) posicionar(true); }, p.espera || 0);
+      if (p.espera) posicionar(false);
+      restante = DUR; fimEm = Date.now() + DUR;
+      clearTimeout(timer);
+      if (automatico) timer = setTimeout(function () { avancar('timer'); }, DUR);
+      if (ultimo) confete();
+      setTimeout(function () { trocando = false; }, 350); // ignora toques/teclas repetidos durante a troca
+    }
+    function posicionar(podeRolar) {
+      var p = PASSOS[i], el = alvoDe(p);
+      if (p.centro || !el) {
+        foco.classList.add('centro'); card.classList.add('centro');
+        card.style.top = ''; card.style.left = ''; card.style.bottom = '';
+        return;
+      }
+      foco.classList.remove('centro'); card.classList.remove('centro');
+      var r = el.getBoundingClientRect(), vh = window.innerHeight, vw = window.innerWidth;
+      if (p.irmaos) { // o alvo + o que vem depois dele (ex.: título da seção + a lista de conversas)
+        var fundo = r.bottom, irmao = el.nextElementSibling, n = 0;
+        while (irmao && n < 12) { var ri = irmao.getBoundingClientRect(); if (ri.height > 0) fundo = Math.max(fundo, Math.min(ri.bottom, vh - 70)); irmao = irmao.nextElementSibling; n++; }
+        r = { top: r.top, left: r.left, width: r.width, height: Math.max(r.height, fundo - r.top), bottom: Math.max(r.bottom, fundo) };
+      }
+      if (podeRolar && (r.top < 70 || r.bottom > vh - 110)) {
+        el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        setTimeout(function () { if (!acabou) posicionar(false); }, 450);
+      }
+      // Alvo mais alto que a tela (ex.: o formulário de gostos): ilumina só o começo dele
+      if (r.height > vh * 0.6) {
+        var topoVisivel = Math.max(r.top, 8);
+        r = { top: topoVisivel, left: r.left, width: r.width, height: Math.min(vh * 0.5, r.bottom - topoVisivel), bottom: topoVisivel + Math.min(vh * 0.5, r.bottom - topoVisivel) };
+      }
+      var pad = 8;
+      foco.style.top = (r.top - pad) + 'px'; foco.style.left = (r.left - pad) + 'px';
+      foco.style.width = (r.width + pad * 2) + 'px'; foco.style.height = (r.height + pad * 2) + 'px';
+      foco.style.borderRadius = (r.height <= 64 ? (r.height + pad * 2) / 2 : 16) + 'px';
+      var ch = card.offsetHeight, cw = card.offsetWidth, mobile = vw <= 640;
+      var left = mobile ? 10 : Math.max(12, Math.min(vw - cw - 12, r.left + r.width / 2 - cw / 2));
+      var top;
+      if (vh - r.bottom - 16 >= ch + 12) top = r.bottom + 16;          // cabe embaixo do alvo
+      else if (r.top - 16 >= ch + 12) top = r.top - ch - 16;           // cabe em cima
+      else top = Math.max(12, Math.min(vh - ch - 12, r.bottom + 16));  // sem espaço: o mais perto possível
+      card.style.left = left + 'px'; card.style.top = top + 'px'; card.style.bottom = '';
+    }
+    // Quem toca em "Próximo" (ou usa o teclado/toque) assume o ritmo: o tour para de
+    // avançar sozinho dali em diante. O modo automático fica só para quem assiste.
+    var manual = false;
+    try { manual = sessionStorage.getItem('anjoTourManual') === '1'; } catch (e) {}
+    function assumirRitmo() { if (manual) return; manual = true; try { sessionStorage.setItem('anjoTourManual', '1'); } catch (e) {} clearTimeout(timer); card.classList.add('manual'); }
+    function avancar(origem) {
+      if (acabou || trocando) return;
+      log('avancar', origem || '?', 'de', i);
+      if (origem && origem !== 'timer') assumirRitmo();
+      if (PASSOS[i].final) return terminar();
+      irPara(i + 1, false);
+    }
+    function voltar() { if (!trocando && i > 0 && aqui(PASSOS[i - 1])) irPara(i - 1, true); }
+    function pausar() {
+      if (pausado || acabou) return;
+      pausado = true; card.classList.add('pausado');
+      clearTimeout(timer); restante = Math.max(0, fimEm - Date.now());
+    }
+    function retomar() {
+      if (!pausado || acabou) return;
+      pausado = false; card.classList.remove('pausado');
+      if (!PASSOS[i].final && i > 0 && !manual) { fimEm = Date.now() + restante; timer = setTimeout(function () { avancar('timer'); }, restante); }
+    }
+    function confete() {
+      var c = document.createElement('div'); c.className = 'tour-confete';
+      var cores = ['#e3b341', '#f0f6fc', '#58a6ff', '#3fb950', '#ff7b72', '#d2a8ff', '#ffa657'];
+      for (var k = 0; k < 90; k++) {
+        var s = document.createElement('span');
+        s.style.left = (Math.random() * 100) + '%';
+        s.style.background = cores[k % cores.length];
+        s.style.animationDuration = (2.4 + Math.random() * 2) + 's';
+        s.style.animationDelay = (Math.random() * 0.9) + 's';
+        s.style.width = (6 + Math.random() * 6) + 'px';
+        c.appendChild(s);
+      }
+      document.body.appendChild(c);
+      setTimeout(function () { c.remove(); }, 5200);
+    }
+    function terminar() {
+      if (acabou) return;
+      acabou = true; clearTimeout(timer);
+      var p = PASSOS[i];
+      if (p && p.depois && aqui(p)) { try { p.depois(); } catch (e) {} }
+      card.classList.add('saindo'); foco.classList.add('centro');
+      removerDemo();
+      // keepalive: o aviso ao servidor completa mesmo se a página mudar logo em seguida
+      fetch('/participante/tutorial/visto', { method: 'POST', keepalive: true, headers: { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch' } }).catch(function () {});
+      setTimeout(function () { veu.remove(); foco.remove(); card.remove(); document.body.classList.remove('em-tour'); }, 250);
+      if (/[?&]tour=1/.test(location.search)) history.replaceState(null, '', location.pathname);
+      liberarModais(); // agora sim: aviso, roleta (revela o protegido) e aniversário podem aparecer
+    }
+
+    card.addEventListener('click', function (e) {
+      if (e.target.closest('[data-tour-prox]')) avancar('botao');
+      else if (e.target.closest('[data-tour-voltar]')) { assumirRitmo(); voltar(); }
+      else if (e.target.closest('[data-tour-pular]')) terminar();
+    });
+    // Segurar pausa (como nos stories); toque rápido no escuro avança
+    veu.addEventListener('pointerdown', function () { pressaoEm = Date.now(); pausar(); });
+    veu.addEventListener('pointerup', function () { retomar(); if (Date.now() - pressaoEm < 220) avancar('toque'); });
+    veu.addEventListener('pointercancel', retomar);
+    card.addEventListener('pointerdown', function (e) { if (!e.target.closest('button')) pausar(); });
+    card.addEventListener('pointerup', function () { retomar(); });
+    card.addEventListener('mouseenter', pausar);
+    card.addEventListener('mouseleave', function () { retomar(); });
+    document.addEventListener('keydown', function (e) {
+      if (acabou || !montado) return;
+      if (e.key === 'ArrowRight' || e.key === 'Enter' || e.key === ' ') { e.preventDefault(); avancar('tecla ' + e.key); }
+      else if (e.key === 'ArrowLeft') voltar();
+      else if (e.key === 'Escape') terminar();
+    });
+    var raf = null;
+    function reposicionar() { if (acabou || !montado) return; cancelAnimationFrame(raf); raf = requestAnimationFrame(function () { posicionar(false); }); }
+    window.addEventListener('resize', reposicionar);
+    window.addEventListener('scroll', reposicionar, true);
+
+    // Começo (feed, com intro do anjo ou só o fade) ou continuação vinda de outra página
+    var continuando = !!estado && !gatilho;
+    var espera = continuando ? 350 : document.documentElement.classList.contains('mini') ? 650 : 2800;
+    // Ao chegar numa página, dá um tempo para a tela assentar antes de decidir que um
+    // passo "não cabe" (ex.: sem campanha → sem chat secreto, aí pula adiante).
+    function comecar(tentativa) {
+      if (acabou) return;
+      log('comecar', tentativa, 'passo', i, location.pathname, 'aqui', aqui(PASSOS[i]), 'cabe', cabe(PASSOS[i]));
+      if (!aqui(PASSOS[i])) return irPara(i, false);
+      if (cabe(PASSOS[i])) return render();
+      if (tentativa < 3) return setTimeout(function () { comecar(tentativa + 1); }, 400);
+      irPara(i + 1, false);
+    }
+    setTimeout(function () { comecar(0); }, espera);
+  })();
+
 })();

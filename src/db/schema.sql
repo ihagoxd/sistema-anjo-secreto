@@ -219,6 +219,8 @@ ALTER TABLE notificacoes ADD COLUMN IF NOT EXISTS lida_em TIMESTAMPTZ;
 -- Preferências de notificação por usuário (som, vibração, banner, push, tipos silenciados).
 -- Guardadas como JSON: chaves ausentes assumem o padrão (tudo ligado).
 ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS notif_prefs JSONB NOT NULL DEFAULT '{}'::jsonb;
+-- Tutorial "passo a passo" do app: quando a pessoa terminou (ou pulou). NULL = ainda não viu.
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS tutorial_visto_em TIMESTAMPTZ;
 
 -- ---------- PUSH (Web Push: avisos no celular/desktop mesmo com o app fechado) ----------
 -- Cada navegador/aparelho que ativou as notificações vira uma inscrição.

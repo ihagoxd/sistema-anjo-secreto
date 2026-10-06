@@ -34,6 +34,7 @@ function guardarNaSessao(req, u) {
     senha_provisoria: u.senha_provisoria,
     foto_perfil: u.foto_perfil || null,
     perfil_completo: !!u.perfil_completo,
+    tutorial_visto: !!u.tutorial_visto_em,
   };
 }
 

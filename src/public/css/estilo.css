@@ -3184,3 +3184,93 @@ table.tabela tr.linha-pendente { background: color-mix(in srgb, var(--st-amarelo
 /* Navegação dentro do app (html.mini): sem overlay de carregamento — a página já chega
    visível no HTML; o loader só existe na primeira entrada da sessão. */
 html.mini #loader { display: none !important; }
+
+/* ============================================================
+   TUTORIAL PASSO A PASSO (feed): holofote sobre cada área + card animado,
+   com barra de progresso estilo stories (avança sozinho, pausa ao segurar)
+   ============================================================ */
+.tour-foco {
+  position: fixed; z-index: 400; border-radius: 16px; pointer-events: none;
+  box-shadow: 0 0 0 9999px rgba(3, 5, 10, 0.74), 0 0 0 3px color-mix(in srgb, var(--ouro) 85%, transparent), 0 0 34px color-mix(in srgb, var(--ouro) 45%, transparent);
+  transition: top 0.5s cubic-bezier(0.22, 1, 0.36, 1), left 0.5s cubic-bezier(0.22, 1, 0.36, 1), width 0.5s cubic-bezier(0.22, 1, 0.36, 1), height 0.5s cubic-bezier(0.22, 1, 0.36, 1), border-radius 0.3s, opacity 0.3s;
+}
+.tour-foco::after {
+  content: ''; position: absolute; inset: -6px; border-radius: inherit;
+  border: 2px solid color-mix(in srgb, var(--ouro) 70%, transparent);
+  animation: tour-pulso 1.6s ease-out infinite;
+}
+.tour-foco.centro { opacity: 0; }
+@keyframes tour-pulso { 0% { transform: scale(0.98); opacity: 0.9; } 100% { transform: scale(1.08); opacity: 0; } }
+.tour-card {
+  position: fixed; z-index: 401; width: min(380px, calc(100vw - 24px));
+  background: var(--surface); color: var(--text); border: 1px solid var(--line); border-radius: 20px;
+  padding: 14px 18px 16px; box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+  transition: top 0.45s cubic-bezier(0.22, 1, 0.36, 1), left 0.45s cubic-bezier(0.22, 1, 0.36, 1), bottom 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.tour-card.centro { left: 50% !important; top: 50% !important; bottom: auto !important; transform: translate(-50%, -50%); text-align: center; width: min(420px, calc(100vw - 24px)); padding: 22px 22px 20px; }
+.tour-card.entrando .tour-corpo { animation: tour-entra 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes tour-entra { from { opacity: 0; transform: translateY(14px) scale(0.97); } to { opacity: 1; transform: none; } }
+.tour-prog { display: flex; gap: 4px; margin-bottom: 12px; }
+.tour-seg { flex: 1; height: 3px; border-radius: 99px; background: color-mix(in srgb, var(--text) 16%, transparent); overflow: hidden; }
+.tour-seg i { display: block; height: 100%; width: 0; background: var(--ouro); border-radius: inherit; }
+.tour-seg.feita i { width: 100%; }
+.tour-seg.atual i { animation: tour-enche var(--dur, 7s) linear forwards; }
+.tour-card.pausado .tour-seg.atual i { animation-play-state: paused; }
+@keyframes tour-enche { from { width: 0; } to { width: 100%; } }
+.tour-emoji { font-size: 44px; line-height: 1; display: inline-block; animation: tour-salta 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) both; filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.35)); }
+.tour-card.centro .tour-emoji { font-size: 64px; }
+@keyframes tour-salta { 0% { transform: scale(0.3) rotate(-18deg); opacity: 0; } 60% { transform: scale(1.12) rotate(6deg); opacity: 1; } 100% { transform: none; } }
+.tour-titulo { margin: 8px 0 4px; font-size: 18px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.25; }
+.tour-card.centro .tour-titulo { font-family: var(--font-serif); font-size: 26px; font-weight: 700; }
+.tour-texto { margin: 0; color: var(--text-soft); font-size: 14.5px; line-height: 1.5; }
+.tour-texto strong { color: var(--text); }
+.tour-acoes { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
+.tour-card.centro .tour-acoes { justify-content: center; }
+.tour-passo { font-size: 12px; color: var(--text-faint); font-variant-numeric: tabular-nums; margin-right: auto; }
+.tour-card.centro .tour-passo { display: none; }
+.tour-pular { background: none; border: none; padding: 6px 8px; font: inherit; font-size: 13px; color: var(--text-faint); cursor: pointer; border-radius: 8px; }
+.tour-pular:hover { color: var(--text); background: var(--hover); }
+.tour-prox { border-radius: 999px; padding-left: 16px; padding-right: 14px; }
+.tour-prox .seta { display: inline-block; transition: transform 0.15s; }
+.tour-prox:hover .seta { transform: translateX(3px); }
+.tour-voltar { border-radius: 999px; }
+.tour-dica { margin-top: 10px; font-size: 12px; color: var(--text-faint); }
+.tour-confete { position: fixed; inset: 0; z-index: 402; pointer-events: none; overflow: hidden; }
+.tour-confete span { position: absolute; top: -14px; width: 9px; height: 15px; border-radius: 2px; opacity: 0.95; animation: tour-cai linear forwards; }
+@keyframes tour-cai { 0% { transform: translateY(0) rotate(0); } 100% { transform: translateY(110vh) rotate(720deg); opacity: 0.6; } }
+body.em-tour { overflow: hidden; }
+@media (max-width: 640px) {
+  .tour-card { width: calc(100vw - 20px); left: 10px !important; border-radius: 18px; }
+  .tour-card.centro { width: calc(100vw - 28px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tour-foco, .tour-card { transition: none; }
+  .tour-foco::after, .tour-emoji, .tour-card.entrando .tour-corpo, .tour-confete span { animation: none !important; }
+  .tour-seg.atual i { animation-duration: 0.01s; }
+}
+/* Véu do tutorial: pega os toques (segurar pausa, toque avança) sem deixar clicar no fundo */
+.tour-veu { position: fixed; inset: 0; z-index: 399; background: transparent; touch-action: none; }
+.tour-card.saindo { opacity: 0; transition: opacity 0.25s; }
+/* Durante o tutorial nenhum outro modal (aviso, roleta, aniversário, confirmação) aparece —
+   o backdrop-filter deles desfocava a área iluminada pelo holofote. */
+body.em-tour .modal { display: none !important; }
+/* Painel aberto pelo tutorial (ex.: sino): aparece dentro do holofote, sem o fundo escuro/desfocado dele */
+body.em-tour .modal.tour-mostra { display: grid !important; background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; animation: none; }
+body.tour-trocando .tour-card, body.tour-trocando .tour-foco { opacity: 0; transition: opacity 0.15s; }
+.tour-rodape { margin-top: 12px; padding-top: 8px; border-top: 1px dashed var(--line); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-faint); }
+.tour-rodape strong { color: var(--text-soft); font-weight: 700; }
+.tour-card.centro .tour-rodape { border-top: none; padding-top: 2px; }
+/* Fluidez do tutorial: card troca com fade, página some num fade antes de ir para a próxima tela */
+.tour-card.saindo { opacity: 0; transform: translateY(6px); transition: opacity 0.2s ease, transform 0.2s ease; }
+.tour-card.centro.saindo { transform: translate(-50%, -50%) translateY(6px); }
+body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
+.tour-foco { transition-duration: 0.6s; }
+.tour-logo { width: 104px; height: 104px; object-fit: contain; display: inline-block; filter: drop-shadow(0 10px 22px rgba(227, 179, 65, 0.35)); animation: tour-salta 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) both, logo-flutuar 4.5s ease-in-out 0.9s infinite; }
+/* "Apontar e clicar": onda dourada no alvo + dedinho, antes de abrir a tela/painel */
+.tour-foco.clicando::before { content: ''; position: absolute; inset: 0; border-radius: inherit; background: color-mix(in srgb, var(--ouro) 38%, transparent); animation: tour-clique 0.7s ease-out both; }
+@keyframes tour-clique { 0% { transform: scale(0.96); opacity: 0.95; } 100% { transform: scale(1.35); opacity: 0; } }
+.tour-dedo { position: fixed; z-index: 403; font-size: 34px; line-height: 1; pointer-events: none; transform: translate(-30%, -10%); animation: tour-toque 0.7s ease-in-out both; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.5)); }
+@keyframes tour-toque { 0% { transform: translate(-30%, 30%) scale(1.15); opacity: 0; } 35% { opacity: 1; } 55% { transform: translate(-30%, -10%) scale(0.85); } 100% { transform: translate(-30%, -10%) scale(1); opacity: 0; } }
+/* Exemplo da seção secreta (tour sem campanha): parece real, mas não leva a lugar nenhum */
+.tour-demo .conv { cursor: default; }
+.tour-demo .secao-hint { color: var(--ouro); }

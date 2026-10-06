@@ -6,7 +6,7 @@
  */
 const db = require('../config/db');
 
-const COLUNAS = `id_usuario, nome, usuario, email, tipo_usuario, status, ativo, senha_provisoria, foto_perfil, perfil_completo, bio, data_nascimento, criado_em`;
+const COLUNAS = `id_usuario, nome, usuario, email, tipo_usuario, status, ativo, senha_provisoria, foto_perfil, perfil_completo, bio, data_nascimento, tutorial_visto_em, criado_em`;
 
 // Busca pelo login (case-insensitive). Inclui o hash da senha (uso interno do login).
 async function buscarPorUsuario(usuario) {
@@ -123,6 +123,19 @@ async function atualizarFoto(idUsuario, caminho) {
 
 async function marcarPerfilCompleto(idUsuario) {
   await db.query(`UPDATE usuarios SET perfil_completo = TRUE WHERE id_usuario = $1`, [idUsuario]);
+}
+
+// Tutorial do app concluído/pulado (não volta sozinho; dá para rever em Meu perfil).
+async function marcarTutorialVisto(idUsuario) {
+  await db.query(`UPDATE usuarios SET tutorial_visto_em = now() WHERE id_usuario = $1`, [idUsuario]);
+}
+async function tutorialVisto(idUsuario) {
+  const res = await db.query(`SELECT tutorial_visto_em IS NOT NULL AS visto FROM usuarios WHERE id_usuario = $1`, [idUsuario]);
+  return !!(res.rows[0] && res.rows[0].visto);
+}
+// Campanha começou: o tutorial volta a aparecer para TODOS os participantes (uma vez).
+async function reabrirTutorialParaTodos() {
+  await db.query(`UPDATE usuarios SET tutorial_visto_em = NULL WHERE tipo_usuario = 'PARTICIPANTE'`);
 }
 
 async function atualizarBio(idUsuario, bio) {
@@ -372,6 +385,9 @@ module.exports = {
   derrubarSessoes,
   atualizarFoto,
   marcarPerfilCompleto,
+  marcarTutorialVisto,
+  tutorialVisto,
+  reabrirTutorialParaTodos,
   atualizarBio,
   atualizarNome,
   atualizarNascimento,

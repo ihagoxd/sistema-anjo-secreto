@@ -138,11 +138,18 @@ async function postPerfil(req, res, next) {
     const galeria = (req.files && req.files.fotos) ? req.files.fotos.map((f) => '/uploads/' + f.filename) : [];
     const r = await preferenciaService.adicionarFotos(idUsuario, galeria);
 
+    const primeiraVez = !req.session.usuario.perfil_completo;
     await usuarioModel.marcarPerfilCompleto(idUsuario);
     req.session.usuario.perfil_completo = true;
 
     let msg = 'Perfil atualizado! Seu anjo vai adorar. ✨';
     if (r.ignoradas > 0) msg += ` (${r.ignoradas} foto(s) não couberam no limite de ${preferenciaService.MAX_FOTOS}.)`;
+    // Primeira vez que completa o perfil: vai para o feed, onde o tutorial passo a passo
+    // começa sozinho (só para quem ainda não viu).
+    if (primeiraVez && !req.session.usuario.tutorial_visto) {
+      req.session.flash = { sucesso: 'Perfil salvo! Agora um tour rapidinho pelo app. 🎬' };
+      return res.redirect('/feed');
+    }
     req.session.flash = { sucesso: msg };
     res.redirect('/participante/preferencias');
   } catch (err) {
@@ -184,7 +191,19 @@ async function postLegendaFoto(req, res, next) {
   }
 }
 
+// Tutorial concluído (ou pulado): não aparece mais sozinho. AJAX → JSON.
+async function postTutorialVisto(req, res, next) {
+  try {
+    await usuarioModel.marcarTutorialVisto(req.session.usuario.id_usuario);
+    req.session.usuario.tutorial_visto = true;
+    if ((req.get('x-requested-with') || '') === 'fetch') return res.json({ ok: true });
+    res.redirect('/feed');
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   getDashboard, getProtegido, getPreferencias,
-  postPerfil, postRemoverFotoPerfil, postRemoverFoto, postLegendaFoto,
+  postPerfil, postRemoverFotoPerfil, postRemoverFoto, postLegendaFoto, postTutorialVisto,
 };

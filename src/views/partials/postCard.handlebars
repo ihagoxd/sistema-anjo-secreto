@@ -1,12 +1,16 @@
 <article class="tw-post ig-post{{#if @root.detalhe}} tw-post-det{{/if}}{{#if this.presente_anjo}} post-presente{{/if}}" data-id="{{this.id_post}}">
   {{#if this.presente_anjo}}
-    {{! Presente de Anjo: brilho que passa, estrelinhas e o selo dourado }}
-    <span class="presente-brilho" aria-hidden="true"></span>
-    <span class="presente-estrelas" aria-hidden="true"><i style="left:6%;top:10px;animation-delay:0s">✦</i><i style="left:22%;top:34px;animation-delay:1.1s">✧</i><i style="right:14%;top:8px;animation-delay:.6s">✦</i><i style="right:4%;top:40px;animation-delay:1.8s">✧</i><i style="left:48%;top:4px;animation-delay:2.4s">✦</i><i style="right:32%;top:48px;animation-delay:3s">✧</i></span>
-    <span class="presente-anjo-marca" aria-hidden="true">👼</span>
-    <div class="presente-selo"><span class="asa" aria-hidden="true">👼</span><span>Presente de Anjo</span><span class="asa asa-2" aria-hidden="true">🎁</span></div>
+    {{! Presente de Anjo: aura dourada + faixa no topo com brilho passando e estrelinhas }}
+    <span class="presente-aura" aria-hidden="true"></span>
+    <div class="presente-faixa" aria-label="Presente de Anjo">
+      <span class="presente-faixa-brilho" aria-hidden="true"></span>
+      <span class="presente-faixa-ic" aria-hidden="true">🎁</span>
+      <div class="presente-faixa-txt"><strong>Presente de Anjo</strong><small>Olha o mimo que chegou ✨</small></div>
+      <span class="presente-faixa-estrelas" aria-hidden="true"><i>✦</i><i>✧</i><i>✦</i></span>
+    </div>
   {{/if}}
   <header class="ig-cab">
+    {{#if this.presente_anjo}}<span class="presente-av-badge" aria-hidden="true">👼</span>{{/if}}
     {{#if this.temStory}}
       <button type="button" class="ig-av av-story {{#if this.storyVisto}}visto{{else}}tem{{/if}}" data-ver-stories="{{this.id_usuario}}" title="Ver o story de {{this.usuario}}">{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</button>
     {{else}}
@@ -40,8 +44,8 @@
   {{#unless this.imagem}}{{#if this.texto}}<div class="tw-post-texto ig-texto{{#if this.enquete}}{{#unless this.enquete.pergunta}} enq-pergunta{{/unless}}{{/if}}"><span data-post-texto>{{comMencoes this.texto}}</span></div>{{/if}}{{/unless}}
   {{#if this.enquete}}{{> enquete this}}{{/if}}
 
-  {{#if this.imagem}}<div class="tw-post-midia" data-post-id="{{this.id_post}}" data-img="{{this.imagem}}" role="button" tabindex="0" aria-label="Ampliar imagem (clique 2x para curtir)"><img src="{{this.imagem}}" alt="Foto" draggable="false" loading="lazy" decoding="async"></div>{{/if}}
-  {{#if this.video}}<div class="ig-video"><video src="{{this.video}}" controls playsinline preload="metadata"></video></div>{{/if}}
+  {{#if this.imagem}}<div class="tw-post-midia" data-post-id="{{this.id_post}}" data-img="{{this.imagem}}" role="button" tabindex="0" aria-label="Ampliar imagem (clique 2x para curtir)">{{#if this.presente_anjo}}<span class="presente-laco" aria-hidden="true">🎀</span><span class="presente-faiscas" aria-hidden="true"><i>✦</i><i>✧</i><i>✦</i><i>✧</i></span>{{/if}}<img src="{{this.imagem}}" alt="Foto" draggable="false" loading="lazy" decoding="async"></div>{{/if}}
+  {{#if this.video}}<div class="ig-video">{{#if this.presente_anjo}}<span class="presente-laco" aria-hidden="true">🎀</span>{{/if}}<video src="{{this.video}}" controls playsinline preload="metadata"></video></div>{{/if}}
 
   <div class="tw-post-acoes ig-acoes">
     <button type="button" class="tw-acao curtir {{#if this.curtiu}}ativo{{/if}}" data-curtir="{{this.id_post}}" aria-pressed="{{this.curtiu}}" aria-label="Curtir">

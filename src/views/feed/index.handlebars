@@ -79,7 +79,12 @@
         </div>
       </div>
       {{! Presente de Anjo ligado: avisa que o post sai em destaque }}
-      <div class="presente-aviso" data-presente-aviso hidden><span class="presente-aviso-ic" aria-hidden="true">👼</span><span>Esse post sai em destaque como <strong>Presente de Anjo</strong> — dourado, com brilho ✨</span></div>
+      <div class="presente-faixa presente-faixa-comp" data-presente-aviso hidden>
+        <span class="presente-faixa-brilho" aria-hidden="true"></span>
+        <span class="presente-faixa-ic" aria-hidden="true">🎁</span>
+        <div class="presente-faixa-txt"><strong>Presente de Anjo</strong><small>Esse post sai em destaque, dourado — conte como foi o mimo ✨</small></div>
+        <span class="presente-faixa-estrelas" aria-hidden="true"><i>✦</i><i>✧</i><i>✦</i></span>
+      </div>
       {{! Colaboradores (post em dupla/trio, como no Instagram) — os chips são montados pelo JS }}
       <div class="colab-chips" data-colab-chip hidden></div>
       <input type="hidden" name="colaborador" value="" data-colab-id>

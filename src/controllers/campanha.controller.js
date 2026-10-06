@@ -68,18 +68,35 @@ async function getDetalhe(req, res, next) {
       flash(req, 'erro', MSG.NAO_ENCONTRADA);
       return res.redirect('/admin/campanhas');
     }
-    const [participantes, totalAptos] = await Promise.all([
+    const [participantes, totalAptos, mensagens] = await Promise.all([
       participanteService.listarPorCampanha(campanha.id_campanha),
       usuarioModel.contarParticipantesAptos(),
+      participanteService.resumoMensagens(campanha.id_campanha),
     ]);
-    // Quantos vão entrar no sorteio: se já sorteou, os participantes gravados; senão, todos os aprovados.
-    const totalNoSorteio = campanha.status === 'RASCUNHO' ? totalAptos : participantes.length;
+    const ativos = participantes.filter((p) => p.ativo && p.usuario_ativo);
+    // Quem saiu/foi inativado DEPOIS do sorteio: o anjo dessa pessoa ficou sem protegido
+    // até o sorteio ser refeito. Em rascunho não importa (o sorteio ainda vai acontecer).
+    const inativosComPar = campanha.status === 'EM_ANDAMENTO'
+      ? participantes.filter((p) => (!p.ativo || !p.usuario_ativo) && p.tem_par) : [];
+    // Quantos vão entrar no sorteio: se já sorteou, os participantes ativos gravados; senão, todos os aprovados.
+    const totalNoSorteio = campanha.status === 'RASCUNHO' ? totalAptos : ativos.length;
+    // Card "revelado" do fluxo sem JS (guardado na sessão pelo POST de revelar pessoa).
+    let revelacao = null;
+    if (req.session.revelacao && Number(req.session.revelacao.id_campanha) === Number(campanha.id_campanha)) {
+      revelacao = req.session.revelacao;
+    }
+    delete req.session.revelacao;
     res.render('admin/campanha', {
       titulo: campanha.nome,
       campanha,
       participantes,
       totalParticipantes: participantes.length,
+      totalAtivos: ativos.length,
       totalNoSorteio,
+      inativosComPar,
+      mensagens,
+      revelacao,
+      sorteada: campanha.status !== 'RASCUNHO',
       podeSortear: campanha.status === 'RASCUNHO' && totalAptos >= 3,
       faltam: Math.max(0, 3 - totalAptos),
     });

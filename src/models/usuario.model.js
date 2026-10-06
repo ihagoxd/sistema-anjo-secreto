@@ -22,16 +22,40 @@ async function buscarPorId(idUsuario) {
   return res.rows[0] || null;
 }
 
-// Lista todos os usuários (com busca opcional por nome/usuário). Pendentes primeiro.
-async function listarTodos({ busca } = {}) {
+// Lista usuários para o admin, com busca por nome/usuário e filtro de situação:
+//   filtro: 'todos' | 'pendentes' | 'aprovados' | 'recusados' | 'inativos' | 'admins'
+// Pendentes vêm primeiro (precisam de ação), depois em ordem alfabética.
+async function listarTodos({ busca, filtro } = {}) {
   const termo = busca && busca.trim() ? `%${busca.trim()}%` : null;
+  const cond = {
+    pendentes: `status = 'PENDENTE'`,
+    aprovados: `status = 'APROVADO' AND ativo = TRUE`,
+    recusados: `status = 'RECUSADO'`,
+    inativos: `ativo = FALSE`,
+    admins: `tipo_usuario = 'ADMINISTRADOR'`,
+  }[filtro] || 'TRUE';
   const res = await db.query(
     `SELECT ${COLUNAS} FROM usuarios
       WHERE ($1::text IS NULL OR nome ILIKE $1 OR usuario ILIKE $1)
+        AND ${cond}
       ORDER BY (status = 'PENDENTE') DESC, lower(nome) ASC`,
     [termo]
   );
   return res.rows;
+}
+
+// Contagens para os filtros da tela de usuários (chips com número).
+async function contarResumo() {
+  const res = await db.query(
+    `SELECT COUNT(*)::int AS todos,
+            COUNT(*) FILTER (WHERE status = 'PENDENTE')::int AS pendentes,
+            COUNT(*) FILTER (WHERE status = 'APROVADO' AND ativo = TRUE)::int AS aprovados,
+            COUNT(*) FILTER (WHERE status = 'RECUSADO')::int AS recusados,
+            COUNT(*) FILTER (WHERE ativo = FALSE)::int AS inativos,
+            COUNT(*) FILTER (WHERE tipo_usuario = 'ADMINISTRADOR')::int AS admins
+       FROM usuarios`
+  );
+  return res.rows[0];
 }
 
 // Cria um cadastro vindo do auto-registro: PARTICIPANTE, status PENDENTE.
@@ -65,8 +89,32 @@ async function atualizar(idUsuario, { nome, usuario, tipoUsuario }) {
   return res.rows[0];
 }
 
+// Ativa/inativa o usuário E espelha nas campanhas abertas (rascunho/em andamento):
+// o participante inativo fica fora do próximo sorteio/refazer e das contagens.
 async function definirAtivo(idUsuario, ativo) {
   await db.query(`UPDATE usuarios SET ativo = $2 WHERE id_usuario = $1`, [idUsuario, ativo]);
+  await db.query(
+    `UPDATE participantes p SET ativo = $2
+       FROM campanhas c
+      WHERE c.id_campanha = p.id_campanha AND p.id_usuario = $1 AND c.status <> 'ENCERRADA'`,
+    [idUsuario, ativo]
+  );
+}
+
+// Derruba TODAS as sessões abertas do usuário (inativado, excluído, senha redefinida,
+// tipo alterado): a mudança vale na hora, sem esperar a sessão expirar.
+// Nunca lança — se a tabela de sessão ainda não existir, só avisa no console.
+async function derrubarSessoes(idUsuario) {
+  try {
+    const res = await db.query(
+      `DELETE FROM session WHERE (sess #>> '{usuario,id_usuario}')::int = $1`,
+      [idUsuario]
+    );
+    return res.rowCount;
+  } catch (err) {
+    console.error('[usuario] não derrubou sessões:', err.message);
+    return 0;
+  }
 }
 
 async function atualizarFoto(idUsuario, caminho) {
@@ -238,13 +286,54 @@ async function contarAdminsAtivos() {
 
 // O usuário participa de alguma campanha EM ANDAMENTO? (excluir quebraria o sorteio dela)
 async function participaDeCampanhaAtiva(idUsuario) {
+  return !!(await campanhaAtivaDoUsuario(idUsuario));
+}
+
+// A campanha EM ANDAMENTO da qual o usuário participa (ou null).
+async function campanhaAtivaDoUsuario(idUsuario) {
   const res = await db.query(
-    `SELECT 1 FROM participantes p
+    `SELECT c.id_campanha, c.nome FROM participantes p
        JOIN campanhas c ON c.id_campanha = p.id_campanha
       WHERE p.id_usuario = $1 AND c.status = 'EM_ANDAMENTO' LIMIT 1`,
     [idUsuario]
   );
-  return res.rowCount > 0;
+  return res.rows[0] || null;
+}
+
+// Participantes da campanha em andamento que estão INATIVOS (saíram, foram inativados):
+// o anjo deles segue sem ninguém para presentear até o sorteio ser refeito.
+async function inativosNaCampanhaAtiva() {
+  const res = await db.query(
+    `SELECT u.id_usuario, u.nome, u.usuario, u.foto_perfil, c.id_campanha, c.nome AS campanha_nome
+       FROM participantes p
+       JOIN campanhas c ON c.id_campanha = p.id_campanha AND c.status = 'EM_ANDAMENTO'
+       JOIN usuarios u ON u.id_usuario = p.id_usuario
+      WHERE u.ativo = FALSE OR u.status <> 'APROVADO'
+      ORDER BY lower(u.nome) ASC`
+  );
+  return res.rows;
+}
+
+// Todos os arquivos enviados pelo usuário (foto de perfil, galeria, posts, stories,
+// comentários, mídias de chat) — para tirar do disco quando ele for excluído.
+async function listarArquivosDoUsuario(idUsuario) {
+  const res = await db.query(
+    `SELECT foto_perfil AS c FROM usuarios WHERE id_usuario = $1
+     UNION ALL SELECT caminho FROM preferencias_fotos WHERE id_usuario = $1
+     UNION ALL SELECT imagem FROM posts WHERE id_usuario = $1
+     UNION ALL SELECT video FROM posts WHERE id_usuario = $1
+     UNION ALL SELECT imagem FROM post_comentarios WHERE id_usuario = $1
+     UNION ALL SELECT imagem FROM stories WHERE id_usuario = $1
+     UNION ALL SELECT video FROM stories WHERE id_usuario = $1
+     UNION ALL SELECT imagem FROM mensagens_diretas WHERE id_remetente = $1
+     UNION ALL SELECT audio FROM mensagens_diretas WHERE id_remetente = $1
+     UNION ALL SELECT video FROM mensagens_diretas WHERE id_remetente = $1
+     UNION ALL SELECT imagem FROM mensagens_anonimas WHERE id_usuario_origem = $1
+     UNION ALL SELECT audio FROM mensagens_anonimas WHERE id_usuario_origem = $1
+     UNION ALL SELECT video FROM mensagens_anonimas WHERE id_usuario_origem = $1`,
+    [idUsuario]
+  );
+  return res.rows.map((r) => r.c).filter(Boolean);
 }
 
 // Exclui o usuário DEFINITIVAMENTE, numa transação.
@@ -275,10 +364,12 @@ module.exports = {
   buscarPorUsuario,
   buscarPorId,
   listarTodos,
+  contarResumo,
   criarCadastroPendente,
   criar,
   atualizar,
   definirAtivo,
+  derrubarSessoes,
   atualizarFoto,
   marcarPerfilCompleto,
   atualizarBio,
@@ -300,5 +391,8 @@ module.exports = {
   contarParticipantesAptos,
   contarAdminsAtivos,
   participaDeCampanhaAtiva,
+  campanhaAtivaDoUsuario,
+  inativosNaCampanhaAtiva,
+  listarArquivosDoUsuario,
   excluir,
 };

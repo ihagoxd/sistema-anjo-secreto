@@ -229,6 +229,72 @@
     });
   })();
 
+  /* ---------- Admin ---------- */
+  (function () {
+    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+    // "Novo usuário": o formulário fica escondido até o clique (a lista é o foco da tela)
+    document.addEventListener('click', function (e) {
+      var ab = e.target.closest('[data-criar-abrir]');
+      var fe = e.target.closest('[data-criar-fechar]');
+      var form = document.querySelector('[data-criar-form]');
+      if (!form || (!ab && !fe)) return;
+      if (ab) { form.hidden = !form.hidden; if (!form.hidden) { var i = form.querySelector('input[name="nome"]'); if (i) i.focus(); } }
+      else form.hidden = true;
+    });
+
+    // Revelar o par de UMA pessoa (campanha): depois do card de confirmação, busca via
+    // fetch e abre um modal com "anjo de X" e "X é anjo de" — sem recarregar a página.
+    // Fica registrado em log no servidor. (Este listener vem ANTES do card de confirmação
+    // no arquivo, então ainda enxerga data-confirmado="1".)
+    var modal = null;
+    function pessoaHtml(p, papel) {
+      if (!p) return '<div class="rev-pessoa"><span class="rev-papel">' + esc(papel) + '</span><span class="rev-sem">ninguém (sem par)</span></div>';
+      var av = p.foto_perfil ? '<img src="' + esc(p.foto_perfil) + '" alt="">' : esc((p.nome || '?').trim().charAt(0).toUpperCase());
+      return '<div class="rev-pessoa"><span class="rev-papel">' + esc(papel) + '</span><span class="av-md">' + av + '</span><strong>' + esc(p.nome) + '</strong><small>@' + esc(p.usuario) + '</small></div>';
+    }
+    function abrirRevelacao(d) {
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.hidden = true;
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.appendChild(modal);
+        modal.addEventListener('click', function (ev) {
+          if (ev.target === modal || ev.target.closest('[data-fechar-modal]')) { modal.hidden = true; modal.setAttribute('aria-hidden', 'true'); }
+        });
+      }
+      modal.innerHTML = '<div class="modal-card rev-card">'
+        + '<div class="modal-cab"><h2>🔓 Par de ' + esc(d.pessoa.nome) + '</h2><p class="texto-suave" style="margin:0;">Esta consulta ficou registrada em log. Use com responsabilidade.</p></div>'
+        + '<div class="rev-bloco"><div class="rev-par">' + pessoaHtml(d.anjo, 'Anjo de ' + (d.pessoa.nome.split(' ')[0] || '')) + '<span class="rev-seta-grande" aria-hidden="true">→</span>' + pessoaHtml(d.pessoa, 'Pessoa') + '</div></div>'
+        + '<div class="rev-bloco"><div class="rev-par">' + pessoaHtml(d.pessoa, 'Pessoa') + '<span class="rev-seta-grande" aria-hidden="true">→</span>' + pessoaHtml(d.protegido, 'Protegido de ' + (d.pessoa.nome.split(' ')[0] || '')) + '</div></div>'
+        + '<div class="modal-acoes"><button type="button" class="btn btn-primario btn-sm" data-fechar-modal>Fechar</button></div>'
+        + '</div>';
+      modal.hidden = false;
+      modal.setAttribute('aria-hidden', 'false');
+    }
+    document.addEventListener('submit', function (e) {
+      var form = e.target.closest('form[data-revelar-pessoa]');
+      if (!form || form.dataset.confirmado !== '1') return;
+      e.preventDefault();
+      var btn = form.querySelector('button[type="submit"]');
+      if (btn) btn.disabled = true;
+      var tok = form.querySelector('input[name="_csrf"]');
+      fetch(form.action, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'fetch', 'Accept': 'application/json', 'X-CSRF-Token': tok ? tok.value : '' },
+        body: new URLSearchParams(new FormData(form)),
+      })
+        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+        .then(function (x) {
+          if (!x.ok || !x.d || !x.d.ok) { toast((x.d && x.d.erro) || 'Não foi possível revelar.'); return; }
+          abrirRevelacao(x.d);
+        })
+        .catch(function () { toast('Não foi possível revelar.'); })
+        .finally(function () { if (btn) btn.disabled = false; });
+    });
+  })();
+
   /* ---------- Legenda longa: corta em 2 linhas com "mais" (estilo Instagram) ---------- */
   (function () {
     document.querySelectorAll('.ig-legenda').forEach(function (leg) {

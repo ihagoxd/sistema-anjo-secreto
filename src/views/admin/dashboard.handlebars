@@ -1,22 +1,38 @@
 <div class="pagina-cabecalho">
   <div>
     <h1>Painel do administrador</h1>
-    <p class="subtitulo">Olá, {{usuario.nome}} 👋</p>
+    <p class="subtitulo">Olá, {{usuario.nome}} 👋 {{#if campanhaAtiva}}· rodada em andamento: <strong>{{campanhaAtiva.nome}}</strong>{{else}}· nenhuma rodada em andamento{{/if}}</p>
   </div>
 </div>
 
+{{#if atencao.length}}
+  <div class="atencao-lista">
+    {{#each atencao}}
+      <a class="atencao-item {{this.tipo}}" href="{{this.link}}">
+        <span class="atencao-ic">{{#if (eq this.tipo "alerta")}}⚠️{{else}}💡{{/if}}</span>
+        <span class="atencao-txt">{{this.texto}}</span>
+        <span class="btn btn-secundario btn-sm">{{this.acao}}</span>
+      </a>
+    {{/each}}
+  </div>
+{{/if}}
+
 <div class="painel-stats">
-  <a class="stat" href="/admin/usuarios">
+  <a class="stat" href="/admin/usuarios?f=aprovados">
     <span class="stat-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
-    <div><div class="numero">{{totalUsuarios}}</div><div class="stat-lbl">Usuários cadastrados</div></div>
+    <div><div class="numero">{{resumo.aprovados}}</div><div class="stat-lbl">Usuários ativos{{#if resumo.inativos}} · {{resumo.inativos}} inativo{{#unless (eq resumo.inativos 1)}}s{{/unless}}{{/if}}</div></div>
   </a>
   <a class="stat {{#if pendentes}}stat-alerta{{/if}}" href="/admin/aprovacoes">
     <span class="stat-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg></span>
     <div><div class="numero">{{pendentes}}</div><div class="stat-lbl">Aguardando aprovação</div></div>
   </a>
-  <a class="stat" href="/admin/campanhas">
+  <a class="stat" href="{{#if campanhaAtiva}}/admin/campanhas/{{campanhaAtiva.id_campanha}}{{else}}/admin/campanhas{{/if}}">
     <span class="stat-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span>
-    <div><div class="numero">{{totalCampanhas}}</div><div class="stat-lbl">Campanhas</div></div>
+    <div><div class="numero">{{#if campanhaAtiva}}{{participantesAtivos}}{{else}}{{aptos}}{{/if}}</div><div class="stat-lbl">{{#if campanhaAtiva}}No sorteio atual{{else}}Aptos para o próximo sorteio{{/if}}</div></div>
+  </a>
+  <a class="stat" href="/admin/campanhas">
+    <span class="stat-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>
+    <div><div class="numero">{{#if mensagens}}{{mensagens.total}}{{else}}{{totalCampanhas}}{{/if}}</div><div class="stat-lbl">{{#if mensagens}}Mensagens nesta rodada{{else}}Campanhas no total{{/if}}</div></div>
   </a>
 </div>
 
@@ -25,8 +41,15 @@
     <h3>🎁 Campanha do mês</h3>
     {{#if campanhaAtiva}}
       <p class="texto-suave" style="margin-top:0;"><span class="badge andamento">Em andamento</span> &nbsp;{{campanhaAtiva.nome}}</p>
-      <p class="texto-suave">O sorteio já rolou — acompanhe a rodada e as mensagens dos participantes.</p>
-      <a href="/admin/campanhas/{{campanhaAtiva.id_campanha}}" class="btn btn-primario">Abrir campanha</a>
+      <p class="texto-suave">{{participantesAtivos}} participante{{#unless (eq participantesAtivos 1)}}s{{/unless}} · {{mensagens.total}} mensage{{#if (eq mensagens.total 1)}}m{{else}}ns{{/if}} do jogo · {{mensagens.pessoas}} pessoa{{#unless (eq mensagens.pessoas 1)}}s{{/unless}} já escreveram{{#if mensagens.ultima}} · última {{tempoRel mensagens.ultima}}{{/if}}</p>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <a href="/admin/campanhas/{{campanhaAtiva.id_campanha}}" class="btn btn-primario">Abrir campanha</a>
+        <a href="/admin/avisos" class="btn btn-secundario">Publicar aviso</a>
+      </div>
+    {{else if rascunho}}
+      <p class="texto-suave" style="margin-top:0;"><span class="badge rascunho">Rascunho</span> &nbsp;{{rascunho.nome}}</p>
+      <p class="texto-suave">{{aptos}} pessoa{{#unless (eq aptos 1)}}s{{/unless}} apta{{#unless (eq aptos 1)}}s{{/unless}} entram automaticamente no sorteio. É só apertar o botão na campanha.</p>
+      <a href="/admin/campanhas/{{rascunho.id_campanha}}" class="btn btn-primario">🎲 Fazer o sorteio</a>
     {{else}}
       <p class="texto-suave" style="margin-top:0;">Nenhuma campanha em andamento. Crie a rodada do mês e faça o sorteio.</p>
       <a href="/admin/campanhas" class="btn btn-primario">Criar campanha</a>
@@ -43,8 +66,9 @@
             <div class="atv-txt">
               <span class="atv-acao">{{rotuloAcao this.acao}}</span>
               {{#if this.nome_usuario}}<span class="atv-quem">· {{this.nome_usuario}}</span>{{/if}}
-              <span class="atv-tempo">{{tempoRel this.criado_em}}</span>
+              {{#if this.descricao}}<span class="log-det">{{this.descricao}}</span>{{/if}}
             </div>
+            <span class="atv-tempo" title="{{formatarData this.criado_em}}">{{tempoRel this.criado_em}}</span>
           </li>
         {{/each}}
       </ul>
@@ -62,11 +86,15 @@
   </a>
   <a class="acao-card" href="/admin/usuarios">
     <span class="acao-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></span>
-    <div><strong>Usuários</strong><small>Gerenciar acessos</small></div>
+    <div><strong>Usuários</strong><small>{{resumo.todos}} cadastrado{{#unless (eq resumo.todos 1)}}s{{/unless}} · {{admins}} admin{{#unless (eq admins 1)}}s{{/unless}}</small></div>
   </a>
   <a class="acao-card" href="/admin/campanhas">
     <span class="acao-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/></svg></span>
-    <div><strong>Campanhas</strong><small>Sorteios do mês</small></div>
+    <div><strong>Campanhas</strong><small>{{totalCampanhas}} rodada{{#unless (eq totalCampanhas 1)}}s{{/unless}} no total</small></div>
+  </a>
+  <a class="acao-card" href="/admin/avisos">
+    <span class="acao-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg></span>
+    <div><strong>Avisos</strong><small>Recado na tela de todos</small></div>
   </a>
   <a class="acao-card" href="/admin/logs">
     <span class="acao-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg></span>

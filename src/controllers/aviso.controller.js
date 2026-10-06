@@ -61,7 +61,10 @@ async function postAlternar(req, res, next) {
   try {
     const r = await avisoService.alternarAtivo(Number(req.params.id));
     if (!r) flash(req, 'erro', 'Aviso não encontrado.');
-    else flash(req, 'sucesso', r.ativo ? 'Aviso reativado.' : 'Aviso desativado — some da tela de todos.');
+    else {
+      await registrarLog({ idUsuario: req.session.usuario.id_usuario, acao: r.ativo ? 'AVISO_PUBLICADO' : 'AVISO_DESATIVADO', descricao: r.titulo || null, entidade: 'aviso', idReferencia: Number(req.params.id), ip: req.ip });
+      flash(req, 'sucesso', r.ativo ? 'Aviso publicado de novo — volta a aparecer para todos.' : 'Aviso desativado — some da tela de todos.');
+    }
     res.redirect('/admin/avisos');
   } catch (err) {
     next(err);

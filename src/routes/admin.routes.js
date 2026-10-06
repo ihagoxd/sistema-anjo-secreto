@@ -59,5 +59,7 @@ router.post('/campanhas/:id_campanha/sorteio/refazer', sorteioCtrl.postRefazer);
 // Tela emergencial: revelar o sorteio (gera log obrigatório no POST)
 router.get('/campanhas/:id_campanha/revelar', adminCtrl.getRevelar);
 router.post('/campanhas/:id_campanha/revelar', adminCtrl.postRevelar);
+// Revelar só UMA pessoa (quem é o anjo dela e de quem ela é anjo) — também com log
+router.post('/campanhas/:id_campanha/revelar/:id_usuario([0-9]+)', adminCtrl.postRevelarPessoa);
 
 module.exports = router;

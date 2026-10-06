@@ -16,6 +16,10 @@ function listarElegiveis(idCampanha) {
   return participanteModel.listarElegiveis(idCampanha);
 }
 
+function resumoMensagens(idCampanha) {
+  return participanteModel.resumoMensagens(idCampanha);
+}
+
 async function adicionarParticipante(idCampanha, idUsuario) {
   const campanha = await campanhaModel.buscarPorId(idCampanha);
   if (!campanha) return { ok: false, motivo: 'CAMPANHA_NAO_ENCONTRADA' };
@@ -45,4 +49,4 @@ async function removerParticipante(idParticipante, idCampanha) {
   return { ok: true };
 }
 
-module.exports = { listarPorCampanha, listarElegiveis, adicionarParticipante, removerParticipante };
+module.exports = { listarPorCampanha, listarElegiveis, resumoMensagens, adicionarParticipante, removerParticipante };

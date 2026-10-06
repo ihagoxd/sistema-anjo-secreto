@@ -1,68 +1,72 @@
 <div class="tabela-wrap">
-  <table class="tabela">
+  <table class="tabela tabela-usuarios">
     <thead>
       <tr>
-        <th>Nome</th>
-        <th>Usuário</th>
+        <th>Pessoa</th>
         <th>Tipo</th>
-        <th>Status</th>
-        <th>Ativo</th>
+        <th>Situação</th>
+        <th>Cadastro</th>
         <th>Ações</th>
       </tr>
     </thead>
     <tbody>
       {{#each usuarios}}
-        <tr>
-          <td data-label="Nome">{{this.nome}}</td>
-          <td data-label="Usuário">{{this.usuario}}</td>
+        <tr class="{{#if (eq this.sit "inativo")}}linha-inativa{{/if}} {{#if (eq this.sit "pendente")}}linha-pendente{{/if}}">
+          <td data-label="Pessoa">
+            <div class="pessoa-cel">
+              <span class="av-sm">{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</span>
+              <div class="pessoa-txt">
+                <strong>{{this.nome}}{{#if this.ehEu}} <span class="eu-tag">você</span>{{/if}}</strong>
+                <small>@{{this.usuario}}</small>
+              </div>
+            </div>
+          </td>
           <td data-label="Tipo">
-            {{#if (eq this.tipo_usuario "ADMINISTRADOR")}}
-              <span class="badge admin">Administrador</span>
-            {{else}}
-              <span class="badge">Participante</span>
-            {{/if}}
+            {{#if (eq this.tipo_usuario "ADMINISTRADOR")}}<span class="badge admin">Administrador</span>{{else}}<span class="badge">Participante</span>{{/if}}
           </td>
-          <td data-label="Status">
-            {{#if (eq this.status "APROVADO")}}<span class="badge aprovado">Aprovado</span>{{/if}}
-            {{#if (eq this.status "PENDENTE")}}<span class="badge pendente">Pendente</span>{{/if}}
-            {{#if (eq this.status "RECUSADO")}}<span class="badge recusado">Recusado</span>{{/if}}
+          <td data-label="Situação">
+            {{#if (eq this.sit "pendente")}}<span class="badge pendente">Aguardando aprovação</span>{{/if}}
+            {{#if (eq this.sit "recusado")}}<span class="badge recusado">Recusado</span>{{/if}}
+            {{#if (eq this.sit "inativo")}}<span class="badge inativo">Inativo</span>{{/if}}
+            {{#if (eq this.sit "ativo")}}<span class="badge aprovado">Ativo</span>{{/if}}
+            {{#if this.senha_provisoria}}<small class="sit-sub">senha provisória</small>{{/if}}
           </td>
-          <td data-label="Ativo">{{#if this.ativo}}Sim{{else}}<span class="badge inativo">Não</span>{{/if}}</td>
+          <td data-label="Cadastro"><span class="texto-suave" title="{{formatarData this.criado_em}}">{{tempoRel this.criado_em}}</span></td>
           <td data-label="Ações" class="td-acoes">
             <div class="acoes-linha">
-              {{#if (eq this.status "PENDENTE")}}
+              {{#if (ou (eq this.sit "pendente") (eq this.sit "recusado"))}}
                 <form action="/admin/aprovacoes/{{this.id_usuario}}/aprovar" method="POST">
                   <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
-                  <button type="submit" class="btn btn-primario btn-sm">Aprovar</button>
+                  <button type="submit" class="btn btn-primario btn-sm">{{#if (eq this.sit "recusado")}}Aprovar mesmo assim{{else}}Aprovar{{/if}}</button>
                 </form>
+              {{/if}}
+              {{#if (eq this.sit "pendente")}}
                 <form action="/admin/aprovacoes/{{this.id_usuario}}/recusar" method="POST" data-confirmar="Recusar o cadastro de {{this.nome}}?">
                   <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
-                  <button type="submit" class="btn btn-perigo btn-sm">Recusar</button>
+                  <button type="submit" class="btn btn-secundario btn-sm">Recusar</button>
                 </form>
               {{/if}}
 
               <a href="/admin/usuarios/{{this.id_usuario}}/editar" class="btn btn-secundario btn-sm">Editar</a>
 
-              {{#unless (eq this.id_usuario @root.usuario.id_usuario)}}
-                {{#if this.ativo}}
-                  <form action="/admin/usuarios/{{this.id_usuario}}/inativar" method="POST" data-confirmar="Inativar {{this.nome}}?">
-                    <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
-                    <button type="submit" class="btn btn-secundario btn-sm">Inativar</button>
-                  </form>
-                {{else}}
-                  <form action="/admin/usuarios/{{this.id_usuario}}/ativar" method="POST">
-                    <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
-                    <button type="submit" class="btn btn-secundario btn-sm">Ativar</button>
-                  </form>
+              {{#unless this.ehEu}}
+                {{#unless (eq this.sit "pendente")}}
+                  {{#if this.ativo}}
+                    <form action="/admin/usuarios/{{this.id_usuario}}/inativar" method="POST" data-confirmar="Inativar {{this.nome}}? A pessoa é desconectada na hora e não consegue mais entrar.">
+                      <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
+                      <button type="submit" class="btn btn-secundario btn-sm">Inativar</button>
+                    </form>
+                  {{else}}
+                    <form action="/admin/usuarios/{{this.id_usuario}}/ativar" method="POST">
+                      <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
+                      <button type="submit" class="btn btn-secundario btn-sm">Reativar</button>
+                    </form>
+                  {{/if}}
+                {{/unless}}
+                {{#if (eq this.sit "ativo")}}
+                  <a href="/admin/usuarios/{{this.id_usuario}}/editar#senha-nova" class="btn btn-secundario btn-sm">Redefinir senha</a>
                 {{/if}}
-              {{/unless}}
-
-              {{#unless (eq this.id_usuario @root.usuario.id_usuario)}}
-                <a href="/admin/usuarios/{{this.id_usuario}}/editar#senha-nova" class="btn btn-secundario btn-sm">Redefinir senha</a>
-              {{/unless}}
-
-              {{#unless (eq this.id_usuario @root.usuario.id_usuario)}}
-                <form action="/admin/usuarios/{{this.id_usuario}}/excluir" method="POST" data-confirmar="EXCLUIR permanentemente {{this.nome}}? Isso apaga posts, mensagens e todos os dados dele(a). Não dá para desfazer.">
+                <form action="/admin/usuarios/{{this.id_usuario}}/excluir" method="POST" data-confirmar="EXCLUIR permanentemente {{this.nome}}? Isso apaga posts, fotos, mensagens e todos os dados da pessoa. Não dá para desfazer.">
                   <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
                   <button type="submit" class="btn btn-perigo btn-sm">Excluir</button>
                 </form>
@@ -71,7 +75,7 @@
           </td>
         </tr>
       {{else}}
-        <tr><td colspan="6" class="texto-suave">Nenhum usuário encontrado.</td></tr>
+        <tr><td colspan="5" class="texto-suave">{{#if busca}}Ninguém encontrado para "{{busca}}".{{else}}Nenhum usuário nesta lista.{{/if}}</td></tr>
       {{/each}}
     </tbody>
   </table>

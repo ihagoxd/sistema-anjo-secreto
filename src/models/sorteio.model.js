@@ -14,7 +14,7 @@ async function existeSorteio(idCampanha) {
 // Quem o usuário (como ANJO) tirou — ou seja, seu protegido.
 async function buscarProtegidoDoAnjo(idCampanha, idUsuario) {
   const res = await db.query(
-    `SELECT u.id_usuario, u.nome, u.usuario
+    `SELECT u.id_usuario, u.nome, u.usuario, u.foto_perfil
        FROM sorteios s
        JOIN participantes pa ON pa.id_participante = s.id_anjo
        JOIN participantes pp ON pp.id_participante = s.id_protegido
@@ -26,10 +26,10 @@ async function buscarProtegidoDoAnjo(idCampanha, idUsuario) {
 }
 
 // Quem é o ANJO de um usuário (como protegido). USO RESTRITO:
-// nunca exibir ao protegido — só validação interna / tela emergencial (Fase 10).
+// nunca exibir ao protegido — só validação interna / revelação pelo admin (com log).
 async function buscarAnjoDoProtegido(idCampanha, idUsuario) {
   const res = await db.query(
-    `SELECT u.id_usuario, u.nome, u.usuario
+    `SELECT u.id_usuario, u.nome, u.usuario, u.foto_perfil
        FROM sorteios s
        JOIN participantes pp ON pp.id_participante = s.id_protegido
        JOIN participantes pa ON pa.id_participante = s.id_anjo
@@ -40,11 +40,13 @@ async function buscarAnjoDoProtegido(idCampanha, idUsuario) {
   return res.rows[0] || null;
 }
 
-// Todos os pares (anjo → protegido). USO RESTRITO: só na tela emergencial (Fase 10).
+// Todos os pares (anjo → protegido). USO RESTRITO: só na tela emergencial do admin (com log).
 async function listarPares(idCampanha) {
   const res = await db.query(
-    `SELECT ua.nome AS anjo_nome, ua.usuario AS anjo_usuario,
-            up.nome AS protegido_nome, up.usuario AS protegido_usuario
+    `SELECT ua.id_usuario AS anjo_id, ua.nome AS anjo_nome, ua.usuario AS anjo_usuario, ua.foto_perfil AS anjo_foto,
+            (ua.ativo AND ua.status = 'APROVADO') AS anjo_ativo,
+            up.id_usuario AS protegido_id, up.nome AS protegido_nome, up.usuario AS protegido_usuario, up.foto_perfil AS protegido_foto,
+            (up.ativo AND up.status = 'APROVADO') AS protegido_ativo
        FROM sorteios s
        JOIN participantes pa ON pa.id_participante = s.id_anjo
        JOIN participantes pp ON pp.id_participante = s.id_protegido

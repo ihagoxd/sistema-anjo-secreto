@@ -1,10 +1,25 @@
 <div class="pagina-cabecalho">
   <div>
     <h1>Logs do sistema</h1>
-    <p class="subtitulo">Últimas {{logs.length}} ações registradas (mais recentes primeiro).</p>
+    <p class="subtitulo">{{#if total}}{{#if filtrando}}{{total}} registro{{#unless (eq total 1)}}s{{/unless}} encontrado{{#unless (eq total 1)}}s{{/unless}}{{else}}{{total}} ações registradas{{/if}} · mostrando {{de}}–{{ate}}{{else}}Nenhum registro{{#if filtrando}} com esse filtro{{/if}}.{{/if}}</p>
   </div>
   <a href="/admin" class="btn btn-secundario btn-sm">Voltar</a>
 </div>
+
+<form class="filtros logs-filtros" action="/admin/logs" method="GET">
+  <div class="campo" style="margin:0;">
+    <select name="acao" aria-label="Tipo de ação">
+      <option value="">Todas as ações</option>
+      {{#each acoes}}<option value="{{this.acao}}" {{#if this.sel}}selected{{/if}}>{{rotuloAcao this.acao}} ({{this.n}})</option>{{/each}}
+    </select>
+  </div>
+  <div class="campo busca-campo" style="margin:0;">
+    <svg class="busca-lupa" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="search" name="q" value="{{q}}" placeholder="Quem fez, descrição ou IP…">
+  </div>
+  <button type="submit" class="btn btn-secundario">Filtrar</button>
+  {{#if filtrando}}<a href="/admin/logs" class="btn btn-secundario">Limpar</a>{{/if}}
+</form>
 
 <div class="card">
   <ul class="atividade log-lista">
@@ -13,13 +28,20 @@
         <span class="atv-dot"></span>
         <div class="atv-txt">
           <span class="atv-acao">{{rotuloAcao this.acao}}</span>
-          {{#if this.nome_usuario}}<span class="atv-quem">{{this.nome_usuario}}</span>{{/if}}
-          {{#if this.descricao}}<span class="log-det">{{this.descricao}}</span>{{/if}}
+          {{#if this.nome_usuario}}<span class="atv-quem" title="@{{this.login_usuario}}">{{this.nome_usuario}}</span>{{/if}}
+          {{#if this.descricao}}<span class="log-det" title="{{this.descricao}}">{{this.descricao}}</span>{{/if}}
         </div>
-        <span class="atv-tempo" title="{{formatarData this.criado_em}} · IP {{this.ip}}">{{tempoRel this.criado_em}}</span>
+        <span class="atv-tempo" title="{{formatarData this.criado_em}} · IP {{this.ip}}">{{formatarData this.criado_em}}</span>
       </li>
     {{else}}
-      <li class="atv-item"><span class="texto-suave">Nenhum log ainda.</span></li>
+      <li class="atv-item"><span class="texto-suave">{{#if filtrando}}Nada encontrado com esse filtro.{{else}}Nenhum log ainda.{{/if}}</span></li>
     {{/each}}
   </ul>
+  {{#if (ou anterior proxima)}}
+    <div class="paginacao">
+      {{#if anterior}}<a href="{{anterior}}" class="btn btn-secundario btn-sm">← Mais recentes</a>{{else}}<span></span>{{/if}}
+      <span class="texto-suave">Página {{pagina}} de {{paginas}}</span>
+      {{#if proxima}}<a href="{{proxima}}" class="btn btn-secundario btn-sm">Mais antigos →</a>{{else}}<span></span>{{/if}}
+    </div>
+  {{/if}}
 </div>

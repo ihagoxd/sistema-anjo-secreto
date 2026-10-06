@@ -1,14 +1,14 @@
 <div class="pagina-cabecalho">
   <div>
     <h1>Sorteio revelado</h1>
-    <p class="subtitulo">{{campanha.nome}}</p>
+    <p class="subtitulo">{{campanha.nome}} · {{pares.length}} par{{#unless (eq pares.length 1)}}es{{/unless}}</p>
   </div>
   <a href="/admin/campanhas/{{campanha.id_campanha}}" class="btn btn-secundario btn-sm">Voltar</a>
 </div>
 
 <div class="alerta alerta-erro" role="alert" style="margin-bottom:18px;">
   <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
-  <span>Este acesso foi registrado em log. Use a informação com responsabilidade.</span>
+  <span>Este acesso foi registrado em log. Use a informação com responsabilidade — não compartilhe a lista.</span>
 </div>
 
 <div class="tabela-wrap">
@@ -17,9 +17,19 @@
     <tbody>
       {{#each pares}}
         <tr>
-          <td data-label="Anjo">{{this.anjo_nome}} <span class="texto-suave">({{this.anjo_usuario}})</span></td>
+          <td data-label="Anjo">
+            <div class="pessoa-cel">
+              <span class="av-sm">{{#if this.anjo_foto}}<img src="{{this.anjo_foto}}" alt="">{{else}}{{inicial this.anjo_nome}}{{/if}}</span>
+              <div class="pessoa-txt"><strong>{{this.anjo_nome}}{{#unless this.anjo_ativo}} <span class="badge inativo">inativo</span>{{/unless}}</strong><small>@{{this.anjo_usuario}}</small></div>
+            </div>
+          </td>
           <td class="texto-suave rev-seta">→</td>
-          <td data-label="Protegido">{{this.protegido_nome}} <span class="texto-suave">({{this.protegido_usuario}})</span></td>
+          <td data-label="Protegido">
+            <div class="pessoa-cel">
+              <span class="av-sm">{{#if this.protegido_foto}}<img src="{{this.protegido_foto}}" alt="">{{else}}{{inicial this.protegido_nome}}{{/if}}</span>
+              <div class="pessoa-txt"><strong>{{this.protegido_nome}}{{#unless this.protegido_ativo}} <span class="badge inativo">inativo</span>{{/unless}}</strong><small>@{{this.protegido_usuario}}</small></div>
+            </div>
+          </td>
         </tr>
       {{else}}
         <tr><td colspan="3" class="texto-suave">Sem pares.</td></tr>

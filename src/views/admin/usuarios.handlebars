@@ -1,47 +1,57 @@
 <div class="pagina-cabecalho">
   <div>
     <h1>Usuários</h1>
-    <p class="subtitulo">Crie, edite, ative/inative e resete a senha dos usuários.</p>
+    <p class="subtitulo">{{resumo.aprovados}} ativo{{#unless (eq resumo.aprovados 1)}}s{{/unless}}{{#if resumo.pendentes}} · <strong>{{resumo.pendentes}} aguardando aprovação</strong>{{/if}}{{#if resumo.inativos}} · {{resumo.inativos}} inativo{{#unless (eq resumo.inativos 1)}}s{{/unless}}{{/if}}</p>
   </div>
-  <a href="/admin" class="btn btn-secundario btn-sm">Voltar</a>
+  <button type="button" class="btn btn-primario" data-criar-abrir>+ Novo usuário</button>
 </div>
 
-<details class="criar" style="margin-bottom:18px;">
-  <summary class="btn btn-primario">+ Novo usuário</summary>
-  <form class="form card" action="/admin/usuarios" method="POST" style="margin-top:14px;" novalidate>
-    <input type="hidden" name="_csrf" value="{{csrfToken}}">
-    <div class="linha-campos">
-      <div class="campo">
-        <label for="nome">Nome completo</label>
-        <input type="text" id="nome" name="nome" required>
-      </div>
-      <div class="campo">
-        <label for="usuario">Usuário (login)</label>
-        <input type="text" id="usuario" name="usuario" autocapitalize="none" spellcheck="false" required>
-      </div>
+<form class="form card criar-form" action="/admin/usuarios" method="POST" novalidate hidden data-criar-form>
+  <input type="hidden" name="_csrf" value="{{csrfToken}}">
+  <h3 style="margin-top:0;">Novo usuário</h3>
+  <div class="linha-campos">
+    <div class="campo">
+      <label for="nome">Nome completo</label>
+      <input type="text" id="nome" name="nome" required>
     </div>
-    <div class="linha-campos">
-      <div class="campo">
-        <label for="tipo_usuario">Tipo</label>
-        <select id="tipo_usuario" name="tipo_usuario">
-          <option value="PARTICIPANTE">Participante</option>
-          <option value="ADMINISTRADOR">Administrador</option>
-        </select>
-      </div>
-      <div class="campo">
-        <label for="senha">Senha inicial</label>
-        <input type="text" id="senha" name="senha" required>
-        <p class="ajuda">Será provisória: o usuário troca no primeiro acesso.</p>
-      </div>
+    <div class="campo">
+      <label for="usuario">Usuário (login)</label>
+      <input type="text" id="usuario" name="usuario" autocapitalize="none" spellcheck="false" required>
     </div>
+  </div>
+  <div class="linha-campos">
+    <div class="campo">
+      <label for="tipo_usuario">Tipo</label>
+      <select id="tipo_usuario" name="tipo_usuario">
+        <option value="PARTICIPANTE">Participante (joga)</option>
+        <option value="ADMINISTRADOR">Administrador (só gerencia, não joga)</option>
+      </select>
+    </div>
+    <div class="campo">
+      <label for="senha">Senha inicial</label>
+      <input type="text" id="senha" name="senha" minlength="6" required autocomplete="off">
+      <p class="ajuda">Provisória: a pessoa cria a senha dela no primeiro acesso.</p>
+    </div>
+  </div>
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
     <button type="submit" class="btn btn-primario">Criar usuário</button>
-  </form>
-</details>
-
-<form class="filtros" action="/admin/usuarios" method="GET">
-  <div class="campo busca-campo" style="margin:0; max-width:360px;">
-    <input type="search" name="q" value="{{busca}}" placeholder="Buscar por nome ou usuário…">
+    <button type="button" class="btn btn-secundario" data-criar-fechar>Cancelar</button>
   </div>
 </form>
+
+<div class="filtros-usuarios">
+  <nav class="filtro-chips" aria-label="Filtrar usuários">
+    {{#each filtros}}
+      <a href="/admin/usuarios?f={{this.chave}}{{#if ../busca}}&amp;q={{../busca}}{{/if}}" class="chip {{#if this.ativo}}ativo{{/if}} {{#if this.alerta}}alerta{{/if}}">{{this.rotulo}} <span class="chip-n">{{this.n}}</span></a>
+    {{/each}}
+  </nav>
+  <form class="filtros" action="/admin/usuarios" method="GET">
+    <input type="hidden" name="f" value="{{filtro}}">
+    <div class="campo busca-campo" style="margin:0;">
+      <svg class="busca-lupa" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="search" name="q" value="{{busca}}" placeholder="Buscar por nome ou usuário…">
+    </div>
+  </form>
+</div>
 
 {{> tabelaUsuarios}}

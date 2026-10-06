@@ -64,13 +64,22 @@ async function participantesAtivos(client, idCampanha) {
 }
 
 // Adiciona TODOS os usuários aprovados/ativos (PARTICIPANTE, nunca admin) à campanha.
-// Assim todo mundo cadastrado entra automaticamente no sorteio.
+// Assim todo mundo cadastrado entra automaticamente no sorteio. Quem já estava na
+// campanha mas foi inativado/recusado/virou admin fica marcado como inativo: sai do
+// próximo sorteio (refazer) e das contagens, sem perder o histórico da rodada.
 async function sincronizarParticipantes(client, idCampanha) {
   await client.query(
     `INSERT INTO participantes (id_campanha, id_usuario)
        SELECT $1, id_usuario FROM usuarios
         WHERE status = 'APROVADO' AND ativo = TRUE AND tipo_usuario = 'PARTICIPANTE'
      ON CONFLICT (id_campanha, id_usuario) DO NOTHING`,
+    [idCampanha]
+  );
+  await client.query(
+    `UPDATE participantes p
+        SET ativo = (u.status = 'APROVADO' AND u.ativo AND u.tipo_usuario = 'PARTICIPANTE')
+       FROM usuarios u
+      WHERE u.id_usuario = p.id_usuario AND p.id_campanha = $1`,
     [idCampanha]
   );
 }

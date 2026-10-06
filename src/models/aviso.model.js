@@ -52,7 +52,7 @@ async function listar() {
 
 async function alternarAtivo(idAviso) {
   const res = await db.query(
-    `UPDATE avisos SET ativo = NOT ativo WHERE id_aviso = $1 RETURNING ativo`,
+    `UPDATE avisos SET ativo = NOT ativo WHERE id_aviso = $1 RETURNING ativo, titulo`,
     [idAviso]
   );
   return res.rows[0] || null;

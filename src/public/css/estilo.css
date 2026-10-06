@@ -3095,3 +3095,88 @@ a.share-item { text-decoration: none; color: inherit; }
   .msg-menu-fundo, .msg-menu-box { animation: none !important; }
   ::view-transition-old(root), ::view-transition-new(root) { animation: none !important; }
 }
+
+/* ============================================================
+   ADMIN — usuários: filtros com contador, célula de pessoa, situações
+   ============================================================ */
+.filtros-usuarios { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.filtros-usuarios .filtros { margin: 0; flex: 1; min-width: 220px; max-width: 360px; }
+.filtro-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip {
+  display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--text-soft); font-size: 13px; font-weight: 500;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+.chip:hover { text-decoration: none; border-color: var(--line-strong); color: var(--text); }
+.chip.ativo { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); color: var(--accent-strong); }
+.chip-n { font-size: 11.5px; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: var(--surface-2); color: var(--text-soft); }
+.chip.ativo .chip-n { background: color-mix(in srgb, var(--accent) 22%, transparent); color: var(--accent-strong); }
+.chip.alerta:not(.ativo) { border-color: color-mix(in srgb, var(--st-amarelo) 55%, var(--line)); color: var(--st-amarelo); }
+.chip.alerta:not(.ativo) .chip-n { background: color-mix(in srgb, var(--st-amarelo) 18%, transparent); color: var(--st-amarelo); }
+.criar-form { margin-bottom: 18px; }
+.criar-form[hidden] { display: none; }
+.pessoa-cel { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.av-sm { width: 34px; height: 34px; flex-shrink: 0; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-strong); font-weight: 700; font-size: 13px; }
+.av-sm img { width: 100%; height: 100%; object-fit: cover; }
+.pessoa-txt { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.pessoa-txt strong { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pessoa-txt small { color: var(--text-faint); font-size: 12.5px; }
+.eu-tag { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent-strong); background: var(--accent-soft); padding: 1px 6px; border-radius: 999px; margin-left: 4px; vertical-align: middle; }
+.sit-sub { display: block; color: var(--text-faint); font-size: 11.5px; margin-top: 2px; }
+table.tabela tr.linha-inativa td { color: var(--text-soft); }
+table.tabela tr.linha-inativa .av-sm { filter: grayscale(1); opacity: 0.7; }
+table.tabela tr.linha-pendente { background: color-mix(in srgb, var(--st-amarelo) 5%, transparent); }
+@media (max-width: 640px) {
+  .filtros-usuarios .filtros { max-width: none; }
+  .pessoa-txt strong { white-space: normal; }
+}
+
+/* ============================================================
+   ADMIN — campanha: participantes, estatísticas e revelação por pessoa
+   ============================================================ */
+.camp-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.camp-stat { padding: 14px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+.camp-stat .numero { font-size: 24px; font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; }
+.camp-stat .stat-lbl { margin-top: 3px; }
+.camp-alerta { border-color: color-mix(in srgb, var(--st-amarelo) 55%, var(--line)); background: color-mix(in srgb, var(--st-amarelo) 7%, var(--surface)); margin-bottom: 18px; }
+.camp-alerta h3 { margin-top: 0; }
+.camp-alerta ul { margin: 8px 0 12px; padding-left: 20px; }
+.msg-contagem { display: inline-flex; gap: 10px; color: var(--text-soft); font-size: 13px; white-space: nowrap; }
+.msg-contagem span[title] { cursor: help; }
+.rev-par { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; padding: 14px 0; }
+.rev-pessoa { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 120px; text-align: center; }
+.rev-pessoa .av-md { width: 56px; height: 56px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-strong); font-weight: 700; font-size: 20px; }
+.rev-pessoa .av-md img { width: 100%; height: 100%; object-fit: cover; }
+.rev-pessoa strong { font-size: 14.5px; line-height: 1.2; }
+.rev-pessoa small { color: var(--text-faint); font-size: 12px; }
+.rev-papel { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-faint); }
+.rev-seta-grande { font-size: 22px; color: var(--ouro); }
+.rev-card { max-width: 460px; }
+.rev-card .texto-suave { font-size: 13px; }
+.rev-bloco + .rev-bloco { border-top: 1px solid var(--line); }
+.rev-sem { color: var(--text-faint); font-style: italic; }
+.rev-inline { margin-bottom: 18px; border-color: color-mix(in srgb, var(--ouro) 45%, var(--line)); }
+
+/* ============================================================
+   ADMIN — painel (itens de atenção) e logs (filtros/paginação)
+   ============================================================ */
+.atencao-lista { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+.atencao-item {
+  display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: var(--radius);
+  border: 1px solid var(--line); background: var(--surface); color: var(--text); transition: border-color 0.12s, background 0.12s;
+}
+.atencao-item:hover { text-decoration: none; border-color: var(--line-strong); color: var(--text); }
+.atencao-item.alerta { border-color: color-mix(in srgb, var(--st-amarelo) 55%, var(--line)); background: color-mix(in srgb, var(--st-amarelo) 7%, var(--surface)); }
+.atencao-item.info { border-color: color-mix(in srgb, var(--st-azul) 45%, var(--line)); background: color-mix(in srgb, var(--st-azul) 6%, var(--surface)); }
+.atencao-ic { font-size: 18px; flex-shrink: 0; }
+.atencao-txt { flex: 1; min-width: 0; font-size: 14px; line-height: 1.4; }
+.atencao-item .btn { flex-shrink: 0; }
+.logs-filtros { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.logs-filtros .campo:first-child { min-width: 220px; }
+.logs-filtros .busca-campo { flex: 1; min-width: 220px; max-width: 420px; }
+.paginacao { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 14px; margin-top: 6px; border-top: 1px solid var(--line); }
+.log-lista .atv-tempo { font-variant-numeric: tabular-nums; }
+@media (max-width: 640px) {
+  .atencao-item { flex-wrap: wrap; }
+  .atencao-item .btn { margin-left: 30px; }
+}

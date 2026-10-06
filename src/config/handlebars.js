@@ -179,9 +179,12 @@ const helpers = {
       CADASTRO_SOLICITADO: 'Solicitou cadastro', CADASTRO_APROVADO: 'Aprovou cadastro', CADASTRO_RECUSADO: 'Recusou cadastro',
       USUARIO_CRIADO: 'Criou usuário', USUARIO_EDITADO: 'Editou usuário', USUARIO_ATIVADO: 'Ativou usuário', USUARIO_INATIVADO: 'Inativou usuário', USUARIO_EXCLUIDO: 'Excluiu usuário',
       CAMPANHA_CRIADA: 'Criou campanha', CAMPANHA_EDITADA: 'Editou campanha', CAMPANHA_ENCERRADA: 'Encerrou campanha',
+      CAMPANHA_APAGADA: 'Apagou campanha',
       PARTICIPANTE_ADICIONADO: 'Adicionou participante', PARTICIPANTE_REMOVIDO: 'Removeu participante',
       SORTEIO_INICIADO: 'Iniciou sorteio', SORTEIO_REFEITO: 'Refez sorteio', SORTEIO_REVELADO: 'Revelou sorteio',
+      ANJO_REVELADO: 'Revelou o anjo de alguém',
       AVISO_CRIADO: 'Publicou aviso', AVISO_EDITADO: 'Editou aviso', AVISO_EXCLUIDO: 'Excluiu aviso',
+      AVISO_PUBLICADO: 'Publicou aviso', AVISO_DESATIVADO: 'Desativou aviso',
     };
     return mapa[acao] || acao;
   },

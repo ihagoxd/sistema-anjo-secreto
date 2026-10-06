@@ -59,14 +59,7 @@ async function getFeed(req, res, next) {
       return b.storyUltimo - a.storyUltimo;
     });
     const meuAnel = aneis[me] || null;
-    // Tutorial passo a passo: começa sozinho para quem completou o perfil e ainda não viu;
-    // ?tour=1 (botão "Ver o tutorial de novo") repete a qualquer hora.
-    // (lido do banco, não da sessão: quando a campanha começa, o admin "reabre" o tutorial para todos)
-    const u = req.session.usuario;
-    let tour = req.query.tour === '1';
-    if (!tour && u.tipo_usuario === 'PARTICIPANTE' && (u.perfil_completo || res.locals.roleta)) {
-      tour = !(await usuarioModel.tutorialVisto(me));
-    }
+    // (o tutorial passo a passo é decidido no contextoApp e marcado no layout)
     res.render('feed/index', {
       titulo: 'Feed',
       posts,
@@ -74,8 +67,6 @@ async function getFeed(req, res, next) {
       equipe,
       sugestoes,
       tenhoStory: !!meuAnel,
-      tour,
-      primeiroNome: String(u.nome || '').trim().split(/\s+/)[0] || '',
     });
   } catch (err) {
     next(err);

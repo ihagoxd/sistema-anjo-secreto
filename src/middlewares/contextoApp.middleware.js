@@ -75,6 +75,19 @@ async function carregarContextoApp(req, res, next) {
     if (campanha) totalMsg += await mensagemService.contarNaoLidas(campanha.id_campanha, me);
     res.locals.msgNaoLidas = totalMsg;
 
+    // Tutorial passo a passo: em QUALQUER página, para participante que ainda não viu
+    // (perfil completo ou já sorteado). O marcador vai no layout; o JS leva a pessoa ao
+    // Feed e segue por todas as telas. ?tour=1 (no Feed) repete a qualquer hora.
+    // (Lido do banco, não da sessão: o sorteio "reabre" o tutorial para todo mundo.)
+    if (u.tipo_usuario === 'PARTICIPANTE') {
+      const roletaOk = !!(campanha && await sorteioService.buscarProtegidoDoAnjo(campanha.id_campanha, me));
+      let tour = req.path === '/feed' && req.query.tour === '1';
+      if (!tour && (u.perfil_completo || roletaOk)) tour = !(await usuarioModel.tutorialVisto(me));
+      res.locals.tour = tour;
+      res.locals.tourSorteio = roletaOk;
+      res.locals.primeiroNome = primeiroNome(u.nome);
+    }
+
     // Roleta (modal, 1x por sessão) — só participante que já tem protegido sorteado.
     if (campanha && u.tipo_usuario === 'PARTICIPANTE') {
       const protegido = await sorteioService.buscarProtegidoDoAnjo(campanha.id_campanha, me);

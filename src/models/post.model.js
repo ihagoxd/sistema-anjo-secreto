@@ -6,7 +6,7 @@
 const db = require('../config/db');
 
 const SELECT_POST = `
-  SELECT p.id_post, p.texto, p.imagem, p.video, p.criado_em,
+  SELECT p.id_post, p.texto, p.imagem, p.video, p.criado_em, p.editado_em,
          u.id_usuario, u.nome, u.usuario, u.foto_perfil,
          uc.id_usuario AS id_colaborador, uc.usuario AS usuario_colab, uc.nome AS nome_colab,
          (SELECT array_agg(u3.usuario ORDER BY u3.usuario)
@@ -118,7 +118,16 @@ async function listarRepostadosPor(idAutor, idUsuarioAtual) {
 }
 
 async function buscarPorId(idPost) {
-  const res = await db.query(`SELECT id_post, id_usuario, imagem FROM posts WHERE id_post = $1`, [idPost]);
+  const res = await db.query(`SELECT id_post, id_usuario, texto, imagem, video, enquete_pergunta FROM posts WHERE id_post = $1`, [idPost]);
+  return res.rows[0] || null;
+}
+
+// Dono editou o texto (legenda) da publicação: grava e marca editado_em.
+async function atualizarTexto(idPost, texto) {
+  const res = await db.query(
+    `UPDATE posts SET texto = $2, editado_em = now() WHERE id_post = $1 RETURNING texto, editado_em`,
+    [idPost, texto]
+  );
   return res.rows[0] || null;
 }
 
@@ -242,7 +251,7 @@ async function removerComentario(idComentario) {
 }
 
 module.exports = {
-  criar, listarFeed, listarPorUsuario, listarRepostadosPor, buscarPorId, buscarFeedUm, remover, contarNovosDesde, adicionarColaboradores,
+  criar, listarFeed, listarPorUsuario, listarRepostadosPor, buscarPorId, buscarFeedUm, remover, contarNovosDesde, adicionarColaboradores, atualizarTexto,
   curtir, descurtir, jaCurtiu, contarCurtidas, listarCurtidores,
   repostar, desfazerRepost, jaRepostou, contarReposts,
   adicionarComentario, listarComentarios, listarComentariosDeVarios, buscarComentario, removerComentario, listarImagensComentarios,

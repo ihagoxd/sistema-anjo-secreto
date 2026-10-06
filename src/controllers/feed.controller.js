@@ -110,6 +110,26 @@ async function postCriar(req, res, next) {
   }
 }
 
+// Dono edita o texto do post (AJAX → JSON; sem JS, volta com aviso).
+async function postEditarTexto(req, res, next) {
+  try {
+    const r = await postService.editarPost(Number(req.params.id_post), req.session.usuario.id_usuario, req.body.texto);
+    const ERROS = { VAZIO: 'A publicação não pode ficar sem nada: escreva algo.', LONGO: 'Texto longo demais.', SEM_PERMISSAO: 'Só quem publicou pode editar.', NAO_ENCONTRADO: 'Publicação não encontrada.' };
+    const viaFetch = (req.get('x-requested-with') || '') === 'fetch';
+    if (!r.ok) {
+      const status = r.motivo === 'SEM_PERMISSAO' ? 403 : r.motivo === 'NAO_ENCONTRADO' ? 404 : 400;
+      if (viaFetch) return res.status(status).json({ ok: false, erro: ERROS[r.motivo] || 'Não foi possível editar.' });
+      req.session.flash = { erro: ERROS[r.motivo] || 'Não foi possível editar.' };
+      return res.redirect(req.get('Referer') || '/feed');
+    }
+    if (viaFetch) return res.json({ ok: true, texto: r.texto, editado_em: r.editado_em });
+    req.session.flash = { sucesso: 'Publicação editada.' };
+    res.redirect(req.get('Referer') || '/feed');
+  } catch (err) {
+    next(err);
+  }
+}
+
 // Curtir/descurtir (AJAX → JSON).
 async function postCurtir(req, res, next) {
   try {
@@ -322,4 +342,4 @@ async function getMencoes(req, res, next) {
   }
 }
 
-module.exports = { getFeed, getPost, postCriar, postCurtir, getCurtidas, postRepost, postVotar, getEnquete, postEnquetePergunta, postComentar, postRemover, postRemoverComentario, getPerfil, getPerfilReposts, getPerfilGostos, getMencoes, getBusca, getNovidades };
+module.exports = { getFeed, getPost, postCriar, postEditarTexto, postCurtir, getCurtidas, postRepost, postVotar, getEnquete, postEnquetePergunta, postComentar, postRemover, postRemoverComentario, getPerfil, getPerfilReposts, getPerfilGostos, getMencoes, getBusca, getNovidades };

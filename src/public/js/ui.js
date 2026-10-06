@@ -241,6 +241,85 @@
     });
   })();
 
+  /* ---------- Editar o texto do post (só o dono) ----------
+     Lápis no cabeçalho do card → o texto vira um campo no lugar, Ctrl+Enter salva
+     (Esc cancela), o card mostra "· editado". Foto, vídeo e enquete não mudam. */
+  (function () {
+    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    function comMencoes(t) { return esc(t).replace(/@([a-zA-Z0-9_.]{2,})/g, '<a href="/u/$1" class="mencao">@$1</a>'); }
+    var metaCsrf = document.querySelector('meta[name="csrf-token"]');
+    var CSRF = metaCsrf ? metaCsrf.getAttribute('content') : '';
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-editar-post]');
+      if (!b) return;
+      var art = b.closest('.tw-post');
+      if (!art || art.querySelector('.post-edit-box')) return;
+      var id = b.getAttribute('data-editar-post');
+      var span = art.querySelector('[data-post-texto]');
+      var temImagem = !!art.querySelector('.tw-post-midia');
+      if (!span) { // post sem texto ainda: cria o lugar do texto (legenda, se tem foto)
+        span = document.createElement('span'); span.setAttribute('data-post-texto', '');
+        var wrap = document.createElement('div');
+        if (temImagem) {
+          wrap.className = 'tw-post-texto ig-legenda';
+          var user = art.querySelector('.ig-cab .ig-user');
+          var a = document.createElement('a'); a.className = 'ig-user'; a.href = user ? user.getAttribute('href') : '#'; a.textContent = user ? user.textContent : '';
+          wrap.appendChild(a); wrap.appendChild(span);
+          var rodape = art.querySelector('.ig-rodape'), curt = rodape && rodape.querySelector('.ig-curtidas');
+          if (curt) curt.insertAdjacentElement('afterend', wrap); else if (rodape) rodape.insertBefore(wrap, rodape.firstChild);
+        } else {
+          wrap.className = 'tw-post-texto ig-texto'; wrap.appendChild(span);
+          art.querySelector('header').insertAdjacentElement('afterend', wrap);
+        }
+      }
+      var container = span.closest('.tw-post-texto');
+      var original = span.textContent;
+      var mais = container.querySelector('.ig-mais');
+      var box = document.createElement('div'); box.className = 'post-edit-box';
+      var input = document.createElement('textarea'); input.className = 'post-edit-input'; input.maxLength = 1000; input.value = original; input.placeholder = 'Escreva o texto da publicação…';
+      var acoes = document.createElement('div'); acoes.className = 'post-edit-acoes';
+      var dica = document.createElement('span'); dica.className = 'post-edit-dica'; dica.textContent = 'Ctrl+Enter salva · Esc cancela';
+      var cancelar = document.createElement('button'); cancelar.type = 'button'; cancelar.className = 'btn btn-secundario btn-sm'; cancelar.textContent = 'Cancelar';
+      var salvar = document.createElement('button'); salvar.type = 'button'; salvar.className = 'btn btn-primario btn-sm'; salvar.textContent = 'Salvar';
+      acoes.appendChild(dica); acoes.appendChild(cancelar); acoes.appendChild(salvar);
+      box.appendChild(input); box.appendChild(acoes);
+      span.hidden = true; if (mais) mais.hidden = true;
+      container.classList.remove('clampada');
+      container.appendChild(box);
+      function ajustar() { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 260) + 'px'; }
+      ajustar(); input.focus(); input.setSelectionRange(input.value.length, input.value.length);
+      input.addEventListener('input', ajustar);
+      function fechar() {
+        box.remove(); span.hidden = false; if (mais) mais.hidden = false;
+        if (!span.textContent.trim() && container.parentNode) container.remove(); // ficou vazio: some o bloco
+      }
+      cancelar.addEventListener('click', fechar);
+      input.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Escape') { ev.preventDefault(); fechar(); }
+        if (ev.key === 'Enter' && (ev.ctrlKey || ev.metaKey)) { ev.preventDefault(); salvar.click(); }
+      });
+      salvar.addEventListener('click', function () {
+        var novo = input.value.trim();
+        if (novo === original.trim()) { fechar(); return; }
+        salvar.disabled = true; salvar.textContent = 'Salvando…';
+        fetch('/feed/' + id + '/editar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch' },
+          body: JSON.stringify({ texto: novo }),
+        })
+          .then(function (r) { return r.json().then(function (d) { if (!r.ok || !d.ok) throw new Error(d.erro || 'Não foi possível editar.'); return d; }); })
+          .then(function (d) {
+            span.innerHTML = comMencoes(d.texto || '');
+            var ed = art.querySelector('[data-editado]'); if (ed) { ed.hidden = false; ed.title = 'Editado agora'; }
+            if (mais) { mais.remove(); mais = null; }
+            fechar();
+            toast('Publicação editada ✓');
+          })
+          .catch(function (err) { salvar.disabled = false; salvar.textContent = 'Salvar'; toast(err.message || 'Não foi possível editar.'); });
+      });
+    });
+  })();
+
   /* ---------- Admin ---------- */
   (function () {
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }

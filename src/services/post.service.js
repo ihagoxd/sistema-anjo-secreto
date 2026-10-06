@@ -132,6 +132,25 @@ function listarFeed(idUsuarioAtual) {
   return postModel.listarFeed(idUsuarioAtual, 60);
 }
 
+// O dono edita o texto da publicação (escreveu errado, quis completar). Só o texto:
+// foto, vídeo e enquete ficam como estão. Quem foi @mencionado só agora é avisado.
+async function editarPost(idPost, idUsuario, texto) {
+  const post = await postModel.buscarPorId(idPost);
+  if (!post) return { ok: false, motivo: 'NAO_ENCONTRADO' };
+  if (post.id_usuario !== idUsuario) return { ok: false, motivo: 'SEM_PERMISSAO' };
+  const t = String(texto || '').trim();
+  if (!t && !post.imagem && !post.video && !post.enquete_pergunta) return { ok: false, motivo: 'VAZIO' };
+  if (t.length > LIMITE_TEXTO) return { ok: false, motivo: 'LONGO' };
+  const r = await postModel.atualizarTexto(idPost, t || null);
+  const antes = new Set(extrair(post.texto || ''));
+  const novas = extrair(t).filter((u) => !antes.has(u));
+  if (novas.length) {
+    const alvos = await usuarioModel.resolverMencoes(novas);
+    for (const u of alvos) await notificacaoService.notificarMencao(u.id_usuario, idUsuario, idPost, t);
+  }
+  return { ok: true, texto: r ? r.texto : t, editado_em: r ? r.editado_em : new Date() };
+}
+
 async function buscarPost(idPost, idUsuarioAtual) {
   const post = await postModel.buscarFeedUm(idPost, idUsuarioAtual);
   if (!post) return null;
@@ -251,7 +270,7 @@ async function removerComentario(idComentario, idUsuario, ehAdmin) {
 
 module.exports = {
   LIMITE_TEXTO,
-  criarPost, listarFeed, buscarPost, perfilPublico,
+  criarPost, editarPost, listarFeed, buscarPost, perfilPublico,
   alternarCurtida, listarCurtidores, alternarRepost, listarRepostados, comentar, listarComentarios,
   removerPost, removerComentario,
   anexarEnquetes, buscarEnquete, votar, montarEnquete, editarPergunta,

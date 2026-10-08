@@ -1,0 +1,64 @@
+<div class="pf-wrap pft-wrap"{{#if sucesso}} data-confete{{/if}}>
+  <div class="pagina-cabecalho">
+    <div>
+      <h1>{{tema.prefs.titulo}} {{tema.emoji}}</h1>
+      <p class="subtitulo">{{tema.prefs.subtitulo}}</p>
+    </div>
+    <a href="/participante" class="btn btn-secundario btn-sm">Voltar</a>
+  </div>
+
+  {{> pfAbas abaAtiva="tema"}}
+
+  <div class="pft-hero">
+    <div class="pft-hero-deco" aria-hidden="true">
+      <span class="tb-balao" style="--c:#ff5a5f;left:4%;animation-delay:-2s"></span>
+      <span class="tb-balao" style="--c:#4cc9f0;left:92%;animation-delay:-6s;transform:scale(.8)"></span>
+      <i class="tb-confete" style="--c:#ffd166;left:20%;animation-delay:-1s"></i>
+      <i class="tb-confete" style="--c:#06d6a0;left:50%;animation-delay:-3s"></i>
+      <i class="tb-confete" style="--c:#8338ec;left:78%;animation-delay:-5s"></i>
+    </div>
+    <div class="pft-hero-emojis" aria-hidden="true"><span>🧸</span><span>🎁</span><span>🍭</span></div>
+    <h2 class="pft-hero-tit">{{tema.prefs.heroTitulo}}</h2>
+    <p class="pft-hero-txt">{{tema.prefs.heroTexto}}</p>
+  </div>
+
+  <form class="form card pf-form pft-form" action="/participante/preferencias/tema" method="POST" novalidate>
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+
+    {{#each tema.prefs.campos}}
+      {{#if (eq this.tipo "lista")}}
+        <div class="campo campo-chips" data-chips data-max="{{this.max}}">
+          <label for="chips-{{this.campo}}"><span class="lbl-ic">{{this.emoji}}</span> {{this.rotulo}} <span class="chips-cont" data-chips-cont></span></label>
+          {{#if this.dica}}<p class="pf-secao-dica">{{this.dica}}</p>{{/if}}
+          <div class="chips" data-chips-box>
+            <span class="chips-lista" data-chips-lista></span>
+            <input type="text" id="chips-{{this.campo}}" data-chips-input data-placeholder="{{this.placeholder}}" placeholder="{{this.placeholder}}" maxlength="60" autocomplete="off" enterkeyhint="done">
+          </div>
+          <input type="hidden" name="{{this.campo}}" value="{{json (lookup @root.dados this.campo)}}">
+          {{#if this.sugestoes}}
+            <div class="chips-sug" data-chips-sug>
+              <span class="chips-sug-rot">Ideias rápidas:</span>
+              {{#each this.sugestoes}}<button type="button">{{this}}</button>{{/each}}
+            </div>
+          {{/if}}
+        </div>
+      {{else if (eq this.tipo "textarea")}}
+        <div class="campo">
+          <label for="pt-{{this.campo}}"><span class="lbl-ic">{{this.emoji}}</span> {{this.rotulo}}</label>
+          <textarea id="pt-{{this.campo}}" name="{{this.campo}}" rows="2" maxlength="500" placeholder="{{this.placeholder}}">{{lookup @root.dados this.campo}}</textarea>
+        </div>
+      {{else}}
+        <div class="campo">
+          <label for="pt-{{this.campo}}"><span class="lbl-ic">{{this.emoji}}</span> {{this.rotulo}}</label>
+          <input type="text" id="pt-{{this.campo}}" name="{{this.campo}}" maxlength="150" value="{{lookup @root.dados this.campo}}" placeholder="{{this.placeholder}}">
+        </div>
+      {{/if}}
+    {{/each}}
+
+    <div class="pf-salvar">
+      <button type="submit" class="btn btn-primario btn-bloco">Salvar minha lista {{tema.emoji}}</button>
+    </div>
+  </form>
+
+  <p class="pft-rodape texto-suave">Quem você tirou também preenche a lista dele(a) — você vê na página <a href="/participante/protegido">Seu protegido</a> quando o sorteio sair.</p>
+</div>

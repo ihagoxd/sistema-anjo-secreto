@@ -92,6 +92,11 @@ const TIPOS = {
     titulo: () => 'Notificação de teste',
     texto: () => 'Tudo certo! É assim que você será avisado.',
   },
+  TEMA: {
+    emoji: '🎨', categoria: 'sistema', temAtor: false,
+    titulo: () => 'O app está de cara nova!',
+    texto: () => 'a rede mudou de visual — toque para ver',
+  },
 };
 
 const PREFS_PADRAO = {
@@ -396,6 +401,18 @@ function notificarTeste(idUsuario) {
   return criar({ idUsuario, tipo: 'TESTE', idAtor: null, link: '/notificacoes' });
 }
 
+// Admin trocou o tema da rede: avisa cada pessoa. Com aba de preferências (Mês das
+// Crianças), o toque leva direto para ela; senão, para o feed.
+async function notificarTema(idsUsuarios, tema) {
+  const link = tema.temPrefs ? '/participante/preferencias/tema' : '/feed';
+  const detalhe = tema.temPrefs
+    ? `${tema.emoji} ${tema.nome}: conte o que você quer ganhar!`
+    : `${tema.emoji} Tema ${tema.nome}`;
+  for (const id of idsUsuarios) {
+    await seguro(() => criar({ idUsuario: id, tipo: 'TEMA', idAtor: null, link, detalhe }));
+  }
+}
+
 module.exports = {
   TIPOS,
   PREFS_PADRAO,
@@ -418,6 +435,7 @@ module.exports = {
   notificarMencao,
   notificarSorteio,
   notificarAviso,
+  notificarTema,
   gerarAniversarios,
   notificarTeste,
 };

@@ -1,0 +1,25 @@
+{{! Decoração fixa do tema da rede (atrás de tudo, sem capturar toques).
+    Dia das Crianças: balões subindo devagar + confete caindo. Cada span leva cor,
+    posição e atraso NEGATIVO (já começa no meio do voo, sem "largada" em bloco). }}
+{{#if (eq tema.chave "criancas")}}
+<div class="kc-deco" aria-hidden="true">
+  <span class="kc-balao" style="--c:#ff5a5f;left:4%;--d:26s;animation-delay:-3s"></span>
+  <span class="kc-balao" style="--c:#4cc9f0;left:13%;--d:31s;animation-delay:-17s;transform:scale(.8)"></span>
+  <span class="kc-balao" style="--c:#ffd166;left:24%;--d:24s;animation-delay:-9s"></span>
+  <span class="kc-balao" style="--c:#06d6a0;left:38%;--d:34s;animation-delay:-22s;transform:scale(.7)"></span>
+  <span class="kc-balao" style="--c:#8338ec;left:55%;--d:28s;animation-delay:-5s"></span>
+  <span class="kc-balao" style="--c:#ff70a6;left:68%;--d:30s;animation-delay:-14s;transform:scale(.85)"></span>
+  <span class="kc-balao" style="--c:#ff9f1c;left:82%;--d:25s;animation-delay:-11s"></span>
+  <span class="kc-balao" style="--c:#3a86ff;left:93%;--d:33s;animation-delay:-26s;transform:scale(.75)"></span>
+  <i class="kc-confete" style="--c:#ff5a5f;left:8%;--d:13s;animation-delay:-2s"></i>
+  <i class="kc-confete" style="--c:#ffd166;left:19%;--d:16s;animation-delay:-9s"></i>
+  <i class="kc-confete" style="--c:#06d6a0;left:31%;--d:12s;animation-delay:-5s"></i>
+  <i class="kc-confete" style="--c:#4cc9f0;left:43%;--d:18s;animation-delay:-13s"></i>
+  <i class="kc-confete" style="--c:#8338ec;left:52%;--d:14s;animation-delay:-1s"></i>
+  <i class="kc-confete" style="--c:#ff70a6;left:61%;--d:17s;animation-delay:-7s"></i>
+  <i class="kc-confete" style="--c:#ff9f1c;left:72%;--d:15s;animation-delay:-11s"></i>
+  <i class="kc-confete" style="--c:#3a86ff;left:84%;--d:13s;animation-delay:-4s"></i>
+  <i class="kc-confete" style="--c:#ff5a5f;left:91%;--d:19s;animation-delay:-15s"></i>
+  <i class="kc-confete" style="--c:#06d6a0;left:97%;--d:14s;animation-delay:-8s"></i>
+</div>
+{{/if}}

@@ -4,6 +4,7 @@ const campanhaService = require('../services/campanha.service');
 const sorteioService = require('../services/sorteio.service');
 const preferenciaService = require('../services/preferencia.service');
 const mensagemService = require('../services/mensagem.service');
+const temaService = require('../services/tema.service');
 const usuarioModel = require('../models/usuario.model');
 const { montarGostos } = require('../config/gostos');
 const { apagarUpload } = require('../config/upload');
@@ -72,13 +73,54 @@ async function getProtegido(req, res, next) {
       req.session.flash = { erro: 'Você não está participando desta campanha.' };
       return res.redirect('/participante');
     }
+    // Tema com aba extra (Mês das Crianças): o que o protegido quer ganhar
+    const gostosTema = await temaService.gostosDe(dados.protegido.id_usuario, res.locals.tema);
     res.render('participante/protegido', {
       titulo: 'Meu protegido',
       campanhaAtiva,
       protegido: dados.protegido,
       gostos: montarGostos(dados.preferencias),
       fotos: dados.fotos,
+      gostosTema,
     });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// Aba extra de preferências do tema ativo (ex.: Mês das Crianças → presentes).
+async function getPreferenciasTema(req, res, next) {
+  try {
+    const tema = res.locals.tema;
+    if (!tema || !tema.temPrefs) {
+      req.session.flash = { erro: 'O tema atual não tem preferências extras.' };
+      return res.redirect('/participante/preferencias');
+    }
+    const dados = await temaService.buscarDados(req.session.usuario.id_usuario, tema);
+    res.render('participante/preferenciasTema', {
+      titulo: tema.prefs.titulo,
+      pagina: 'prefs-tema',
+      dados,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function postPreferenciasTema(req, res, next) {
+  try {
+    const tema = await temaService.ativo();
+    if (!tema.temPrefs) {
+      req.session.flash = { erro: 'O tema atual não tem preferências extras.' };
+      return res.redirect('/participante/preferencias');
+    }
+    const r = await temaService.salvarDados(req.session.usuario.id_usuario, tema, req.body);
+    req.session.flash = {
+      sucesso: r.vazio
+        ? 'Lista limpa. Quando quiser, conte o que gostaria de ganhar. 🎈'
+        : `Salvo! Seu anjo vai adorar saber o que te faz feliz. ${tema.emoji}`,
+    };
+    res.redirect('/participante/preferencias/tema');
   } catch (err) {
     next(err);
   }
@@ -204,6 +246,6 @@ async function postTutorialVisto(req, res, next) {
 }
 
 module.exports = {
-  getDashboard, getProtegido, getPreferencias,
+  getDashboard, getProtegido, getPreferencias, getPreferenciasTema, postPreferenciasTema,
   postPerfil, postRemoverFotoPerfil, postRemoverFoto, postLegendaFoto, postTutorialVisto,
 };

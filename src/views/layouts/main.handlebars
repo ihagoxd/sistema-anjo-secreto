@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#0d1117">
+  <meta name="theme-color" content="{{#if tema.cor}}{{tema.cor}}{{else}}#0d1117{{/if}}">
   <title>{{#if titulo}}{{titulo}} · {{/if}}Anjo Secreto</title>
   <link rel="icon" type="image/png" href="/img/logo.png">
   <link rel="apple-touch-icon" href="/img/apple-touch-icon.png?v={{assetVer}}">
@@ -15,10 +15,13 @@
   <meta name="csrf-token" content="{{csrfToken}}">
   <link rel="preload" href="/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/css/estilo.css?v={{assetVer}}">
+  {{#if tema.css}}{{! Tema da rede (admin): folha extra só quando o tema não é o padrão }}<link rel="stylesheet" href="/css/{{tema.css}}?v={{assetVer}}">{{/if}}
   <script nonce="{{cspNonce}}">
     (function () {
       try { document.documentElement.setAttribute('data-theme', localStorage.getItem('tema') || 'dark'); }
       catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
+      // Faixa do tema (feed) escondida pela pessoa: some antes de pintar, sem piscar.
+      try { if (localStorage.getItem('bannerTema') === '{{tema.chave}}') document.documentElement.classList.add('sem-banner-tema'); } catch (e) {}
       // Só a PRIMEIRA página da sessão esconde o conteúdo e mostra a intro do anjo.
       // Nas demais (html.mini) o conteúdo aparece junto com o HTML — nada de esperar
       // o ui.js (250 KB) baixar e rodar para "revelar" a página.
@@ -28,8 +31,9 @@
     })();
   </script>
 </head>
-<body class="{{#if pagina}}pg-{{pagina}}{{/if}}">
+<body class="{{#if pagina}}pg-{{pagina}}{{/if}}{{#if tema.classe}} {{tema.classe}}{{/if}}">
   {{> loader}}
+  {{> temaDecoracao}}
   <div class="app">
     {{> sidebar}}
 

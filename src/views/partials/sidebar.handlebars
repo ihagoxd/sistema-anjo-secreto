@@ -5,7 +5,7 @@
     </span>
     <span class="marca-wordmark">
       <span class="marca-nome">Anjo Secreto</span>
-      <span class="marca-tag">Cuide em segredo</span>
+      <span class="marca-tag">{{#if tema.slogan}}{{tema.slogan}}{{else}}Cuide em segredo{{/if}}</span>
     </span>
   </a>
 
@@ -33,6 +33,11 @@
         <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
         <span>Avisos</span>
       </a>
+      <a href="/admin/tema" class="side-link {{#if (comeca caminhoAtual "/admin/tema")}}ativo{{/if}}">
+        <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a10 10 0 1 1 0-20c5.5 0 10 3.6 10 8 0 2.2-1.8 4-4 4h-2.2a1.8 1.8 0 0 0-1.3 3c.4.5.5 1 .3 1.6A2.2 2.2 0 0 1 12 22z"/><circle cx="7.5" cy="10.5" r="1.3"/><circle cx="12" cy="7.5" r="1.3"/><circle cx="16.5" cy="10.5" r="1.3"/></svg>
+        <span>Tema da rede</span>
+        {{#unless tema.ehPadrao}}<span class="side-tema-chip" title="Tema ativo: {{tema.nome}}">{{tema.emoji}}</span>{{/unless}}
+      </a>
       <a href="/admin/logs" class="side-link {{#if (comeca caminhoAtual "/admin/logs")}}ativo{{/if}}">
         <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
         <span>Logs</span>
@@ -56,10 +61,18 @@
         <span>Mensagens</span>
         {{#if msgNaoLidas}}<span class="nav-badge js-msg-badge">{{msgNaoLidas}}</span>{{/if}}
       </a>
-      <a href="/participante/preferencias" class="side-link {{#if (comeca caminhoAtual "/participante/preferencias")}}ativo{{/if}}">
+      <a href="/participante/preferencias" class="side-link {{#if (eq caminhoAtual "/participante/preferencias")}}ativo{{/if}}">
         <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         <span>Preferências</span>
       </a>
+      {{#if tema.temPrefs}}
+      {{! Aba extra do tema da rede (ex.: Mês das Crianças → presentes que quer ganhar) }}
+      <a href="/participante/preferencias/tema" class="side-link side-link-tema {{#if (comeca caminhoAtual "/participante/preferencias/tema")}}ativo{{/if}}">
+        <span class="side-link-emoji" aria-hidden="true">{{tema.emoji}}</span>
+        <span>{{tema.prefs.titulo}}</span>
+        {{#unless temaPrefsPreenchido}}<span class="nav-badge nav-badge-novo">novo</span>{{/unless}}
+      </a>
+      {{/if}}
     {{/if}}
   </nav>
 

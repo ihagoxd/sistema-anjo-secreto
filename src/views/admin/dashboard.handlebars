@@ -56,6 +56,16 @@
     {{/if}}
   </div>
 
+  <div class="card tema-painel-card">
+    <h3>🎨 Tema da rede</h3>
+    <p class="texto-suave" style="margin-top:0;">
+      <span class="tema-chip">{{temaAtivo.emoji}} {{temaAtivo.nome}}</span>
+      {{#if temaAtivo.temPrefs}} · {{temaPreenchidos}} pessoa{{#unless (eq temaPreenchidos 1)}}s{{/unless}} já {{#if (eq temaPreenchidos 1)}}contou{{else}}contaram{{/if}} o que quer{{#unless (eq temaPreenchidos 1)}}em{{/unless}} ganhar{{/if}}
+    </p>
+    <p class="texto-suave">{{temaAtivo.descricao}}</p>
+    <a href="/admin/tema" class="btn btn-secundario">{{#if temaAtivo.ehPadrao}}Escolher um tema{{else}}Trocar tema{{/if}}</a>
+  </div>
+
   <div class="card">
     <h3>Atividade recente</h3>
     {{#if logs.length}}

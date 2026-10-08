@@ -25,6 +25,9 @@ function receberImagens(req, res, next) {
 router.get('/', ctrl.getDashboard);
 router.get('/protegido', ctrl.getProtegido);
 router.get('/preferencias', ctrl.getPreferencias);
+// Aba extra do tema ativo (ex.: Mês das Crianças → presentes que a pessoa quer ganhar)
+router.get('/preferencias/tema', ctrl.getPreferenciasTema);
+router.post('/preferencias/tema', ctrl.postPreferenciasTema);
 
 // Perfil (multipart: CSRF validado após o multer)
 router.post('/perfil', receberImagens, conferirAssinaturas, verifyCsrfAposUpload, ctrl.postPerfil);

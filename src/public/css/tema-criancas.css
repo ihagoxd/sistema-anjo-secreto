@@ -1,0 +1,503 @@
+/* ============================================================
+   TEMA DA REDE: DIA DAS CRIANÇAS (Mês das Crianças) 🎈
+   Carregado só quando o admin ativa o tema. Entra DEPOIS do estilo.css e
+   repinta o app inteiro: fonte arredondada, cores de festa, balões e confete
+   subindo atrás de tudo, botões em gradiente, Direct com balões coloridos.
+   Funciona por cima dos dois modos (claro/escuro) — a pessoa continua
+   escolhendo no botão de lua/sol.
+   ============================================================ */
+
+/* ---------- FONTE: Fredoka (arredondada, OFL — servida localmente) ---------- */
+@font-face {
+  font-family: 'Fredoka';
+  src: url('/fonts/Fredoka-latin.woff2') format('woff2');
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Fredoka';
+  src: url('/fonts/Fredoka-latin-ext.woff2') format('woff2');
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* ---------- TOKENS DO TEMA ---------- */
+body.tema-criancas {
+  --font-body: 'Fredoka', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+  --font-serif: 'Fredoka', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --radius: 16px;
+  --kc-vermelho: #ff5a5f;
+  --kc-laranja: #ff9f1c;
+  --kc-amarelo: #ffd166;
+  --kc-verde: #06d6a0;
+  --kc-azul: #4cc9f0;
+  --kc-azul-forte: #3a86ff;
+  --kc-roxo: #8338ec;
+  --kc-rosa: #ff5a8a;
+  /* Sem arco-íris em lugar nenhum: faixas e bordas usam DUAS cores (rosa + amarelo/laranja),
+     como listras de festa de criança (toldo de circo, pirulito, bola de praia). */
+  --kc-listras: repeating-linear-gradient(135deg, #ff5a8a 0 14px, #ffd166 14px 28px);
+  --kc-faixa: linear-gradient(90deg, #ff5a8a, #ff9f1c, #ff5a8a);
+  --kc-grad: linear-gradient(135deg, #ff5a8a, #ff9f1c);
+  --kc-grad-frio: linear-gradient(135deg, #3a86ff, #8338ec);
+  --kc-grad-roxo: linear-gradient(135deg, #8338ec, #ff5a8a);
+  --kc-bola: repeating-conic-gradient(from 0deg, #ff5a8a 0 30deg, #ffd166 30deg 60deg);
+  font-size: 14.5px;
+}
+
+/* CLARO: creme quentinho, texto roxo-escuro, rosa de destaque */
+[data-theme='light'] body.tema-criancas {
+  --bg: #fff6e9; --bg-2: #ffeeda;
+  --surface: #ffffff; --surface-2: #fff9f1; --hover: #fff1e0;
+  --line: #ffd9b8; --line-strong: #ffc48f;
+  --text: #2b2140; --text-soft: #6b5f85; --text-faint: #9a8fb3;
+  --accent: #e8407a; --accent-strong: #c92a63; --accent-soft: #ffe3ec; --accent-ring: rgba(232, 64, 122, 0.28); --on-accent: #ffffff;
+  --ouro: #ff8c42; --ouro-forte: #ff7a21; --on-ouro: #ffffff;
+  --success: #06a77d; --success-strong: #058f6b;
+  --btn-2-bg: #ffffff; --btn-2-hover: #fff1e0;
+  --st-cinza: #9a8fb3; --st-azul: #3a86ff; --st-laranja: #ff9f1c; --st-amarelo: #e3a000; --st-verde: #06a77d; --st-vermelho: #ff5a5f;
+  --shadow-pop: 0 14px 34px rgba(255, 140, 66, 0.22);
+}
+/* ESCURO: azul-marinho de festa à noite, amarelo de destaque */
+[data-theme='dark'] body.tema-criancas {
+  --bg: #171a3a; --bg-2: #0f1130;
+  --surface: #222657; --surface-2: #1b1f4a; --hover: #2b3070;
+  --line: #3a3f80; --line-strong: #4c52a0;
+  --text: #f3f1ff; --text-soft: #b9b5e0; --text-faint: #8d89bf;
+  --accent: #ffd166; --accent-strong: #ffe08a; --accent-soft: #3a3362; --accent-ring: rgba(255, 209, 102, 0.35); --on-accent: #2b2140;
+  --ouro: #ff8c42; --ouro-forte: #ff9f5c; --on-ouro: #ffffff;
+  --success: #06d6a0; --success-strong: #2ee6a6;
+  --btn-2-bg: #2b3070; --btn-2-hover: #353b86;
+  --st-cinza: #8d89bf; --st-azul: #6fb3ff; --st-laranja: #ffb347; --st-amarelo: #ffd166; --st-verde: #2ee6a6; --st-vermelho: #ff7b7b;
+  --shadow-pop: 0 14px 34px rgba(0, 0, 0, 0.45);
+}
+
+/* ---------- FUNDO: manchas de cor + confete (no lugar do céu estrelado) ---------- */
+[data-theme] body.tema-criancas {
+  background:
+    radial-gradient(circle at 10% 14%, rgba(255, 90, 95, 0.22), transparent 26%),
+    radial-gradient(circle at 88% 10%, rgba(76, 201, 240, 0.24), transparent 28%),
+    radial-gradient(circle at 74% 88%, rgba(255, 209, 102, 0.26), transparent 26%),
+    radial-gradient(circle at 14% 84%, rgba(131, 56, 236, 0.16), transparent 30%),
+    var(--bg);
+  background-attachment: fixed;
+}
+[data-theme='dark'] body.tema-criancas {
+  background:
+    radial-gradient(circle at 10% 14%, rgba(255, 90, 95, 0.26), transparent 26%),
+    radial-gradient(circle at 88% 10%, rgba(76, 201, 240, 0.22), transparent 28%),
+    radial-gradient(circle at 74% 88%, rgba(255, 209, 102, 0.16), transparent 26%),
+    radial-gradient(circle at 14% 84%, rgba(131, 56, 236, 0.3), transparent 30%),
+    radial-gradient(120% 100% at 50% 110%, #1c2150 0%, #10122e 70%);
+  background-attachment: fixed;
+}
+/* Confete espalhado (fixo, atrás de tudo) — substitui as estrelas do tema padrão */
+[data-theme] body.tema-criancas::before {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.75;
+  background-size: 460px 460px;
+  background-image:
+    radial-gradient(3px 3px at 30px 44px, #ff5a5f, transparent),
+    radial-gradient(2.5px 2.5px at 150px 120px, #4cc9f0, transparent),
+    radial-gradient(3px 3px at 300px 60px, #ffd166, transparent),
+    radial-gradient(2.5px 2.5px at 410px 170px, #06d6a0, transparent),
+    radial-gradient(3px 3px at 90px 250px, #8338ec, transparent),
+    radial-gradient(2.5px 2.5px at 230px 320px, #ff70a6, transparent),
+    radial-gradient(3px 3px at 370px 290px, #ff9f1c, transparent),
+    radial-gradient(2.5px 2.5px at 60px 400px, #3a86ff, transparent),
+    radial-gradient(3px 3px at 200px 430px, #ff5a5f, transparent),
+    radial-gradient(2.5px 2.5px at 330px 400px, #06d6a0, transparent),
+    radial-gradient(3px 3px at 440px 330px, #ffd166, transparent);
+}
+[data-theme] body.tema-criancas::after { display: none; animation: none; }
+
+/* ---------- BALÕES E CONFETE FLUTUANDO (partial temaDecoracao) ---------- */
+.kc-deco { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.kc-balao {
+  position: absolute; bottom: -140px; width: 44px; height: 54px; opacity: 0.6;
+  border-radius: 50% 50% 50% 50% / 45% 45% 55% 55%;
+  background: radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.75), transparent 42%), var(--c);
+  box-shadow: inset -6px -8px 14px rgba(0, 0, 0, 0.12);
+  animation: kc-sobe var(--d, 26s) linear infinite;
+}
+.kc-balao::before { content: ''; position: absolute; left: 50%; bottom: -6px; width: 10px; height: 8px; margin-left: -5px; background: var(--c); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.kc-balao::after { content: ''; position: absolute; left: 50%; top: 100%; width: 1.5px; height: 70px; margin-top: 5px; background: rgba(60, 40, 90, 0.28); border-radius: 2px; transform-origin: top; animation: kc-fio 3.2s ease-in-out infinite; }
+@keyframes kc-sobe {
+  0%   { transform: translate3d(0, 0, 0) rotate(-5deg); }
+  25%  { transform: translate3d(18px, -30vh, 0) rotate(5deg); }
+  50%  { transform: translate3d(-14px, -60vh, 0) rotate(-4deg); }
+  75%  { transform: translate3d(16px, -90vh, 0) rotate(5deg); }
+  100% { transform: translate3d(0, -125vh, 0) rotate(-5deg); }
+}
+@keyframes kc-fio { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
+.kc-confete {
+  position: absolute; top: -20px; width: 10px; height: 16px; border-radius: 3px; opacity: 0.7;
+  background: var(--c);
+  animation: kc-cai var(--d, 14s) linear infinite;
+}
+.kc-confete:nth-child(odd) { border-radius: 50%; width: 11px; height: 11px; }
+@keyframes kc-cai {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50%  { transform: translate3d(-30px, 55vh, 0) rotate(380deg); }
+  100% { transform: translate3d(24px, 112vh, 0) rotate(720deg); }
+}
+body.tema-criancas .app { position: relative; z-index: 1; }
+
+/* ---------- TIPOGRAFIA E BASE ---------- */
+body.tema-criancas h1, body.tema-criancas h2, body.tema-criancas h3, body.tema-criancas h4 { letter-spacing: 0; }
+body.tema-criancas .pagina-cabecalho { border-bottom: 2px dashed var(--line-strong); }
+body.tema-criancas .pagina-cabecalho h1 {
+  font-weight: 700; font-size: 26px;
+  background: var(--kc-grad); -webkit-background-clip: text; background-clip: text; color: transparent;
+  width: fit-content; max-width: 100%;
+}
+body.tema-criancas ::selection { background: #ffe3ec; color: #2b2140; }
+
+/* ---------- SIDEBAR / TOPO / BARRA INFERIOR ---------- */
+body.tema-criancas .sidebar { background: var(--surface); border-right: 1px solid var(--line); backdrop-filter: none; -webkit-backdrop-filter: none; }
+body.tema-criancas .sidebar::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 6px; background: var(--kc-listras); background-size: 40px 100%; animation: kc-listras-andam 1.6s linear infinite; }
+@keyframes kc-listras-andam { to { background-position: 40px 0; } }
+body.tema-criancas .marca-tag { color: var(--kc-rosa); letter-spacing: 0.08em; }
+body.tema-criancas .marca-emblema { animation: kc-balanca 3.4s ease-in-out infinite; }
+@keyframes kc-balanca { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
+body.tema-criancas .side-link { border-radius: 999px; }
+body.tema-criancas .side-link.ativo { background: var(--kc-grad); color: #fff; box-shadow: 0 8px 18px rgba(255, 90, 138, 0.32); }
+body.tema-criancas .side-link.ativo .icon { color: #fff; }
+body.tema-criancas .side-link.ativo .nav-badge { background: #fff; color: #c92a63; }
+body.tema-criancas .side-secao { color: var(--kc-roxo); }
+[data-theme='dark'] body.tema-criancas .side-secao { color: var(--kc-azul); }
+body.tema-criancas .side-link-tema { background: color-mix(in srgb, var(--kc-amarelo) 22%, transparent); border: 1px dashed color-mix(in srgb, var(--kc-laranja) 60%, transparent); margin-top: 4px; }
+body.tema-criancas .side-link-tema:hover { background: color-mix(in srgb, var(--kc-amarelo) 36%, transparent); }
+body.tema-criancas .side-link-tema.ativo { border-color: transparent; }
+body.tema-criancas .nav-badge, body.tema-criancas .conv-badge, body.tema-criancas .bi-badge, body.tema-criancas .sino-badge { background: var(--kc-vermelho); color: #fff; }
+body.tema-criancas .avatar { background: var(--kc-amarelo); color: #2b2140; }
+body.tema-criancas .side-rodape { border-top: 2px dashed var(--line); }
+
+body.tema-criancas .topo-mobile { background: var(--surface); border-bottom: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+body.tema-criancas .topo-mobile::after { content: ''; position: absolute; left: 0; right: 0; bottom: -4px; height: 4px; background: var(--kc-listras); background-size: 40px 100%; animation: kc-listras-andam 1.6s linear infinite; }
+
+body.tema-criancas .barra-inferior { background: var(--surface); border-top: none; backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: 0 -6px 20px rgba(43, 33, 64, 0.08); }
+body.tema-criancas .barra-inferior::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: var(--kc-listras); background-size: 40px 100%; animation: kc-listras-andam 1.6s linear infinite; }
+body.tema-criancas .bi-item.ativo { color: var(--kc-rosa); }
+[data-theme='dark'] body.tema-criancas .bi-item.ativo { color: var(--kc-amarelo); }
+body.tema-criancas .bi-item.ativo svg { animation: kc-pula 0.5s var(--ease-spring); }
+@keyframes kc-pula { 0% { transform: scale(0.8); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }
+body.tema-criancas .bi-perfil.ativo .bi-perfil-av { border-color: var(--kc-rosa); }
+
+/* ---------- CARTÕES, BOTÕES, CAMPOS ---------- */
+body.tema-criancas .card, body.tema-criancas .painel, body.tema-criancas .tabela-wrap, body.tema-criancas .acao-card, body.tema-criancas .stat {
+  border-radius: 20px; background: var(--surface); backdrop-filter: none; -webkit-backdrop-filter: none;
+  box-shadow: 0 6px 18px rgba(255, 140, 66, 0.08);
+}
+[data-theme='dark'] body.tema-criancas .card, [data-theme='dark'] body.tema-criancas .painel, [data-theme='dark'] body.tema-criancas .acao-card, [data-theme='dark'] body.tema-criancas .stat { box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22); }
+body.tema-criancas .btn { border-radius: 999px; font-weight: 600; }
+body.tema-criancas .btn-primario { background: var(--kc-grad); color: #fff; border-color: transparent; box-shadow: 0 6px 16px rgba(255, 90, 138, 0.35); transition: transform 0.14s var(--ease-spring), box-shadow 0.14s, filter 0.14s; }
+body.tema-criancas .btn-primario:hover { background: var(--kc-grad); color: #fff; filter: brightness(1.06); transform: translateY(-1px) scale(1.02); box-shadow: 0 10px 22px rgba(255, 90, 138, 0.4); }
+body.tema-criancas .btn-primario:active { transform: scale(0.97); }
+body.tema-criancas .btn-secundario { border-color: var(--line-strong); }
+body.tema-criancas .btn-perigo { border-radius: 999px; }
+body.tema-criancas .btn-link { color: var(--accent); }
+body.tema-criancas .campo input, body.tema-criancas .campo textarea, body.tema-criancas .campo select { border: 2px solid var(--line); border-radius: 14px; }
+body.tema-criancas .campo input:focus, body.tema-criancas .campo textarea:focus, body.tema-criancas .campo select:focus { border-color: var(--kc-azul-forte); box-shadow: 0 0 0 4px rgba(58, 134, 255, 0.18); }
+body.tema-criancas .campo label { font-weight: 600; }
+body.tema-criancas .pref-switch:checked { background: var(--kc-verde); }
+body.tema-criancas .check-linha input { accent-color: var(--kc-rosa); }
+body.tema-criancas .alerta { border-radius: 16px; border-width: 2px; }
+body.tema-criancas .alerta-sucesso { border-color: var(--kc-verde); background: color-mix(in srgb, var(--kc-verde) 14%, var(--surface)); }
+body.tema-criancas .alerta-erro { border-color: var(--kc-vermelho); background: color-mix(in srgb, var(--kc-vermelho) 12%, var(--surface)); }
+
+/* Painel do participante / admin */
+body.tema-criancas .painel-hero {
+  border: 2px dashed var(--kc-amarelo); border-radius: 24px;
+  background:
+    radial-gradient(circle at 12% 20%, rgba(255, 90, 95, 0.16), transparent 30%),
+    radial-gradient(circle at 88% 24%, rgba(76, 201, 240, 0.18), transparent 30%),
+    radial-gradient(circle at 50% 100%, rgba(255, 209, 102, 0.2), transparent 45%),
+    var(--surface);
+}
+body.tema-criancas .painel-hero-av { border: 3px solid var(--surface); box-shadow: 0 0 0 4px var(--kc-amarelo), 0 0 0 8px var(--kc-azul); background: var(--kc-amarelo); color: #2b2140; }
+body.tema-criancas .painel-hero-nome { background: var(--kc-grad-frio); -webkit-background-clip: text; background-clip: text; color: transparent; }
+[data-theme='dark'] body.tema-criancas .painel-hero-nome { background: linear-gradient(135deg, #ffd166, #ff70a6); -webkit-background-clip: text; background-clip: text; }
+body.tema-criancas .painel-hero-rot { color: var(--kc-rosa); }
+body.tema-criancas .acao-ic { background: var(--kc-amarelo); color: #2b2140; border-radius: 14px; }
+body.tema-criancas .acoes-rapidas .acao-card:nth-child(3n+2) .acao-ic { background: var(--kc-azul); }
+body.tema-criancas .acoes-rapidas .acao-card:nth-child(3n) .acao-ic { background: var(--kc-verde); }
+body.tema-criancas .acao-card-tema { border: 2px dashed var(--kc-rosa); }
+body.tema-criancas .acao-card-tema .acao-ic { background: var(--kc-grad); }
+body.tema-criancas .stat-ic { background: var(--kc-amarelo); color: #2b2140; border-radius: 14px; }
+body.tema-criancas .painel-stats .stat:nth-child(2) .stat-ic { background: var(--kc-azul); }
+body.tema-criancas .painel-stats .stat:nth-child(3) .stat-ic { background: var(--kc-verde); }
+body.tema-criancas .painel-stats .stat:nth-child(4) .stat-ic { background: var(--kc-rosa); color: #fff; }
+body.tema-criancas .atv-dot { background: var(--kc-rosa); }
+body.tema-criancas .badge.andamento { color: var(--success); }
+body.tema-criancas .tema-chip { background: var(--kc-grad); color: #fff; }
+body.tema-criancas .atencao-item { border-radius: 16px; }
+
+/* ---------- FEED ---------- */
+body.tema-criancas .stories { border-bottom: 2px dashed var(--line); }
+/* Anel de story: bola de praia rosa/amarela girando devagar */
+body.tema-criancas .story-ring.tem { background: var(--kc-bola); animation: kc-gira 8s linear infinite; }
+@keyframes kc-gira { to { transform: rotate(360deg); } }
+body.tema-criancas .story-ring.tem .story-ring-in { animation: kc-gira 8s linear infinite reverse; }
+body.tema-criancas .story-ring.visto { background: color-mix(in srgb, var(--kc-roxo) 35%, var(--line-strong)); }
+body.tema-criancas .story-ring.sem { background: var(--line-strong); }
+body.tema-criancas .story-ring-in { background: var(--surface); border-color: var(--surface); }
+body.tema-criancas .story-badge.mais { background: var(--kc-azul-forte); color: #fff; border-color: var(--bg); }
+body.tema-criancas .story-badge.editavel { background: var(--kc-rosa); color: #fff; }
+body.tema-criancas .post-compositor {
+  border: 3px solid transparent; border-radius: 22px;
+  background: linear-gradient(var(--surface), var(--surface)) padding-box, var(--kc-faixa) border-box;
+  background-size: 100% 100%, 300% 100%;
+  animation: kc-borda-anda 6s linear infinite;
+}
+@keyframes kc-borda-anda { to { background-position: 0 0, 300% 0; } }
+body.tema-criancas .compositor-topo textarea::placeholder { color: var(--kc-rosa); opacity: 0.85; }
+[data-theme='dark'] body.tema-criancas .compositor-topo textarea::placeholder { color: var(--kc-amarelo); }
+body.tema-criancas .compositor-acoes .comp-acao:nth-child(1) { color: var(--kc-azul-forte); }
+body.tema-criancas .compositor-acoes .comp-acao:nth-child(2) { color: var(--kc-verde); }
+body.tema-criancas .compositor-acoes .comp-acao:nth-child(3) { color: var(--kc-roxo); }
+body.tema-criancas .compositor-acoes .comp-acao:nth-child(4) { color: var(--kc-laranja); }
+[data-theme='dark'] body.tema-criancas .compositor-acoes .comp-acao:nth-child(1) { color: var(--kc-azul); }
+[data-theme='dark'] body.tema-criancas .compositor-acoes .comp-acao:nth-child(3) { color: #b388ff; }
+body.tema-criancas .comp-acao:hover { background: color-mix(in srgb, currentColor 16%, transparent); transform: scale(1.1); }
+body.tema-criancas .tw-post { border-radius: 22px; border-width: 1.5px; }
+body.tema-criancas .tw-post-av, body.tema-criancas .tw-coment-av, body.tema-criancas .tw-reply-av, body.tema-criancas .post-avatar, body.tema-criancas .sug-av, body.tema-criancas .lado-eu-av, body.tema-criancas .nota-av, body.tema-criancas .bi-perfil-av, body.tema-criancas .share-av, body.tema-criancas .notif-av { background: var(--kc-amarelo); color: #2b2140; }
+body.tema-criancas .tw-post-midia { border-radius: 18px; border: 2px solid var(--line); }
+body.tema-criancas .ig-acoes button:hover { transform: scale(1.12); }
+body.tema-criancas .tw-reply input { border: 2px solid var(--line); background: var(--surface); }
+body.tema-criancas .tw-reply input:focus { border-color: var(--kc-azul-forte); box-shadow: 0 0 0 4px rgba(58, 134, 255, 0.18); }
+body.tema-criancas .feed-novas { background: var(--kc-grad); color: #fff; }
+body.tema-criancas .lado-titulo { color: var(--kc-roxo); }
+[data-theme='dark'] body.tema-criancas .lado-titulo { color: var(--kc-azul); }
+body.tema-criancas .sug:hover { background: var(--accent-soft); }
+body.tema-criancas .lado-rodape::after { content: ' · Mês das Crianças 🎈'; }
+body.tema-criancas .tw-banner { background: linear-gradient(120deg, #ff5a8a 0%, #ff9f1c 55%, #ffd166 100%); }
+body.tema-criancas .tw-banner::after { background: radial-gradient(120% 90% at 15% 20%, rgba(255, 255, 255, 0.28), transparent 60%); }
+body.tema-criancas .tw-tab.ativo::after { background: var(--kc-grad); width: 64px; }
+body.tema-criancas .tw-avatar.st-tem { box-shadow: 0 0 0 3px var(--surface), 0 0 0 7px var(--kc-rosa); }
+body.tema-criancas .tw-gostos-intro { background: color-mix(in srgb, var(--kc-amarelo) 28%, var(--surface)); }
+body.tema-criancas .chip-item, body.tema-criancas .gt-chips .chip-item { font-weight: 600; }
+body.tema-criancas .chip-item:nth-child(6n+1) { background: #ffe3ec; color: #c92a63; }
+body.tema-criancas .chip-item:nth-child(6n+2) { background: #fff1c2; color: #8a5a00; }
+body.tema-criancas .chip-item:nth-child(6n+3) { background: #d9f7ef; color: #047a5c; }
+body.tema-criancas .chip-item:nth-child(6n+4) { background: #dcf3fc; color: #0b6fa3; }
+body.tema-criancas .chip-item:nth-child(6n+5) { background: #ebdfff; color: #5a1fbf; }
+body.tema-criancas .chip-item:nth-child(6n+6) { background: #ffe8d6; color: #b25a00; }
+body.tema-criancas .gt-cab { background: linear-gradient(135deg, #ffe3ec, #fff1c2 50%, #dcf3fc); }
+[data-theme='dark'] body.tema-criancas .gt-cab { background: linear-gradient(135deg, #4a2d5c, #4a4130 50%, #2b4a66); }
+body.tema-criancas .gt-kicker { color: var(--kc-rosa); }
+[data-theme='dark'] body.tema-criancas .gt-kicker { color: var(--kc-amarelo); }
+body.tema-criancas .pf-abas { background: var(--surface); border: 2px solid var(--line); }
+body.tema-criancas .pf-aba.ativo { background: var(--kc-grad); color: #fff; box-shadow: 0 6px 14px rgba(255, 90, 138, 0.3); }
+body.tema-criancas .pf-aba-novo, body.tema-criancas .nav-badge.nav-badge-novo { background: var(--kc-azul-forte); }
+body.tema-criancas .pft-hero { border: 2px dashed var(--kc-azul); background: radial-gradient(circle at 20% 30%, rgba(255, 209, 102, 0.3), transparent 35%), radial-gradient(circle at 80% 30%, rgba(255, 90, 138, 0.18), transparent 35%), var(--surface); }
+body.tema-criancas .pft-hero-tit { background: var(--kc-grad-frio); -webkit-background-clip: text; background-clip: text; color: transparent; width: fit-content; margin-inline: auto; }
+[data-theme='dark'] body.tema-criancas .pft-hero-tit { background: linear-gradient(135deg, #ffd166, #ff70a6); -webkit-background-clip: text; background-clip: text; }
+body.tema-criancas .chips { border: 2px solid var(--line); border-radius: 16px; }
+body.tema-criancas .chips:focus-within { border-color: var(--kc-azul-forte); box-shadow: 0 0 0 4px rgba(58, 134, 255, 0.18); }
+body.tema-criancas .chips-sug button { border-color: var(--line-strong); }
+body.tema-criancas .pf-secao { border-top: 2px dashed var(--line); }
+body.tema-criancas .avatar-editor:hover .avatar-editor-img { border-color: var(--kc-rosa); box-shadow: 0 0 0 4px rgba(255, 90, 138, 0.22); }
+body.tema-criancas .galeria-add:hover { border-color: var(--kc-rosa); color: var(--kc-rosa); }
+
+/* Faixa "Mês das Crianças" no topo do feed */
+html.sem-banner-tema .tema-banner { display: none; }
+.tema-banner {
+  position: relative; overflow: hidden; display: flex; align-items: center; gap: 16px;
+  margin: 0 0 18px; padding: 20px 22px; border-radius: 24px; color: #fff;
+  background: linear-gradient(120deg, #ff5a8a 0%, #ff9f1c 60%, #ffb347 100%);
+  box-shadow: 0 14px 34px rgba(255, 90, 138, 0.28);
+  animation: tb-entra 0.6s var(--ease-spring) both;
+}
+@keyframes tb-entra { from { opacity: 0; transform: translateY(-10px) scale(0.98); } to { opacity: 1; transform: none; } }
+.tema-banner::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.28), transparent 32%), radial-gradient(circle at 85% 80%, rgba(255, 255, 255, 0.18), transparent 36%); pointer-events: none; }
+.tb-deco { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.tb-balao { position: absolute; bottom: -40px; width: 22px; height: 27px; border-radius: 50% 50% 50% 50% / 45% 45% 55% 55%; background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.8), transparent 42%), var(--c); animation: tb-sobe 9s linear infinite; opacity: 0.95; }
+.tb-balao::after { content: ''; position: absolute; left: 50%; top: 100%; width: 1px; height: 18px; background: rgba(255, 255, 255, 0.55); }
+@keyframes tb-sobe { 0% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-90px) rotate(6deg); } 100% { transform: translateY(-190px) rotate(-6deg); } }
+.tb-confete { position: absolute; top: -14px; width: 7px; height: 11px; border-radius: 2px; background: var(--c); animation: tb-cai 6s linear infinite; }
+@keyframes tb-cai { 0% { transform: translateY(0) rotate(0); opacity: 1; } 100% { transform: translateY(180px) rotate(540deg); opacity: 0.7; } }
+.tb-txt { position: relative; flex: 1; min-width: 0; }
+.tb-kicker { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; background: rgba(255, 255, 255, 0.22); padding: 3px 10px; border-radius: 999px; margin-bottom: 8px; }
+.tb-tit { margin: 0 0 4px; font-size: 24px; font-weight: 700; line-height: 1.15; color: #fff; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.18); }
+.tb-sub { margin: 0; font-size: 14px; line-height: 1.5; max-width: 48ch; opacity: 0.95; }
+.tb-btn { margin-top: 12px; background: #fff !important; color: #c92a63 !important; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18) !important; }
+.tb-btn:hover { filter: none !important; transform: translateY(-1px) scale(1.03); }
+.tb-arte { position: relative; display: flex; flex-direction: column; gap: 2px; font-size: 40px; line-height: 1; flex-shrink: 0; }
+.tb-arte span { display: inline-block; animation: kc-balanca 2.8s ease-in-out infinite; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.2)); }
+.tb-arte span:nth-child(2) { animation-delay: 0.5s; font-size: 34px; margin-left: 18px; }
+.tb-arte span:nth-child(3) { animation-delay: 1s; margin-left: -6px; }
+.tb-x { position: absolute; top: 8px; right: 10px; width: 30px; height: 30px; border: none; border-radius: 50%; background: rgba(255, 255, 255, 0.22); color: #fff; font-size: 20px; line-height: 1; cursor: pointer; display: grid; place-items: center; z-index: 2; transition: background 0.14s; }
+.tb-x:hover { background: rgba(255, 255, 255, 0.4); }
+@media (max-width: 640px) {
+  .tema-banner { padding: 18px 16px; gap: 10px; border-radius: 20px; }
+  .tb-tit { font-size: 20px; }
+  .tb-sub { font-size: 13px; }
+  .tb-arte { font-size: 30px; }
+  .tb-arte span:nth-child(2) { font-size: 26px; margin-left: 10px; }
+  .tb-btn { width: 100%; }
+}
+
+/* ---------- DIRECT ---------- */
+body.tema-criancas .direct { border: 2px solid var(--line); border-radius: 24px; background: var(--surface); backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: 0 12px 34px rgba(131, 56, 236, 0.1); }
+body.tema-criancas .direct-lista { border-right: 2px dashed var(--line); }
+body.tema-criancas .direct-lista-topo { background: var(--kc-grad-frio); border-bottom: none; position: relative; overflow: hidden; }
+body.tema-criancas .direct-lista-topo::after { content: '🎈'; position: absolute; right: 14px; top: 10px; font-size: 30px; animation: kc-balanca 3s ease-in-out infinite; }
+body.tema-criancas .direct-lista-topo h1 { color: #fff; }
+body.tema-criancas .direct-lista-sub { color: rgba(255, 255, 255, 0.82); }
+body.tema-criancas .notas { border-bottom: 2px dashed var(--line); }
+body.tema-criancas .nota-bolha { border: 2px solid var(--kc-azul); background: var(--surface); }
+body.tema-criancas .nota-bolha::after { background: var(--surface); border-color: var(--kc-azul); }
+body.tema-criancas .nota-bolha.vazia { border-style: dashed; color: var(--kc-azul-forte); }
+body.tema-criancas .conv { border-radius: 16px; }
+body.tema-criancas .conv.ativa { background: var(--accent-soft); }
+body.tema-criancas .conv-av { background: var(--kc-amarelo); color: #2b2140; }
+body.tema-criancas .conv-av.anjo-av { background: var(--kc-grad); }
+body.tema-criancas .direct-secao { color: var(--kc-azul-forte); }
+[data-theme='dark'] body.tema-criancas .direct-secao { color: var(--kc-azul); }
+body.tema-criancas .secao-secreta { color: var(--kc-roxo); }
+[data-theme='dark'] body.tema-criancas .secao-secreta { color: #b388ff; }
+body.tema-criancas .secao-secreta .secao-hint { color: color-mix(in srgb, var(--kc-roxo) 70%, var(--text-faint)); }
+body.tema-criancas .conv-secreto { border-left: 4px solid var(--kc-roxo); background: color-mix(in srgb, var(--kc-roxo) 8%, transparent); }
+body.tema-criancas .conv-secreto:hover { background: color-mix(in srgb, var(--kc-roxo) 14%, transparent); }
+body.tema-criancas .conv-secreto.ativa { background: color-mix(in srgb, var(--kc-roxo) 20%, transparent); }
+body.tema-criancas .tag-secreto { background: var(--kc-roxo); color: #fff; }
+body.tema-criancas .tag-tirei { background: var(--kc-amarelo); color: #2b2140; }
+body.tema-criancas .sigilo.revelado .olho-ocultar { color: var(--kc-roxo); }
+body.tema-criancas .dm-cab { border-bottom: 2px dashed var(--line); }
+body.tema-criancas .dm-secreto { background: radial-gradient(120% 60% at 50% 0%, color-mix(in srgb, var(--kc-roxo) 16%, transparent), transparent 60%); }
+body.tema-criancas .dm-secreto .dm-cab { box-shadow: inset 0 4px 0 var(--kc-roxo); border-bottom-color: color-mix(in srgb, var(--kc-roxo) 40%, var(--line)); }
+body.tema-criancas .dm-aviso-secreto { background: color-mix(in srgb, var(--kc-roxo) 14%, transparent); border-color: color-mix(in srgb, var(--kc-roxo) 40%, var(--line)); color: var(--text); }
+/* Fundo da conversa: bolinhas coloridas bem suaves (como papel de presente) */
+body.tema-criancas .dm-msgs {
+  background-size: 140px 140px;
+  background-image:
+    radial-gradient(4px 4px at 20px 30px, rgba(255, 90, 95, 0.22), transparent),
+    radial-gradient(4px 4px at 80px 90px, rgba(76, 201, 240, 0.22), transparent),
+    radial-gradient(4px 4px at 120px 40px, rgba(255, 209, 102, 0.26), transparent),
+    radial-gradient(4px 4px at 50px 120px, rgba(131, 56, 236, 0.18), transparent),
+    radial-gradient(4px 4px at 110px 110px, rgba(6, 214, 160, 0.22), transparent);
+}
+body.tema-criancas .dm-bolha-txt { border-radius: 20px; border: 2px solid var(--line); background: var(--surface); font-size: 14.5px; }
+body.tema-criancas .dm-bolha.deles .dm-bolha-txt { border-bottom-left-radius: 6px; }
+body.tema-criancas .dm-bolha.minha .dm-bolha-txt { background: var(--kc-grad-frio); color: #fff; border-color: transparent; border-bottom-right-radius: 6px; box-shadow: 0 6px 16px rgba(58, 134, 255, 0.25); }
+body.tema-criancas .dm-secreto .dm-bolha.minha .dm-bolha-txt { background: var(--kc-grad-roxo); box-shadow: 0 6px 16px rgba(131, 56, 236, 0.28); }
+body.tema-criancas .dm-bolha-img { border-radius: 18px; }
+body.tema-criancas .dm-cita { border-radius: 12px; }
+body.tema-criancas .dm-inicio, body.tema-criancas .dm-aviso { border: 2px dashed var(--line-strong); background: var(--surface); border-radius: 999px; }
+body.tema-criancas .dm-campo { border: 2px solid var(--line-strong); border-radius: 24px; background: var(--surface); }
+body.tema-criancas .dm-campo:focus-within { border-color: var(--kc-azul-forte); box-shadow: 0 0 0 4px rgba(58, 134, 255, 0.18); }
+body.tema-criancas .dm-composer { border-top: 2px dashed var(--line); }
+body.tema-criancas .dm-enviar { background: var(--kc-grad-frio); box-shadow: 0 6px 16px rgba(58, 134, 255, 0.3); }
+body.tema-criancas .dm-secreto .dm-enviar { background: var(--kc-grad-roxo); box-shadow: 0 6px 16px rgba(131, 56, 236, 0.3); }
+body.tema-criancas .dm-filtro-rot { color: var(--kc-roxo); }
+[data-theme='dark'] body.tema-criancas .dm-filtro-rot { color: #b388ff; }
+body.tema-criancas .dm-filtro-op { border-radius: 999px; }
+body.tema-criancas .dm-filtro-op.sel { background: var(--kc-amarelo); color: #2b2140; }
+body.tema-criancas .dm-acao-in { color: var(--kc-azul-forte); }
+body.tema-criancas .dm-editar:hover { color: var(--kc-rosa); }
+body.tema-criancas .direct-placeholder-ic { border: 3px dashed var(--kc-rosa); color: var(--kc-rosa); animation: kc-flutua 3s ease-in-out infinite; }
+@keyframes kc-flutua { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+body.tema-criancas .direct-placeholder h2 { background: var(--kc-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+body.tema-criancas .humor-op { border-radius: 16px; }
+body.tema-criancas .humor-op.sel, body.tema-criancas .humor-op:hover { border-color: var(--kc-rosa); }
+
+/* ---------- MODAIS, NOTIFICAÇÕES, BUSCA, TUTORIAL ---------- */
+body.tema-criancas .modal-card {
+  border: 3px solid transparent; border-radius: 24px;
+  background: linear-gradient(var(--surface), var(--surface)) padding-box, var(--kc-grad) border-box;
+}
+body.tema-criancas .conf-card .conf-ok:not(.conf-perigo) { background: var(--kc-grad); color: #fff; }
+body.tema-criancas .notif-item.nova { background: color-mix(in srgb, var(--kc-amarelo) 16%, transparent); }
+body.tema-criancas .notif-item { border-radius: 14px; }
+body.tema-criancas .busca-tela { background: var(--bg); }
+body.tema-criancas .busca-campo { border: 2px solid var(--line); border-radius: 999px; }
+body.tema-criancas .tour-card { border-radius: 22px; }
+body.tema-criancas .aviso-card { border-radius: 24px; }
+
+/* ---------- LOADER (tela do anjo) ---------- */
+body.tema-criancas #loader {
+  color: #fff;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(255, 209, 102, 0.35), transparent 30%),
+    radial-gradient(circle at 85% 75%, rgba(255, 90, 138, 0.3), transparent 32%),
+    linear-gradient(160deg, #3a86ff 0%, #5b4bd6 100%);
+}
+body.tema-criancas .loader-ceu span { width: 7px; height: 10px; border-radius: 2px; background: #ffd166; animation: brilhar 2.6s ease-in-out infinite, kc-gira 3s linear infinite; }
+body.tema-criancas .loader-ceu span.g { background: #06d6a0; }
+body.tema-criancas .loader-ceu span:nth-child(3n) { background: #ff5a5f; border-radius: 50%; }
+body.tema-criancas .loader-wordmark .sub { color: #ffd166; letter-spacing: 0.3em; }
+body.tema-criancas .loader-progresso::after { background: linear-gradient(90deg, transparent, #ffd166, #fff); }
+html.mini body.tema-criancas #loader { background: color-mix(in srgb, #2b2140 42%, transparent); }
+
+/* ---------- LOGIN / REGISTRO ---------- */
+body.tema-criancas .auth-tela {
+  color: #fff;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255, 209, 102, 0.3), transparent 28%),
+    radial-gradient(circle at 88% 78%, rgba(255, 90, 138, 0.3), transparent 30%),
+    linear-gradient(160deg, #3a86ff 0%, #5b4bd6 100%);
+}
+[data-theme='light'] body.tema-criancas .auth-tela {
+  color: #2b2140;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255, 90, 95, 0.18), transparent 28%),
+    radial-gradient(circle at 88% 78%, rgba(76, 201, 240, 0.24), transparent 30%),
+    linear-gradient(160deg, #fff6e9 0%, #ffeeda 55%, #e3f5ff 100%);
+}
+body.tema-criancas .auth-ceu, [data-theme='light'] body.tema-criancas .auth-ceu { display: block; }
+body.tema-criancas .auth-ceu span { width: 8px; height: 12px; border-radius: 2px; background: #ffd166; opacity: 0.9; animation: kc-gira 4s linear infinite, brilhar 3s ease-in-out infinite; }
+body.tema-criancas .auth-ceu span.g { background: #06d6a0; }
+body.tema-criancas .auth-ceu span:nth-child(3n) { background: #ff5a5f; border-radius: 50%; width: 10px; height: 10px; }
+body.tema-criancas .auth-ceu span:nth-child(4n) { background: #4cc9f0; }
+body.tema-criancas .auth-molduras { display: none; }
+/* Moldura em degradê (rosa → laranja): a camada de dentro precisa ser OPACA, senão o degradê vaza por baixo */
+body.tema-criancas .auth-plate {
+  border: 3px solid transparent; border-radius: 28px;
+  background: linear-gradient(160deg, #2c2768, #1c1b4b) padding-box, var(--kc-grad) border-box;
+  box-shadow: 0 40px 90px -34px rgba(0, 0, 0, 0.55);
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+[data-theme='light'] body.tema-criancas .auth-plate { background: linear-gradient(180deg, #ffffff, #fff7ef) padding-box, var(--kc-grad) border-box; box-shadow: 0 30px 70px -34px rgba(120, 60, 120, 0.35); }
+body.tema-criancas .auth-kicker { color: #ffd166; }
+[data-theme='light'] body.tema-criancas .auth-kicker { color: #c92a63; }
+body.tema-criancas .auth-kicker .fio { background: rgba(255, 255, 255, 0.5); }
+body.tema-criancas .auth-sub { color: #ffd166; letter-spacing: 0.3em; }
+[data-theme='light'] body.tema-criancas .auth-sub { color: #e8407a; }
+body.tema-criancas .auth-losango .d { background: #ffd166; }
+body.tema-criancas .auth-tela .campo input { border: 2px solid rgba(255, 255, 255, 0.35); border-radius: 14px; background: rgba(255, 255, 255, 0.12); }
+[data-theme='light'] body.tema-criancas .auth-tela .campo input { background: #fff; border-color: var(--line-strong); }
+body.tema-criancas .auth-tela .campo input:focus { border-color: #ffd166; box-shadow: 0 0 0 4px rgba(255, 209, 102, 0.3); }
+body.tema-criancas .auth-wordmark { text-shadow: 0 4px 18px rgba(0, 0, 0, 0.22); }
+body.tema-criancas .auth-anjo { animation: kc-flutua 3.5s ease-in-out infinite; }
+
+/* ---------- CONFETE DE COMEMORAÇÃO (JS: ao salvar a lista) ---------- */
+.kc-festa { position: fixed; inset: 0; z-index: 900; pointer-events: none; overflow: hidden; }
+.kc-festa i { position: absolute; top: -20px; width: 10px; height: 16px; border-radius: 3px; background: var(--c); animation: kc-festa-cai var(--d, 2.4s) cubic-bezier(0.2, 0.7, 0.4, 1) var(--delay, 0s) forwards; opacity: 0; }
+.kc-festa i:nth-child(odd) { border-radius: 50%; width: 12px; height: 12px; }
+@keyframes kc-festa-cai {
+  0%   { opacity: 1; transform: translate3d(0, 0, 0) rotate(0); }
+  100% { opacity: 0.6; transform: translate3d(var(--x, 0px), 105vh, 0) rotate(var(--r, 720deg)); }
+}
+
+/* ---------- MOBILE ---------- */
+@media (max-width: 899px) {
+  .kc-balao { width: 34px; height: 42px; opacity: 0.5; }
+  .kc-balao:nth-child(n+6) { display: none; }
+  .kc-confete:nth-child(n+16) { display: none; }
+  body.tema-criancas .pagina-cabecalho h1 { font-size: 23px; }
+}
+
+/* ---------- MENOS MOVIMENTO ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .kc-deco, .kc-festa { display: none !important; }
+  .tb-balao, .tb-confete, .tb-arte span, .tema-banner,
+  body.tema-criancas .sidebar::before, body.tema-criancas .topo-mobile::after, body.tema-criancas .barra-inferior::before,
+  body.tema-criancas .marca-emblema, body.tema-criancas .story-ring.tem, body.tema-criancas .story-ring.tem .story-ring-in,
+  body.tema-criancas .post-compositor, body.tema-criancas .tw-banner, body.tema-criancas .direct-lista-topo::after,
+  body.tema-criancas .direct-placeholder-ic, body.tema-criancas .auth-anjo, body.tema-criancas .bi-item.ativo svg,
+  body.tema-criancas .loader-ceu span, body.tema-criancas .auth-ceu span { animation: none !important; }
+}

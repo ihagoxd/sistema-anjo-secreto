@@ -15,6 +15,9 @@
     <a href="/mensagens/protegido" class="btn btn-primario">Mandar mensagem anônima</a>
   </div>
 
+  {{! Aba extra do tema (Mês das Crianças): o que o protegido quer ganhar — vem primeiro }}
+  {{> gostosTema nome=protegido.nome}}
+
   {{#if (ou gostos.length fotos.length)}}
     <div class="card prot-gostos-card">
       <div class="tw-gostos">
@@ -36,7 +39,7 @@
     </div>
   {{else}}
     <div class="card card-centro">
-      <p class="texto-suave" style="margin:0;">{{protegido.nome}} ainda não preencheu as preferências. Puxe papo no chat anônimo para descobrir o que agrada.</p>
+      <p class="texto-suave" style="margin:0;">{{protegido.nome}} ainda não preencheu as preferências{{#if gostosTema.length}} gerais{{/if}}. Puxe papo no chat anônimo para descobrir o que agrada.</p>
     </div>
   {{/if}}
 

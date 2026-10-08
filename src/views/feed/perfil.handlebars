@@ -61,6 +61,7 @@
   </div>
 
   {{#if (eq aba "gostos")}}
+    {{#if gostosTema.length}}<div class="tw-gostos-tema">{{> gostosTema nome=alvo.nome}}</div>{{/if}}
     {{#if (ou gostos.length fotosGosta.length)}}
       <div class="tw-gostos">
         <div class="tw-gostos-intro">O que faz {{alvo.nome}} feliz</div>
@@ -78,7 +79,7 @@
           {{> galeriaGosta fotos=fotosGosta}}
         {{/if}}
       </div>
-    {{else}}
+    {{else}}{{#unless gostosTema.length}}
       <div class="tw-vazio">
         {{#if (eq alvo.id_usuario usuario.id_usuario)}}
           <div class="tw-vazio-tit">Conte o que você gosta</div>
@@ -89,7 +90,7 @@
           <p>{{alvo.nome}} ainda não contou o que gosta.</p>
         {{/if}}
       </div>
-    {{/if}}
+    {{/unless}}{{/if}}
 
   {{else if (eq aba "reposts")}}
     {{#if posts.length}}

@@ -1,0 +1,28 @@
+{{! O que a pessoa contou na aba extra do tema (ex.: Mês das Crianças → presentes).
+    Contexto: gostosTema (lista montada pelo tema.service), nome, tema.
+    Aparece na página do protegido (para o anjo) e na aba Gostos do perfil. }}
+{{#if gostosTema.length}}
+<div class="card gt-card gt-{{tema.chave}}">
+  <div class="gt-deco" aria-hidden="true"><span>🎈</span><span>✨</span><span>🎁</span></div>
+  <div class="gt-cab">
+    <span class="gt-emoji">{{tema.emoji}}</span>
+    <div>
+      <div class="gt-kicker">{{tema.prefs.titulo}}</div>
+      <div class="gt-tit">O que {{nome}} quer ganhar</div>
+    </div>
+  </div>
+  {{#each gostosTema}}
+    <div class="gt-item">
+      <span class="gt-item-emoji">{{this.emoji}}</span>
+      <div class="gt-item-txt">
+        <div class="gt-item-rotulo">{{this.rotulo}}</div>
+        {{#if this.lista}}
+          <div class="gt-chips">{{#each this.lista}}<span class="chip-item">{{this}}</span>{{/each}}</div>
+        {{else}}
+          <div class="gt-item-valor">{{this.valor}}</div>
+        {{/if}}
+      </div>
+    </div>
+  {{/each}}
+</div>
+{{/if}}

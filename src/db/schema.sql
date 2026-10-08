@@ -137,6 +137,22 @@ CREATE TABLE IF NOT EXISTS preferencias_fotos (
 );
 CREATE INDEX IF NOT EXISTS idx_pref_fotos_usuario ON preferencias_fotos(id_usuario);
 
+-- ---------- PREFERÊNCIAS POR TEMA (ex.: Mês das Crianças) ----------
+-- Uma linha por usuário e tema; os campos ficam em JSONB (definidos em config/temas.js).
+CREATE TABLE IF NOT EXISTS preferencias_tema (
+  id_usuario     INTEGER NOT NULL REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
+  tema           VARCHAR(40) NOT NULL,
+  dados          JSONB NOT NULL DEFAULT '{}'::jsonb,
+  criado_em      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  atualizado_em  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (id_usuario, tema)
+);
+
+DROP TRIGGER IF EXISTS trg_preferencias_tema_atualizado_em ON preferencias_tema;
+CREATE TRIGGER trg_preferencias_tema_atualizado_em
+  BEFORE UPDATE ON preferencias_tema
+  FOR EACH ROW EXECUTE FUNCTION fn_atualizar_timestamp();
+
 -- ---------- MENSAGENS ANÔNIMAS ----------
 -- tipo_mensagem: ANJO_PARA_PROTEGIDO | PROTEGIDO_PARA_ANJO
 -- arquivada: TRUE quando o sorteio é refeito (deixam de ser exibidas)

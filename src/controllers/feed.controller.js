@@ -5,6 +5,7 @@ const postModel = require('../models/post.model');
 const usuarioModel = require('../models/usuario.model');
 const preferenciaService = require('../services/preferencia.service');
 const storyService = require('../services/story.service');
+const temaService = require('../services/tema.service');
 const { montarGostos } = require('../config/gostos');
 
 function ehAdmin(req) {
@@ -274,13 +275,16 @@ async function renderPerfil(req, res, aba) {
   let posts = dados.posts;
   let gostos = null;
   let fotosGosta = null;
+  let gostosTema = null;
   if (aba === 'gostos') {
-    const [prefs, fotos] = await Promise.all([
+    const [prefs, fotos, gt] = await Promise.all([
       preferenciaService.buscarPreferenciasPorUsuario(dados.alvo.id_usuario),
       preferenciaService.listarFotos(dados.alvo.id_usuario),
+      temaService.gostosDe(dados.alvo.id_usuario, res.locals.tema), // aba extra do tema (Mês das Crianças)
     ]);
     gostos = montarGostos(prefs);
     fotosGosta = fotos;
+    gostosTema = gt;
   } else if (aba === 'reposts') {
     posts = await postService.listarRepostados(dados.alvo.id_usuario, me);
   }
@@ -294,7 +298,7 @@ async function renderPerfil(req, res, aba) {
   dados.alvo.temStory = !!aneis[dados.alvo.id_usuario];
   dados.alvo.storyVisto = !!(aneis[dados.alvo.id_usuario] && aneis[dados.alvo.id_usuario].tudoVisto);
   res.render('feed/perfil', {
-    titulo: dados.alvo.nome, alvo: dados.alvo, posts, aba, gostos, fotosGosta,
+    titulo: dados.alvo.nome, alvo: dados.alvo, posts, aba, gostos, fotosGosta, gostosTema,
     numPublicacoes: dados.posts.length, pagina: 'perfil',
   });
 }

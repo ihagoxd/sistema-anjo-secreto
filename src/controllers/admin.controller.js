@@ -5,6 +5,9 @@ const campanhaService = require('../services/campanha.service');
 const sorteioService = require('../services/sorteio.service');
 const usuarioModel = require('../models/usuario.model');
 const participanteService = require('../services/participante.service');
+const temaService = require('../services/tema.service');
+const notificacaoService = require('../services/notificacao.service');
+const avisoModel = require('../models/aviso.model');
 const { registrarLog, listarLogs, listarAcoes } = require('../services/log.service');
 
 // Volta para a página de onde a ação partiu (lista de usuários com filtro, ou aprovações).
@@ -16,14 +19,17 @@ function voltarDe(req, padrao) {
 
 async function getDashboard(req, res, next) {
   try {
-    const [resumo, aptos, admins, campanhas, inativos, logs] = await Promise.all([
+    const [resumo, aptos, admins, campanhas, inativos, logs, temaAtivo] = await Promise.all([
       usuarioService.contarResumo(),
       usuarioModel.contarParticipantesAptos(),
       usuarioModel.contarAdminsAtivos(),
       campanhaService.listarCampanhas(),
       usuarioModel.inativosNaCampanhaAtiva(),
       listarLogs(8),
+      temaService.ativo(),
     ]);
+    // Tema com aba extra (Mês das Crianças): quantos já contaram o que querem ganhar.
+    const temaPreenchidos = temaAtivo.temPrefs ? await temaService.contarPreenchidos(temaAtivo) : 0;
     const campanhaAtiva = campanhas.find((c) => c.status === 'EM_ANDAMENTO') || null;
     const rascunho = campanhas.find((c) => c.status === 'RASCUNHO') || null;
     let mensagens = null;
@@ -48,7 +54,61 @@ async function getDashboard(req, res, next) {
       totalCampanhas: campanhas.length,
       campanhaAtiva, rascunho, mensagens, participantesAtivos, inativos,
       logs,
+      temaAtivo, temaPreenchidos,
     });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// ---------- Tema da rede social ----------
+// GET: cards de cada tema (com prévia) e qual está em uso. POST: ativa um tema para todos.
+async function getTema(req, res, next) {
+  try {
+    const [temas, atual, aptos] = await Promise.all([
+      temaService.listarParaAdmin(),
+      temaService.ativo(),
+      usuarioModel.contarParticipantesAptos(),
+    ]);
+    const preenchidos = atual.temPrefs ? await temaService.contarPreenchidos(atual) : 0;
+    res.render('admin/tema', {
+      titulo: 'Tema da rede social',
+      pagina: 'admin-tema',
+      temas, atual, aptos, preenchidos,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function postTema(req, res, next) {
+  try {
+    const me = req.session.usuario;
+    const r = await temaService.definir(String(req.body.tema || ''), me.nome);
+    if (!r.ok) {
+      req.session.flash = { erro: 'Tema inválido.' };
+      return res.redirect('/admin/tema');
+    }
+    if (!r.mudou) {
+      req.session.flash = { sucesso: `O tema "${r.tema.nome}" já estava em uso.` };
+      return res.redirect('/admin/tema');
+    }
+    await registrarLog({
+      idUsuario: me.id_usuario, acao: 'TEMA_ALTERADO',
+      descricao: `${r.anterior.emoji} ${r.anterior.nome} → ${r.tema.emoji} ${r.tema.nome}`,
+      entidade: 'tema', ip: req.ip,
+    });
+    // Avisa todo mundo (sino + push) — opcional, marcado por padrão no formulário.
+    let avisados = 0;
+    if (req.body.avisar === '1') {
+      const ids = await avisoModel.idsDestinatarios(me.id_usuario);
+      await notificacaoService.notificarTema(ids, r.tema);
+      avisados = ids.length;
+    }
+    req.session.flash = {
+      sucesso: `Tema "${r.tema.nome}" ativado! A rede inteira já está com o visual novo${avisados ? ` e ${avisados} pessoa${avisados > 1 ? 's foram avisadas' : ' foi avisada'}` : ''}. ${r.tema.emoji}`,
+    };
+    res.redirect('/admin/tema');
   } catch (err) {
     next(err);
   }
@@ -203,4 +263,4 @@ async function postRevelar(req, res, next) {
   }
 }
 
-module.exports = { getDashboard, getAprovacoes, postAprovar, postRecusar, getLogs, getRevelar, postRevelar, postRevelarPessoa };
+module.exports = { getDashboard, getAprovacoes, postAprovar, postRecusar, getLogs, getRevelar, postRevelar, postRevelarPessoa, getTema, postTema };

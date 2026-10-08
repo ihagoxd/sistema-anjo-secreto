@@ -1,5 +1,7 @@
 <div class="mural-layout">
   <div class="mural-centro">
+    {{! Faixa do tema da rede (ex.: Mês das Crianças) — só quando o admin ativa um tema com faixa }}
+    {{> temaBanner}}
 
     <div class="stories">
       {{! Seu story: anel dourado se você tem story ativo (clica e assiste); botão "+" publica }}
@@ -49,7 +51,7 @@
       <input type="hidden" name="_csrf" value="{{csrfToken}}">
       <div class="compositor-topo">
         <span class="post-avatar">{{#if usuario.foto_perfil}}<img src="{{usuario.foto_perfil}}" alt="">{{else}}{{inicial usuario.nome}}{{/if}}</span>
-        <textarea name="texto" maxlength="{{limite}}" placeholder="No que você está pensando?" autocomplete="off" data-mencoes data-texto></textarea>
+        <textarea name="texto" maxlength="{{limite}}" placeholder="{{#if tema.placeholderPost}}{{tema.placeholderPost}}{{else}}No que você está pensando?{{/if}}" autocomplete="off" data-mencoes data-texto></textarea>
       </div>
       <div class="compositor-preview" data-preview hidden></div>
       {{! Enquete (como no WhatsApp): o texto do post é a pergunta; as opções são montadas pelo JS }}

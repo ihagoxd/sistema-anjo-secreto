@@ -1,0 +1,27 @@
+{{! Faixa do tema no topo do feed (só quando o tema tem banner). A pessoa pode esconder
+    no X (fica guardado no aparelho; volta se o tema trocar). }}
+{{#if tema.banner}}
+<section class="tema-banner tb-{{tema.chave}}" data-tema-banner="{{tema.chave}}">
+  <div class="tb-deco" aria-hidden="true">
+    <span class="tb-balao" style="--c:#ff5a5f;left:3%;animation-delay:-2s"></span>
+    <span class="tb-balao" style="--c:#4cc9f0;left:11%;animation-delay:-6s;transform:scale(.7)"></span>
+    <span class="tb-balao" style="--c:#ffd166;left:90%;animation-delay:-4s"></span>
+    <span class="tb-balao" style="--c:#06d6a0;left:96%;animation-delay:-8s;transform:scale(.75)"></span>
+    <i class="tb-confete" style="--c:#8338ec;left:22%;animation-delay:-1s"></i>
+    <i class="tb-confete" style="--c:#ff70a6;left:40%;animation-delay:-3s"></i>
+    <i class="tb-confete" style="--c:#06d6a0;left:58%;animation-delay:-5s"></i>
+    <i class="tb-confete" style="--c:#ffd166;left:76%;animation-delay:-2.5s"></i>
+    <i class="tb-confete" style="--c:#4cc9f0;left:84%;animation-delay:-4.2s"></i>
+  </div>
+  <div class="tb-txt">
+    <span class="tb-kicker">{{tema.emoji}} {{tema.slogan}}</span>
+    <h2 class="tb-tit">{{tema.banner.titulo}}</h2>
+    <p class="tb-sub">{{tema.banner.texto}}</p>
+    {{#if tema.temPrefs}}{{#unless (eq usuario.tipo_usuario "ADMINISTRADOR")}}
+      <a class="btn btn-primario tb-btn" href="/participante/preferencias/tema">{{#if temaPrefsPreenchido}}{{tema.banner.botaoPreenchido}}{{else}}{{tema.banner.botao}}{{/if}} →</a>
+    {{/unless}}{{/if}}
+  </div>
+  <div class="tb-arte" aria-hidden="true"><span>🎁</span><span>🧸</span><span>🎈</span></div>
+  <button type="button" class="tb-x" data-fechar-banner="{{tema.chave}}" aria-label="Esconder esta faixa" title="Esconder">&times;</button>
+</section>
+{{/if}}

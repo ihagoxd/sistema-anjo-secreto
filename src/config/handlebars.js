@@ -59,6 +59,11 @@ const helpers = {
     return Array.isArray(arr) ? arr.join(',') : '';
   },
 
+  // JSON num atributo (o Handlebars escapa as aspas) — ex.: lista de chips num input hidden
+  json(valor) {
+    return JSON.stringify(valor == null ? [] : valor);
+  },
+
   // Últimos N itens de uma lista (prévia de comentários no card do post)
   ultimos(lista, n) {
     return Array.isArray(lista) ? lista.slice(-n) : [];
@@ -185,6 +190,7 @@ const helpers = {
       ANJO_REVELADO: 'Revelou o anjo de alguém',
       AVISO_CRIADO: 'Publicou aviso', AVISO_EDITADO: 'Editou aviso', AVISO_EXCLUIDO: 'Excluiu aviso',
       AVISO_PUBLICADO: 'Publicou aviso', AVISO_DESATIVADO: 'Desativou aviso',
+      TEMA_ALTERADO: 'Trocou o tema da rede',
     };
     return mapa[acao] || acao;
   },

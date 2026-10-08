@@ -19,6 +19,10 @@ router.get('/', adminCtrl.getDashboard);
 // Logs (auditoria)
 router.get('/logs', adminCtrl.getLogs);
 
+// Tema da rede social (padrão / Dia das Crianças…) — vale para todo mundo
+router.get('/tema', adminCtrl.getTema);
+router.post('/tema', adminCtrl.postTema);
+
 // Aprovação de cadastros
 router.get('/aprovacoes', adminCtrl.getAprovacoes);
 router.post('/aprovacoes/:id_usuario/aprovar', adminCtrl.postAprovar);

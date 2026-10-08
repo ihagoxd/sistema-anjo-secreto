@@ -4985,6 +4985,111 @@
     setTimeout(function () { animar(previa); }, 350);
   })();
 
+  /* ---------- Tema da rede: faixa do feed (X esconde no aparelho) ----------
+     Guarda a chave do tema: se o admin trocar de tema, a faixa nova volta a aparecer. */
+  document.addEventListener('click', function (e) {
+    var x = e.target.closest('[data-fechar-banner]');
+    if (!x) return;
+    var faixa = x.closest('.tema-banner');
+    try { localStorage.setItem('bannerTema', x.getAttribute('data-fechar-banner') || '1'); } catch (err) {}
+    if (!faixa) return;
+    faixa.style.transition = 'opacity .25s, transform .25s, max-height .3s, margin .3s';
+    faixa.style.opacity = '0';
+    faixa.style.transform = 'scale(.97)';
+    setTimeout(function () { faixa.remove(); }, 260);
+  });
+
+  /* ---------- Lista de "chips" (ex.: presentes do Mês das Crianças) ----------
+     Digita + Enter (ou vírgula) adiciona; × remove; Backspace vazio tira o último;
+     as "ideias rápidas" entram com um toque. Tudo vai num hidden em JSON. */
+  document.querySelectorAll('[data-chips]').forEach(function (wrap) {
+    var hidden = wrap.querySelector('input[type="hidden"]');
+    var input = wrap.querySelector('[data-chips-input]');
+    var lista = wrap.querySelector('[data-chips-lista]');
+    var caixa = wrap.querySelector('[data-chips-box]');
+    var cont = wrap.querySelector('[data-chips-cont]');
+    var sugestoes = wrap.querySelectorAll('[data-chips-sug] button');
+    if (!hidden || !input || !lista) return;
+    var max = parseInt(wrap.getAttribute('data-max'), 10) || 12;
+    var placeholder = input.getAttribute('data-placeholder') || input.placeholder || '';
+    var itens = [];
+    try { itens = JSON.parse(hidden.value || '[]'); } catch (e) { itens = []; }
+    if (!Array.isArray(itens)) itens = [];
+
+    function igual(a, b) { return String(a).trim().toLowerCase() === String(b).trim().toLowerCase(); }
+    function render() {
+      lista.innerHTML = '';
+      itens.forEach(function (t, i) {
+        var s = document.createElement('span');
+        s.className = 'chip-item';
+        s.appendChild(document.createTextNode(t));
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.setAttribute('aria-label', 'Remover ' + t);
+        b.textContent = '×';
+        b.addEventListener('click', function (ev) { ev.stopPropagation(); itens.splice(i, 1); sync(); input.focus(); });
+        s.appendChild(b);
+        lista.appendChild(s);
+      });
+      sugestoes.forEach(function (btn) {
+        btn.classList.toggle('usado', itens.some(function (t) { return igual(t, btn.textContent); }));
+      });
+      var cheio = itens.length >= max;
+      input.disabled = cheio;
+      input.placeholder = cheio ? 'Lista cheia (' + max + ')' : placeholder;
+      if (cont) cont.textContent = itens.length ? itens.length + '/' + max : '';
+    }
+    function sync() { hidden.value = JSON.stringify(itens); render(); }
+    function add(txt) {
+      txt = String(txt || '').trim().replace(/\s+/g, ' ').slice(0, 60);
+      if (!txt || itens.length >= max) return false;
+      if (itens.some(function (t) { return igual(t, txt); })) return false;
+      itens.push(txt);
+      sync();
+      return true;
+    }
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        if (add(input.value)) input.value = '';
+      } else if (e.key === 'Backspace' && !input.value && itens.length) {
+        itens.pop(); sync();
+      }
+    });
+    input.addEventListener('blur', function () { if (add(input.value)) input.value = ''; });
+    if (caixa) caixa.addEventListener('click', function (e) { if (!e.target.closest('.chip-item')) input.focus(); });
+    sugestoes.forEach(function (btn) {
+      btn.addEventListener('click', function () { if (add(btn.textContent)) input.focus(); });
+    });
+    // Enter no formulário com o campo ainda cheio: entra na lista antes de enviar
+    var form = wrap.closest('form');
+    if (form) form.addEventListener('submit', function () { if (add(input.value)) input.value = ''; });
+    render();
+  });
+
+  /* ---------- Chuva de confete (tema Dia das Crianças: salvou a lista 🎉) ---------- */
+  (function () {
+    if (!document.body.classList.contains('tema-criancas')) return;
+    if (!document.querySelector('[data-confete]')) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var cores = ['#ff5a5f', '#ff9f1c', '#ffd166', '#06d6a0', '#4cc9f0', '#8338ec', '#ff70a6', '#3a86ff'];
+    var festa = document.createElement('div');
+    festa.className = 'kc-festa';
+    festa.setAttribute('aria-hidden', 'true');
+    for (var i = 0; i < 70; i++) {
+      var p = document.createElement('i');
+      p.style.left = (Math.random() * 100) + '%';
+      p.style.setProperty('--c', cores[i % cores.length]);
+      p.style.setProperty('--x', (Math.random() * 160 - 80).toFixed(0) + 'px');
+      p.style.setProperty('--r', (Math.random() * 900 + 360).toFixed(0) + 'deg');
+      p.style.setProperty('--d', (Math.random() * 1.4 + 2.2).toFixed(2) + 's');
+      p.style.setProperty('--delay', (Math.random() * 0.9).toFixed(2) + 's');
+      festa.appendChild(p);
+    }
+    document.body.appendChild(festa);
+    setTimeout(function () { festa.remove(); }, 4500);
+  })();
+
   /* ---------- Tutorial passo a passo (feed) ----------
      Passa por DENTRO das telas: abre os comentários, o sino, a pesquisa, vai até
      Mensagens (Direct × chat do anjo), os gostos e o Meu painel. Holofote sobre cada

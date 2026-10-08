@@ -14,6 +14,7 @@ const sessao = require('./config/session');
 const { cspNonce, helmetMiddleware, permissionsPolicy, limiteGeral } = require('./config/security');
 const { contexto } = require('./middlewares/auth.middleware');
 const { carregarContextoApp } = require('./middlewares/contextoApp.middleware');
+const { carregarTema } = require('./middlewares/tema.middleware');
 const { attachCsrf, verifyCsrf } = require('./middlewares/csrf.middleware');
 const { naoEncontrado, erroInterno } = require('./middlewares/errorHandler.middleware');
 
@@ -111,6 +112,7 @@ if (process.env.PERF_LOG === '1') {
 // --- Sessão + contexto de view + CSRF ---
 app.use(sessao);
 app.use(contexto);     // expõe usuário logado + flash
+app.use(carregarTema); // tema da rede social (classe do body, CSS extra, slogan) — em toda página
 app.use(attachCsrf);   // garante token CSRF na sessão e em res.locals
 app.use(limiteGeral()); // rate limit geral das rotas dinâmicas
 app.use(verifyCsrf);   // valida token em POST/PUT/PATCH/DELETE

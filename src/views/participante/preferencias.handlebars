@@ -10,6 +10,8 @@
     </div>
   </div>
 
+  {{> pfAbas abaAtiva="perfil"}}
+
   <form class="form card pf-form" action="/participante/perfil" method="POST" enctype="multipart/form-data" novalidate>
     <input type="hidden" name="_csrf" value="{{csrfToken}}">
     {{> perfilCampos}}

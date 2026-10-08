@@ -17,6 +17,7 @@ const mensagemService = require('../services/mensagem.service');
 const dmService = require('../services/mensagemDireta.service');
 const sorteioService = require('../services/sorteio.service');
 const participanteService = require('../services/participante.service');
+const temaService = require('../services/tema.service');
 const { montarGostos, PRESENTE } = require('../config/gostos');
 
 function primeiroNome(nome) {
@@ -80,6 +81,11 @@ async function carregarContextoApp(req, res, next) {
     // Feed e segue por todas as telas. ?tour=1 (no Feed) repete a qualquer hora.
     // (Lido do banco, não da sessão: o sorteio "reabre" o tutorial para todo mundo.)
     if (u.tipo_usuario === 'PARTICIPANTE') {
+      // Tema com aba extra (Mês das Crianças): a faixa do feed e a aba mudam de texto
+      // conforme a pessoa já contou (ou não) o que quer ganhar.
+      const tema = res.locals.tema;
+      if (tema && tema.temPrefs) res.locals.temaPrefsPreenchido = await temaService.preencheu(me, tema);
+
       const roletaOk = !!(campanha && await sorteioService.buscarProtegidoDoAnjo(campanha.id_campanha, me));
       let tour = req.path === '/feed' && req.query.tour === '1';
       if (!tour && (u.perfil_completo || roletaOk)) tour = !(await usuarioModel.tutorialVisto(me));

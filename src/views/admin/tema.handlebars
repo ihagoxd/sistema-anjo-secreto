@@ -1,0 +1,71 @@
+<div class="pagina-cabecalho">
+  <div>
+    <h1>Tema da rede social</h1>
+    <p class="subtitulo">Escolha a cara do app para todo mundo: feed, Direct, painel, admin e até a tela de login mudam na hora.</p>
+  </div>
+  <a href="/admin" class="btn btn-secundario btn-sm">Voltar</a>
+</div>
+
+<div class="card tema-atual">
+  <div class="tema-atual-ic" aria-hidden="true">{{atual.emoji}}</div>
+  <div class="tema-atual-txt">
+    <div class="tema-atual-rot">Em uso agora</div>
+    <strong class="tema-atual-nome">{{atual.nome}}</strong>
+    <span class="texto-suave">{{#if atual.ativadoEm}}desde {{formatarData atual.ativadoEm}}{{#if atual.ativadoPor}} · ativado por {{atual.ativadoPor}}{{/if}}{{else}}tema de fábrica — nunca foi trocado{{/if}}</span>
+  </div>
+  {{#if atual.temPrefs}}
+    <div class="tema-atual-stat" title="Participantes aptos que já preencheram a aba “{{atual.prefs.titulo}}”">
+      <div class="numero">{{preenchidos}}<small>/{{aptos}}</small></div>
+      <div class="stat-lbl">já contaram o que querem ganhar</div>
+    </div>
+  {{/if}}
+</div>
+
+<div class="temas-grade">
+  {{#each temas}}
+    <article class="tema-card tc-{{chave}}{{#if ativo}} em-uso{{/if}}">
+      <div class="tema-previa" aria-hidden="true">
+        <div class="tp-tela">
+          <div class="tp-topo"><span class="tp-logo"></span><span class="tp-tit"></span><span class="tp-sino"></span></div>
+          <div class="tp-stories"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="tp-post">
+            <span class="tp-av"></span><span class="tp-l1"></span><span class="tp-l2"></span>
+            <span class="tp-midia"></span>
+          </div>
+          <div class="tp-chat"><span class="tp-b deles"></span><span class="tp-b minha"></span><span class="tp-b deles curta"></span></div>
+          <div class="tp-barra"><i></i><i></i><i class="on"></i><i></i><i></i></div>
+          {{#if (eq chave "criancas")}}
+            <span class="tp-balao" style="--c:#ff5a5f;left:8%;animation-delay:-1s"></span>
+            <span class="tp-balao" style="--c:#4cc9f0;left:50%;animation-delay:-4s;transform:scale(.8)"></span>
+            <span class="tp-balao" style="--c:#ffd166;left:82%;animation-delay:-2.5s"></span>
+            <span class="tp-conf" style="--c:#8338ec;left:30%;animation-delay:-.5s"></span>
+            <span class="tp-conf" style="--c:#06d6a0;left:66%;animation-delay:-2s"></span>
+          {{/if}}
+        </div>
+      </div>
+      <div class="tema-card-corpo">
+        <div class="tema-card-tit">
+          <span class="tema-card-emoji" aria-hidden="true">{{emoji}}</span>
+          <h2>{{nome}}</h2>
+          {{#if ativo}}<span class="tema-badge">Em uso</span>{{/if}}
+        </div>
+        <p class="tema-card-desc">{{descricao}}</p>
+        <ul class="tema-muda">
+          {{#each mudancas}}<li>{{this}}</li>{{/each}}
+        </ul>
+        {{#if ativo}}
+          <button type="button" class="btn btn-secundario btn-bloco" disabled>✓ Este é o tema atual</button>
+        {{else}}
+          <form method="POST" action="/admin/tema" class="tema-form" data-confirmar="Ativar o tema “{{nome}}” para todo mundo agora?">
+            <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
+            <input type="hidden" name="tema" value="{{chave}}">
+            <label class="check-linha"><input type="checkbox" name="avisar" value="1" checked> Avisar todo mundo com uma notificação</label>
+            <button type="submit" class="btn btn-primario btn-bloco">Ativar {{nome}} {{emoji}}</button>
+          </form>
+        {{/if}}
+      </div>
+    </article>
+  {{/each}}
+</div>
+
+<p class="texto-suave tema-rodape-dica">A troca vale na hora para quem está navegando (na próxima página). O tema claro/escuro continua sendo escolha de cada pessoa, no botão de lua/sol.</p>

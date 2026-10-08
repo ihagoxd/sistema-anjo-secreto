@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#0c0f16">
+  <meta name="theme-color" content="{{#if tema.cor}}{{tema.cor}}{{else}}#0c0f16{{/if}}">
   <title>{{#if titulo}}{{titulo}} · {{/if}}Anjo Secreto</title>
   <link rel="icon" type="image/png" href="/img/logo.png">
   <link rel="apple-touch-icon" href="/img/apple-touch-icon.png?v={{assetVer}}">
@@ -14,6 +14,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <link rel="preload" href="/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/css/estilo.css?v={{assetVer}}">
+  {{#if tema.css}}<link rel="stylesheet" href="/css/{{tema.css}}?v={{assetVer}}">{{/if}}
   <script nonce="{{cspNonce}}">
     (function () {
       try { document.documentElement.setAttribute('data-theme', localStorage.getItem('tema') || 'dark'); }
@@ -23,8 +24,9 @@
     })();
   </script>
 </head>
-<body>
+<body class="{{#if tema.classe}}{{tema.classe}}{{/if}}">
   {{> loader}}
+  {{> temaDecoracao}}
 
   <button type="button" class="btn-icone toggle-flutuante" id="btn-tema" aria-label="Alternar tema">
     <svg class="icon icone-lua" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -71,7 +73,7 @@
         </div>
 
         <div class="auth-wordmark">Anjo Secreto</div>
-        <div class="auth-sub">Cuide em segredo</div>
+        <div class="auth-sub">{{#if tema.slogan}}{{tema.slogan}}{{else}}Cuide em segredo{{/if}}</div>
 
         <div class="auth-losango"><span class="fio"></span><span class="d"></span><span class="fio"></span></div>
         <p class="auth-lema">Cada anjo zela, em silêncio, por quem lhe foi confiado.</p>

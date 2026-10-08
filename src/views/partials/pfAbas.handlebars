@@ -1,0 +1,8 @@
+{{!-- Abas do editor de preferências: "Meu perfil" + a aba extra do tema ativo
+    (ex.: Mês das Crianças). Uso: {{> pfAbas abaAtiva="perfil"}} ou abaAtiva="tema". --}}
+{{#if tema.temPrefs}}
+<nav class="pf-abas" aria-label="Seções das preferências">
+  <a class="pf-aba{{#if (eq abaAtiva "perfil")}} ativo{{/if}}" href="/participante/preferencias"><span class="pf-aba-ic" aria-hidden="true">💛</span> Meu perfil</a>
+  <a class="pf-aba pf-aba-tema{{#if (eq abaAtiva "tema")}} ativo{{/if}}" href="/participante/preferencias/tema"><span class="pf-aba-ic" aria-hidden="true">{{tema.emoji}}</span> {{tema.prefs.titulo}}{{#unless temaPrefsPreenchido}}<span class="pf-aba-novo">novo</span>{{/unless}}</a>
+</nav>
+{{/if}}

@@ -11,14 +11,14 @@
     {{! Notas (estilo Instagram): balãozinho acima do avatar, "Sua nota" primeiro.
         Identidade pública do escritório — não toca nos canais secretos do jogo. }}
     <div class="notas">
-      <button type="button" class="nota" data-abrir-modal="modal-humor" title="{{#if humorEu}}{{rotuloHumor humorEu}} · alterar{{else}}Deixar uma nota{{/if}}">
-        <span class="nota-bolha {{#unless humorEu}}vazia{{/unless}}">{{#if humorEu}}{{emojiHumor humorEu}}{{else}}+{{/if}}</span>
+      <button type="button" class="nota" data-abrir-modal="modal-nota" title="{{#if notaEu}}{{notaEu}} · alterar{{else}}Deixar uma nota{{/if}}">
+        <span class="nota-bolha {{#unless notaEu}}vazia{{/unless}}">{{#if notaEu}}{{notaEu}}{{else}}+{{/if}}</span>
         <span class="nota-av{{#if tenhoStory}} st-anel st-tem{{/if}}">{{#if usuario.foto_perfil}}<img src="{{usuario.foto_perfil}}" alt="">{{else}}{{inicial usuario.nome}}{{/if}}</span>
         <span class="nota-nome">Sua nota</span>
       </button>
       {{#each notas}}
-        <a class="nota" href="/mensagens/u/{{this.id_usuario}}" title="{{this.nome}} · {{rotuloHumor this.humor}}">
-          <span class="nota-bolha">{{emojiHumor this.humor}}</span>
+        <a class="nota" href="/mensagens/u/{{this.id_usuario}}" title="{{this.nome}} · {{this.nota}}">
+          <span class="nota-bolha">{{this.nota}}</span>
           <span class="nota-av{{#if this.temStory}} st-anel {{#if this.storyVisto}}st-visto{{else}}st-tem{{/if}}{{/if}}"{{#if this.temStory}} data-ver-stories="{{this.id_usuario}}" title="Ver o story de {{this.nome}}"{{/if}}>{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</span>
           <span class="nota-nome">{{this.usuario}}</span>
         </a>
@@ -300,31 +300,32 @@
 </div>
 {{/if}}
 
-{{! Modal da nota (antes vivia no mural): define/limpa o status do dia }}
-<div class="modal" id="modal-humor" hidden aria-hidden="true">
-  <div class="modal-card modal-humor">
-    <div class="modal-cab">
-      <h2>Deixe uma nota</h2>
-      <p class="texto-suave">Sua nota aparece para a equipe aqui no Direct e some à meia-noite.</p>
+{{! Nota (como as Notes do Instagram): texto livre até 60 caracteres, só a equipe vê, some em 24 h }}
+<div class="modal sheet-share" id="modal-nota" hidden aria-hidden="true">
+  <div class="modal-card share-card nota-card">
+    <div class="sheet-cab sempre">
+      <span class="sheet-grab" aria-hidden="true"></span>
+      <span class="sheet-titulo">{{#if notaEu}}Sua nota{{else}}Nova nota{{/if}}</span>
+      <button type="button" class="sheet-x" data-fechar-modal="modal-nota" aria-label="Fechar">&times;</button>
     </div>
-    <form action="/conta/humor" method="POST" class="humor-grade">
+    <form action="/conta/nota" method="POST" class="nota-form" data-nota-form>
       <input type="hidden" name="_csrf" value="{{csrfToken}}">
-      {{#each humores}}
-        <button type="submit" name="humor" value="{{this.chave}}" class="humor-op {{#if (eq this.chave @root.humorEu)}}sel{{/if}}">
-          <span class="humor-emoji">{{this.emoji}}</span>
-          <span class="humor-rotulo">{{this.rotulo}}</span>
-        </button>
-      {{/each}}
+      <div class="nota-previa">
+        <span class="nota-previa-bolha{{#unless notaEu}} vazia{{/unless}}" data-nota-previa>{{#if notaEu}}{{notaEu}}{{else}}Compartilhe o que está pensando…{{/if}}</span>
+        <span class="nota-av nota-previa-av">{{#if usuario.foto_perfil}}<img src="{{usuario.foto_perfil}}" alt="">{{else}}{{inicial usuario.nome}}{{/if}}</span>
+      </div>
+      <div class="nota-campo">
+        <input type="text" name="nota" maxlength="60" placeholder="Compartilhe o que está pensando…" value="{{notaEu}}" autocomplete="off" autocapitalize="sentences" data-nota-input>
+        <span class="nota-cont" data-nota-cont>0/60</span>
+      </div>
+      <div class="nota-sugestoes" data-nota-sugestoes>
+        {{#each sugestoesNota}}<button type="button" class="nota-sug" data-nota-sug="{{this.emoji}} {{this.rotulo}}">{{this.emoji}} {{this.rotulo}}</button>{{/each}}
+      </div>
+      <p class="texto-suave nota-dica">Só a equipe vê, aqui no Direct. Some em 24 horas.</p>
+      <div class="modal-acoes nota-acoes">
+        {{#if notaEu}}<button type="submit" class="btn btn-secundario btn-sm" name="apagar" value="1" formnovalidate>Apagar nota</button>{{/if}}
+        <button type="submit" class="btn btn-primario btn-sm" data-nota-enviar{{#unless notaEu}} disabled{{/unless}}>Compartilhar</button>
+      </div>
     </form>
-    <div class="modal-acoes">
-      {{#if humorEu}}
-        <form action="/conta/humor" method="POST" style="margin:0;">
-          <input type="hidden" name="_csrf" value="{{csrfToken}}">
-          <input type="hidden" name="humor" value="">
-          <button type="submit" class="btn btn-secundario btn-sm">Remover nota</button>
-        </form>
-      {{/if}}
-      <button type="button" class="btn btn-secundario btn-sm" data-fechar-modal="modal-humor">Fechar</button>
-    </div>
   </div>
 </div>

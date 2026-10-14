@@ -87,7 +87,7 @@
   </div>
 
   <div class="ig-rodape">
-    <div class="ig-curtidas" data-vercurtidas="{{this.id_post}}" role="button" tabindex="0" title="Ver quem curtiu"{{#unless (num this.curtidas)}} hidden{{/unless}}><span class="ig-reacoes-top" data-reacoes-top>{{#each this.reacoes_top}}<i>{{this}}</i>{{/each}}</span><span data-linha-curtidas>{{linhaCurtidas this.curtidor this.curtidas}}</span></div>
+    <div class="ig-curtidas" data-vercurtidas="{{this.id_post}}" role="button" tabindex="0" title="Ver quem curtiu"{{#unless (num this.curtidas)}} hidden{{/unless}}><span data-linha-curtidas>{{linhaCurtidas this.curtidor this.curtidas}}</span></div>
 
     {{#if this.imagem}}{{#if this.texto}}<div class="tw-post-texto ig-legenda"><a href="/u/{{this.usuario}}" class="ig-user">{{this.usuario}}</a><span data-post-texto>{{comMencoes this.texto}}</span></div>{{/if}}{{/if}}
 

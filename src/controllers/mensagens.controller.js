@@ -181,8 +181,8 @@ async function renderInbox(req, res, sel) {
   });
 
   // Notas (estilo Instagram): "Sua nota" + quem definiu o status hoje.
-  const humorEu = await usuarioModel.buscarHumorHoje(me);
-  const notas = ctx.equipe.filter((u) => u.humor)
+  const notaEu = await usuarioModel.buscarNota(me);
+  const notas = ctx.equipe.filter((u) => u.nota)
     .map((u, i) => ({ u, i, k: u.temStory && !u.storyVisto ? 0 : 1 }))
     .sort((a, b) => a.k - b.k || a.i - b.i)
     .map((x) => x.u);
@@ -197,8 +197,8 @@ async function renderInbox(req, res, sel) {
     lista: ctx.lista,
     conversa,
     limite: mensagemService.LIMITE,
-    humorEu,
-    humores: HUMORES,
+    notaEu,
+    sugestoesNota: HUMORES,
     notas,
     tenhoStory: !!aneis[me],
     // Temas de conversa (só o Direct do escritório; o canal do Anjo mantém o visual próprio)

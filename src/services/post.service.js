@@ -185,11 +185,11 @@ async function perfilPublico(usuario, idUsuarioAtual) {
   const alvo = await usuarioModel.buscarPorUsuario(usuario);
   if (!alvo || alvo.status !== 'APROVADO') return null;
   const posts = await postModel.listarPorUsuario(alvo.id_usuario, idUsuarioAtual);
-  const humor = await usuarioModel.buscarHumorHoje(alvo.id_usuario);
+  const nota = await usuarioModel.buscarNota(alvo.id_usuario);
   return {
     alvo: {
       id_usuario: alvo.id_usuario, nome: alvo.nome, usuario: alvo.usuario,
-      foto_perfil: alvo.foto_perfil, tipo_usuario: alvo.tipo_usuario, bio: alvo.bio, humor,
+      foto_perfil: alvo.foto_perfil, tipo_usuario: alvo.tipo_usuario, bio: alvo.bio, nota,
       data_nascimento: alvo.data_nascimento, criado_em: alvo.criado_em,
     },
     posts,

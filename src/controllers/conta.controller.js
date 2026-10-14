@@ -2,7 +2,6 @@
 
 const usuarioModel = require('../models/usuario.model');
 const { apagarUpload } = require('../config/upload');
-const { ehValido } = require('../config/humores');
 
 async function getConta(req, res, next) {
   try {
@@ -69,16 +68,17 @@ async function postRemoverFoto(req, res, next) {
   }
 }
 
-// Define/limpa o "status do dia" (humor) mostrado no story.
-async function postHumor(req, res, next) {
+// Nota (texto livre, até 60 caracteres, como no Instagram). "apagar" ou vazio limpa.
+async function postNota(req, res, next) {
   try {
-    const bruto = String(req.body.humor || '').trim();
-    const humor = ehValido(bruto) ? bruto : null; // vazio/inválido => limpa
-    await usuarioModel.atualizarHumor(req.session.usuario.id_usuario, humor);
+    let texto = Array.isArray(req.body.nota) ? req.body.nota[0] : req.body.nota;
+    texto = String(texto || '').replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60);
+    const nota = req.body.apagar ? null : (texto || null);
+    await usuarioModel.atualizarNota(req.session.usuario.id_usuario, nota);
     res.redirect(req.get('Referer') || '/feed');
   } catch (err) {
     next(err);
   }
 }
 
-module.exports = { getConta, postConta, postRemoverFoto, postHumor };
+module.exports = { getConta, postConta, postRemoverFoto, postNota };

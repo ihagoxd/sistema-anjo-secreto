@@ -22,8 +22,8 @@
             data-avatar-perfil{{#if alvo.foto_perfil}} data-foto-ampla="{{alvo.foto_perfil}}"{{/if}}{{#if alvo.temStory}} data-ver-stories="{{alvo.id_usuario}}"{{/if}}
             {{#if alvo.temStory}}title="Toque: ver story · Segure: ampliar a foto"{{else}}{{#if alvo.foto_perfil}}title="Toque ou segure: ampliar a foto"{{/if}}{{/if}}>
         {{#if alvo.foto_perfil}}<img src="{{alvo.foto_perfil}}" alt="" draggable="false">{{else}}{{inicial alvo.nome}}{{/if}}
-        {{#if alvo.humor}}<span class="tw-humor" title="{{rotuloHumor alvo.humor}}">{{emojiHumor alvo.humor}}</span>{{/if}}
       </span>
+      {{#if alvo.nota}}<span class="tw-nota" title="Nota de {{alvo.nome}}">{{alvo.nota}}</span>{{/if}}
       <div class="tw-acoes">
         {{#if (eq alvo.id_usuario usuario.id_usuario)}}
           <a href="/conta" class="btn btn-secundario">Editar perfil</a>
@@ -160,10 +160,10 @@
         <span class="comp-mais-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
         <span class="comp-mais-txt"><strong>Editar perfil</strong><small>Foto, nome, bio e dados</small></span>
       </a>
-      <a class="comp-mais-op" href="/notificacoes/preferencias">
+      <button type="button" class="comp-mais-op" data-abrir-modal="notifPrefs" data-fechar-modal="modal-perfil-menu">
         <span class="comp-mais-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
         <span class="comp-mais-txt"><strong>Notificações</strong><small>O que avisar e como</small></span>
-      </a>
+      </button>
       <button type="button" class="comp-mais-op" data-tema-toggle data-fechar-modal="modal-perfil-menu">
         <span class="comp-mais-ic"><svg class="icone-lua" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg><svg class="icone-sol" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></span>
         <span class="comp-mais-txt"><strong>Tema</strong><small>Alternar entre claro e escuro</small></span>

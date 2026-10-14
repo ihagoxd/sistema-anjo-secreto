@@ -95,7 +95,7 @@ async function getFeed(req, res, next) {
     // do mais recente pro mais antigo; (3) o resto, em ordem alfabética.
     const pesoFila = (u) => {
       if (u.temStory && !u.storyVisto) return 0;
-      if (u.humor) return 1;
+      if (u.nota) return 1;
       if (u.temStory) return 2;
       return 3;
     };

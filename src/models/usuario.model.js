@@ -165,11 +165,11 @@ async function aniversariantesHoje() {
 }
 
 // Equipe: usuários aprovados e ativos (para a fila de "stories" e sugestões).
-// `humor` só é retornado quando definido HOJE (status do dia zera à meia-noite).
+// `nota` (texto livre, como no Instagram) só volta enquanto vale: 24 h depois de escrita.
 async function listarAprovados(excluindoId, limite = 30) {
   const res = await db.query(
     `SELECT id_usuario, nome, usuario, foto_perfil,
-            CASE WHEN humor_data = CURRENT_DATE THEN humor END AS humor
+            CASE WHEN nota_em > now() - interval '24 hours' THEN nota END AS nota
        FROM usuarios
       WHERE status = 'APROVADO' AND ativo = TRUE
         AND tipo_usuario = 'PARTICIPANTE'
@@ -181,23 +181,23 @@ async function listarAprovados(excluindoId, limite = 30) {
   return res.rows;
 }
 
-// Status do dia (humor) do próprio usuário — null se não definido hoje.
-async function buscarHumorHoje(idUsuario) {
+// Nota do próprio usuário — null se não escreveu nada nas últimas 24 h.
+async function buscarNota(idUsuario) {
   const res = await db.query(
-    `SELECT CASE WHEN humor_data = CURRENT_DATE THEN humor END AS humor
+    `SELECT CASE WHEN nota_em > now() - interval '24 hours' THEN nota END AS nota
        FROM usuarios WHERE id_usuario = $1`,
     [idUsuario]
   );
-  return res.rows[0] ? res.rows[0].humor : null;
+  return res.rows[0] ? res.rows[0].nota : null;
 }
 
-// Define (ou limpa, com humor=null) o status do dia.
-async function atualizarHumor(idUsuario, humor) {
+// Escreve (ou apaga, com nota=null) a nota.
+async function atualizarNota(idUsuario, nota) {
   await db.query(
     `UPDATE usuarios
-        SET humor = $2, humor_data = CASE WHEN $2::varchar IS NULL THEN NULL ELSE CURRENT_DATE END
+        SET nota = $2, nota_em = CASE WHEN $2::varchar IS NULL THEN NULL ELSE now() END
       WHERE id_usuario = $1`,
-    [idUsuario, humor]
+    [idUsuario, nota]
   );
 }
 
@@ -396,8 +396,8 @@ module.exports = {
   buscarParaMencao,
   buscarUsuarios,
   resolverMencoes,
-  buscarHumorHoje,
-  atualizarHumor,
+  buscarNota,
+  atualizarNota,
   atualizarSenha,
   resetarSenha,
   atualizarStatus,

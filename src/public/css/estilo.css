@@ -3974,3 +3974,40 @@ body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
 /* LIMPEZA: ícones no lugar de emoji nos rótulos da interface */
 .enq-b-icone svg { color: var(--accent); display: block; }
 .notif-vazio svg, .notif-vazio-lista svg { color: var(--text-faint); margin-bottom: 8px; }
+
+/* ============================================================
+   NOTAS DE TEXTO (Instagram Notes): bolha com texto livre, modal com prévia, bolha no perfil
+   ============================================================ */
+.nota { width: 82px; }
+.nota-bolha { max-width: 96px; padding: 5px 9px; border-radius: 13px; font-size: 11px; line-height: 1.25; font-weight: 500; white-space: normal; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; word-break: break-word; }
+.nota-bolha.vazia { display: inline-block; font-size: 15px; padding: 4px 11px; border-radius: 999px; }
+.nota-card { max-width: 440px; }
+.nota-form { margin: 0; }
+.nota-previa { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px 0 6px; }
+.nota-previa-bolha { position: relative; max-width: 250px; padding: 10px 14px; border-radius: 18px; background: var(--surface-2); border: 1px solid var(--line); font-size: 14px; line-height: 1.3; text-align: center; color: var(--text); word-break: break-word; }
+.nota-previa-bolha.vazia { color: var(--text-faint); }
+.nota-previa-bolha::after { content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-16px); width: 9px; height: 9px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--line); }
+.nota-previa-av { width: 76px; height: 76px; font-size: 24px; margin-top: 6px; }
+.nota-campo { position: relative; margin-top: 10px; }
+.nota-campo input { width: 100%; box-sizing: border-box; padding: 11px 56px 11px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2); color: var(--text); font: inherit; font-size: 15px; }
+.nota-campo input:focus { outline: none; border-color: var(--accent); }
+.nota-cont { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--text-faint); }
+.nota-sugestoes { display: flex; gap: 6px; overflow-x: auto; padding: 10px 0 2px; scrollbar-width: none; }
+.nota-sugestoes::-webkit-scrollbar { display: none; }
+.nota-sug { flex: 0 0 auto; border: 1px solid var(--line); background: var(--surface-2); border-radius: 999px; padding: 6px 10px; font: inherit; font-size: 12.5px; color: var(--text); cursor: pointer; }
+.nota-sug:hover { background: var(--hover); }
+.nota-dica { margin: 10px 0 0; font-size: 12.5px; }
+.nota-acoes { margin-top: 8px; }
+.tw-nota { position: relative; align-self: flex-start; margin: 4px 0 0 10px; max-width: 180px; padding: 7px 11px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--line); color: var(--text); font-size: 12px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word; }
+/* Bolha da nota: força o modo de caixa do clamp (outra regra punha flow-root) e dá mais largura, como no Instagram */
+.nota { width: 86px; }
+.nota-bolha { display: -webkit-box !important; max-width: 112px; min-width: 58px; }
+.nota-bolha.vazia { display: inline-block !important; min-width: 0; }
+/* Bolha da nota no formato do Instagram: retângulo arredondado, texto pequeno em até 3 linhas, dois pontinhos até o avatar */
+.notas { gap: 14px; }
+.nota { width: 86px; }
+.nota-bolha { display: block !important; max-width: 104px; min-width: 0; padding: 6px 9px; border-radius: 12px; border: none; background: color-mix(in srgb, var(--surface-2) 70%, var(--line)); font-size: 10.5px; line-height: 1.2; font-weight: 500; white-space: normal; overflow: visible; margin-bottom: 6px; }
+.nota-bolha::before { content: ''; position: absolute; bottom: -9px; left: 10px; width: 5px; height: 5px; border-radius: 50%; background: color-mix(in srgb, var(--surface-2) 70%, var(--line)); border: none; }
+.nota-bolha::after { bottom: -4px; left: 15px; width: 8px; height: 8px; background: color-mix(in srgb, var(--surface-2) 70%, var(--line)); border: none; }
+.nota-bolha.vazia { display: inline-block !important; padding: 5px 11px; border-radius: 999px; font-size: 15px; }
+.nota-bolha.vazia::before { display: none; }

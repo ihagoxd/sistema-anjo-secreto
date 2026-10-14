@@ -43,6 +43,9 @@ ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS perfil_completo BOOLEAN NOT NULL D
 ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS bio VARCHAR(200);
 ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS humor VARCHAR(20);
 ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS humor_data DATE;
+-- Nota de texto livre (como as Notes do Instagram): ate 60 caracteres, some 24 h depois
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS nota VARCHAR(60);
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS nota_em TIMESTAMPTZ;
 ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS data_nascimento DATE;
 ALTER TABLE usuarios ALTER COLUMN email DROP NOT NULL;
 ALTER TABLE usuarios DROP CONSTRAINT IF EXISTS usuarios_status_check;

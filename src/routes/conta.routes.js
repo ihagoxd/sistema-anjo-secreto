@@ -19,6 +19,6 @@ const receberFoto = (req, res, next) => {
 router.get('/conta', guard, ctrl.getConta);
 router.post('/conta', guard, receberFoto, conferirAssinaturas, verifyCsrfAposUpload, ctrl.postConta);
 router.post('/conta/foto/remover', guard, ctrl.postRemoverFoto);
-router.post('/conta/humor', guard, ctrl.postHumor);
+router.post('/conta/nota', guard, ctrl.postNota);
 
 module.exports = router;

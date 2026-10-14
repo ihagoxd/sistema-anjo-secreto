@@ -3049,12 +3049,46 @@
     if (temConteudo()) abrir();
   })();
 
+  /* ---------- Nota (Instagram Notes): prévia ao vivo, contador e sugestões ---------- */
+  (function () {
+    var form = document.querySelector('[data-nota-form]');
+    if (!form) return;
+    var inp = form.querySelector('[data-nota-input]');
+    var prev = form.querySelector('[data-nota-previa]');
+    var cont = form.querySelector('[data-nota-cont]');
+    var enviar = form.querySelector('[data-nota-enviar]');
+    var VAZIO = 'Compartilhe o que está pensando…';
+    function atualizar() {
+      var t = inp.value.replace(/\s+/g, ' ').trim();
+      prev.textContent = t || VAZIO;
+      prev.classList.toggle('vazia', !t);
+      cont.textContent = inp.value.length + '/60';
+      if (enviar) enviar.disabled = !t;
+    }
+    inp.addEventListener('input', atualizar);
+    form.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-nota-sug]'); if (!b) return;
+      inp.value = b.getAttribute('data-nota-sug'); atualizar(); inp.focus();
+      inp.setSelectionRange(inp.value.length, inp.value.length);
+    });
+    var modal = document.getElementById('modal-nota');
+    if (modal) new MutationObserver(function () {
+      if (!modal.hidden && !window.matchMedia('(pointer: coarse)').matches) setTimeout(function () { inp.focus(); }, 60);
+    }).observe(modal, { attributes: true, attributeFilter: ['hidden'] });
+    atualizar();
+  })();
+
   /* ---------- Modais (genérico: abrir/fechar por id) ---------- */
   function abrirModal(m) { if (m) { m.removeAttribute('hidden'); m.setAttribute('aria-hidden', 'false'); } }
   function fecharModal(m) { if (m) { m.setAttribute('hidden', ''); m.setAttribute('aria-hidden', 'true'); } }
   document.addEventListener('click', function (e) {
     var abrir = e.target.closest('[data-abrir-modal]');
-    if (abrir) { abrirModal(document.getElementById(abrir.getAttribute('data-abrir-modal'))); return; }
+    if (abrir) {
+      abrirModal(document.getElementById(abrir.getAttribute('data-abrir-modal')));
+      var fechaJunto = abrir.getAttribute('data-fechar-modal'); // mesmo botão abre um modal e fecha outro (menu → preferências)
+      if (fechaJunto) fecharModal(document.getElementById(fechaJunto));
+      return;
+    }
     var fechar = e.target.closest('[data-fechar-modal]');
     if (fechar) {
       var id = fechar.getAttribute('data-fechar-modal');

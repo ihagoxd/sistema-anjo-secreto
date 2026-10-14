@@ -27,9 +27,9 @@
   {{/each}}
 
   <div class="notif-vazio" {{#unless vazia}}hidden{{/unless}} data-notif-vazio>
-    {{#if (eq filtro "nao-lidas")}}✅<div>Você está em dia!<br>Nenhuma notificação não lida.</div>
-    {{else if (eq filtro "todas")}}🔔<div>Nenhuma notificação por enquanto.<br>Quando alguém curtir, comentar ou te mandar mensagem, aparece aqui.</div>
-    {{else}}🔔<div>Nada por aqui ainda.</div>{{/if}}
+    {{#if (eq filtro "nao-lidas")}}<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><div>Você está em dia!<br>Nenhuma notificação não lida.</div>
+    {{else if (eq filtro "todas")}}<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><div>Nenhuma notificação por enquanto.<br>Quando alguém curtir, comentar ou te mandar mensagem, aparece aqui.</div>
+    {{else}}<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><div>Nada por aqui ainda.</div>{{/if}}
   </div>
 
   <div class="notif-secao notif-secao-mais" hidden data-notif-mais-lista>

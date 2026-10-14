@@ -3970,3 +3970,7 @@ body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
 .tw-reply-a strong { color: var(--text-soft); font-weight: 600; }
 .tw-reply-a[hidden] { display: none; }
 .tw-reply-a-x { border: none; background: none; color: var(--text-faint); font: inherit; font-size: 18px; line-height: 1; cursor: pointer; padding: 0 4px; }
+
+/* LIMPEZA: ícones no lugar de emoji nos rótulos da interface */
+.enq-b-icone svg { color: var(--accent); display: block; }
+.notif-vazio svg, .notif-vazio-lista svg { color: var(--text-faint); margin-bottom: 8px; }

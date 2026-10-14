@@ -343,7 +343,7 @@
             var ed = art.querySelector('[data-editado]'); if (ed) { ed.hidden = false; ed.title = 'Editado agora'; }
             if (mais) { mais.remove(); mais = null; }
             fechar();
-            toast('Publicação editada ✓');
+            toast('Publicação editada.');
           })
           .catch(function (err) { salvar.disabled = false; salvar.textContent = 'Salvar'; toast(err.message || 'Não foi possível editar.'); });
       });
@@ -815,7 +815,7 @@
         .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
         .then(function () {
           fecharComposer();
-          toast('Story publicado ✨');
+          toast('Story publicado.');
           // Anel "Seu story" vira dourado na hora, sem recarregar
           var anel = document.querySelector('.story-ring.eu-story');
           if (anel) {
@@ -1080,7 +1080,7 @@
           })
             .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
             .then(function () {
-              toast('Enviado no Direct ✈️');
+              toast('Enviado no Direct.');
               fwdModal.setAttribute('hidden', ''); fwdModal.setAttribute('aria-hidden', 'true');
               pausar(false);
             })
@@ -1217,7 +1217,7 @@
           body: new URLSearchParams({ texto: texto }),
         })
           .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
-          .then(function () { respEl.value = ''; atualizarBarraResp(); toast('Resposta enviada 💬'); respEl.blur(); })
+          .then(function () { respEl.value = ''; atualizarBarraResp(); toast('Resposta enviada.'); respEl.blur(); })
           .catch(function () { toast('Não foi possível responder.'); })
           .finally(function () { respEl.disabled = false; enviarEl.disabled = false; });
       }
@@ -1263,7 +1263,7 @@
           method: 'POST',
           headers: { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch', 'Content-Type': 'application/x-www-form-urlencoded' },
           body: new URLSearchParams({ texto: emoji }),
-        }).then(function (r2) { if (!r2.ok) throw new Error(); toast('Reação enviada'); }).catch(function () { toast('Não foi possível reagir.'); });
+        }).then(function (r2) { if (!r2.ok) throw new Error(); toast('Reação enviada.'); }).catch(function () { toast('Não foi possível reagir.'); });
       });
 
       // "👁 N · ❤ M" (no seu story) abre a lista de quem viu, coração ao lado de quem curtiu
@@ -1547,10 +1547,10 @@
         videoEl.addEventListener('ended', proximo);
         mediaBox.appendChild(videoEl);
         videoEl.muted = false;
-        somBtn.textContent = '🔊';
+        somBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>';
         videoEl.play().catch(function () { // autoplay com som bloqueado: toca mudo e mostra o botão
           if (!videoEl) return;
-          videoEl.muted = true; somBtn.textContent = '🔇';
+          videoEl.muted = true; somBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>';
           videoEl.play().catch(function () {});
         });
       } else {
@@ -1733,7 +1733,7 @@
       abrirViewer(
         parseInt(c.getAttribute('data-abrir-story'), 10),
         parseInt(c.getAttribute('data-story-id'), 10) || null,
-        function () { toast('Esse story não está mais disponível 😅'); }
+        function () { toast('Esse story não está mais disponível.'); }
       );
     });
 
@@ -1965,7 +1965,7 @@
         form.classList.add('publicado');
         setTimeout(function () { form.classList.remove('publicado'); }, 600);
         terminar();
-        toast('Publicado! ✨');
+        toast('Publicado.');
         // No celular, garante que o post novo apareça na tela
         if (card && window.matchMedia('(max-width: 899px)').matches) {
           setTimeout(function () { card.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80);
@@ -3597,7 +3597,7 @@
       });
       prefsModal.querySelector('[data-notif-testar]').addEventListener('click', function (ev) {
         var btn = ev.currentTarget; btn.disabled = true; prepararAudio();
-        post('/notificacoes/testar').then(function () { toast('Teste enviado'); }).catch(function () { toast('Não foi possível enviar'); })
+        post('/notificacoes/testar').then(function () { toast('Teste enviado.'); }).catch(function () { toast('Não foi possível enviar'); })
           .then(function () { setTimeout(function () { btn.disabled = false; }, 1500); });
       });
       btnAtivar.addEventListener('click', ativarPush);
@@ -3844,7 +3844,7 @@
           b.setAttribute('aria-pressed', d.repostou ? 'true' : 'false');
           var c = b.querySelector('.post-reposts');
           if (c) c.textContent = (Number(d.total) || 0) ? d.total : ''; // zero: some, como no Instagram
-          if (d.repostou) toast('Repostado! 🔁');
+          if (d.repostou) toast('Repostado.');
         })
         .catch(function () {})
         .then(function () { b.disabled = false; });
@@ -4099,7 +4099,7 @@
     // Compartilhar: abre a folha "enviar no Direct" (se existir na página) ou copia o link.
     var shareUrl = '';
     function copiarLink(url) {
-      function feito() { toast('Link copiado! 🔗'); }
+      function feito() { toast('Link copiado.'); }
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(url).then(feito).catch(function () { toast(url); });
       } else {
@@ -5068,7 +5068,7 @@
       input.dispatchEvent(new Event('change', { bubbles: true }));
       var campo = input.form && input.form.querySelector('textarea, input[name="texto"]');
       if (campo && document.activeElement !== campo) campo.focus();
-      toast('Imagem colada 📎');
+      toast('Imagem colada.');
     });
   })();
 
@@ -6047,7 +6047,7 @@
     var instalado = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
     function mostrar(sim) { btns.forEach(function (b) { b.hidden = !sim; }); }
     window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); evt = e; if (!instalado) mostrar(true); });
-    window.addEventListener('appinstalled', function () { evt = null; mostrar(false); toast('App instalado! Procure o ícone do Anjo Secreto na sua tela.'); });
+    window.addEventListener('appinstalled', function () { evt = null; mostrar(false); toast('App instalado. O ícone está na sua tela inicial.'); });
     if (EH_IOS && !instalado) mostrar(true);
     var dica = null;
     btns.forEach(function (b) {

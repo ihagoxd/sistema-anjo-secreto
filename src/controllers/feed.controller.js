@@ -154,7 +154,7 @@ async function postCriar(req, res, next) {
       });
     }
     if (!r.ok) req.session.flash = { erro: ERROS[r.motivo] || 'Escreva algo ou adicione uma foto.' };
-    else req.session.flash = { sucesso: 'Publicado! ✨' };
+    else req.session.flash = { sucesso: 'Publicado.' };
     res.redirect('/feed');
   } catch (err) {
     next(err);

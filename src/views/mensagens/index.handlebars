@@ -28,7 +28,7 @@
     <div class="direct-scroll">
       {{#if participaJogo}}
         <div class="direct-secao secao-secreta">
-          <span>🎭 Anjo Secreto</span>
+          <span>Anjo Secreto</span>
           <span class="secao-hint">anônimo · só você vê</span>
         </div>
 
@@ -58,9 +58,9 @@
           {{#if unread.protegido}}<span class="conv-badge">{{unread.protegido}}</span>{{/if}}
         </a>
 
-        <div class="direct-secao">💬 Escritório <span class="secao-hint">com o seu nome</span></div>
+        <div class="direct-secao">Escritório <span class="secao-hint">com o seu nome</span></div>
       {{else}}
-        <div class="direct-secao">💬 Escritório</div>
+        <div class="direct-secao">Escritório</div>
       {{/if}}
 
       {{#each lista}}
@@ -124,9 +124,9 @@
       <div class="dm-msgs" id="dmMsgs" data-editar-url="/mensagens/editar">
         {{#if conversa.secreto}}
           {{#if (eq conversa.tipo "anjo")}}
-            <div class="dm-aviso dm-aviso-secreto">🔒 <strong>Conversa anônima.</strong> Seu anjo lê e responde sem se identificar.</div>
+            <div class="dm-aviso dm-aviso-secreto"><strong>Conversa anônima.</strong> Seu anjo lê e responde sem se identificar.</div>
           {{else}}
-            <div class="dm-aviso dm-aviso-secreto">🎭 <strong>Modo Anjo Secreto.</strong> <span class="sig-generico">Seu protegido</span><span class="sig-real">{{conversa.titulo}}</span> recebe estas mensagens como <strong>"Seu anjo"</strong> e não sabe que é você.</div>
+            <div class="dm-aviso dm-aviso-secreto"><strong>Modo Anjo Secreto.</strong> <span class="sig-generico">Seu protegido</span><span class="sig-real">{{conversa.titulo}}</span> recebe estas mensagens como <strong>"Seu anjo"</strong> e não sabe que é você.</div>
           {{/if}}
         {{/if}}
         {{#each conversa.mensagens}}
@@ -137,7 +137,7 @@
           {{else}}{{#if (eq conversa.tipo "anjo")}}
             <div class="dm-inicio">Ainda não há mensagens. Pergunte algo — seu anjo responde sem se revelar.</div>
           {{else}}
-            <div class="dm-inicio">Ainda não há mensagens. Diga olá! 👋</div>
+            <div class="dm-inicio">Ainda não há mensagens. Diga olá.</div>
           {{/if}}{{/if}}
         {{/each}}
       </div>
@@ -156,7 +156,7 @@
             (anonimato primeiro); nos demais, Normal — o efeito é brincadeira opcional. }}
         {{#if (eq conversa.tipo "protegido")}}
           <div class="dm-filtro" data-filtro-voz>
-            <span class="dm-filtro-rot" title="O áudio é enviado já com a voz disfarçada — seu protegido não reconhece você">🎭 Voz:</span>
+            <span class="dm-filtro-rot" title="O áudio é enviado já com a voz disfarçada — seu protegido não reconhece você">Voz:</span>
             <button type="button" class="dm-filtro-op sel" data-voz="grave">Grave</button>
             <button type="button" class="dm-filtro-op" data-voz="aguda">Aguda</button>
             <button type="button" class="dm-filtro-op" data-voz="robo">Robô</button>
@@ -164,7 +164,7 @@
           </div>
         {{else}}
           <div class="dm-filtro" data-filtro-voz>
-            <span class="dm-filtro-rot" title="Divirta-se: o áudio vai com a voz transformada">🎙️ Voz:</span>
+            <span class="dm-filtro-rot" title="Divirta-se: o áudio vai com a voz transformada">Voz:</span>
             <button type="button" class="dm-filtro-op sel" data-voz="normal">Normal</button>
             <button type="button" class="dm-filtro-op" data-voz="grave">Grave</button>
             <button type="button" class="dm-filtro-op" data-voz="aguda">Aguda</button>

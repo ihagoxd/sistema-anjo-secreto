@@ -4,7 +4,7 @@
  * Configuração da engine de templates Handlebars.
  * Helpers utilitários ficam aqui (formatação de datas, badges de status, etc.).
  */
-const { engine } = require('express-handlebars');
+const { create } = require('express-handlebars');
 const Handlebars = require('handlebars');
 const path = require('path');
 const humores = require('./humores');
@@ -206,7 +206,9 @@ const helpers = {
   },
 };
 
-const hbs = engine({
+// A instância fica exposta (exphbs) para renderizar partials fora de uma requisição
+// (bolha do Direct por SSE, card de post por AJAX) — ver services/render.service.js.
+const exphbs = create({
   extname: '.handlebars',
   defaultLayout: 'main',
   layoutsDir: path.join(viewsDir, 'layouts'),
@@ -214,4 +216,6 @@ const hbs = engine({
   helpers,
 });
 
-module.exports = { hbs, viewsDir };
+const hbs = exphbs.engine;
+
+module.exports = { hbs, exphbs, viewsDir };

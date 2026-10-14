@@ -40,9 +40,9 @@ async function enviar(idRemetente, idDestinatario, texto, imagem = null, audio =
     if (doPar) citada = q.id_mensagem;
   }
 
-  await dmModel.inserir({ idRemetente, idDestinatario, texto: texto2, imagem, audio, video, story, respondendoA: citada });
+  const nova = await dmModel.inserir({ idRemetente, idDestinatario, texto: texto2, imagem, audio, video, story, respondendoA: citada });
   await notificacaoService.notificarMensagemDireta(idDestinatario, idRemetente, { texto: texto2, imagem, audio, video, story });
-  return { ok: true };
+  return { ok: true, id_mensagem: nova.id_mensagem, criado_em: nova.criado_em };
 }
 
 // Lista as mensagens entre mim e o outro, com flag "minha".
@@ -56,6 +56,7 @@ async function listarConversaCom(idUsuario, idOutro) {
     audio: r.audio,
     video: r.video,
     apagada: !!r.apagada_em,
+    lida: !!r.lida,
     editado_em: r.editado_em,
     criado_em: r.criado_em,
     respondendo_a: r.respondendo_a,

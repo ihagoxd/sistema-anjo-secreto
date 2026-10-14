@@ -3531,3 +3531,87 @@ body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
 @media (prefers-reduced-motion: reduce) {
   .tp-balao, .tp-conf, .pft-hero-emojis span, .gt-deco span, .pf-aba-novo, .nav-badge-novo, .chip-item { animation: none !important; }
 }
+
+/* ============================================================
+   DIRECT AO VIVO: visto, digitando, presença, envio sem recarregar
+   ============================================================ */
+.direct-conversa { position: relative; }
+.conv { position: relative; }
+.online-dot { position: absolute; left: 44px; top: 43px; width: 13px; height: 13px; border-radius: 50%; background: var(--st-verde); border: 2px solid var(--surface); z-index: 2; }
+.online-dot[hidden] { display: none; }
+.conv.fixado .online-dot { left: 54px; top: 54px; }
+.dm-ativo { color: var(--st-verde); font-weight: 600; }
+.dm-ativo::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--st-verde); margin-right: 5px; vertical-align: 1px; }
+.dm-cab-sub.digitando, .conv-sub.digitando { color: var(--st-verde); font-weight: 600; }
+.dm-pontos { display: inline-flex; gap: 2px; margin-left: 3px; vertical-align: -1px; }
+.dm-pontos i { width: 4px; height: 4px; border-radius: 50%; background: currentColor; animation: dm-ponto 1.1s ease-in-out infinite; }
+.dm-pontos i:nth-child(2) { animation-delay: 0.18s; }
+.dm-pontos i:nth-child(3) { animation-delay: 0.36s; }
+@keyframes dm-ponto { 0%, 60%, 100% { opacity: 0.25; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-3px); } }
+.dm-visto { font-weight: 600; color: var(--text-faint); }
+.dm-visto::before { content: '·'; margin-right: 4px; }
+.dm-bolha.chegando { animation: dm-chega 0.3s var(--ease-out) both; }
+@keyframes dm-chega { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: none; } }
+.dm-bolha.enviando .dm-bolha-txt { opacity: 0.6; }
+.dm-bolha.falhou .dm-bolha-txt { outline: 1px solid var(--st-vermelho); }
+.dm-bolha.falhou .dm-hora { color: var(--st-vermelho); }
+.dm-novas {
+  position: absolute; left: 50%; transform: translateX(-50%); bottom: 118px; z-index: 6;
+  background: var(--ouro); color: var(--on-ouro); border: none; border-radius: 999px; padding: 8px 16px;
+  font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.3);
+  animation: pill-sobe 0.3s ease both;
+}
+.dm-novas[hidden] { display: none; }
+.dm-prog { height: 3px; border-radius: 3px; background: var(--line); overflow: hidden; margin: -4px 0 2px; }
+.dm-prog[hidden] { display: none; }
+.dm-prog i { display: block; height: 100%; width: 0; background: var(--ouro); transition: width 0.15s linear; }
+.dm-composer.enviando [data-btn-enviar], .dm-composer.enviando [data-gravar] { opacity: 0.6; pointer-events: none; }
+@media (max-width: 720px) { .dm-novas { bottom: 128px; } }
+
+/* ============================================================
+   TEMAS DE CONVERSA (Direct do escritório, como no Instagram)
+   Cada conversa escolhe o seu; vale para os dois lados. O canal do Anjo
+   (anjo/protegido) não entra aqui — mantém o visual dourado próprio.
+   ============================================================ */
+.dm-tema-btn { margin-left: auto; color: var(--text-soft); }
+.dm-tema-btn + .dm-verperfil { margin-left: 0; }
+.tema-chat-card { max-width: 440px; padding-bottom: 18px; }
+.tema-chat-dica { margin: 4px 0 12px; font-size: 13px; }
+.tema-chat-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 10px; }
+.tema-chat-op { display: flex; flex-direction: column; align-items: center; gap: 6px; background: none; border: none; padding: 6px 2px; border-radius: 12px; cursor: pointer; font: inherit; color: var(--text-soft); font-size: 12px; transition: background 0.12s; }
+.tema-chat-op:hover { background: var(--hover); color: var(--text); }
+.tema-chat-amostra { width: 48px; height: 48px; border-radius: 50%; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); transition: transform 0.14s var(--ease-spring); }
+.tema-chat-op:hover .tema-chat-amostra { transform: scale(1.08); }
+.tema-chat-op.ativo { color: var(--text); font-weight: 600; }
+.tema-chat-op.ativo .tema-chat-amostra { box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--accent); }
+.tema-chat-op.salvando { opacity: 0.5; pointer-events: none; }
+.dm-sistema { align-self: center; text-align: center; font-size: 12px; color: var(--text-faint); background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; margin: 6px 0; animation: dm-chega 0.3s var(--ease-out) both; }
+
+/* Base: a conversa com tema pinta fundo, bolhas e botão de enviar a partir de variáveis */
+.direct-conversa[data-tema]:not([data-tema="padrao"]) .dm-msgs { background: var(--ct-fundo); background-attachment: local; }
+.direct-conversa[data-tema]:not([data-tema="padrao"]) .dm-bolha.deles .dm-bolha-txt { background: var(--ct-deles); color: var(--ct-deles-txt); border-color: transparent; }
+.direct-conversa[data-tema]:not([data-tema="padrao"]) .dm-bolha.minha .dm-bolha-txt { background: var(--ct-minha); color: var(--ct-minha-txt); border-color: transparent; }
+.direct-conversa[data-tema]:not([data-tema="padrao"]) .dm-bolha-meta { color: var(--ct-meta); }
+.direct-conversa[data-tema]:not([data-tema="padrao"]) .dm-visto { color: var(--ct-meta); }
+.direct-conversa[data-tema]:not([data-tema="padrao"]) .dm-inicio,
+.direct-conversa[data-tema]:not([data-tema="padrao"]) .dm-aviso,
+.direct-conversa[data-tema]:not([data-tema="padrao"]) .dm-sistema { background: rgba(0, 0, 0, 0.28); border-color: rgba(255, 255, 255, 0.18); color: rgba(255, 255, 255, 0.85); }
+.direct-conversa[data-tema]:not([data-tema="padrao"]) .dm-enviar { background: var(--ct-minha); color: var(--ct-minha-txt); border-color: transparent; }
+.direct-conversa[data-tema]:not([data-tema="padrao"]) .dm-cab { box-shadow: inset 0 -3px 0 var(--ct-acento); }
+.direct-conversa[data-tema]:not([data-tema="padrao"]) .dm-cita { background: rgba(255, 255, 255, 0.16); }
+.direct-conversa[data-tema]:not([data-tema="padrao"]) .dm-bolha.deles .dm-cita-autor { color: var(--ct-deles-txt); }
+.direct-conversa[data-tema]:not([data-tema="padrao"]) .dm-campo:focus-within { border-color: var(--ct-acento); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ct-acento) 30%, transparent); }
+.direct-conversa[data-tema]:not([data-tema="padrao"]) .dm-bolha.deles .dm-audio-play { background: var(--ct-acento); }
+.direct-conversa[data-tema]:not([data-tema="padrao"]) .dm-novas { background: var(--ct-acento); color: #fff; }
+
+.direct-conversa[data-tema="oceano"] { --ct-fundo: linear-gradient(170deg, #0f2a44 0%, #123b5c 60%, #0b5f7a 100%); --ct-minha: linear-gradient(135deg, #1e90ff, #00c6ff); --ct-minha-txt: #fff; --ct-deles: rgba(255, 255, 255, 0.14); --ct-deles-txt: #f2f8ff; --ct-meta: rgba(226, 240, 255, 0.7); --ct-acento: #1e90ff; }
+.direct-conversa[data-tema="amor"] { --ct-fundo: linear-gradient(170deg, #3a0d2a 0%, #6b1040 60%, #a81d5a 100%); --ct-minha: linear-gradient(135deg, #ff2d75, #ff6a3d); --ct-minha-txt: #fff; --ct-deles: rgba(255, 255, 255, 0.16); --ct-deles-txt: #fff3f7; --ct-meta: rgba(255, 230, 240, 0.72); --ct-acento: #ff2d75; }
+.direct-conversa[data-tema="por-do-sol"] { --ct-fundo: linear-gradient(170deg, #2b1a3d 0%, #8a2d5e 55%, #ff8a3d 100%); --ct-minha: linear-gradient(135deg, #ff5f6d, #ffc371); --ct-minha-txt: #2b1220; --ct-deles: rgba(255, 255, 255, 0.18); --ct-deles-txt: #fff6f0; --ct-meta: rgba(255, 240, 230, 0.75); --ct-acento: #ff7a59; }
+.direct-conversa[data-tema="floresta"] { --ct-fundo: linear-gradient(170deg, #0f2f1f 0%, #145a32 60%, #1f7a4a 100%); --ct-minha: linear-gradient(135deg, #2ecc71, #12b886); --ct-minha-txt: #06241a; --ct-deles: rgba(255, 255, 255, 0.15); --ct-deles-txt: #f0fff6; --ct-meta: rgba(220, 255, 235, 0.72); --ct-acento: #2ecc71; }
+.direct-conversa[data-tema="lavanda"] { --ct-fundo: linear-gradient(170deg, #2a1b4d 0%, #4c2f8f 60%, #7b5ad1 100%); --ct-minha: linear-gradient(135deg, #a18cd1, #fbc2eb); --ct-minha-txt: #2b1b4d; --ct-deles: rgba(255, 255, 255, 0.16); --ct-deles-txt: #f7f3ff; --ct-meta: rgba(240, 232, 255, 0.72); --ct-acento: #a18cd1; }
+.direct-conversa[data-tema="noite"] { --ct-fundo: radial-gradient(circle at 20% 10%, #1b2440, #05070d 70%); --ct-minha: linear-gradient(135deg, #4b6cb7, #182848); --ct-minha-txt: #fff; --ct-deles: rgba(255, 255, 255, 0.12); --ct-deles-txt: #eef1f8; --ct-meta: rgba(220, 226, 240, 0.65); --ct-acento: #4b6cb7; }
+.direct-conversa[data-tema="noite"] .dm-msgs { background-image: radial-gradient(1.2px 1.2px at 40px 60px, rgba(255,255,255,0.8), transparent), radial-gradient(1px 1px at 180px 120px, rgba(255,255,255,0.6), transparent), radial-gradient(1.4px 1.4px at 320px 40px, rgba(255,255,255,0.85), transparent), radial-gradient(1px 1px at 90px 260px, rgba(255,255,255,0.5), transparent), radial-gradient(1.3px 1.3px at 250px 320px, rgba(255,255,255,0.7), transparent), radial-gradient(circle at 20% 10%, #1b2440, #05070d 70%); background-size: 400px 400px, 400px 400px, 400px 400px, 400px 400px, 400px 400px, 100% 100%; }
+.direct-conversa[data-tema="cafe"] { --ct-fundo: linear-gradient(170deg, #3b2a1e 0%, #5c3d2e 60%, #8a5a3c 100%); --ct-minha: linear-gradient(135deg, #c8a27a, #e8cfa8); --ct-minha-txt: #3b2214; --ct-deles: rgba(255, 255, 255, 0.15); --ct-deles-txt: #fff8f0; --ct-meta: rgba(255, 240, 225, 0.7); --ct-acento: #c8a27a; }
+.direct-conversa[data-tema="neon"] { --ct-fundo: linear-gradient(170deg, #050505 0%, #0b1a16 100%); --ct-minha: linear-gradient(135deg, #00f5a0, #00d9f5); --ct-minha-txt: #04121a; --ct-deles: rgba(255, 255, 255, 0.1); --ct-deles-txt: #e8fff7; --ct-meta: rgba(0, 245, 160, 0.6); --ct-acento: #00f5a0; }
+.direct-conversa[data-tema="neon"] .dm-bolha.minha .dm-bolha-txt { box-shadow: 0 0 18px rgba(0, 245, 160, 0.35); }
+.direct-conversa[data-tema="dourado"] { --ct-fundo: linear-gradient(170deg, #1a1405 0%, #3a2a08 60%, #6b4d0e 100%); --ct-minha: linear-gradient(135deg, #e3b341, #f0c453); --ct-minha-txt: #1f1500; --ct-deles: rgba(255, 255, 255, 0.14); --ct-deles-txt: #fff8e6; --ct-meta: rgba(255, 240, 200, 0.7); --ct-acento: #e3b341; }

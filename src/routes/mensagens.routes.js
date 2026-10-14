@@ -28,6 +28,14 @@ router.get('/anjo', ctrl.getAnjo);
 router.get('/protegido', ctrl.getProtegido);
 router.get('/u/:id', ctrl.getDireta);
 
+// Tempo real: "digitando…" e "li as mensagens" (viram eventos SSE para o outro lado)
+router.post('/:canal(anjo|protegido)/digitando', ctrl.postDigitando);
+router.post('/:canal(u)/:id([0-9]+)/digitando', ctrl.postDigitando);
+router.post('/:canal(anjo|protegido)/lidas', ctrl.postLidas);
+router.post('/:canal(u)/:id([0-9]+)/lidas', ctrl.postLidas);
+// Tema da conversa (só DM do escritório) — JSON { tema }
+router.post('/u/:id([0-9]+)/tema', ctrl.postTema);
+
 // Envio (com imagem opcional)
 router.post('/anjo', midiaMsg, ctrl.postAnjo);
 router.post('/protegido', midiaMsg, ctrl.postProtegido);

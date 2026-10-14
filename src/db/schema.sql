@@ -212,6 +212,17 @@ ALTER TABLE mensagens_diretas ADD COLUMN IF NOT EXISTS story_ref INTEGER;
 ALTER TABLE mensagens_diretas ADD COLUMN IF NOT EXISTS story_autor INTEGER REFERENCES usuarios(id_usuario) ON DELETE SET NULL;
 ALTER TABLE mensagens_diretas ADD COLUMN IF NOT EXISTS story_tipo VARCHAR(12);
 
+-- Tema da conversa no Direct (como no Instagram): um por PAR de usuários, vale para os dois.
+CREATE TABLE IF NOT EXISTS dm_temas (
+  usuario_a      INTEGER NOT NULL REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
+  usuario_b      INTEGER NOT NULL REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
+  tema           VARCHAR(30) NOT NULL DEFAULT 'padrao',
+  definido_por   INTEGER REFERENCES usuarios(id_usuario) ON DELETE SET NULL,
+  atualizado_em  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (usuario_a, usuario_b),
+  CHECK (usuario_a < usuario_b)
+);
+
 -- ---------- NOTIFICAÇÕES ----------
 -- tipo: MENSAGEM | MENSAGEM_ANJO | MENSAGEM_PROTEGIDO | CURTIDA | COMENTARIO | ANIVERSARIO
 -- id_ator: quem gerou (NULL quando anônimo, ex.: mensagem do anjo).

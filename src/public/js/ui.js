@@ -2070,26 +2070,51 @@
     document.addEventListener('visibilitychange', function () { if (!document.hidden) checar(); });
   })();
 
-  /* ---------- Direct ao vivo: badges de não lidas por contato, sem F5 ----------
-     A cada 15s (e ao voltar pra aba) a lista consulta /mensagens/estado e atualiza:
-     contagem ao lado de cada contato, nome/prévia em negrito quando há novas e a
-     prévia da última mensagem. O badge global (sidebar/barra) acompanha. ---------- */
+  /* ---------- Direct ao vivo (SSE) ----------
+     Mensagem nova chega na hora na conversa aberta (bolha pronta do servidor) e na
+     lista (badge + prévia + sobe pro topo). "digitando…" no cabeçalho e na lista,
+     "Visto" debaixo da última mensagem minha, bolinha verde de quem está online.
+     Envio SEM recarregar: XHR com progresso para mídia, bolha otimista para texto.
+     Polling leve de reserva (60 s) só sincroniza o que o SSE possa ter perdido. ---------- */
   (function () {
-    var lista = document.querySelector('.direct-lista');
-    if (!lista) return;
+    var direct = document.querySelector('.direct');
+    if (!direct) return;
+    var lista = direct.querySelector('.direct-lista');
+    var sec = direct.querySelector('.direct-conversa');
+    var msgs = document.getElementById('dmMsgs');
+    var form = direct.querySelector('.dm-composer');
+    var canal = sec ? (sec.getAttribute('data-conv-canal') || '') : '';
+    var convId = sec ? (parseInt(sec.getAttribute('data-conv-id'), 10) || 0) : 0;
+    var metaC = document.querySelector('meta[name="csrf-token"]');
+    var CSRF = metaC ? metaC.getAttribute('content') : '';
+    var HEAD = { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch', 'Accept': 'application/json' };
+    var sub = sec ? sec.querySelector('[data-dm-sub]') : null;
+    var pilula = sec ? sec.querySelector('[data-dm-novas]') : null;
+    var prog = form ? form.querySelector('[data-dm-prog]') : null;
+    var ta = form ? form.querySelector('textarea') : null;
 
-    function acharConv(href) { return lista.querySelector('.conv[href="' + href + '"]'); }
+    function urlCanal(acao) { return canal === 'u' ? '/mensagens/u/' + convId + '/' + acao : '/mensagens/' + canal + '/' + acao; }
+    function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+    function acharConv(href) { return lista ? lista.querySelector('.conv[href="' + href + '"]') : null; }
+    function convDe(d) { // item da lista a que o evento se refere
+      if (!lista) return null;
+      if (d.canal === 'u') return lista.querySelector('.conv[data-conv-u="' + (d.eco ? d.para : d.de) + '"]');
+      return acharConv('/mensagens/' + d.canal);
+    }
+    // O evento é da conversa aberta nesta aba?
+    function ehEsta(d) {
+      if (!canal || !d || d.canal !== canal) return false;
+      if (canal === 'u') return Number(d.eco ? d.para : d.de) === convId;
+      return true;
+    }
+
+    /* ---- lista: badge, prévia, ordem ---- */
     function aplicarBadge(conv, n) {
       if (!conv) return;
       var badge = conv.querySelector('.conv-badge');
-      var aberta = conv.classList.contains('ativa');
-      n = aberta ? 0 : (n || 0); // conversa aberta não acusa não lida
+      n = conv.classList.contains('ativa') ? 0 : (n || 0); // conversa aberta não acusa não lida
       if (n > 0) {
-        if (!badge) {
-          badge = document.createElement('span');
-          badge.className = 'conv-badge';
-          conv.appendChild(badge);
-        }
+        if (!badge) { badge = document.createElement('span'); badge.className = 'conv-badge'; conv.appendChild(badge); }
         badge.textContent = n;
         conv.classList.add('tem-novas');
       } else {
@@ -2097,37 +2122,247 @@
         conv.classList.remove('tem-novas');
       }
     }
+    function incBadge(conv) {
+      if (!conv) return;
+      var badge = conv.querySelector('.conv-badge');
+      aplicarBadge(conv, (badge ? parseInt(badge.textContent, 10) || 0 : 0) + 1);
+    }
+    function setPrevia(conv, texto, minha) {
+      var s = conv && conv.querySelector('.conv-sub');
+      if (!s || texto == null) return;
+      s.textContent = (minha ? 'Você: ' : '') + texto;
+      s.removeAttribute('data-digitando');
+      s.classList.remove('digitando');
+    }
+    function subir(conv) { // conversa com mensagem nova vai pro topo da seção (como no Instagram)
+      if (!conv || conv.classList.contains('fixado')) return;
+      var primeiro = lista.querySelector('.conv:not(.fixado)');
+      if (primeiro && primeiro !== conv) primeiro.parentNode.insertBefore(conv, primeiro);
+    }
+    function totalGlobal() {
+      var total = 0;
+      if (lista) lista.querySelectorAll('.conv-badge').forEach(function (b) { total += parseInt(b.textContent, 10) || 0; });
+      document.querySelectorAll('.js-msg-badge').forEach(function (b) { b.textContent = total; b.style.display = total > 0 ? '' : 'none'; });
+      if (total > 0 && !document.querySelector('.js-msg-badge')) {
+        var link = document.querySelector('.side-link[href="/mensagens"]');
+        if (link) { var s = document.createElement('span'); s.className = 'nav-badge js-msg-badge'; s.textContent = total; link.appendChild(s); }
+      }
+    }
 
+    /* ---- "digitando…" ---- */
+    var tCab = 0, tLista = {};
+    function restaurarSub() {
+      if (!sub) return;
+      sub.classList.remove('digitando');
+      sub.innerHTML = sub.getAttribute('data-online') === '1' ? '<span class="dm-ativo">ativo agora</span>' : esc(sub.getAttribute('data-rotulo') || '');
+    }
+    function digitandoCab() {
+      if (!sub) return;
+      sub.classList.add('digitando');
+      sub.innerHTML = 'digitando<i class="dm-pontos"><i></i><i></i><i></i></i>';
+      clearTimeout(tCab); tCab = setTimeout(restaurarSub, 3800);
+    }
+    function digitandoLista(conv) {
+      var s = conv && conv.querySelector('.conv-sub');
+      if (!s) return;
+      var chave = conv.getAttribute('href');
+      if (!s.hasAttribute('data-digitando')) { s.setAttribute('data-antes', s.textContent); s.setAttribute('data-digitando', '1'); }
+      s.textContent = 'digitando…';
+      s.classList.add('digitando');
+      clearTimeout(tLista[chave]);
+      tLista[chave] = setTimeout(function () {
+        if (!s.hasAttribute('data-digitando')) return;
+        s.textContent = s.getAttribute('data-antes') || ''; s.removeAttribute('data-digitando'); s.classList.remove('digitando');
+      }, 3800);
+    }
+    var ultEmit = 0;
+    if (ta && canal) ta.addEventListener('input', function () {
+      if (!ta.value.trim()) return;
+      var ag = Date.now();
+      if (ag - ultEmit < 2500) return;
+      ultEmit = ag;
+      fetch(urlCanal('digitando'), { method: 'POST', headers: HEAD }).catch(function () {});
+    });
+
+    /* ---- presença ---- */
+    function setOnline(id, on) {
+      document.querySelectorAll('[data-online-de="' + id + '"]').forEach(function (d) { d.hidden = !on; });
+      if (sub && canal === 'u' && Number(id) === convId) {
+        if (on) sub.setAttribute('data-online', '1'); else sub.removeAttribute('data-online');
+        if (!sub.classList.contains('digitando')) restaurarSub();
+      }
+    }
+
+    /* ---- conversa aberta: anexar bolha, visto, pílula ---- */
+    function pertoDoFim() { return !msgs || msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 140; }
+    function rolarFim(suave) { if (msgs) { if (suave && msgs.scrollTo) msgs.scrollTo({ top: msgs.scrollHeight, behavior: 'smooth' }); else msgs.scrollTop = msgs.scrollHeight; } }
+    function removerVistos() { if (msgs) msgs.querySelectorAll('[data-visto]').forEach(function (v) { v.remove(); }); }
+    function marcarVisto() {
+      if (!msgs) return;
+      var minhas = msgs.querySelectorAll('.dm-bolha.minha');
+      var ult = minhas[minhas.length - 1];
+      if (!ult || ult.querySelector('.dm-apagada')) return;
+      removerVistos();
+      var meta = ult.querySelector('.dm-bolha-meta');
+      if (!meta) return;
+      var v = document.createElement('span'); v.className = 'dm-visto'; v.setAttribute('data-visto', ''); v.textContent = 'Visto';
+      meta.appendChild(v);
+    }
+    function anexar(html, minha) {
+      if (!msgs || !html) return null;
+      var tmp = document.createElement('div'); tmp.innerHTML = String(html).trim();
+      var b = tmp.firstElementChild;
+      if (!b) return null;
+      var id = b.getAttribute('data-id');
+      if (id && msgs.querySelector('.dm-bolha[data-id="' + id + '"]')) return null;
+      var vazio = msgs.querySelector('.dm-inicio'); if (vazio) vazio.remove();
+      var perto = pertoDoFim();
+      b.classList.add('chegando');
+      msgs.appendChild(b);
+      if (minha) removerVistos();
+      if (perto || minha) rolarFim(!minha); else if (pilula) pilula.hidden = false;
+      document.dispatchEvent(new CustomEvent('dm:nova', { detail: b }));
+      setTimeout(function () { b.classList.remove('chegando'); }, 450);
+      return b;
+    }
+    if (pilula) pilula.addEventListener('click', function () { pilula.hidden = true; rolarFim(true); });
+    if (msgs) msgs.addEventListener('scroll', function () { if (pilula && pertoDoFim()) pilula.hidden = true; });
+    var lerPendente = false;
+    function marcarLidasAgora() {
+      if (!canal) return;
+      if (document.hidden) { lerPendente = true; return; }
+      lerPendente = false;
+      fetch(urlCanal('lidas'), { method: 'POST', headers: HEAD }).catch(function () {});
+      var conv = canal === 'u' ? (lista && lista.querySelector('.conv[data-conv-u="' + convId + '"]')) : acharConv('/mensagens/' + canal);
+      if (conv) aplicarBadge(conv, 0);
+      totalGlobal();
+    }
+    document.addEventListener('visibilitychange', function () { if (!document.hidden && lerPendente) marcarLidasAgora(); });
+
+    /* ---- eventos SSE ---- */
+    document.addEventListener('sse:dm', function (e) {
+      var d = e.detail; if (!d) return;
+      if (ehEsta(d)) {
+        if (d.eco) { anexar(d.html, true); return; } // mandei de outra aba
+        anexar(d.html, false);
+        marcarLidasAgora();
+        var c0 = convDe(d); if (c0) { setPrevia(c0, d.previa, false); subir(c0); }
+        return;
+      }
+      var conv = convDe(d);
+      if (conv) {
+        if (!d.eco) incBadge(conv);
+        setPrevia(conv, d.previa, !!d.eco);
+        subir(conv);
+      }
+      totalGlobal();
+    });
+    document.addEventListener('sse:dm-lida', function (e) {
+      var d = e.detail; if (!d || !canal || d.canal !== canal) return;
+      if (canal === 'u' && Number(d.por) !== convId) return;
+      marcarVisto();
+    });
+    document.addEventListener('sse:digitando', function (e) {
+      var d = e.detail; if (!d) return;
+      if (ehEsta(d)) digitandoCab();
+      var conv = convDe(d);
+      if (conv && !conv.classList.contains('ativa')) digitandoLista(conv);
+    });
+    document.addEventListener('sse:presenca', function (e) { var d = e.detail; if (d) setOnline(d.id_usuario, !!d.online); });
+
+    /* ---- reserva: sincroniza badges/prévias/online (60 s e ao voltar pra aba) ---- */
     var buscando = false;
-    function checarDirect() {
-      if (document.hidden || buscando) return;
+    function sincronizar() {
+      if (document.hidden || buscando || !lista) return;
       buscando = true;
       fetch('/mensagens/estado', { headers: { 'Accept': 'application/json' } })
         .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
         .then(function (d) {
           aplicarBadge(acharConv('/mensagens/anjo'), d.anjo);
           aplicarBadge(acharConv('/mensagens/protegido'), d.protegido);
-          var total = (d.anjo || 0) + (d.protegido || 0);
-          lista.querySelectorAll('.conv[href^="/mensagens/u/"]').forEach(function (conv) {
-            var id = (conv.getAttribute('href').match(/\/u\/(\d+)/) || [])[1];
-            if (!id) return;
+          lista.querySelectorAll('.conv[data-conv-u]').forEach(function (conv) {
+            var id = conv.getAttribute('data-conv-u');
             aplicarBadge(conv, d.porContato[id]);
-            total += conv.classList.contains('ativa') ? 0 : (d.porContato[id] || 0);
             var prev = d.previas && d.previas[id];
-            var sub = conv.querySelector('.conv-sub');
-            if (prev && sub) sub.textContent = (prev.minha ? 'Você: ' : '') + prev.texto;
+            var s = conv.querySelector('.conv-sub');
+            if (prev && s && !s.hasAttribute('data-digitando')) s.textContent = (prev.minha ? 'Você: ' : '') + prev.texto;
           });
-          // badge global (sidebar + barra inferior)
-          document.querySelectorAll('.js-msg-badge').forEach(function (b) {
-            b.textContent = total;
-            b.style.display = total > 0 ? '' : 'none';
-          });
+          if (d.online) {
+            var on = {}; d.online.forEach(function (id) { on[id] = true; });
+            document.querySelectorAll('[data-online-de]').forEach(function (dot) { var id = dot.getAttribute('data-online-de'); setOnline(id, !!on[id]); });
+          }
+          totalGlobal();
         })
         .catch(function () {})
         .finally(function () { buscando = false; });
     }
-    window.setInterval(checarDirect, 15000);
-    document.addEventListener('visibilitychange', function () { if (!document.hidden) checarDirect(); });
+    window.setInterval(sincronizar, 60000);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) sincronizar(); });
+    document.addEventListener('sse:reconectou', sincronizar);
+
+    /* ---- enviar sem recarregar ---- */
+    if (!form || !msgs) return;
+    var enviando = false;
+    function bolhaOtimista(texto) {
+      var b = document.createElement('div');
+      b.className = 'dm-bolha minha enviando';
+      b.innerHTML = '<div class="dm-bolha-txt"></div><div class="dm-bolha-meta"><span class="dm-hora">enviando…</span></div>';
+      b.querySelector('.dm-bolha-txt').textContent = texto;
+      var vazio = msgs.querySelector('.dm-inicio'); if (vazio) vazio.remove();
+      msgs.appendChild(b);
+      rolarFim(false);
+      return b;
+    }
+    function limparCompositor() {
+      if (ta) { ta.value = ''; ta.style.height = ''; }
+      form.querySelectorAll('input[type="file"]').forEach(function (i) { i.value = ''; });
+      var prev = form.querySelector('[data-preview]'); if (prev) { prev.innerHTML = ''; prev.hidden = true; }
+      var cancelResp = form.querySelector('[data-resp-cancelar]'); if (cancelResp) cancelResp.click();
+      if (ta) ta.dispatchEvent(new Event('input', { bubbles: true }));
+      form.querySelectorAll('input[type="file"]').forEach(function (i) { i.dispatchEvent(new Event('change', { bubbles: true })); });
+      if (ta && !window.matchMedia('(pointer: coarse)').matches) ta.focus();
+    }
+    form.addEventListener('submit', function (e) {
+      if (!window.FormData || !window.XMLHttpRequest) return; // navegador antigo: envio normal
+      e.preventDefault();
+      if (enviando) return;
+      var fd = new FormData(form);
+      var temMidia = ['imagem', 'audio', 'video'].some(function (c) { var f = fd.get(c); return f && f.size; });
+      var texto = ta ? ta.value.trim() : '';
+      if (!temMidia && !texto) return;
+      enviando = true;
+      form.classList.add('enviando');
+      var otim = (!temMidia && texto) ? bolhaOtimista(texto) : null;
+      if (otim) { ta.value = ''; ta.style.height = ''; ta.dispatchEvent(new Event('input', { bubbles: true })); }
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', form.getAttribute('action'));
+      xhr.setRequestHeader('X-Requested-With', 'fetch');
+      xhr.setRequestHeader('Accept', 'application/json');
+      xhr.setRequestHeader('X-CSRF-Token', CSRF);
+      if (temMidia && prog) {
+        prog.hidden = false; prog.firstElementChild.style.width = '4%';
+        xhr.upload.addEventListener('progress', function (ev) { if (ev.lengthComputable) prog.firstElementChild.style.width = Math.max(4, Math.round(ev.loaded / ev.total * 100)) + '%'; });
+      }
+      function fim() { enviando = false; form.classList.remove('enviando'); if (prog) { prog.hidden = true; prog.firstElementChild.style.width = '0'; } }
+      xhr.addEventListener('load', function () {
+        var d = null; try { d = JSON.parse(xhr.responseText); } catch (x) {}
+        fim();
+        if (!d || !d.ok) {
+          if (otim) { otim.classList.remove('enviando'); otim.classList.add('falhou'); otim.querySelector('.dm-hora').textContent = 'não enviada'; }
+          toast((d && d.erro) || 'Não foi possível enviar.');
+          return;
+        }
+        if (otim) otim.remove();
+        anexar(d.html, true);
+        limparCompositor();
+      });
+      xhr.addEventListener('error', function () {
+        fim();
+        if (otim) { otim.classList.remove('enviando'); otim.classList.add('falhou'); otim.querySelector('.dm-hora').textContent = 'sem conexão'; }
+        toast('Falha de conexão ao enviar.');
+      });
+      xhr.send(fd);
+    });
   })();
 
   /* ---------- Avatar do perfil: TOQUE abre o story (se houver) ou amplia a foto;
@@ -2727,7 +2962,14 @@
         try { var d = JSON.parse(ev.data); if (d.n && d.n.id > ultimaNotif) ultimaNotif = d.n.id; receber(d.n, d); } catch (e) {}
       });
       es.addEventListener('contagem', function (ev) { try { setContagem(JSON.parse(ev.data).count); } catch (e) {} });
-      es.onopen = function () { falhasSSE = 0; if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } };
+      // Barramento: outros módulos (Direct, feed) escutam os eventos como 'sse:<nome>' no document
+      ['dm', 'dm-lida', 'dm-tema', 'digitando', 'presenca', 'post-novo', 'grupo'].forEach(function (nome) {
+        es.addEventListener(nome, function (ev) {
+          var d = null; try { d = JSON.parse(ev.data); } catch (e) {}
+          document.dispatchEvent(new CustomEvent('sse:' + nome, { detail: d }));
+        });
+      });
+      es.onopen = function () { falhasSSE = 0; if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } window.__sseOn = true; document.dispatchEvent(new CustomEvent('sse:reconectou')); };
       es.onerror = function () { falhasSSE++; if (falhasSSE >= 4) { try { es.close(); } catch (e) {} es = null; iniciarPolling(); } };
     }
     function checar() {
@@ -3745,7 +3987,7 @@
           var dt = new DataTransfer();
           dt.items.add(f);
           inputAudio.files = dt.files;
-          form.submit();
+          if (form.requestSubmit) form.requestSubmit(); else form.submit();
         } catch (x) { toast('Não foi possível preparar o áudio.'); }
       });
     }
@@ -3898,7 +4140,7 @@
       var f = inputAudio.files && inputAudio.files[0];
       if (!f) return;
       var jaUniversal = /audio\/(mp4|x-m4a|aac|mpeg|wav|x-wav)/.test(f.type);
-      if (jaUniversal && !vozAtiva()) { form.submit(); return; } // já toca em tudo e sem efeito: vai direto
+      if (jaUniversal && !vozAtiva()) { if (form.requestSubmit) form.requestSubmit(); else form.submit(); return; } // já toca em tudo e sem efeito: vai direto
       var ext = f.name && f.name.lastIndexOf('.') > 0 ? f.name.slice(f.name.lastIndexOf('.')) : '.webm';
       enviarAudio(f, f.type || 'audio/webm', ext);
     });
@@ -3907,7 +4149,9 @@
   /* ---------- Player das mensagens de voz (arrastar busca, velocidade 1x/1,5x/2x) ---------- */
   (function () {
     function fmt(s) { var m = Math.floor(s / 60), ss = Math.floor(s % 60); return m + ':' + (ss < 10 ? '0' : '') + ss; }
-    document.querySelectorAll('.dm-audio').forEach(function (box) {
+    function montarPlayer(box) {
+      if (box.__player) return;
+      box.__player = true;
       var au = box.querySelector('audio');
       var prog = box.querySelector('.dm-audio-prog');
       var tempo = box.querySelector('[data-audio-tempo]');
@@ -4008,6 +4252,12 @@
       ['pointerup', 'pointercancel'].forEach(function (evn) {
         trilha.addEventListener(evn, function () { buscando = false; });
       });
+    }
+    document.querySelectorAll('.dm-audio').forEach(montarPlayer);
+    // Bolha que chegou por SSE/AJAX: liga o player dela também
+    document.addEventListener('dm:nova', function (e) {
+      var el = e.detail;
+      if (el && el.querySelectorAll) el.querySelectorAll('.dm-audio').forEach(montarPlayer);
     });
     document.addEventListener('click', function (e) {
       var b = e.target.closest('[data-audio-play]');
@@ -5088,6 +5338,59 @@
     }
     document.body.appendChild(festa);
     setTimeout(function () { festa.remove(); }, 4500);
+  })();
+
+  /* ---------- Tema da conversa (Direct do escritório, como no Instagram) ----------
+     A folha lista os temas; tocar num salva (vale para os dois lados) e aplica na hora.
+     O outro lado recebe por SSE e a conversa dele muda também, com um aviso na tela. */
+  (function () {
+    var sec = document.querySelector('.direct-conversa[data-conv-canal="u"]');
+    var grade = document.querySelector('[data-tema-chat-grade]');
+    if (!sec || !grade) return;
+    var metaT = document.querySelector('meta[name="csrf-token"]');
+    var CSRF = metaT ? metaT.getAttribute('content') : '';
+    var convId = parseInt(sec.getAttribute('data-conv-id'), 10) || 0;
+    var msgs = document.getElementById('dmMsgs');
+    function aplicar(tema) {
+      if (!tema || tema === 'padrao') sec.removeAttribute('data-tema'); else sec.setAttribute('data-tema', tema);
+      grade.querySelectorAll('[data-tema-chat]').forEach(function (b) { b.classList.toggle('ativo', b.getAttribute('data-tema-chat') === (tema || 'padrao')); });
+    }
+    function avisoSistema(texto) {
+      if (!msgs) return;
+      var el = document.createElement('div');
+      el.className = 'dm-sistema';
+      el.textContent = texto;
+      msgs.appendChild(el);
+      msgs.scrollTop = msgs.scrollHeight;
+    }
+    grade.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-tema-chat]');
+      if (!b || b.classList.contains('salvando')) return;
+      var tema = b.getAttribute('data-tema-chat');
+      b.classList.add('salvando');
+      fetch(grade.getAttribute('data-url'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch', 'Accept': 'application/json' },
+        body: JSON.stringify({ tema: tema }),
+      })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+        .then(function (d) {
+          aplicar(d.tema);
+          avisoSistema('Você mudou o tema para ' + d.nome);
+          var modal = document.getElementById('modal-tema-chat');
+          if (modal) { modal.hidden = true; modal.setAttribute('aria-hidden', 'true'); }
+        })
+        .catch(function () { toast('Não foi possível trocar o tema.'); })
+        .finally(function () { b.classList.remove('salvando'); });
+    });
+    document.addEventListener('sse:dm-tema', function (e) {
+      var d = e.detail;
+      if (!d || d.canal !== 'u') return;
+      var outro = d.eco ? d.para : d.de;
+      if (Number(outro) !== convId) return;
+      aplicar(d.tema);
+      if (!d.eco) avisoSistema(d.quem + ' mudou o tema para ' + d.nome);
+    });
   })();
 
   /* ---------- Tutorial passo a passo (feed) ----------

@@ -46,14 +46,6 @@ async function marcarLidas(idUsuario, idOutro) {
   );
 }
 
-async function buscarPorId(idMensagem) {
-  const res = await db.query(
-    `SELECT id_mensagem, id_remetente, id_destinatario, texto, editado_em, criado_em
-       FROM mensagens_diretas WHERE id_mensagem = $1`,
-    [idMensagem]
-  );
-  return res.rows[0] || null;
-}
 
 // Edita uma mensagem que EU enviei (apagadas não voltam). Retorna a linha atualizada ou null.
 async function editar(idMensagem, idRemetente, texto) {

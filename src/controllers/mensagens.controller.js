@@ -12,16 +12,22 @@
  * ANONIMATO: a lista do escritório inclui todo mundo (menos eu). O meu anjo aparece
  * ali como pessoa normal — nunca destacado nem escondido (esconder revelaria quem é).
  * As mensagens do canal do jogo chegam ao destino de forma genérica ("Seu anjo").
+ *
+ * TEMPO REAL: enviar é AJAX (a bolha volta pronta em HTML) e a mensagem chega na
+ * hora para o outro lado por SSE — junto com "digitando…", "Visto" e presença.
  */
 const campanhaService = require('../services/campanha.service');
 const sorteioService = require('../services/sorteio.service');
 const mensagemService = require('../services/mensagem.service');
 const dmService = require('../services/mensagemDireta.service');
+const conversaService = require('../services/conversa.service');
+const notificacaoService = require('../services/notificacao.service');
+const tempoReal = require('../services/tempoReal.service');
 const usuarioModel = require('../models/usuario.model');
-const postModel = require('../models/post.model');
-const storyModel = require('../models/story.model');
+const dmTemaModel = require('../models/dmTema.model');
 const storyService = require('../services/story.service');
 const { HUMORES } = require('../config/humores');
+const { TEMAS_CHAT, temaChatValido, nomeTemaChat } = require('../config/temasChat');
 
 const MSG = {
   SEM_CAMPANHA: 'Nenhuma campanha em andamento.',
@@ -32,6 +38,15 @@ const MSG = {
   ALVO_INVALIDO: 'Destinatário inválido.',
   NAO_PERMITIDO: 'Não foi possível editar a mensagem.',
 };
+
+function ehFetch(req) {
+  return (req.get('x-requested-with') || '') === 'fetch';
+}
+
+// Contextos da bolha (o partial dmBolha lê @root.conversa.{titulo,rotuloResposta,escopo})
+const CTX_ANJO = { tipo: 'anjo', escopo: 'game', titulo: 'Seu anjo', rotuloResposta: 'Seu anjo' };
+function ctxProtegido(nome) { return { tipo: 'protegido', escopo: 'game', titulo: nome, rotuloResposta: 'Seu protegido' }; }
+function ctxDm(nome) { return { tipo: 'u', escopo: 'dm', titulo: nome, rotuloResposta: nome }; }
 
 // Monta o "estado" comum (lista de conversas + jogo) — usado no GET.
 async function montarContexto(me) {
@@ -56,6 +71,7 @@ async function montarContexto(me) {
     souProtegido: !!(protegido && u.id_usuario === protegido.id_usuario),
     ultima: resumo.ultima[u.id_usuario] || null,
     naoLidas: resumo.naoLidas[u.id_usuario] || 0,
+    online: tempoReal.online(u.id_usuario),
   }));
   equipe.sort((a, b) => {
     const au = a.naoLidas > 0 ? 1 : 0;
@@ -70,6 +86,23 @@ async function montarContexto(me) {
   return { campanha, protegido, participaJogo, unread, equipe };
 }
 
+// Avisa o OUTRO lado que eu li a thread (vira "Visto" debaixo da última mensagem dele)
+// e tira do meu sino as notificações de mensagem desse canal.
+async function avisarLeitura(me, canal, idOutro, campanha) {
+  try {
+    await notificacaoService.lerConversa(me, canal, idOutro);
+    if (canal === 'u') { tempoReal.publicar(idOutro, 'dm-lida', { por: me, canal: 'u' }); return; }
+    if (!campanha) return;
+    if (canal === 'anjo') {
+      const a = await sorteioService.buscarAnjoDoProtegido(campanha.id_campanha, me);
+      if (a) tempoReal.publicar(a.id_usuario, 'dm-lida', { canal: 'protegido' }); // para o anjo, sou o protegido dele
+    } else if (canal === 'protegido') {
+      const p = await sorteioService.buscarProtegidoDoAnjo(campanha.id_campanha, me);
+      if (p) tempoReal.publicar(p.id_usuario, 'dm-lida', { canal: 'anjo' }); // para o protegido, sou o anjo dele
+    }
+  } catch (e) { /* tempo real nunca derruba a página */ }
+}
+
 // Renderiza o Direct com (opcionalmente) uma conversa aberta.
 // sel: { tipo: 'anjo'|'protegido'|'u', id? }
 async function renderInbox(req, res, sel) {
@@ -82,37 +115,36 @@ async function renderInbox(req, res, sel) {
       await mensagemService.marcarThreadLida(ctx.campanha.id_campanha, me, 'anjo');
       ctx.unread.anjo = 0;
       const c = await mensagemService.listarConversa(ctx.campanha.id_campanha, me);
-      conversa = { tipo: 'anjo', escopo: 'game', secreto: true, anonimo: true,
-        titulo: 'Seu anjo', rotulo: 'anônimo · você não sabe quem é', rotuloResposta: 'Seu anjo',
-        mensagens: c.comAnjo, action: '/mensagens/anjo', placeholder: 'Mensagem…' };
+      conversa = Object.assign({ secreto: true, anonimo: true, rotulo: 'anônimo · você não sabe quem é',
+        mensagens: c.comAnjo, action: '/mensagens/anjo', placeholder: 'Mensagem…' }, CTX_ANJO);
+      avisarLeitura(me, 'anjo', null, ctx.campanha);
     } else if (sel.tipo === 'protegido' && ctx.participaJogo) {
       await mensagemService.marcarThreadLida(ctx.campanha.id_campanha, me, 'protegido');
       ctx.unread.protegido = 0;
       const c = await mensagemService.listarConversa(ctx.campanha.id_campanha, me);
-      conversa = { tipo: 'protegido', escopo: 'game', secreto: true,
-        titulo: ctx.protegido.nome, rotulo: 'você é o anjo secreto dele(a) 🎭', rotuloResposta: 'Seu protegido',
+      conversa = Object.assign({ secreto: true, rotulo: 'você é o anjo secreto dele(a) 🎭',
         foto: ctx.protegido.foto_perfil, mensagens: c.comProtegido, action: '/mensagens/protegido',
-        placeholder: 'Mensagem anônima…' };
+        placeholder: 'Mensagem anônima…' }, ctxProtegido(ctx.protegido.nome));
+      avisarLeitura(me, 'protegido', null, ctx.campanha);
     } else if (sel.tipo === 'u') {
       const outro = await usuarioModel.buscarPorId(sel.id);
       if (outro && outro.status === 'APROVADO' && outro.ativo && outro.id_usuario !== me) {
         await dmService.marcarLidas(me, outro.id_usuario);
         const msgs = await dmService.listarConversaCom(me, outro.id_usuario);
-        conversa = { tipo: 'u', escopo: 'dm', id: outro.id_usuario, titulo: outro.nome, rotulo: '@' + outro.usuario, rotuloResposta: outro.nome,
+        conversa = Object.assign({ id: outro.id_usuario, rotulo: '@' + outro.usuario,
           usuario: outro.usuario, foto: outro.foto_perfil, mensagens: msgs, action: '/mensagens/u/' + outro.id_usuario,
-          placeholder: 'Mensagem…', prefill: String(sel.prefill || '').slice(0, 500) };
+          placeholder: 'Mensagem…', prefill: String(sel.prefill || '').slice(0, 500),
+          online: tempoReal.online(outro.id_usuario),
+          tema: await dmTemaModel.buscar(me, outro.id_usuario) }, ctxDm(outro.nome));
         // A conversa aberta some da contagem de não lidas na lista.
         const alvo = ctx.equipe.find((u) => u.id_usuario === outro.id_usuario);
         if (alvo) alvo.naoLidas = 0;
+        avisarLeitura(me, 'u', outro.id_usuario, null);
       }
     }
   }
 
-  if (conversa && conversa.mensagens) {
-    await anexarPreviasDePost(conversa.mensagens, me);
-    await anexarCartoesDeStory(conversa.mensagens);
-    anexarCitacoes(conversa.mensagens);
-  }
+  if (conversa && conversa.mensagens) await conversaService.prepararTodas(conversa.mensagens, me);
 
   // Anéis de story na lista (como no Instagram): dourado = story não visto; apagado = já visto.
   const aneis = await storyService.resumoAneis(me);
@@ -122,10 +154,7 @@ async function renderInbox(req, res, sel) {
   });
 
   // Notas (estilo Instagram): "Sua nota" + quem definiu o status hoje.
-  // Identidade PÚBLICA do escritório — nada aqui toca nos canais secretos do jogo.
   const humorEu = await usuarioModel.buscarHumorHoje(me);
-  // Ordem da fileira: quem tem story NÃO visto na frente; depois as demais notas
-  // (com story já visto ou sem story), mantendo a ordem da equipe.
   const notas = ctx.equipe.filter((u) => u.humor)
     .map((u, i) => ({ u, i, k: u.temStory && !u.storyVisto ? 0 : 1 }))
     .sort((a, b) => a.k - b.k || a.i - b.i)
@@ -144,69 +173,28 @@ async function renderInbox(req, res, sel) {
     humores: HUMORES,
     notas,
     tenhoStory: !!aneis[me],
+    // Temas de conversa (só o Direct do escritório; o canal do Anjo mantém o visual próprio)
+    temasChat: conversa && conversa.tipo === 'u'
+      ? TEMAS_CHAT.map((t) => Object.assign({ ativo: t.chave === conversa.tema }, t))
+      : null,
   });
 }
 
-// "Responder" (citação estilo WhatsApp): a mensagem citada está na MESMA conversa
-// já carregada — anexa a prévia dela (quem escreveu + trecho) sem ir ao banco.
-function anexarCitacoes(mensagens) {
-  const porId = {};
-  mensagens.forEach((m) => { porId[m.id_mensagem] = m; });
-  mensagens.forEach((m) => {
-    if (!m.respondendo_a) return;
-    const q = porId[m.respondendo_a];
-    if (!q) return;
-    let trecho = q.apagada ? '🚫 Mensagem apagada'
-      : (q.texto || (q.imagem ? '📷 Foto' : q.audio ? '🎤 Mensagem de voz' : q.video ? '🎬 Vídeo' : ''));
-    if (trecho.length > 90) trecho = `${trecho.slice(0, 90)}…`;
-    m.quote = { minha: !!q.minha, texto: trecho };
-  });
-}
-
-// Mensagem que referencia um story (resposta/encaminhamento) vira um CARTÃO na
-// bolha — clicável enquanto o story estiver no ar (24 h), como no Instagram.
-async function anexarCartoesDeStory(mensagens) {
-  const cacheAutor = {};
-  const cacheAtivo = {};
-  for (const m of mensagens) {
-    if (!m.story_autor || m.apagada_em) continue;
-    if (!(m.story_autor in cacheAutor)) cacheAutor[m.story_autor] = await usuarioModel.buscarPorId(m.story_autor);
-    let ativo = false;
-    if (m.story_ref) {
-      if (!(m.story_ref in cacheAtivo)) {
-        const s = await storyModel.buscarPorId(m.story_ref);
-        cacheAtivo[m.story_ref] = !!(s && Date.now() - new Date(s.criado_em).getTime() < 24 * 3600 * 1000);
-      }
-      ativo = cacheAtivo[m.story_ref];
-    }
-    const autor = cacheAutor[m.story_autor];
-    m.storyPrev = {
-      tipo: m.story_tipo || 'encaminhado',
-      id_story: m.story_ref,
-      id_autor: m.story_autor,
-      usuario: autor ? autor.usuario : '?',
-      ativo,
-    };
-  }
-}
-
-// Mensagem com link de publicação do mural (/p/ID) vira um cartão de preview na
-// bolha — como compartilhar post no Direct do Instagram.
-async function anexarPreviasDePost(mensagens, me) {
-  const cache = {};
-  for (const m of mensagens) {
-    const match = /\/p\/(\d+)/.exec(m.texto || '');
-    if (!match) continue;
-    const id = Number(match[1]);
-    if (!(id in cache)) cache[id] = await postModel.buscarFeedUm(id, me).catch(() => null);
-    if (!cache[id]) continue;
-    m.postPrev = cache[id];
-    // O que sobra da mensagem além do link (se só mandou o post, a bolha mostra só o cartão)
-    m.textoSemLink = m.texto
-      .replace(/Olha esse post do mural:\s*/i, '')
-      .replace(/https?:\/\/\S*\/p\/\d+\S*/g, '')
-      .trim();
-  }
+// ---------- Tema da conversa (DM): vale para os dois lados, troca ao vivo ----------
+async function postTema(req, res, next) {
+  try {
+    const me = req.session.usuario.id_usuario;
+    const id = Number(req.params.id);
+    const tema = String(req.body.tema || 'padrao');
+    const outro = await usuarioModel.buscarPorId(id);
+    if (!outro || outro.id_usuario === me || !temaChatValido(tema)) return res.status(400).json({ ok: false, erro: 'Tema inválido.' });
+    await dmTemaModel.salvar(me, id, tema, me);
+    const eu = await usuarioModel.buscarPorId(me);
+    const nome = nomeTemaChat(tema);
+    tempoReal.publicar(id, 'dm-tema', { canal: 'u', de: me, tema, nome, quem: eu ? eu.nome.split(' ')[0] : 'Alguém' });
+    tempoReal.publicar(me, 'dm-tema', { canal: 'u', de: me, para: id, tema, nome, eco: true });
+    res.json({ ok: true, tema, nome });
+  } catch (err) { next(err); }
 }
 
 const getInbox = (req, res, next) => renderInbox(req, res, null).catch(next);
@@ -224,15 +212,39 @@ function midiaDaRequisicao(req) {
   return { imagem: um('imagem'), audio: um('audio'), video: um('video') };
 }
 
+// Canal do jogo: 'anjo' (falo com meu anjo) | 'protegido' (falo com meu protegido).
+// Quem recebe vê a mensagem no canal OPOSTO: mandei pro protegido → ele lê em "Seu anjo".
 async function enviarJogo(req, res, next, alvo) {
   try {
     const me = req.session.usuario.id_usuario;
     const campanha = await campanhaService.buscarCampanhaAtiva();
     const destino = '/mensagens/' + alvo;
+    const ajax = ehFetch(req);
     const { imagem, audio, video } = midiaDaRequisicao(req);
-    if (!campanha) { req.session.flash = { erro: MSG.SEM_CAMPANHA }; return res.redirect(destino); }
+    if (!campanha) {
+      if (ajax) return res.status(400).json({ erro: MSG.SEM_CAMPANHA });
+      req.session.flash = { erro: MSG.SEM_CAMPANHA }; return res.redirect(destino);
+    }
     const r = await mensagemService.enviarMensagemAnonima(campanha.id_campanha, me, alvo, req.body.mensagem, imagem, audio, video, req.body.responder_a || null);
-    if (!r.ok) req.session.flash = { erro: MSG[r.motivo] || 'Não foi possível enviar.' };
+    if (!r.ok) {
+      if (ajax) return res.status(400).json({ erro: MSG[r.motivo] || 'Não foi possível enviar.' });
+      req.session.flash = { erro: MSG[r.motivo] || 'Não foi possível enviar.' };
+      return res.redirect(destino);
+    }
+    // Bolhas prontas: a minha (resposta do AJAX) e a do outro lado (vai por SSE)
+    const canalDeles = alvo === 'protegido' ? 'anjo' : 'protegido';
+    const ctxMeu = alvo === 'anjo' ? CTX_ANJO : ctxProtegido('Seu protegido');
+    let nomeDeles = 'Seu protegido';
+    if (canalDeles === 'protegido') { const u = await usuarioModel.buscarPorId(me); nomeDeles = u ? u.nome : nomeDeles; }
+    const ctxDeles = canalDeles === 'anjo' ? CTX_ANJO : ctxProtegido(nomeDeles);
+    const [htmlMeu, htmlDeles] = await Promise.all([
+      conversaService.bolhaJogo(r.id_mensagem, me, ctxMeu),
+      conversaService.bolhaJogo(r.id_mensagem, r.destino, ctxDeles),
+    ]);
+    const previa = conversaService.previaDe({ texto: String(req.body.mensagem || '').trim(), imagem, audio, video });
+    tempoReal.publicar(r.destino, 'dm', { canal: canalDeles, id_mensagem: r.id_mensagem, html: htmlDeles, previa });
+    tempoReal.publicar(me, 'dm', { canal: alvo, id_mensagem: r.id_mensagem, html: htmlMeu, previa, eco: true });
+    if (ajax) return res.json({ ok: true, id_mensagem: r.id_mensagem, html: htmlMeu });
     res.redirect(destino);
   } catch (err) { next(err); }
 }
@@ -244,19 +256,70 @@ async function postDireta(req, res, next) {
     const me = req.session.usuario.id_usuario;
     const id = Number(req.params.id);
     const { imagem, audio, video } = midiaDaRequisicao(req);
-    const ajax = (req.get('x-requested-with') || '') === 'fetch';
+    const ajax = ehFetch(req);
     const r = await dmService.enviar(me, id, req.body.mensagem, imagem, audio, video, null, req.body.responder_a || null);
     if (!r.ok) {
       if (ajax) return res.status(400).json({ erro: MSG[r.motivo] || 'Não foi possível enviar.' });
       req.session.flash = { erro: MSG[r.motivo] || 'Não foi possível enviar.' };
+      return res.redirect('/mensagens/u/' + id);
     }
-    if (ajax) return res.json({ ok: true });
+    const [eu, outro] = await Promise.all([usuarioModel.buscarPorId(me), usuarioModel.buscarPorId(id)]);
+    const [htmlMeu, htmlDeles] = await Promise.all([
+      conversaService.bolhaDm(r.id_mensagem, me, ctxDm(outro ? outro.nome : '')),
+      conversaService.bolhaDm(r.id_mensagem, id, ctxDm(eu ? eu.nome : '')),
+    ]);
+    const previa = conversaService.previaDe({ texto: String(req.body.mensagem || '').trim(), imagem, audio, video });
+    tempoReal.publicar(id, 'dm', { canal: 'u', de: me, id_mensagem: r.id_mensagem, html: htmlDeles, previa });
+    tempoReal.publicar(me, 'dm', { canal: 'u', de: me, para: id, id_mensagem: r.id_mensagem, html: htmlMeu, previa, eco: true });
+    if (ajax) return res.json({ ok: true, id_mensagem: r.id_mensagem, html: htmlMeu });
     res.redirect('/mensagens/u/' + id);
   } catch (err) { next(err); }
 }
 
-// ---------- Estado da lista (polling leve): não lidas por contato + prévias ----------
-// Alimenta os badges ao vivo do Direct (quantas mensagens e de quem), sem F5.
+// ---------- "digitando…" (sem banco: só um evento para o outro lado) ----------
+async function postDigitando(req, res, next) {
+  try {
+    const me = req.session.usuario.id_usuario;
+    const canal = req.params.canal; // 'anjo' | 'protegido' | 'u'
+    if (canal === 'u') {
+      tempoReal.publicar(Number(req.params.id), 'digitando', { de: me, canal: 'u' });
+    } else {
+      const campanha = await campanhaService.buscarCampanhaAtiva();
+      if (campanha) {
+        if (canal === 'anjo') {
+          const a = await sorteioService.buscarAnjoDoProtegido(campanha.id_campanha, me);
+          if (a) tempoReal.publicar(a.id_usuario, 'digitando', { canal: 'protegido' });
+        } else if (canal === 'protegido') {
+          const p = await sorteioService.buscarProtegidoDoAnjo(campanha.id_campanha, me);
+          if (p) tempoReal.publicar(p.id_usuario, 'digitando', { canal: 'anjo' });
+        }
+      }
+    }
+    res.status(204).end();
+  } catch (err) { next(err); }
+}
+
+// ---------- Li as mensagens (conversa aberta recebeu algo por SSE) ----------
+async function postLidas(req, res, next) {
+  try {
+    const me = req.session.usuario.id_usuario;
+    const canal = req.params.canal;
+    if (canal === 'u') {
+      const id = Number(req.params.id);
+      await dmService.marcarLidas(me, id);
+      await avisarLeitura(me, 'u', id, null);
+    } else {
+      const campanha = await campanhaService.buscarCampanhaAtiva();
+      if (campanha && (canal === 'anjo' || canal === 'protegido')) {
+        await mensagemService.marcarThreadLida(campanha.id_campanha, me, canal);
+        await avisarLeitura(me, canal, null, campanha);
+      }
+    }
+    res.json({ ok: true });
+  } catch (err) { next(err); }
+}
+
+// ---------- Estado da lista (polling de reserva): não lidas por contato + prévias ----------
 async function getEstado(req, res, next) {
   try {
     const me = req.session.usuario.id_usuario;
@@ -272,7 +335,7 @@ async function getEstado(req, res, next) {
       const u = resumo.ultima[id];
       previas[id] = { minha: !!u.minha, texto: u.texto || '📎 mídia' };
     });
-    res.json({ anjo: unread.anjo, protegido: unread.protegido, porContato: resumo.naoLidas || {}, previas });
+    res.json({ anjo: unread.anjo, protegido: unread.protegido, porContato: resumo.naoLidas || {}, previas, online: tempoReal.listarOnline() });
   } catch (err) {
     next(err);
   }
@@ -306,4 +369,4 @@ async function postApagar(req, res, next) {
   } catch (err) { next(err); }
 }
 
-module.exports = { getInbox, getAnjo, getProtegido, getDireta, postAnjo, postProtegido, postDireta, postEditar, postApagar, getEstado };
+module.exports = { getInbox, getAnjo, getProtegido, getDireta, postAnjo, postProtegido, postDireta, postEditar, postApagar, getEstado, postDigitando, postLidas, postTema };

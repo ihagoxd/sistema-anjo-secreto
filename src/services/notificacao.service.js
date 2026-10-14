@@ -240,6 +240,14 @@ async function marcarTodasLidas(idUsuario) {
   await publicarContagem(idUsuario);
 }
 
+// Abri/li uma conversa: as notificações de mensagem dela viram lidas e o badge atualiza.
+// canal: 'u' (DM com idOutro) | 'anjo' | 'protegido'
+async function lerConversa(idUsuario, canal, idOutro = null) {
+  const tipo = canal === 'u' ? 'MENSAGEM' : canal === 'anjo' ? 'MENSAGEM_ANJO' : 'MENSAGEM_PROTEGIDO';
+  const n = await notificacaoModel.marcarLidasDeMensagens(idUsuario, tipo, canal === 'u' ? Number(idOutro) : null);
+  if (n) await publicarContagem(idUsuario);
+}
+
 async function excluir(ids, idUsuario) {
   const n = await notificacaoModel.excluir(ids, idUsuario);
   await publicarContagem(idUsuario);
@@ -423,6 +431,7 @@ module.exports = {
   contarNaoLidas,
   marcarLida,
   marcarTodasLidas,
+  lerConversa,
   excluir,
   excluirTodas,
   buscarPrefs,

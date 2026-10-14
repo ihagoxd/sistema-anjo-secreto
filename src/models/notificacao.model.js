@@ -89,6 +89,17 @@ async function marcarTodasLidas(idUsuario) {
   );
 }
 
+// Li a conversa: as notificações de mensagem DAQUELE canal param de contar.
+// tipo: MENSAGEM (DM, com ref = remetente) | MENSAGEM_ANJO | MENSAGEM_PROTEGIDO
+async function marcarLidasDeMensagens(idUsuario, tipo, ref = null) {
+  const res = await db.query(
+    `UPDATE notificacoes SET lida = TRUE, lida_em = COALESCE(lida_em, now())
+      WHERE id_usuario = $1 AND tipo = $2 AND lida = FALSE AND ($3::int IS NULL OR ref = $3)`,
+    [idUsuario, tipo, ref]
+  );
+  return res.rowCount;
+}
+
 async function excluir(ids, idUsuario) {
   if (!ids.length) return 0;
   const res = await db.query(
@@ -173,7 +184,7 @@ async function gravarConfig(chave, valor) {
 module.exports = {
   CATEGORIAS,
   inserir, buscarPorId, listar, contarNaoLidas,
-  marcarLida, marcarLidas, marcarTodasLidas, excluir, excluirTodas, existeHoje,
+  marcarLida, marcarLidas, marcarTodasLidas, marcarLidasDeMensagens, excluir, excluirTodas, existeHoje,
   buscarPrefs, salvarPrefs,
   inserirInscricao, removerInscricao, listarInscricoes, contarInscricoes,
   lerConfig, gravarConfig,

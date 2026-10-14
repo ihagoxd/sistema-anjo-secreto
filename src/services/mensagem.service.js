@@ -56,9 +56,9 @@ async function enviarMensagemAnonima(idCampanha, idRemetente, alvo, texto, image
     if (doPar) citada = q.id_mensagem;
   }
 
-  await mensagemModel.inserir({ idCampanha, idOrigem: idRemetente, idDestino: destino, tipo, mensagem, imagem, audio, video, respondendoA: citada });
+  const nova = await mensagemModel.inserir({ idCampanha, idOrigem: idRemetente, idDestino: destino, tipo, mensagem, imagem, audio, video, respondendoA: citada });
   await notificacaoService.notificarMensagemJogo(destino, alvo, { texto: mensagem, imagem, audio, video });
-  return { ok: true };
+  return { ok: true, id_mensagem: nova.id_mensagem, destino };
 }
 
 /**
@@ -73,7 +73,7 @@ function classificarMensagens(rows, idUsuario) {
   const comAnjo = [];
   for (const r of rows) {
     const minha = r.id_usuario_origem === idUsuario;
-    const item = { id_mensagem: r.id_mensagem, minha, texto: r.mensagem, imagem: r.imagem, audio: r.audio, video: r.video, apagada: !!r.apagada_em, editado_em: r.editado_em, criado_em: r.criado_em, respondendo_a: r.respondendo_a };
+    const item = { id_mensagem: r.id_mensagem, minha, texto: r.mensagem, imagem: r.imagem, audio: r.audio, video: r.video, apagada: !!r.apagada_em, lida: !!r.lida, editado_em: r.editado_em, criado_em: r.criado_em, respondendo_a: r.respondendo_a };
     if (r.tipo_mensagem === 'ANJO_PARA_PROTEGIDO') {
       (minha ? comProtegido : comAnjo).push(item);
     } else {

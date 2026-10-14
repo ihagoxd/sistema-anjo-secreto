@@ -1,8 +1,10 @@
 /* ============================================================
    Editor de Stories (estilo Instagram)
-   Texto com fontes/cores/fundo, figurinhas (emoji), menção @, desenho à mão,
-   story só de texto com fundo em degradê, arrastar/pinçar/girar cada elemento,
-   lixeira ao arrastar para baixo, pinça/arrasto para enquadrar a foto.
+   Texto digitado direto na tela com fonte, cor, fundo em "pílula" por linha, alinhamento e
+   tamanho (slider); "@" no texto abre a lista de perfis — vira figurinha de menção que a pessoa
+   posiciona; emoji vem do teclado. Menção @ (botão), desenho à mão, story só de texto com fundo
+   em degradê, arrastar/pinçar/girar cada elemento, lixeira ao arrastar para baixo, pinça/arrasto
+   para enquadrar a foto.
    Foto e texto: tudo é "queimado" num JPEG 1080×1920 (sai igual em qualquer tela).
    Vídeo: o vídeo sobe intacto e as sobreposições vão em JSON (o visualizador desenha).
    Uso (ui.js): AnjoStoryEditor.abrir(file|null, ehVideo, { enviar: function (arquivo, meta) {} })
@@ -15,26 +17,42 @@
     ['#ff512f', '#f09819'], ['#141e30', '#243b55'], ['#e3b341', '#8a5a00'], ['#ff5f6d', '#ffc371'], ['#0f0c29', '#302b63', '#24243e'], ['#000000', '#434343'],
   ];
   var CORES = ['#ffffff', '#000000', '#ff3b30', '#ff9500', '#ffcc00', '#34c759', '#00c7be', '#007aff', '#5856d6', '#af52de', '#ff2d55', '#e3b341'];
+  var SANS = "'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
   var FONTES = {
-    classico: { nome: 'Clássico', peso: 600, familia: "'Inter', system-ui, -apple-system, sans-serif" },
-    moderno: { nome: 'Moderno', peso: 800, familia: "'Inter', system-ui, -apple-system, sans-serif", caixa: 'uppercase', espaco: 0.06 },
-    maquina: { nome: 'Máquina', peso: 500, familia: "ui-monospace, Menlo, Consolas, monospace" },
-    neon: { nome: 'Neon', peso: 700, familia: "'Inter', system-ui, -apple-system, sans-serif", brilho: true },
+    classico: { nome: 'Clássico', peso: 600, familia: SANS },
+    moderno: { nome: 'Moderno', peso: 800, familia: SANS, caixa: 'uppercase', espaco: 0.06 },
+    forte: { nome: 'Forte', peso: 400, familia: "Impact, 'Arial Narrow Bold', 'Arial Black', sans-serif", caixa: 'uppercase', espaco: 0.02 },
+    elegante: { nome: 'Elegante', peso: 400, familia: "Georgia, 'Times New Roman', serif", italico: true },
+    maquina: { nome: 'Máquina', peso: 500, familia: "ui-monospace, Menlo, Consolas, 'Courier New', monospace" },
+    neon: { nome: 'Neon', peso: 700, familia: SANS, brilho: true },
   };
-  var EMOJIS = ('😀 😂 🥰 😎 🤩 🥳 😍 😘 😜 🤪 😇 🥺 😭 😤 🔥 ✨ ⭐ 💫 🎉 🎊 🎈 🎁 🎂 ❤️ 🧡 💛 💚 💙 💜 🖤 💖 💯 👏 🙌 👍 🤝 💪 🙏 👀 🫶 '
-    + '☕ 🍕 🍔 🍟 🍩 🍫 🍺 🥂 🎵 🎶 🎧 📸 🚀 ✈️ 🌴 🌊 ☀️ 🌙 🌈 ⚡ 🏆 🥇 ⚽ 🏀 🎮 💼 📚 💡 🧠 😴 🥱 🤔 🤫 🤭 😏 🙃 😅 🤣 😱').split(' ').filter(Boolean);
-  var BASE_TAM = 0.085; // tamanho inicial do texto = 8,5% da largura do palco
+  var BASE_TAM = 0.085, TAM_MIN = 0.04, TAM_MAX = 0.2; // tamanho do texto = fração da largura do palco
+  var MAX_TEXTO = 300;
 
   var raiz = null, palco = null, midiaEl = null, canvasDes = null, camada = null, lixo = null;
-  var txtPainel = null, txtArea = null, emojiPainel = null, desBarra = null, fundoPainel = null, enviarBtn = null;
+  var txtPainel = null, txtIn = null, txtWrap = null, txtTam = null, mencBox = null, desBarra = null, fundoPainel = null, enviarBtn = null;
   var est = null; // estado da edição
   var opts = null;
-  var mostrandoSeq = 0;
+  var mostrandoSeq = 0, seqOv = 0, mencSeq = 0, mencTimer = null;
 
   function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
   function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
   function cssFundo(i) { var c = FUNDOS[i] || FUNDOS[0]; return 'linear-gradient(160deg, ' + c.join(', ') + ')'; }
   function toastLocal(m) { if (window.toast) window.toast(m); }
+  function luminancia(hex) {
+    var c = String(hex || '#ffffff').replace('#', '');
+    if (c.length !== 6) return 255;
+    return (parseInt(c.slice(0, 2), 16) * 299 + parseInt(c.slice(2, 4), 16) * 587 + parseInt(c.slice(4, 6), 16) * 114) / 1000;
+  }
+  function contraste(hex) { return luminancia(hex) > 150 ? '#111111' : '#ffffff'; }
+  // Modo de fundo do texto: 0 nenhum · 1 sólido (texto em contraste) · 2 translúcido (texto na cor)
+  function modoFundo(v) { if (v === true) return 1; var n = Number(v); return n === 1 || n === 2 ? n : 0; }
+  function coresTexto(cor, modo) {
+    if (modo === 1) return { bg: cor, cor: contraste(cor) };
+    if (modo === 2) return { bg: luminancia(cor) > 150 ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.68)', cor: cor };
+    return { bg: 'transparent', cor: cor };
+  }
+  function fonteCss(f) { return (f.italico ? 'italic ' : '') + f.peso + ' '; }
 
   /* ---------- DOM ---------- */
   function montar() {
@@ -52,7 +70,6 @@
       + '    <div class="sted-ferr">'
       + '      <button type="button" class="sted-ic" data-st-tool="fundo" title="Fundo" aria-label="Fundo" hidden><span class="sted-fundo-dot"></span></button>'
       + '      <button type="button" class="sted-ic sted-aa" data-st-tool="texto" title="Texto" aria-label="Texto">Aa</button>'
-      + '      <button type="button" class="sted-ic" data-st-tool="emoji" title="Figurinhas" aria-label="Figurinhas"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></button>'
       + '      <button type="button" class="sted-ic sted-at" data-st-tool="mencao" title="Marcar pessoa" aria-label="Marcar pessoa">@</button>'
       + '      <button type="button" class="sted-ic" data-st-tool="desenho" title="Desenhar" aria-label="Desenhar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg></button>'
       + '    </div>'
@@ -61,18 +78,24 @@
       + '    <button type="button" class="btn btn-primario sted-enviar">Compartilhar no story</button>'
       + '  </div>'
       + '</div>'
-      // painel de texto
+      // ferramenta de texto (Instagram): escreve direto na tela
       + '<div class="sted-txt" hidden>'
-      + '  <div class="sted-txt-topo"><div class="sted-fontes"></div><button type="button" class="sted-ok" data-st-txt-ok>Concluir</button></div>'
-      + '  <div class="sted-txt-meio"><textarea class="sted-txt-area" rows="1" placeholder="Digite…" maxlength="300"></textarea></div>'
-      + '  <div class="sted-txt-barra">'
-      + '    <button type="button" class="sted-ic sted-txt-op" data-st-align title="Alinhamento" aria-label="Alinhamento"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="5" y1="18" x2="19" y2="18"/></svg></button>'
+      + '  <div class="sted-txt-topo">'
+      + '    <button type="button" class="sted-ic sted-txt-op" data-st-align title="Alinhamento" aria-label="Alinhamento"></button>'
+      + '    <button type="button" class="sted-ic sted-txt-op sted-bg" data-st-bg title="Fundo do texto" aria-label="Fundo do texto"><span>A</span></button>'
+      + '    <span class="sted-txt-espaco"></span>'
+      + '    <button type="button" class="sted-ok" data-st-txt-ok>Concluir</button>'
+      + '  </div>'
+      + '  <div class="sted-txt-meio" data-st-txt-meio>'
+      + '    <div class="sted-txt-wrap"><div class="sted-txt-in" contenteditable="true" spellcheck="false" autocapitalize="sentences" enterkeyhint="enter" data-placeholder="Digite…"></div></div>'
+      + '  </div>'
+      + '  <input type="range" class="sted-txt-tam" min="' + TAM_MIN + '" max="' + TAM_MAX + '" step="0.002" value="' + BASE_TAM + '" aria-label="Tamanho do texto">'
+      + '  <div class="sted-txt-base">'
+      + '    <div class="sted-mencoes" hidden></div>'
       + '    <div class="sted-cores"></div>'
-      + '    <button type="button" class="sted-ic sted-txt-op sted-bg" data-st-bg title="Fundo do texto" aria-label="Fundo do texto">A</button>'
+      + '    <div class="sted-fontes"></div>'
       + '  </div>'
       + '</div>'
-      // painel de emoji
-      + '<div class="sted-emojis" hidden><div class="sted-painel-cab"><span>Figurinhas</span><button type="button" class="sted-ok" data-st-emoji-x>Fechar</button></div><div class="sted-emoji-grade"></div></div>'
       // barra de desenho
       + '<div class="sted-desbarra" hidden>'
       + '  <button type="button" class="sted-ic" data-st-des-undo title="Desfazer" aria-label="Desfazer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button>'
@@ -90,24 +113,27 @@
     camada = raiz.querySelector('.sted-camada');
     lixo = raiz.querySelector('.sted-lixo');
     txtPainel = raiz.querySelector('.sted-txt');
-    txtArea = raiz.querySelector('.sted-txt-area');
-    emojiPainel = raiz.querySelector('.sted-emojis');
+    txtIn = raiz.querySelector('.sted-txt-in');
+    txtWrap = raiz.querySelector('.sted-txt-wrap');
+    txtTam = raiz.querySelector('.sted-txt-tam');
+    mencBox = raiz.querySelector('.sted-mencoes');
     desBarra = raiz.querySelector('.sted-desbarra');
     fundoPainel = raiz.querySelector('.sted-fundos');
     enviarBtn = raiz.querySelector('.sted-enviar');
 
-    // fontes
+    // fontes (cada pílula na própria fonte)
     var fb = raiz.querySelector('.sted-fontes');
     Object.keys(FONTES).forEach(function (k) {
-      var b = el('button', 'sted-fonte', FONTES[k].nome); b.type = 'button'; b.setAttribute('data-st-fonte', k); fb.appendChild(b);
+      var f = FONTES[k];
+      var b = el('button', 'sted-fonte', f.nome); b.type = 'button'; b.setAttribute('data-st-fonte', k);
+      b.style.fontFamily = f.familia; b.style.fontWeight = f.peso; if (f.italico) b.style.fontStyle = 'italic';
+      if (f.caixa) b.style.textTransform = f.caixa; if (f.espaco) b.style.letterSpacing = f.espaco + 'em';
+      fb.appendChild(b);
     });
     // cores (texto e desenho)
     raiz.querySelectorAll('.sted-cores').forEach(function (box) {
-      CORES.forEach(function (c) { var b = el('button', 'sted-cor'); b.type = 'button'; b.style.background = c; b.setAttribute('data-st-cor', c); box.appendChild(b); });
+      CORES.forEach(function (c) { var b = el('button', 'sted-cor'); b.type = 'button'; b.style.background = c; b.setAttribute('data-st-cor', c); b.setAttribute('aria-label', 'Cor'); box.appendChild(b); });
     });
-    // emojis
-    var eg = raiz.querySelector('.sted-emoji-grade');
-    EMOJIS.forEach(function (e) { var b = el('button', 'sted-emoji', e); b.type = 'button'; b.setAttribute('data-st-emoji', e); eg.appendChild(b); });
     // fundos
     var fg = raiz.querySelector('.sted-fundo-grade');
     FUNDOS.forEach(function (c, i) { var b = el('button', 'sted-fundo-op'); b.type = 'button'; b.style.background = cssFundo(i); b.setAttribute('data-st-fundo', i); fg.appendChild(b); });
@@ -123,7 +149,7 @@
       midia: { x: 0, y: 0, s: 1 }, natural: { w: 0, h: 0 },
       overlays: [], desenhos: [], sel: -1, ferramenta: '',
       desCor: '#ffffff', desLarg: 7,
-      txtEditando: -1, txtCor: '#ffffff', txtFonte: 'classico', txtFundo: false, txtAlinha: 'center',
+      txtEditando: -1, txtCor: '#ffffff', txtFonte: 'classico', txtFundo: 0, txtAlinha: 'center', txtTam: BASE_TAM, txtMencoes: {},
     };
   }
 
@@ -159,7 +185,7 @@
     ajustarCanvas();
     aplicarMidia();
     renderOverlays();
-    if (est.textoPuro) setTimeout(function () { abrirTexto(-1); }, 120); // story de texto: já abre o teclado
+    if (est.textoPuro) setTimeout(function () { abrirTexto(-1, ''); }, 120); // story de texto: já abre o teclado
   }
 
   function fechar() {
@@ -173,8 +199,9 @@
   }
 
   function fecharPaineis() {
-    txtPainel.hidden = true; emojiPainel.hidden = true; desBarra.hidden = true; fundoPainel.hidden = true;
-    raiz.classList.remove('desenhando', 'editando-texto');
+    if (!txtPainel.hidden) fecharTexto();
+    desBarra.hidden = true; fundoPainel.hidden = true;
+    raiz.classList.remove('desenhando');
     if (est) est.ferramenta = '';
     raiz.querySelectorAll('[data-st-tool]').forEach(function (b) { b.classList.remove('ativo'); });
   }
@@ -186,7 +213,6 @@
     img.style.transform = 'translate(' + est.midia.x + 'px, ' + est.midia.y + 'px) scale(' + est.midia.s + ')';
   }
   function limitarMidia() {
-    // não deixa aparecer borda vazia: a foto (cover) sempre cobre o palco
     var r = palco.getBoundingClientRect();
     var s = est.midia.s;
     var extraX = (r.width * s - r.width) / 2, extraY = (r.height * s - r.height) / 2;
@@ -195,6 +221,16 @@
   }
 
   /* ---------- Overlays ---------- */
+  function aplicarFonte(elm, f) {
+    elm.style.fontFamily = f.familia; elm.style.fontWeight = f.peso;
+    elm.style.fontStyle = f.italico ? 'italic' : 'normal';
+    elm.style.textTransform = f.caixa || 'none';
+    elm.style.letterSpacing = f.espaco ? (f.espaco + 'em') : '0';
+  }
+  function sombraTexto(f, cor, modo) {
+    if (modo) return 'none';
+    return f.brilho ? ('0 0 10px ' + cor + ', 0 0 24px ' + cor) : '0 1px 3px rgba(0,0,0,0.45)';
+  }
   function estiloOverlay(div, ov) {
     var r = palco.getBoundingClientRect();
     div.style.left = (ov.x * 100) + '%';
@@ -203,19 +239,16 @@
     div.style.fontSize = (ov.tam * r.width) + 'px';
     if (ov.tipo === 'texto') {
       var f = FONTES[ov.fonte] || FONTES.classico;
-      div.style.fontFamily = f.familia; div.style.fontWeight = f.peso;
-      div.style.textTransform = f.caixa || 'none';
-      div.style.letterSpacing = f.espaco ? (f.espaco + 'em') : '0';
+      var modo = modoFundo(ov.fundo), c = coresTexto(ov.cor, modo);
+      aplicarFonte(div, f);
       div.style.textAlign = ov.alinhamento;
-      div.style.color = ov.fundo ? contraste(ov.cor) : ov.cor;
-      div.style.textShadow = f.brilho ? ('0 0 10px ' + ov.cor + ', 0 0 24px ' + ov.cor) : (ov.fundo ? 'none' : '0 1px 3px rgba(0,0,0,0.45)');
-      div.classList.toggle('com-fundo', !!ov.fundo);
-      div.style.setProperty('--ov-fundo', ov.fundo ? ov.cor : 'transparent');
+      div.style.color = c.cor;
+      div.style.textShadow = sombraTexto(f, ov.cor, modo);
+      div.classList.toggle('com-fundo', modo > 0);
+      div.style.setProperty('--ov-fundo', c.bg);
+      div.style.setProperty('--ov-cor', c.cor);
     }
-  }
-  function contraste(hex) {
-    var c = hex.replace('#', ''); var r = parseInt(c.slice(0, 2), 16), g = parseInt(c.slice(2, 4), 16), b = parseInt(c.slice(4, 6), 16);
-    return (r * 299 + g * 587 + b * 114) / 1000 > 150 ? '#111111' : '#ffffff';
+    if (ov.tipo === 'mencao') div.classList.toggle('st-ov-oculta', !!ov.oculta);
   }
   function renderOverlays() {
     camada.innerHTML = '';
@@ -226,16 +259,34 @@
       if (ov.tipo === 'mencao') div.innerHTML = '<span class="st-ov-inner">@' + esc(ov.usuario) + '</span>';
       else div.innerHTML = '<span class="st-ov-inner">' + esc(ov.texto).replace(/\n/g, '<br>') + '</span>';
       estiloOverlay(div, ov);
-      div.classList.toggle('sel', i === est.sel);
+      if (ov.tipo === 'mencao' && ov.oculta) div.classList.add('st-ov-ligada'); // menção dentro de um texto: invisível, não pega gesto
+      div.classList.toggle('sel', i === est.sel && !ov.oculta);
+      div.classList.toggle('editando', !txtPainel.hidden && i === est.txtEditando);
       camada.appendChild(div);
     });
   }
   function addOverlay(ov) {
+    if (!ov.id) ov.id = ++seqOv;
     est.overlays.push(ov);
     est.sel = est.overlays.length - 1;
     renderOverlays();
     var div = camada.lastElementChild;
     if (div) { div.classList.add('entrando'); setTimeout(function () { div.classList.remove('entrando'); }, 350); }
+    return ov;
+  }
+  // Menções que vivem dentro de um texto acompanham o texto (posição, giro, tamanho) e somem com ele
+  function sincronizarLigadas(ovTexto) {
+    est.overlays.forEach(function (o) {
+      if (o.tipo === 'mencao' && o.oculta && o.ligado === ovTexto.id) { o.x = ovTexto.x; o.y = ovTexto.y; o.rot = ovTexto.rot; o.tam = ovTexto.tam; }
+    });
+  }
+  function removerOverlay(i) {
+    var ov = est.overlays[i];
+    if (!ov) return;
+    est.overlays.splice(i, 1);
+    if (ov.tipo === 'texto') est.overlays = est.overlays.filter(function (o) { return !(o.tipo === 'mencao' && o.oculta && o.ligado === ov.id); });
+    est.sel = -1;
+    renderOverlays();
   }
 
   /* ---------- Gestos (arrastar, pinçar, girar, lixeira, enquadrar foto) ---------- */
@@ -251,7 +302,7 @@
       ptrs[e.pointerId] = pos(e);
       try { palco.setPointerCapture(e.pointerId); } catch (x) {}
       var ids = Object.keys(ptrs);
-      var alvo = e.target.closest('.st-ov');
+      var alvo = e.target.closest('.st-ov:not(.st-ov-ligada)');
       if (ids.length === 1) {
         if (alvo) {
           var i = parseInt(alvo.getAttribute('data-i'), 10);
@@ -259,10 +310,10 @@
           var ov = est.overlays[i];
           gesto = { tipo: 'ov', i: i, ini: pos(e), x0: ov.x, y0: ov.y, rot0: ov.rot, tam0: ov.tam, moveu: 0, t0: Date.now() };
         } else if (!est.ehVideo && !est.textoPuro) {
-          gesto = { tipo: 'midia', ini: pos(e), x0: est.midia.x, y0: est.midia.y, s0: est.midia.s, moveu: 0 };
+          gesto = { tipo: 'midia', ini: pos(e), x0: est.midia.x, y0: est.midia.y, s0: est.midia.s, moveu: 0, t0: Date.now() };
           est.sel = -1; renderOverlays();
         } else {
-          est.sel = -1; renderOverlays(); gesto = null;
+          est.sel = -1; renderOverlays(); gesto = { tipo: 'vazio', ini: pos(e), moveu: 0, t0: Date.now() };
         }
       } else if (ids.length === 2) {
         var a = ptrs[ids[0]], b = ptrs[ids[1]];
@@ -294,6 +345,7 @@
           lixo.classList.toggle('pronto', sobre);
           gesto.naLixeira = sobre;
         }
+        if (ov.tipo === 'texto') sincronizarLigadas(ov);
         var div = camada.querySelector('.st-ov[data-i="' + gesto.i + '"]');
         if (div) estiloOverlay(div, ov);
       } else if (gesto.tipo === 'midia') {
@@ -307,6 +359,9 @@
           gesto.moveu = Math.max(gesto.moveu, Math.abs(p2.x - gesto.ini.x) + Math.abs(p2.y - gesto.ini.y));
         }
         limitarMidia(); aplicarMidia();
+      } else if (gesto.tipo === 'vazio') {
+        var p3 = ptrs[e.pointerId];
+        gesto.moveu = Math.max(gesto.moveu, Math.abs(p3.x - gesto.ini.x) + Math.abs(p3.y - gesto.ini.y));
       }
     });
     function soltar(e) {
@@ -314,11 +369,13 @@
       if (Object.keys(ptrs).length) return;
       if (gesto && gesto.tipo === 'ov' && est) {
         var i = gesto.i;
-        if (gesto.naLixeira) { est.overlays.splice(i, 1); est.sel = -1; renderOverlays(); try { if (navigator.vibrate) navigator.vibrate(20); } catch (x) {} }
+        if (gesto.naLixeira) { removerOverlay(i); try { if (navigator.vibrate) navigator.vibrate(20); } catch (x) {} }
         else if (gesto.moveu < 8 && Date.now() - gesto.t0 < 400) {
           var ov = est.overlays[i];
-          if (ov && ov.tipo === 'texto') abrirTexto(i); // toque no texto edita
-        }
+          if (ov && ov.tipo === 'texto') abrirTexto(i, null); // toque no texto edita
+        } else { renderOverlays(); }
+      } else if (gesto && est && (gesto.tipo === 'midia' || gesto.tipo === 'vazio') && gesto.moveu < 8 && Date.now() - gesto.t0 < 400) {
+        abrirTexto(-1, ''); // toque na tela vazia = escrever (como no Instagram)
       }
       lixo.hidden = true; lixo.classList.remove('pronto');
       gesto = null;
@@ -332,37 +389,62 @@
       limitarMidia(); aplicarMidia();
     }, { passive: false });
 
-    // ferramentas
+    // ferramentas e painéis
     raiz.addEventListener('click', function (e) {
       var x = e.target.closest('[data-st-x]');
       if (x) { if (est && (est.overlays.length || est.desenhos.length) && !window.confirm('Descartar este story?')) return; fechar(); if (opts && opts.aoCancelar) opts.aoCancelar(); return; }
       var t = e.target.closest('[data-st-tool]');
-      if (t) { var f = t.getAttribute('data-st-tool'); ferramenta(f); return; }
+      if (t) { ferramenta(t.getAttribute('data-st-tool')); return; }
       if (e.target.closest('[data-st-txt-ok]')) { concluirTexto(); return; }
-      if (e.target.closest('[data-st-emoji-x]') || e.target.closest('[data-st-fundo-x]')) { fecharPaineis(); return; }
+      if (e.target.closest('[data-st-fundo-x]')) { fecharPaineis(); return; }
       if (e.target.closest('[data-st-des-ok]')) { fecharPaineis(); return; }
       if (e.target.closest('[data-st-des-undo]')) { est.desenhos.pop(); redesenhar(); return; }
-      var em = e.target.closest('[data-st-emoji]');
-      if (em) { addOverlay({ tipo: 'emoji', texto: em.getAttribute('data-st-emoji'), x: 0.5, y: 0.45, rot: 0, tam: 0.22 }); fecharPaineis(); return; }
       var fo = e.target.closest('[data-st-fundo]');
       if (fo) { est.fundo = parseInt(fo.getAttribute('data-st-fundo'), 10) || 0; midiaEl.style.background = cssFundo(est.fundo); raiz.querySelector('.sted-fundo-dot').style.background = cssFundo(est.fundo); return; }
       var fonte = e.target.closest('[data-st-fonte]');
-      if (fonte) { est.txtFonte = fonte.getAttribute('data-st-fonte'); aplicarEstiloArea(); return; }
+      if (fonte) { est.txtFonte = fonte.getAttribute('data-st-fonte'); aplicarEstiloArea(); focarTexto(); return; }
       var cor = e.target.closest('[data-st-cor]');
       if (cor) {
         if (cor.closest('.sted-des-cores')) { est.desCor = cor.getAttribute('data-st-cor'); marcarCor(); }
-        else { est.txtCor = cor.getAttribute('data-st-cor'); aplicarEstiloArea(); }
+        else { est.txtCor = cor.getAttribute('data-st-cor'); aplicarEstiloArea(); focarTexto(); }
         return;
       }
-      if (e.target.closest('[data-st-align]')) { est.txtAlinha = est.txtAlinha === 'center' ? 'left' : est.txtAlinha === 'left' ? 'right' : 'center'; aplicarEstiloArea(); return; }
-      if (e.target.closest('[data-st-bg]')) { est.txtFundo = !est.txtFundo; aplicarEstiloArea(); return; }
+      if (e.target.closest('[data-st-align]')) { est.txtAlinha = est.txtAlinha === 'center' ? 'left' : est.txtAlinha === 'left' ? 'right' : 'center'; aplicarEstiloArea(); focarTexto(); return; }
+      if (e.target.closest('[data-st-bg]')) { est.txtFundo = (est.txtFundo + 1) % 3; aplicarEstiloArea(); focarTexto(); return; }
+      var menc = e.target.closest('[data-st-menc]');
+      if (menc) { escolherMencao({ id: Number(menc.getAttribute('data-id')), usuario: menc.getAttribute('data-st-menc') }); return; }
       if (e.target.closest('.sted-enviar')) { enviar(); return; }
-      // toque no vazio com o painel de texto aberto = concluir
-      if (!txtPainel.hidden && e.target === txtPainel) concluirTexto();
+      // toque fora do texto (na área escura) = concluir
+      if (!txtPainel.hidden && e.target.closest('[data-st-txt-meio]') && !e.target.closest('.sted-txt-in')) concluirTexto();
     });
     raiz.querySelector('.sted-des-larg').addEventListener('input', function (e) { est.desLarg = parseInt(e.target.value, 10) || 7; });
-    txtArea.addEventListener('input', function () { txtArea.style.height = 'auto'; txtArea.style.height = txtArea.scrollHeight + 'px'; });
-    txtArea.addEventListener('keydown', function (e) { if (e.key === 'Escape') { e.preventDefault(); concluirTexto(); } });
+    txtTam.addEventListener('input', function () { est.txtTam = parseFloat(txtTam.value) || BASE_TAM; aplicarEstiloArea(); });
+
+    // campo de texto (contenteditable)
+    txtIn.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { e.preventDefault(); concluirTexto(); return; }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (!mencBox.hidden) { var p = mencBox.querySelector('[data-st-menc]'); if (p) { p.click(); return; } }
+        document.execCommand('insertLineBreak');
+        return;
+      }
+    });
+    txtIn.addEventListener('paste', function (e) {
+      e.preventDefault();
+      var t = (e.clipboardData || window.clipboardData).getData('text/plain');
+      if (t) document.execCommand('insertText', false, t.replace(/\r/g, '').slice(0, MAX_TEXTO));
+    });
+    txtIn.addEventListener('input', function () {
+      var t = textoAtual();
+      if (t.length > MAX_TEXTO) { txtIn.innerText = t.slice(0, MAX_TEXTO); caretNoFim(); }
+      detectarMencao();
+    });
+    document.addEventListener('selectionchange', function () { if (!txtPainel.hidden) detectarMencao(); });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', ajustarTeclado);
+      window.visualViewport.addEventListener('scroll', ajustarTeclado);
+    }
 
     // Desenho (canvas): pointer events só com a ferramenta ativa
     var tracando = null;
@@ -383,7 +465,7 @@
     function fimTraco() { tracando = null; }
     canvasDes.addEventListener('pointerup', fimTraco);
     canvasDes.addEventListener('pointercancel', fimTraco);
-    window.addEventListener('resize', function () { if (raiz && !raiz.hidden) { ajustarCanvas(); renderOverlays(); } });
+    window.addEventListener('resize', function () { if (raiz && !raiz.hidden) { ajustarCanvas(); renderOverlays(); if (!txtPainel.hidden) aplicarEstiloArea(); } });
   }
 
   function ferramenta(f) {
@@ -391,19 +473,10 @@
     var jaAtiva = est.ferramenta === f;
     fecharPaineis();
     if (jaAtiva) return;
-    if (f === 'texto') { abrirTexto(-1); return; }
-    if (f === 'emoji') { emojiPainel.hidden = false; }
+    if (f === 'texto') { abrirTexto(-1, ''); return; }
+    if (f === 'mencao') { abrirTexto(-1, '@'); return; } // "@" já abre a lista de perfis
     if (f === 'fundo') { fundoPainel.hidden = false; }
     if (f === 'desenho') { desBarra.hidden = false; raiz.classList.add('desenhando'); marcarCor(); }
-    if (f === 'mencao') {
-      if (!window.__abrirSeletorPessoa) { toastLocal('Marcação indisponível.'); return; }
-      window.__abrirSeletorPessoa('Marcar pessoas no story', function (pessoas) {
-        pessoas.forEach(function (p, k) {
-          addOverlay({ tipo: 'mencao', id_usuario: Number(p.id), usuario: p.usuario, texto: '@' + p.usuario, x: 0.5, y: Math.min(0.9, 0.6 + k * 0.09), rot: 0, tam: 0.07 });
-        });
-      });
-      return;
-    }
     est.ferramenta = f;
     var b = raiz.querySelector('[data-st-tool="' + f + '"]'); if (b) b.classList.add('ativo');
   }
@@ -413,42 +486,170 @@
   }
 
   /* ---------- Texto ---------- */
-  function abrirTexto(i) {
+  // Lê o texto sem o text-transform da fonte (innerText devolveria MAIÚSCULAS no Forte/Moderno)
+  function textoDeNo(no) {
+    var d = document.createElement('div'); d.appendChild(no.cloneNode(true));
+    d.querySelectorAll('br').forEach(function (b) { b.replaceWith(String.fromCharCode(10)); });
+    d.querySelectorAll('div, p').forEach(function (b) { b.insertAdjacentText('beforebegin', String.fromCharCode(10)); });
+    return (d.textContent || '').replace(new RegExp(String.fromCharCode(160), 'g'), ' ').replace(new RegExp(String.fromCharCode(13), 'g'), '');
+  }
+  function textoAtual() { return textoDeNo(txtIn); }
+  function caretNoFim() {
+    try {
+      var r = document.createRange(); r.selectNodeContents(txtIn); r.collapse(false);
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+    } catch (e) {}
+  }
+  function focarTexto() { if (!txtPainel.hidden) { txtIn.focus(); } }
+  function abrirTexto(i, inicial) {
     est.txtEditando = i;
+    est.txtMencoes = {};
     var ov = i >= 0 ? est.overlays[i] : null;
-    if (ov) { est.txtCor = ov.cor; est.txtFonte = ov.fonte; est.txtFundo = !!ov.fundo; est.txtAlinha = ov.alinhamento; txtArea.value = ov.texto; }
-    else txtArea.value = '';
+    if (ov) {
+      est.txtCor = ov.cor; est.txtFonte = ov.fonte; est.txtFundo = modoFundo(ov.fundo); est.txtAlinha = ov.alinhamento; est.txtTam = ov.tam;
+      txtIn.innerText = ov.texto;
+      // menções já ligadas a este texto continuam valendo
+      est.overlays.forEach(function (o) { if (o.tipo === 'mencao' && o.oculta && o.ligado === ov.id) est.txtMencoes[o.usuario] = { id: o.id_usuario, usuario: o.usuario }; });
+    } else {
+      est.txtTam = BASE_TAM;
+      txtIn.innerText = inicial || '';
+    }
     txtPainel.hidden = false;
     raiz.classList.add('editando-texto');
+    renderOverlays();
     aplicarEstiloArea();
-    txtArea.style.height = 'auto';
-    setTimeout(function () { txtArea.focus(); txtArea.style.height = txtArea.scrollHeight + 'px'; }, 30);
+    ajustarTeclado();
+    setTimeout(function () { txtIn.focus(); caretNoFim(); detectarMencao(); }, 30);
   }
+  function fecharTexto() {
+    txtPainel.hidden = true; raiz.classList.remove('editando-texto');
+    mencBox.hidden = true; mencBox.innerHTML = '';
+    txtPainel.style.height = ''; txtPainel.style.top = '';
+    try { txtIn.blur(); } catch (e) {}
+    est.txtEditando = -1;
+  }
+  // Teclado do celular: a ferramenta acompanha a área visível (barras ficam acima do teclado)
+  function ajustarTeclado() {
+    if (!txtPainel || txtPainel.hidden || !window.visualViewport) return;
+    var vv = window.visualViewport;
+    var r = raiz.getBoundingClientRect();
+    txtPainel.style.top = Math.max(0, vv.offsetTop - r.top) + 'px';
+    txtPainel.style.height = vv.height + 'px';
+  }
+  var ICONE_ALINHA = {
+    left: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="14" y2="12"/><line x1="4" y1="18" x2="18" y2="18"/></svg>',
+    center: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="5" y1="18" x2="19" y2="18"/></svg>',
+    right: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="10" y1="12" x2="20" y2="12"/><line x1="6" y1="18" x2="20" y2="18"/></svg>',
+  };
   function aplicarEstiloArea() {
     var f = FONTES[est.txtFonte] || FONTES.classico;
-    txtArea.style.fontFamily = f.familia; txtArea.style.fontWeight = f.peso;
-    txtArea.style.textTransform = f.caixa || 'none'; txtArea.style.letterSpacing = f.espaco ? (f.espaco + 'em') : '0';
-    txtArea.style.textAlign = est.txtAlinha;
-    txtArea.style.color = est.txtFundo ? contraste(est.txtCor) : est.txtCor;
-    txtArea.style.background = est.txtFundo ? est.txtCor : 'transparent';
-    txtArea.style.textShadow = f.brilho ? ('0 0 10px ' + est.txtCor + ', 0 0 22px ' + est.txtCor) : 'none';
-    raiz.querySelectorAll('.sted-fonte').forEach(function (b) { b.classList.toggle('sel', b.getAttribute('data-st-fonte') === est.txtFonte); });
-    raiz.querySelector('[data-st-bg]').classList.toggle('ativo', !!est.txtFundo);
+    var modo = est.txtFundo, c = coresTexto(est.txtCor, modo);
+    var r = palco.getBoundingClientRect();
+    aplicarFonte(txtIn, f);
+    txtWrap.style.fontSize = (est.txtTam * r.width) + 'px';
+    txtWrap.style.maxWidth = Math.round(r.width * 0.86) + 'px';
+    txtWrap.style.textAlign = est.txtAlinha;
+    txtIn.style.setProperty('--ov-fundo', c.bg);
+    txtIn.style.setProperty('--ov-cor', c.cor);
+    txtIn.style.textShadow = sombraTexto(f, est.txtCor, modo);
+    txtTam.value = est.txtTam;
+    raiz.querySelectorAll('.sted-fonte').forEach(function (b) {
+      var on = b.getAttribute('data-st-fonte') === est.txtFonte;
+      b.classList.toggle('sel', on);
+      if (on && b.scrollIntoView) { try { b.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' }); } catch (e) {} }
+    });
+    var bg = raiz.querySelector('[data-st-bg]');
+    bg.classList.remove('modo-1', 'modo-2'); if (modo) bg.classList.add('modo-' + modo);
+    raiz.querySelector('[data-st-align]').innerHTML = ICONE_ALINHA[est.txtAlinha] || ICONE_ALINHA.center;
     marcarCor();
   }
   function concluirTexto() {
-    var texto = txtArea.value.replace(/\s+$/, '');
+    var texto = textoAtual().replace(/\s+$/, '').replace(/^\n+/, '');
     var i = est.txtEditando;
-    txtPainel.hidden = true; raiz.classList.remove('editando-texto');
-    txtArea.blur();
-    if (!texto.trim()) { if (i >= 0) { est.overlays.splice(i, 1); est.sel = -1; renderOverlays(); } else if (est.textoPuro && !est.overlays.length) { /* story de texto vazio: fica aberto */ } return; }
-    if (i >= 0) {
-      var ov = est.overlays[i];
-      ov.texto = texto; ov.cor = est.txtCor; ov.fonte = est.txtFonte; ov.fundo = est.txtFundo; ov.alinhamento = est.txtAlinha;
+    fecharTexto();
+    if (!texto.trim()) {
+      if (i >= 0) removerOverlay(i);
       renderOverlays();
-    } else {
-      addOverlay({ tipo: 'texto', texto: texto, cor: est.txtCor, fonte: est.txtFonte, fundo: est.txtFundo, alinhamento: est.txtAlinha, x: 0.5, y: 0.45, rot: 0, tam: BASE_TAM });
+      return;
     }
+    // menções escolhidas que continuam no texto
+    var ids = [];
+    Object.keys(est.txtMencoes).forEach(function (u) { if (new RegExp('(^|[^a-z0-9._])@' + u.replace(/\./g, '\\.') + '(?![a-z0-9._])', 'i').test(texto)) ids.push(est.txtMencoes[u]); });
+    var ov;
+    if (i >= 0) {
+      ov = est.overlays[i];
+      ov.texto = texto; ov.cor = est.txtCor; ov.fonte = est.txtFonte; ov.fundo = est.txtFundo; ov.alinhamento = est.txtAlinha; ov.tam = est.txtTam;
+      est.overlays = est.overlays.filter(function (o) { return !(o.tipo === 'mencao' && o.oculta && o.ligado === ov.id); });
+      est.sel = est.overlays.indexOf(ov);
+    } else {
+      ov = addOverlay({ tipo: 'texto', texto: texto, cor: est.txtCor, fonte: est.txtFonte, fundo: est.txtFundo, alinhamento: est.txtAlinha, x: 0.5, y: 0.45, rot: 0, tam: est.txtTam });
+    }
+    // @ dentro do texto: menção invisível por cima (clicável no visualizador, marca a pessoa)
+    ids.forEach(function (m) {
+      est.overlays.push({ id: ++seqOv, tipo: 'mencao', oculta: true, ligado: ov.id, id_usuario: m.id, usuario: m.usuario, texto: '@' + m.usuario, x: ov.x, y: ov.y, rot: ov.rot, tam: ov.tam });
+    });
+    renderOverlays();
+  }
+
+  /* ---------- "@" no texto: lista de perfis ---------- */
+  function textoAntesDoCursor() {
+    var s = window.getSelection();
+    if (!s || !s.rangeCount) return textoAtual();
+    var r = s.getRangeAt(0);
+    if (!txtIn.contains(r.startContainer)) return textoAtual();
+    var pre = r.cloneRange(); pre.selectNodeContents(txtIn); pre.setEnd(r.startContainer, r.startOffset);
+    var frag = document.createElement('div'); frag.appendChild(pre.cloneContents());
+    return textoDeNo(frag);
+  }
+  function detectarMencao() {
+    if (txtPainel.hidden) return;
+    var antes = textoAntesDoCursor();
+    var m = /(^|\s)@([a-z0-9._]{0,30})$/i.exec(antes);
+    if (!m) { mencBox.hidden = true; mencBox.innerHTML = ''; return; }
+    var q = m[2];
+    clearTimeout(mencTimer);
+    mencTimer = setTimeout(function () {
+      var minha = ++mencSeq;
+      fetch('/mencoes?q=' + encodeURIComponent(q), { headers: { 'Accept': 'application/json' } })
+        .then(function (r) { return r.ok ? r.json() : []; })
+        .then(function (lista) {
+          if (minha !== mencSeq || txtPainel.hidden) return;
+          mencBox.innerHTML = (lista || []).slice(0, 8).map(function (p) {
+            var av = p.foto_perfil ? '<img src="' + esc(p.foto_perfil) + '" alt="">' : esc((p.nome || '?').trim().charAt(0).toUpperCase());
+            return '<button type="button" class="sted-menc" data-st-menc="' + esc(p.usuario) + '" data-id="' + esc(String(p.id_usuario || '')) + '">'
+              + '<span class="sted-menc-av">' + av + '</span><span class="sted-menc-txt"><strong>' + esc(p.nome) + '</strong><small>@' + esc(p.usuario) + '</small></span></button>';
+          }).join('');
+          mencBox.hidden = !mencBox.innerHTML;
+        }).catch(function () {});
+    }, 120);
+  }
+  function escolherMencao(p) {
+    if (!p || !p.usuario) return;
+    var antes = textoAntesDoCursor();
+    var m = /(^|\s)@([a-z0-9._]{0,30})$/i.exec(antes);
+    var tokenLen = m ? ('@' + m[2]).length : 0;
+    var textoTodo = textoAtual();
+    var resto = textoTodo.slice(antes.length);
+    var semToken = (antes.slice(0, antes.length - tokenLen) + resto).trim();
+    mencBox.hidden = true; mencBox.innerHTML = '';
+    if (!semToken) {
+      // só a menção: vira figurinha de @ (a pessoa arrasta para onde quiser)
+      var i = est.txtEditando;
+      fecharTexto();
+      if (i >= 0) removerOverlay(i);
+      if (!est.overlays.some(function (o) { return o.tipo === 'mencao' && !o.oculta && o.id_usuario === p.id; })) {
+        addOverlay({ tipo: 'mencao', id_usuario: p.id, usuario: p.usuario, texto: '@' + p.usuario, x: 0.5, y: 0.5, rot: 0, tam: 0.07 });
+      }
+      renderOverlays();
+      try { if (navigator.vibrate) navigator.vibrate(12); } catch (e) {}
+      return;
+    }
+    // menção no meio do texto: troca o que foi digitado por @usuario
+    txtIn.focus();
+    var s = window.getSelection();
+    if (s && s.modify) { for (var k = 0; k < tokenLen; k++) s.modify('extend', 'backward', 'character'); }
+    document.execCommand('insertText', false, '@' + p.usuario + ' ');
+    est.txtMencoes[p.usuario] = { id: p.id, usuario: p.usuario };
   }
 
   /* ---------- Desenho ---------- */
@@ -476,7 +677,7 @@
     tracar(ctx, canvasDes.width, canvasDes.height, est.desenhos);
   }
 
-  /* ---------- Renderização final (foto / texto) ---------- */
+  /* ---------- Renderização final (foto / texto) — igual ao que se vê na tela ---------- */
   function quebrarLinhas(ctx, texto, maxW) {
     var saida = [];
     texto.split('\n').forEach(function (linha) {
@@ -490,6 +691,7 @@
     return saida;
   }
   function desenharOverlay(ctx, ov, pw, ph) {
+    if (ov.tipo === 'mencao' && ov.oculta) return; // menção dentro do texto: só clicável, nada a desenhar
     var cx = ov.x * pw, cy = ov.y * ph;
     var tam = ov.tam * pw;
     ctx.save();
@@ -500,7 +702,7 @@
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText(ov.texto, 0, 0);
     } else if (ov.tipo === 'mencao') {
-      ctx.font = '700 ' + tam + "px 'Inter', system-ui, sans-serif";
+      ctx.font = '700 ' + tam + 'px ' + SANS;
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       var t = '@' + ov.usuario;
       var w = ctx.measureText(t).width + tam * 0.9, h = tam * 1.5;
@@ -511,30 +713,29 @@
     } else {
       var f = FONTES[ov.fonte] || FONTES.classico;
       var texto = f.caixa === 'uppercase' ? ov.texto.toUpperCase() : ov.texto;
-      ctx.font = f.peso + ' ' + tam + 'px ' + f.familia;
+      ctx.font = fonteCss(f) + tam + 'px ' + f.familia;
       ctx.textBaseline = 'middle';
       if (f.espaco && ctx.letterSpacing !== undefined) ctx.letterSpacing = (f.espaco * tam) + 'px';
-      var linhas = quebrarLinhas(ctx, texto, pw * 0.86);
-      var lh = tam * 1.25;
+      var padX = tam * 0.36, lh = tam * 1.25, raio = tam * 0.3;
+      var linhas = quebrarLinhas(ctx, texto, pw * 0.86 - padX * 2);
       var larguras = linhas.map(function (l) { return ctx.measureText(l).width; });
       var maxL = Math.max.apply(null, larguras.concat([0]));
       var alinha = ov.alinhamento;
       ctx.textAlign = alinha;
       var x0 = alinha === 'left' ? -maxL / 2 : alinha === 'right' ? maxL / 2 : 0;
       var yIni = -((linhas.length - 1) * lh) / 2;
-      if (ov.fundo) {
-        ctx.fillStyle = ov.cor;
+      var modo = modoFundo(ov.fundo), c = coresTexto(ov.cor, modo);
+      if (modo) {
+        ctx.fillStyle = c.bg;
         linhas.forEach(function (l, i) {
-          var lw = larguras[i] + tam * 0.5, lx = alinha === 'left' ? -maxL / 2 - tam * 0.25 : alinha === 'right' ? maxL / 2 - lw + tam * 0.25 : -lw / 2;
-          arredondado(ctx, lx, yIni + i * lh - lh / 2 + tam * 0.06, lw, lh, tam * 0.25); ctx.fill();
+          var lw = larguras[i] + padX * 2;
+          var lx = alinha === 'left' ? -maxL / 2 - padX : alinha === 'right' ? maxL / 2 + padX - lw : -lw / 2;
+          arredondado(ctx, lx, yIni + i * lh - lh / 2, lw, lh, raio); ctx.fill();
         });
-        ctx.fillStyle = contraste(ov.cor);
-      } else {
-        ctx.fillStyle = ov.cor;
-        if (f.brilho) { ctx.shadowColor = ov.cor; ctx.shadowBlur = tam * 0.55; }
-        else { ctx.shadowColor = 'rgba(0,0,0,0.45)'; ctx.shadowBlur = tam * 0.12; ctx.shadowOffsetY = tam * 0.04; }
-      }
-      linhas.forEach(function (l, i) { ctx.fillText(l, x0, yIni + i * lh); });
+      } else if (f.brilho) { ctx.shadowColor = ov.cor; ctx.shadowBlur = tam * 0.55; }
+      else { ctx.shadowColor = 'rgba(0,0,0,0.45)'; ctx.shadowBlur = tam * 0.12; ctx.shadowOffsetY = tam * 0.04; }
+      ctx.fillStyle = c.cor;
+      linhas.forEach(function (l, i) { ctx.fillText(l, x0, yIni + i * lh + tam * 0.04); });
     }
     ctx.restore();
   }
@@ -577,16 +778,18 @@
       .filter(function (ov) { return !soMencoes || ov.tipo === 'mencao'; })
       .map(function (ov) {
         var o = { tipo: ov.tipo, x: +ov.x.toFixed(4), y: +ov.y.toFixed(4), rot: +ov.rot.toFixed(2), tam: +ov.tam.toFixed(4), texto: ov.texto };
-        if (ov.tipo === 'texto') { o.cor = ov.cor; o.fundo = !!ov.fundo; o.fonte = ov.fonte; o.alinhamento = ov.alinhamento; }
-        if (ov.tipo === 'mencao') { o.id_usuario = ov.id_usuario; o.usuario = ov.usuario; }
+        if (ov.tipo === 'texto') { o.cor = ov.cor; o.fundo = modoFundo(ov.fundo); o.fonte = ov.fonte; o.alinhamento = ov.alinhamento; }
+        if (ov.tipo === 'mencao') { o.id_usuario = ov.id_usuario; o.usuario = ov.usuario; if (ov.oculta) o.oculta = true; }
         return o;
       });
   }
   function enviar() {
     if (!est || !opts || !opts.enviar) return;
-    if (est.textoPuro && !est.overlays.length && !est.desenhos.length) { toastLocal('Escreva alguma coisa no seu story.'); abrirTexto(-1); return; }
+    if (!txtPainel.hidden) concluirTexto();
+    if (est.textoPuro && !est.overlays.length && !est.desenhos.length) { toastLocal('Escreva alguma coisa no seu story.'); abrirTexto(-1, ''); return; }
     enviarBtn.disabled = true; enviarBtn.textContent = 'Preparando…';
-    var mencoes = est.overlays.filter(function (o) { return o.tipo === 'mencao'; }).map(function (o) { return o.id_usuario; });
+    var mencoes = [];
+    est.overlays.forEach(function (o) { if (o.tipo === 'mencao' && o.id_usuario && mencoes.indexOf(o.id_usuario) < 0) mencoes.push(o.id_usuario); });
     var fim = function (arquivo, meta) {
       var p = opts.enviar(arquivo, meta);
       Promise.resolve(p).then(function () { fechar(); }).catch(function () { enviarBtn.disabled = false; enviarBtn.textContent = 'Compartilhar no story'; });
@@ -594,7 +797,6 @@
     if (est.ehVideo) {
       fim(est.file, { ehVideo: true, sobreposicoes: sobreposicoesJson(false), mencoes: mencoes });
     } else {
-      // Fonte precisa estar carregada para o canvas desenhar igual ao preview
       var pronto = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
       pronto.then(renderizarImagem).then(function (blob) {
         fim(new File([blob], 'story.jpg', { type: 'image/jpeg' }), { ehVideo: false, sobreposicoes: sobreposicoesJson(true), mencoes: mencoes });
@@ -609,7 +811,7 @@
     var fake = { getBoundingClientRect: function () { return { width: largura }; } };
     lista.forEach(function (ov) {
       if (soMencoes && ov.tipo !== 'mencao') return;
-      var div = el('div', 'st-ov st-ov-' + ov.tipo + (soMencoes ? ' st-ov-oculta' : ''));
+      var div = el('div', 'st-ov st-ov-' + ov.tipo + (soMencoes || ov.oculta ? ' st-ov-oculta' : ''));
       if (ov.tipo === 'mencao') { div.innerHTML = '<a class="st-ov-inner" href="/u/' + encodeURIComponent(ov.usuario) + '">@' + esc(ov.usuario) + '</a>'; }
       else div.innerHTML = '<span class="st-ov-inner">' + esc(ov.texto).replace(/\n/g, '<br>') + '</span>';
       var p0 = palco; palco = fake; // estiloOverlay usa a largura do palco

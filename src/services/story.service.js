@@ -18,7 +18,7 @@ async function limparExpirados() {
 }
 
 // Sobreposições do editor (texto/figurinha/menção) — só o que é válido entra, com limites.
-const FONTES = ['classico', 'moderno', 'maquina', 'neon'];
+const FONTES = ['classico', 'moderno', 'forte', 'elegante', 'maquina', 'neon'];
 const ALINHAMENTOS = ['center', 'left', 'right'];
 function limparSobreposicoes(bruto) {
   let lista = bruto;
@@ -38,13 +38,14 @@ function limparSobreposicoes(bruto) {
     };
     if (tipo === 'texto') {
       item.cor = /^#[0-9a-f]{6}$/i.test(String(o.cor)) ? String(o.cor) : '#ffffff';
-      item.fundo = !!o.fundo;
+      item.fundo = o.fundo === true ? 1 : ([1, 2].includes(Number(o.fundo)) ? Number(o.fundo) : 0); // 0 nenhum · 1 sólido · 2 translúcido
       item.fonte = FONTES.includes(o.fonte) ? o.fonte : 'classico';
       item.alinhamento = ALINHAMENTOS.includes(o.alinhamento) ? o.alinhamento : 'center';
     }
     if (tipo === 'mencao') {
       item.id_usuario = Number(o.id_usuario) || null;
       item.usuario = String(o.usuario || '').replace(/[^a-z0-9._]/gi, '').slice(0, 40);
+      if (o.oculta) item.oculta = true; // "@" dentro de um texto: só a área clicável
       if (!item.id_usuario || !item.usuario) continue;
     }
     if (tipo !== 'mencao' && !item.texto) continue;

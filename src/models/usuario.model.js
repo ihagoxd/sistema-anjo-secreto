@@ -205,8 +205,9 @@ async function atualizarNota(idUsuario, nota) {
 async function buscarParaMencao(termo, limite = 6) {
   const t = `${String(termo || '').trim()}%`;
   const res = await db.query(
-    `SELECT usuario, nome, foto_perfil FROM usuarios
+    `SELECT id_usuario, usuario, nome, foto_perfil FROM usuarios
       WHERE status = 'APROVADO' AND ativo = TRUE AND usuario IS NOT NULL
+        AND tipo_usuario = 'PARTICIPANTE'
         AND (usuario ILIKE $1 OR nome ILIKE ('%' || $1))
       ORDER BY (usuario ILIKE $1) DESC, lower(nome) ASC
       LIMIT $2`,

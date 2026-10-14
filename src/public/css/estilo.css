@@ -4033,3 +4033,45 @@ body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
 .tw-aba-conteudo { transition: opacity 0.18s ease; min-height: 160px; }
 .tw-aba-conteudo.trocando { opacity: 0.45; pointer-events: none; }
 .tw-tab { transition: color 0.15s; }
+
+/* ============================================================
+   STORY: ferramenta de texto (Instagram) — escreve direto na tela, pílula por linha, fontes embaixo
+   ============================================================ */
+.sted-txt { position: absolute; left: 0; top: 0; width: 100%; height: 100%; inset: auto; z-index: 8; background: rgba(0, 0, 0, 0.62); display: flex; flex-direction: column; -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+.sted-txt[hidden] { display: none; }
+.sted-txt-topo { display: flex; align-items: center; gap: 8px; padding: calc(10px + env(safe-area-inset-top, 0px)) 12px 6px; }
+.sted-txt-espaco { flex: 1; }
+.sted-txt-meio { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 0 20px 0 54px; overflow: hidden; }
+.sted-txt-wrap { max-width: 100%; text-align: center; line-height: 1.25; white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere; }
+.sted-txt-in { display: inline; padding: 0.1em 0.36em; border-radius: 0.3em; background: var(--ov-fundo, transparent); color: var(--ov-cor, #fff); box-decoration-break: clone; -webkit-box-decoration-break: clone; outline: none; caret-color: #fff; min-width: 1ch; }
+.sted-txt-in:empty::before { content: attr(data-placeholder); color: rgba(255, 255, 255, 0.5); text-shadow: none; }
+.sted-txt-tam { position: absolute; left: -51px; top: calc(50% - 14px); width: 150px; height: 28px; margin: 0; transform: rotate(-90deg); -webkit-appearance: none; appearance: none; background: transparent; z-index: 9; cursor: pointer; }
+.sted-txt-tam::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: rgba(255, 255, 255, 0.5); }
+.sted-txt-tam::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: #fff; margin-top: -9px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45); }
+.sted-txt-tam::-moz-range-track { height: 4px; border-radius: 2px; background: rgba(255, 255, 255, 0.5); }
+.sted-txt-tam::-moz-range-thumb { width: 22px; height: 22px; border: none; border-radius: 50%; background: #fff; }
+.sted-txt-base { padding: 6px 0 calc(16px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 8px; }
+.sted-mencoes { display: flex; gap: 8px; overflow-x: auto; padding: 2px 12px 4px; scrollbar-width: none; animation: st-ov-pop 0.2s ease-out both; }
+.sted-mencoes::-webkit-scrollbar { display: none; }
+.sted-mencoes[hidden] { display: none; }
+.sted-menc { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; border: none; background: rgba(255, 255, 255, 0.16); color: #fff; border-radius: 999px; padding: 5px 13px 5px 5px; font: inherit; cursor: pointer; }
+.sted-menc:active { background: rgba(255, 255, 255, 0.3); }
+.sted-menc-av { width: 30px; height: 30px; border-radius: 50%; overflow: hidden; background: #444; display: grid; place-items: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.sted-menc-av img { width: 100%; height: 100%; object-fit: cover; }
+.sted-menc-txt { display: flex; flex-direction: column; line-height: 1.15; text-align: left; }
+.sted-menc-txt strong { font-size: 13px; font-weight: 700; }
+.sted-menc-txt small { font-size: 11px; opacity: 0.75; }
+.sted-txt .sted-cores { padding: 2px 12px; gap: 10px; }
+.sted-txt .sted-fontes { padding: 2px 12px; gap: 8px; }
+.sted-fonte { flex-shrink: 0; border: 1px solid transparent; background: rgba(255, 255, 255, 0.16); color: #fff; border-radius: 999px; padding: 8px 15px; font-size: 14px; line-height: 1; cursor: pointer; transition: background 0.12s, color 0.12s, transform 0.12s; }
+.sted-fonte.sel { background: #fff; color: #111; transform: scale(1.04); }
+.sted-bg span { display: inline-block; padding: 1px 7px; border-radius: 6px; font-weight: 900; font-size: 18px; line-height: 1.2; border: 1.5px solid #fff; }
+.sted-bg.modo-1 span { background: #fff; color: #111; }
+.sted-bg.modo-2 span { background: rgba(255, 255, 255, 0.4); color: #fff; border-color: transparent; }
+.st-ov-texto .st-ov-inner { padding: 0.1em 0.36em; border-radius: 0.3em; color: var(--ov-cor, inherit); }
+.st-ov.editando { visibility: hidden; }
+.st-ov-ligada { pointer-events: none; }
+.st-ov-oculta .st-ov-inner { background: transparent !important; color: transparent !important; text-shadow: none !important; }
+/* Texto do story: o elemento absoluto ocupava só até o meio do palco e quebrava linha cedo; agora mede pelo conteúdo (até 86%) */
+.st-ov { width: max-content; max-width: 86%; }
+.st-ov-mencao, .st-ov-emoji { width: max-content; }

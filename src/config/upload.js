@@ -140,7 +140,11 @@ async function conferirAssinaturas(req, res, next) {
         return res.redirect(req.get('Referer') || '/participante');
       }
     }
+    // Story: a foto já sai do editor em 1080×1920 (JPEG 92) e o vídeo vai intacto — nada é
+    // reduzido aqui (o redimensionamento geral de 1600px cortaria a altura do story).
+    const ehStory = (req.originalUrl || req.path || '').split('?')[0] === '/stories';
     for (const f of todosArquivos(req)) {
+      if (ehStory) continue;
       if (!EXT_POR_TIPO[f.mimetype]) continue; // só imagens (áudio/vídeo passam direto)
       const r = await otimizarImagem(f.path, f.mimetype);
       if (r.ok) f.size = r.depois;

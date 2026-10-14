@@ -89,7 +89,7 @@
         </a>
         <span class="conv-av {{#if conversa.anonimo}}anjo-av{{/if}}{{#if conversa.grupo}} grupo-av{{/if}}">
           {{#if conversa.grupo}}
-            {{#each conversa.amostra}}<span class="grupo-av-m">{{#if this.foto}}<img src="{{this.foto}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</span>{{else}}<span class="grupo-av-m">👥</span>{{/each}}
+            {{#if conversa.foto}}<img src="{{conversa.foto}}" alt="">{{else}}{{#each conversa.amostra}}<span class="grupo-av-m">{{#if this.foto}}<img src="{{this.foto}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</span>{{else}}<span class="grupo-av-m">👥</span>{{/each}}{{/if}}
           {{else}}{{#if (eq conversa.tipo "protegido")}}
             <span class="sig-emoji" aria-hidden="true">👀</span>
             <span class="sig-foto">{{#if conversa.foto}}<img src="{{conversa.foto}}" alt="">{{else}}{{inicial conversa.titulo}}{{/if}}</span>
@@ -271,6 +271,15 @@
       <span class="sheet-titulo">Grupo</span>
       <button type="button" class="sheet-x" data-fechar-modal="modal-grupo" aria-label="Fechar">&times;</button>
     </div>
+    {{! Foto do grupo (opcional) }}
+    <div class="grupo-foto-area">
+      <span class="conv-av grupo-av grupo-foto-prev" data-g-foto-prev>{{#if conversa.foto}}<img src="{{conversa.foto}}" alt="">{{else}}{{#each conversa.amostra}}<span class="grupo-av-m">{{#if this.foto}}<img src="{{this.foto}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</span>{{else}}<span class="grupo-av-m">👥</span>{{/each}}{{/if}}</span>
+      <div class="grupo-foto-acoes">
+        <button type="button" class="grupo-add" data-g-foto-trocar>{{#if conversa.foto}}Trocar foto{{else}}Adicionar foto{{/if}}</button>
+        {{#if conversa.foto}}<button type="button" class="grupo-add grupo-add-tirar" data-g-foto-remover>Remover</button>{{/if}}
+      </div>
+      <input type="file" accept="image/png,image/jpeg,image/webp" class="visualmente-oculto" data-g-foto-input tabindex="-1">
+    </div>
     <label class="grupo-label" for="g-nome">Nome</label>
     <div class="grupo-nome-linha">
       <input type="text" id="g-nome" class="grupo-input" value="{{conversa.titulo}}" maxlength="60" autocomplete="off" data-g-nome>
@@ -282,6 +291,7 @@
         <a class="share-item" href="/u/{{this.usuario}}">
           <span class="share-av">{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</span>
           <span class="share-txt"><span class="share-nome">{{this.nome}}{{#if (eq this.id_usuario @root.usuario.id_usuario)}} (você){{/if}}</span><span class="share-user">@{{this.usuario}}{{#if this.admin}} · criou o grupo{{/if}}</span></span>
+          {{#if @root.conversa.souAdmin}}{{#unless (eq this.id_usuario @root.usuario.id_usuario)}}<button type="button" class="grupo-tirar" data-g-remover="{{this.id_usuario}}" data-g-nome-remover="{{this.nome}}" title="Remover do grupo" aria-label="Remover do grupo">&times;</button>{{/unless}}{{/if}}
         </a>
       {{/each}}
     </div>

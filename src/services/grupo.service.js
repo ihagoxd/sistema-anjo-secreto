@@ -125,6 +125,30 @@ async function renomear(me, idGrupo, nome) {
   return { ok: true, nome, membros: await grupoModel.idsMembros(idGrupo), id_mensagem: s.id_mensagem, texto: s.texto };
 }
 
+// Foto do grupo (opcional): caminho novo ou null para remover. A antiga sai do disco.
+async function definirFoto(me, idGrupo, caminho) {
+  idGrupo = Number(idGrupo);
+  if (!idGrupo || !(await grupoModel.ehMembro(idGrupo, me))) return { ok: false, motivo: 'ALVO_INVALIDO' };
+  const grupo = await grupoModel.buscar(idGrupo);
+  if (grupo.foto) apagarUpload(grupo.foto);
+  await grupoModel.definirFoto(idGrupo, caminho);
+  const eu = await usuarioModel.buscarPorId(me);
+  const s = await sistema(idGrupo, me, caminho ? `${primeiroNome(eu)} mudou a foto do grupo` : `${primeiroNome(eu)} removeu a foto do grupo`);
+  return { ok: true, foto: caminho, grupo, membros: await grupoModel.idsMembros(idGrupo), id_mensagem: s.id_mensagem, texto: s.texto };
+}
+
+// Só quem criou o grupo tira alguém (como no WhatsApp).
+async function removerMembro(me, idGrupo, alvo) {
+  idGrupo = Number(idGrupo); alvo = Number(alvo);
+  if (!idGrupo || !alvo || alvo === me) return { ok: false, motivo: 'ALVO_INVALIDO' };
+  if (!(await grupoModel.ehAdmin(idGrupo, me))) return { ok: false, motivo: 'SO_ADMIN' };
+  const u = await usuarioModel.buscarPorId(alvo);
+  if (!u || !(await grupoModel.remover(idGrupo, alvo))) return { ok: false, motivo: 'ALVO_INVALIDO' };
+  const eu = await usuarioModel.buscarPorId(me);
+  const s = await sistema(idGrupo, me, `${primeiroNome(eu)} removeu ${primeiroNome(u)}`);
+  return { ok: true, grupo: await grupoModel.buscar(idGrupo), membros: await grupoModel.idsMembros(idGrupo), id_mensagem: s.id_mensagem, texto: s.texto };
+}
+
 async function editar(me, idMensagem, texto) {
   const texto2 = String(texto || '').trim();
   if (!texto2) return { ok: false, motivo: 'VAZIA' };
@@ -171,6 +195,6 @@ async function listarDoUsuario(me) {
 }
 
 module.exports = {
-  criar, abrir, enviar, listarConversa, adicionar, sair, renomear, editar, apagar,
+  criar, abrir, enviar, listarConversa, adicionar, sair, renomear, definirFoto, removerMembro, editar, apagar,
   marcarLidas, contarNaoLidasTotal, listarDoUsuario, LIMITE, NOME_MAX,
 };

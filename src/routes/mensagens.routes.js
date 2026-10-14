@@ -4,7 +4,7 @@ const express = require('express');
 const ctrl = require('../controllers/mensagens.controller');
 const { exigeAutenticacao, exigeSenhaDefinitiva, bloquearAdmin } = require('../middlewares/auth.middleware');
 const { verifyCsrfAposUpload } = require('../middlewares/csrf.middleware');
-const { uploadMsg, conferirAssinaturas } = require('../config/upload');
+const { upload, uploadMsg, conferirAssinaturas } = require('../config/upload');
 
 const router = express.Router();
 router.use(exigeAutenticacao, exigeSenhaDefinitiva, bloquearAdmin);
@@ -34,6 +34,16 @@ router.post('/grupos', ctrl.postCriarGrupo);                    // JSON { nome, 
 router.post('/g/:id([0-9]+)/membros', ctrl.postGrupoMembros);  // JSON { membros: [ids] }
 router.post('/g/:id([0-9]+)/sair', ctrl.postGrupoSair);
 router.post('/g/:id([0-9]+)/nome', ctrl.postGrupoNome);        // JSON { nome }
+router.post('/g/:id([0-9]+)/membros/remover', ctrl.postGrupoRemoverMembro); // JSON { id } (só quem criou)
+// Foto do grupo (opcional): multipart "foto"; a imagem é reduzida como a de perfil
+const receberFotoGrupo = (req, res, next) => {
+  upload.single('foto')(req, res, function (err) {
+    if (err) return res.status(400).json({ ok: false, erro: err.message || 'Falha no envio da imagem.' });
+    next();
+  });
+};
+router.post('/g/:id([0-9]+)/foto', receberFotoGrupo, conferirAssinaturas, verifyCsrfAposUpload, ctrl.postGrupoFoto);
+router.post('/g/:id([0-9]+)/foto/remover', ctrl.postGrupoFotoRemover);
 
 // Tempo real: "digitando…" e "li as mensagens" (viram eventos SSE para o outro lado)
 router.post('/:canal(anjo|protegido)/digitando', ctrl.postDigitando);

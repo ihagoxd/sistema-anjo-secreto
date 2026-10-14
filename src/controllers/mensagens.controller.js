@@ -22,6 +22,7 @@ const mensagemService = require('../services/mensagem.service');
 const dmService = require('../services/mensagemDireta.service');
 const grupoService = require('../services/grupo.service');
 const render = require('../services/render.service');
+const { apagarUpload } = require('../config/upload');
 const conversaService = require('../services/conversa.service');
 const notificacaoService = require('../services/notificacao.service');
 const tempoReal = require('../services/tempoReal.service');
@@ -41,6 +42,7 @@ const MSG = {
   NAO_PERMITIDO: 'Não foi possível editar a mensagem.',
   NOME: 'Dê um nome ao grupo.',
   SEM_MEMBROS: 'Escolha pelo menos uma pessoa.',
+  SO_ADMIN: 'Só quem criou o grupo pode remover participantes.',
 };
 
 function ehFetch(req) {
@@ -158,6 +160,7 @@ async function renderInbox(req, res, sel) {
         const msgs = await grupoService.listarConversa(sel.id, me);
         conversa = Object.assign({
           id: sel.id, rotulo: g.membros.length + ' participantes', foto: g.grupo.foto, membros: g.membros,
+          souAdmin: g.membros.some((m) => m.id_usuario === me && m.admin),
           amostra: g.membros.filter((m) => m.id_usuario !== me).slice(0, 2).map((m) => ({ nome: m.nome, foto: m.foto_perfil })),
           mensagens: msgs, action: '/mensagens/g/' + sel.id, placeholder: 'Mensagem…',
         }, ctxGrupo(g.grupo.nome));
@@ -383,6 +386,45 @@ async function postGrupoNome(req, res, next) {
   } catch (err) { next(err); }
 }
 
+async function postGrupoFoto(req, res, next) {
+  try {
+    const me = req.session.usuario.id_usuario;
+    const id = Number(req.params.id);
+    const caminho = req.file ? '/uploads/' + req.file.filename : null;
+    if (!caminho) return res.status(400).json({ ok: false, erro: 'Escolha uma imagem.' });
+    const r = await grupoService.definirFoto(me, id, caminho);
+    if (!r.ok) { apagarUpload(caminho); return res.status(400).json({ ok: false, erro: 'Você não está neste grupo.' }); }
+    r.membros.forEach((m) => tempoReal.publicar(m, 'grupo', { acao: 'foto', id_grupo: id, foto: r.foto }));
+    await avisarGrupo(id, r.grupo.nome, r.id_mensagem, r.texto, r.membros);
+    res.json({ ok: true, foto: r.foto });
+  } catch (err) { next(err); }
+}
+
+async function postGrupoFotoRemover(req, res, next) {
+  try {
+    const me = req.session.usuario.id_usuario;
+    const id = Number(req.params.id);
+    const r = await grupoService.definirFoto(me, id, null);
+    if (!r.ok) return res.status(400).json({ ok: false, erro: 'Você não está neste grupo.' });
+    r.membros.forEach((m) => tempoReal.publicar(m, 'grupo', { acao: 'foto', id_grupo: id, foto: null }));
+    await avisarGrupo(id, r.grupo.nome, r.id_mensagem, r.texto, r.membros);
+    res.json({ ok: true });
+  } catch (err) { next(err); }
+}
+
+async function postGrupoRemoverMembro(req, res, next) {
+  try {
+    const me = req.session.usuario.id_usuario;
+    const id = Number(req.params.id);
+    const alvo = Number(req.body.id);
+    const r = await grupoService.removerMembro(me, id, alvo);
+    if (!r.ok) return res.status(400).json({ ok: false, erro: MSG[r.motivo] || 'Não foi possível remover.' });
+    tempoReal.publicar(alvo, 'grupo', { acao: 'saiu', id_grupo: id });
+    await avisarGrupo(id, r.grupo.nome, r.id_mensagem, r.texto, r.membros);
+    res.json({ ok: true });
+  } catch (err) { next(err); }
+}
+
 // Item da lista (HTML pronto) para entrar ao vivo quando me colocam num grupo novo.
 async function getGrupoItem(req, res, next) {
   try {
@@ -506,4 +548,5 @@ async function postApagar(req, res, next) {
 module.exports = {
   getInbox, getAnjo, getProtegido, getDireta, postAnjo, postProtegido, postDireta, postEditar, postApagar, getEstado, postDigitando, postLidas, postTema,
   getGrupo, postGrupo, postCriarGrupo, postGrupoMembros, postGrupoSair, postGrupoNome, getGrupoItem,
+  postGrupoFoto, postGrupoFotoRemover, postGrupoRemoverMembro,
 };

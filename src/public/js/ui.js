@@ -2461,6 +2461,11 @@
       var conv = lista.querySelector('.conv[data-conv-g="' + d.id_grupo + '"]');
       var aberto = canal === 'g' && Number(d.id_grupo) === convId;
       if (d.acao === 'saiu') { if (conv) conv.remove(); if (aberto) location.href = '/mensagens'; return; }
+      if (d.acao === 'foto') {
+        if (aberto) { location.reload(); return; }
+        if (conv && d.foto) { var av0 = conv.querySelector('.conv-av'); if (av0) av0.innerHTML = '<img src="' + esc(d.foto) + '" alt="">'; }
+        return;
+      }
       if (d.acao === 'nome') {
         if (conv) { var n = conv.querySelector('.conv-nome-txt'); if (n) n.textContent = d.nome; }
         if (aberto && sec) { var cn = sec.querySelector('.dm-cab-nome'); if (cn) cn.textContent = d.nome; var gi = document.querySelector('[data-g-nome]'); if (gi) gi.value = d.nome; }
@@ -2644,6 +2649,33 @@
           post('/mensagens/g/' + id + '/membros', { membros: pessoas.map(function (p) { return Number(p.id); }) })
             .then(function () { location.reload(); }).catch(function (e) { toast(e.message); });
         });
+      });
+      /* foto do grupo */
+      var fotoIn = mg.querySelector('[data-g-foto-input]');
+      var trocar = mg.querySelector('[data-g-foto-trocar]');
+      if (trocar && fotoIn) {
+        trocar.addEventListener('click', function () { fotoIn.click(); });
+        fotoIn.addEventListener('change', function () {
+          var f = fotoIn.files && fotoIn.files[0]; if (!f) return;
+          var fd = new FormData(); fd.append('foto', f);
+          var rotulo = trocar.textContent;
+          trocar.textContent = 'Enviando…'; trocar.disabled = true;
+          fetch('/mensagens/g/' + id + '/foto', { method: 'POST', headers: { 'X-CSRF-Token': HEAD['X-CSRF-Token'], 'X-Requested-With': 'fetch', 'Accept': 'application/json' }, body: fd })
+            .then(function (r) { return r.json().catch(function () { return {}; }); })
+            .then(function (j) { if (!j.ok) throw new Error(j.erro || 'Não foi possível enviar a foto.'); location.reload(); })
+            .catch(function (e) { toast(e.message); trocar.textContent = rotulo; trocar.disabled = false; fotoIn.value = ''; });
+        });
+      }
+      var tirarFoto = mg.querySelector('[data-g-foto-remover]');
+      if (tirarFoto) tirarFoto.addEventListener('click', function () {
+        post('/mensagens/g/' + id + '/foto/remover').then(function () { location.reload(); }).catch(function (e) { toast(e.message); });
+      });
+      /* remover participante (só quem criou) */
+      mg.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-g-remover]'); if (!b) return;
+        e.preventDefault(); e.stopPropagation();
+        if (b.getAttribute('data-confirmando') !== '1') { b.setAttribute('data-confirmando', '1'); b.classList.add('confirmando'); b.textContent = 'tirar?'; setTimeout(function () { b.removeAttribute('data-confirmando'); b.classList.remove('confirmando'); b.innerHTML = '&times;'; }, 3500); return; }
+        post('/mensagens/g/' + id + '/membros/remover', { id: Number(b.getAttribute('data-g-remover')) }).then(function () { location.reload(); }).catch(function (x) { toast(x.message); });
       });
       mg.querySelector('[data-g-sair]').addEventListener('click', function () {
         var b = this;

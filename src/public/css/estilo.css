@@ -3931,3 +3931,16 @@ body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
 /* Barra de cima do celular com o MESMO fundo da página (sem faixa de cor diferente), como no Instagram */
 .topo-ig { background: var(--bg); border-bottom: none; }
 [data-theme='dark'] .topo-ig, [data-theme='light'] .topo-ig { background: var(--bg); backdrop-filter: none; -webkit-backdrop-filter: none; }
+
+/* Foto do grupo (folha de edição) e remover participante */
+.conv-av.grupo-av > img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.grupo-foto-area { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 0 2px; }
+.grupo-foto-prev { width: 88px; height: 88px; }
+.grupo-foto-prev .grupo-av-m { width: 58px; height: 58px; font-size: 22px; }
+.grupo-foto-prev .grupo-av-m:only-child { width: 100%; height: 100%; font-size: 34px; }
+.grupo-foto-acoes { display: flex; gap: 16px; }
+.grupo-add-tirar { color: var(--text-faint); }
+.grupo-membros .share-item { position: relative; }
+.grupo-tirar { margin-left: auto; flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; border: none; background: var(--surface-2); color: var(--text-faint); font: inherit; font-size: 18px; line-height: 1; cursor: pointer; }
+.grupo-tirar:hover { background: color-mix(in srgb, var(--st-vermelho, #d1242f) 14%, transparent); color: var(--st-vermelho, #d1242f); }
+.grupo-tirar.confirmando { width: auto; padding: 0 10px; font-size: 12px; font-weight: 700; background: color-mix(in srgb, var(--st-vermelho, #d1242f) 16%, transparent); color: var(--st-vermelho, #d1242f); }

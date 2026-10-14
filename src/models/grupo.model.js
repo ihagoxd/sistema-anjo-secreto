@@ -84,6 +84,15 @@ async function renomear(idGrupo, nome) {
   await db.query('UPDATE grupos SET nome = $2 WHERE id_grupo = $1', [idGrupo, nome]);
 }
 
+async function definirFoto(idGrupo, foto) {
+  await db.query('UPDATE grupos SET foto = $2 WHERE id_grupo = $1', [idGrupo, foto]);
+}
+
+async function ehAdmin(idGrupo, idUsuario) {
+  const res = await db.query('SELECT 1 FROM grupo_membros WHERE id_grupo = $1 AND id_usuario = $2 AND admin', [idGrupo, idUsuario]);
+  return res.rowCount > 0;
+}
+
 async function apagarGrupo(idGrupo) {
   await db.query('DELETE FROM grupos WHERE id_grupo = $1', [idGrupo]);
 }
@@ -189,6 +198,6 @@ async function contarNaoLidasTotal(idUsuario) {
 }
 
 module.exports = {
-  criar, buscar, ehMembro, membros, idsMembros, adicionar, remover, renomear, apagarGrupo, listarDoUsuario,
+  criar, buscar, ehMembro, ehAdmin, membros, idsMembros, adicionar, remover, renomear, definirFoto, apagarGrupo, listarDoUsuario,
   inserirMensagem, buscarMensagem, listarMensagens, marcarLidas, editar, apagar, contarNaoLidasTotal,
 };

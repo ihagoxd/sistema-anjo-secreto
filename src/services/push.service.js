@@ -87,7 +87,9 @@ async function enviar(idUsuario, payload) {
         );
         ok++;
       } catch (err) {
-        if (err && (err.statusCode === 404 || err.statusCode === 410)) {
+        // 404/410: inscrição morta. 401/403: inscrição feita com OUTRA chave VAPID (ex.: chaves
+        // regeneradas) — também não serve mais; o aparelho reinscreve na próxima abertura.
+        if (err && [401, 403, 404, 410].includes(err.statusCode)) {
           await notificacaoModel.removerInscricao(s.endpoint).catch(() => {});
         } else {
           console.error('[push] falha ao enviar:', err && (err.body || err.message));

@@ -28,7 +28,13 @@
       var mini = false;
       try { mini = !!sessionStorage.getItem('anjoVisto'); } catch (e) {}
       document.documentElement.classList.add(mini ? 'mini' : 'preparando');
+      // Primeira página da sessão tem a intro do anjo: sem transição de página nela.
+      if (!mini) window.addEventListener('pagereveal', function (e) { if (e.viewTransition) e.viewTransition.skipTransition(); }, { once: true });
     })();
+  </script>
+  {{! Pré-carrega a página do link quando o dedo/mouse encosta nele (navegar vira instantâneo) }}
+  <script type="speculationrules" nonce="{{cspNonce}}">
+    {"prefetch": [{"source": "document", "where": {"and": [{"href_matches": "/*"}, {"not": {"href_matches": ["/logout", "/notificacoes/*", "/mensagens/*", "/avisos/*", "/stories/*", "/admin/*"]}}]}, "eagerness": "moderate"}]}
   </script>
 </head>
 <body class="{{#if pagina}}pg-{{pagina}}{{/if}}{{#if tema.classe}} {{tema.classe}}{{/if}}">

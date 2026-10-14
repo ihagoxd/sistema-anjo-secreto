@@ -323,7 +323,7 @@
   /* ---------- Presente de Anjo (compositor): liga/desliga o modo premium ---------- */
   (function () {
     var form = document.querySelector('form.post-compositor');
-    var btn = form && form.querySelector('[data-presente-btn]');
+    var btn = form && document.querySelector('[data-presente-btn]');
     var input = form && form.querySelector('[data-presente-input]');
     var aviso = form && form.querySelector('[data-presente-aviso]');
     var ta = form && form.querySelector('textarea[name="texto"]');
@@ -1739,7 +1739,7 @@
     atualizar();
 
     // Colaboradores (post em dupla/trio, "fulano e +N"): pode escolher vários
-    var btnColab = form.querySelector('[data-colab-btn]');
+    var btnColab = document.querySelector('[data-colab-btn]');
     var colabId = form.querySelector('[data-colab-id]');
     var colabChips = form.querySelector('[data-colab-chip]');
     if (btnColab && colabId && colabChips) {
@@ -1773,7 +1773,7 @@
 
     // Enquete (como no WhatsApp): pergunta própria + opções numeradas (Enter pula pra
     // próxima), interruptor de várias respostas e PRÉVIA ao vivo de como vai ficar.
-    var btnEnq = form.querySelector('[data-enquete-btn]');
+    var btnEnq = document.querySelector('[data-enquete-btn]');
     if (btnEnq && builder) {
       var lista = builder.querySelector('[data-enq-opcoes]');
       var btnAdd = builder.querySelector('[data-enq-add]');
@@ -2846,6 +2846,16 @@
     else fallback();
   });
 
+  /* ---------- "Mais" do compositor: bolinha no + quando algo da folha está ligado ---------- */
+  (function () {
+    var dot = document.querySelector('[data-comp-mais-dot]');
+    var folha = document.getElementById('modal-comp-mais');
+    if (!dot || !folha) return;
+    function atualizar() { dot.hidden = !folha.querySelector('.comp-mais-op.ativo'); }
+    new MutationObserver(atualizar).observe(folha, { attributes: true, subtree: true, attributeFilter: ['class'] });
+    atualizar();
+  })();
+
   /* ---------- Modais (genérico: abrir/fechar por id) ---------- */
   function abrirModal(m) { if (m) { m.removeAttribute('hidden'); m.setAttribute('aria-hidden', 'false'); } }
   function fecharModal(m) { if (m) { m.setAttribute('hidden', ''); m.setAttribute('aria-hidden', 'true'); } }
@@ -3311,11 +3321,25 @@
         }
       }).catch(function () { estado('Não foi possível verificar o estado do push.', 'erro'); });
     }
+    // A inscrição do aparelho foi feita com a MESMA chave VAPID do servidor? (se as chaves
+    // foram regeneradas, a antiga não entrega mais nada — tem que reinscrever)
+    function chaveBate(sub) {
+      try {
+        var k = sub && sub.options && sub.options.applicationServerKey;
+        if (!k || !chavePush) return true;
+        var a = new Uint8Array(k), b = b64ToU8(chavePush);
+        if (a.length !== b.length) return false;
+        for (var i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+        return true;
+      } catch (e) { return true; }
+    }
     function inscreverPush() {
       if (!chavePush) return Promise.resolve(false);
       return navigator.serviceWorker.register('/sw.js').then(function () { return navigator.serviceWorker.ready; }).then(function (reg) {
         return reg.pushManager.getSubscription().then(function (sub) {
-          return sub || reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToU8(chavePush) });
+          var nova = function () { return reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToU8(chavePush) }); };
+          if (sub && !chaveBate(sub)) return sub.unsubscribe().then(nova, nova);
+          return sub || nova();
         });
       }).then(function (sub) {
         return post('/notificacoes/push/inscrever', { subscription: sub.toJSON() }).then(function (d) {
@@ -3357,8 +3381,10 @@
       navigator.serviceWorker.register('/sw.js').then(function () { return navigator.serviceWorker.ready; })
         .then(function (reg) { return reg.pushManager.getSubscription(); })
         .then(function (sub) {
-          if (sub) return post('/notificacoes/push/inscrever', { subscription: sub.toJSON() }).then(function () { try { localStorage.setItem('notifPushEndpoint', sub.endpoint); } catch (e) {} });
-          return carregarPrefs().then(inscreverPush);
+          return carregarPrefs().then(function () {
+            if (sub && chaveBate(sub)) return post('/notificacoes/push/inscrever', { subscription: sub.toJSON() }).then(function () { try { localStorage.setItem('notifPushEndpoint', sub.endpoint); } catch (e) {} });
+            return inscreverPush(); // sem inscrição ou chave trocada: (re)inscreve
+          });
         }).catch(function () {});
     }
     sincronizarPush();
@@ -5648,7 +5674,7 @@
         localIn.value = nome;
         chip.hidden = !nome;
         chip.querySelector('[data-local-nome]').textContent = nome;
-        comp.querySelector('[data-local-btn]').classList.toggle('ativo', !!nome);
+        document.querySelector('[data-local-btn]').classList.toggle('ativo', !!nome);
         if (modalLocal) { modalLocal.hidden = true; modalLocal.setAttribute('aria-hidden', 'true'); }
       }
       if (modalLocal && localIn && chip) {
@@ -5666,7 +5692,7 @@
           lista.innerHTML = html || '<div class="texto-suave" style="padding:10px 6px;">Digite o nome do lugar.</div>';
         }
         function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
-        comp.querySelector('[data-local-btn]').addEventListener('click', function () {
+        document.querySelector('[data-local-btn]').addEventListener('click', function () {
           modalLocal.hidden = false; modalLocal.setAttribute('aria-hidden', 'false');
           busca.value = localIn.value || '';
           renderLista();
@@ -5812,6 +5838,44 @@
     }
     document.querySelectorAll('[data-carrossel]').forEach(ligarCarrossel);
     new MutationObserver(function () { document.querySelectorAll('[data-carrossel]').forEach(ligarCarrossel); }).observe(document.body, { childList: true, subtree: true });
+  })();
+
+  /* ---------- Service worker: cache dos estáticos + página offline (para todo mundo, não só quem ativou push) ---------- */
+  if ('serviceWorker' in navigator && window.isSecureContext) {
+    window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js').catch(function () {}); });
+  }
+
+  /* ---------- Instalar o app (PWA): botão na sidebar/painel; iPhone ganha o passo a passo ---------- */
+  (function () {
+    var btns = document.querySelectorAll('[data-instalar-app]');
+    if (!btns.length) return;
+    var evt = null;
+    var EH_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    var instalado = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    function mostrar(sim) { btns.forEach(function (b) { b.hidden = !sim; }); }
+    window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); evt = e; if (!instalado) mostrar(true); });
+    window.addEventListener('appinstalled', function () { evt = null; mostrar(false); toast('App instalado! Procure o ícone do Anjo Secreto na sua tela.'); });
+    if (EH_IOS && !instalado) mostrar(true);
+    var dica = null;
+    btns.forEach(function (b) {
+      b.addEventListener('click', function () {
+        if (evt) { evt.prompt(); evt.userChoice.then(function () { evt = null; mostrar(false); }).catch(function () {}); return; }
+        if (!dica) {
+          dica = document.createElement('div');
+          dica.className = 'modal sheet-share';
+          dica.hidden = true; dica.setAttribute('aria-hidden', 'true');
+          dica.innerHTML = '<div class="modal-card share-card instalar-card">'
+            + '<div class="sheet-cab sempre"><span class="sheet-grab" aria-hidden="true"></span><span class="sheet-titulo">Instalar o app</span>'
+            + '<button type="button" class="sheet-x" data-fechar-modal aria-label="Fechar">&times;</button></div>'
+            + (EH_IOS
+              ? '<ol class="instalar-passos"><li>Toque em <strong>Compartilhar</strong> (o quadrado com a seta para cima) na barra do Safari.</li><li>Role e toque em <strong>Adicionar à Tela de Início</strong>.</li><li>Confirme em <strong>Adicionar</strong>. Pronto: o Anjo Secreto vira um app no seu iPhone.</li></ol>'
+              : '<p class="texto-suave" style="padding:12px 4px;">No menu do navegador (⋮), toque em <strong>Instalar aplicativo</strong> ou <strong>Adicionar à tela inicial</strong>.</p>')
+            + '</div>';
+          document.body.appendChild(dica);
+        }
+        dica.hidden = false; dica.setAttribute('aria-hidden', 'false');
+      });
+    });
   })();
 
   /* ---------- Tutorial passo a passo (feed) ----------

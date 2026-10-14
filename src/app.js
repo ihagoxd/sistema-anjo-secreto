@@ -60,6 +60,15 @@ app.use(cspNonce);            // gera o nonce da CSP (antes do helmet)
 app.use(helmetMiddleware());
 app.use(permissionsPolicy);
 
+// Service worker com a versão do deploy injetada: muda a cada boot, então o navegador
+// percebe a atualização e troca o cache dos estáticos sozinho. Nunca é cacheado.
+const swFonte = require('fs').readFileSync(path.join(__dirname, 'sw.src.js'), 'utf8');
+app.get('/sw.js', (req, res) => {
+  res.set('Content-Type', 'application/javascript; charset=utf-8');
+  res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.send(swFonte.replace('__VER__', app.locals.assetVer));
+});
+
 // --- Arquivos estáticos (não passam por sessão/rate limit) ---
 // Uploads têm nome único (carimbo + aleatório) e nunca mudam de conteúdo depois de
 // publicados: o navegador pode guardar por 1 ano sem perguntar de novo. Assim a foto

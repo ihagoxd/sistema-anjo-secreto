@@ -17,6 +17,10 @@
     </div>
 
     <div class="acoes-rapidas">
+      <button type="button" class="acao-card acao-card-btn" data-instalar-app hidden>
+        <span class="acao-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
+        <div><strong>Instalar o app</strong><small>Ícone na tela inicial, abre em tela cheia</small></div>
+      </button>
       {{#if tema.temPrefs}}
       <a class="acao-card acao-card-tema" href="/participante/preferencias/tema">
         <span class="acao-ic acao-ic-emoji">{{tema.emoji}}</span>
@@ -52,6 +56,10 @@
   </div>
 
   <div class="acoes-rapidas">
+    <button type="button" class="acao-card acao-card-btn" data-instalar-app hidden>
+      <span class="acao-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
+      <div><strong>Instalar o app</strong><small>Ícone na tela inicial, abre em tela cheia</small></div>
+    </button>
     {{#if tema.temPrefs}}
     <a class="acao-card acao-card-tema" href="/participante/preferencias/tema">
       <span class="acao-ic acao-ic-emoji">{{tema.emoji}}</span>

@@ -3814,3 +3814,41 @@ body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
 .tw-acao.salvar + .tw-acao.share { margin-left: 0; }
 .tw-acao.salvar.ativo svg { fill: currentColor; }
 .tw-acao.salvar.ativo { color: var(--text); }
+
+/* ============================================================
+   CARROSSEL: cada foto ocupa a largura toda (sem espiar a próxima) + COMPOSITOR: folha Mais
+   ============================================================ */
+.ig-post .ig-carrossel { margin-top: 0; border-radius: 14px; }
+.ig-carrossel .ig-car-slide, .ig-post .ig-carrossel .ig-car-slide { margin: 0; border-radius: 0; border: none; width: 100%; }
+@media (max-width: 899px) {
+  .ig-post .ig-carrossel { margin-inline: -16px; border-radius: 0; border-left: none; border-right: none; }
+  .ig-post .ig-carrossel .ig-car-slide { margin: 0; }
+}
+.comp-mais { position: relative; }
+.comp-mais-dot { position: absolute; top: 7px; right: 7px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px var(--surface); }
+.comp-mais-dot[hidden] { display: none; }
+.comp-mais-card { max-width: 420px; }
+.comp-mais-lista { display: flex; flex-direction: column; gap: 2px; padding: 6px 0 2px; }
+.comp-mais-op { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 10px 8px; border: none; background: none; border-radius: 12px; font: inherit; color: var(--text); cursor: pointer; }
+.comp-mais-op:hover { background: var(--hover); }
+.comp-mais-op.comp-presente.ativo { background: none; }
+.comp-mais-ic { width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); color: var(--accent); font-size: 20px; }
+.comp-mais-op .comp-presente-ic { font-size: 20px; }
+.comp-mais-txt { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.comp-mais-txt strong { font-size: 14.5px; font-weight: 600; }
+.comp-mais-txt small { font-size: 12.5px; color: var(--text-faint); }
+.comp-mais-on { display: none; font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-strong); }
+.comp-mais-op.ativo .comp-mais-on { display: inline-block; }
+.comp-mais-op.ativo .comp-mais-ic { background: var(--accent-soft); color: var(--accent-strong); }
+
+/* ============================================================
+   INSTALAR O APP (PWA): botão na sidebar/painel e passo a passo do iPhone
+   ============================================================ */
+.side-instalar { width: 100%; border: none; background: none; font: inherit; cursor: pointer; text-align: left; margin-bottom: 4px; color: var(--accent-strong); }
+.side-instalar .icon { color: var(--accent); }
+.side-instalar[hidden] { display: none; }
+.acao-card-btn { font: inherit; text-align: left; cursor: pointer; }
+.acao-card-btn[hidden] { display: none; }
+.instalar-card { max-width: 420px; }
+.instalar-passos { margin: 12px 0 6px; padding-left: 22px; font-size: 14px; line-height: 1.6; }
+.instalar-passos li + li { margin-top: 6px; }

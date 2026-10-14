@@ -44,6 +44,12 @@ const helpers = {
     return a || b;
   },
 
+  // Junta textos: {{#if (eq caminhoAtual (concat "/u/" usuario.usuario))}}
+  concat(...partes) {
+    partes.pop(); // último argumento é o objeto "options" do Handlebars
+    return partes.join('');
+  },
+
   // Primeiro item de uma lista / quantos além do primeiro / lista unida (post em dupla "e +N")
   primeiro(arr) {
     return Array.isArray(arr) && arr.length ? arr[0] : '';

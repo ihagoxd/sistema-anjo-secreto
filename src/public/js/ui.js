@@ -5393,6 +5393,27 @@
     });
   })();
 
+  /* ---------- "+" da barra inferior (criar publicação, como no Instagram) ----------
+     No feed: rola até o compositor e abre o teclado. Em outra tela: vai para /feed#criar. */
+  (function () {
+    function focarCompositor() {
+      var ta = document.querySelector('.post-compositor [data-texto]');
+      if (!ta) return false;
+      var form = ta.closest('.post-compositor');
+      form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setTimeout(function () { ta.focus(); }, 350);
+      form.classList.add('destaque');
+      setTimeout(function () { form.classList.remove('destaque'); }, 1600);
+      return true;
+    }
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-criar-post]');
+      if (!b) return;
+      if (focarCompositor()) e.preventDefault();
+    });
+    if (location.hash === '#criar') setTimeout(focarCompositor, 150);
+  })();
+
   /* ---------- Tutorial passo a passo (feed) ----------
      Passa por DENTRO das telas: abre os comentários, o sino, a pesquisa, vai até
      Mensagens (Direct × chat do anjo), os gostos e o Meu painel. Holofote sobre cada
@@ -5462,7 +5483,7 @@
       { pagina: '/feed', alvo: ['.tw-post .ig-acoes'], emoji: '❤️', titulo: 'Curtir, comentar, repostar', texto: 'Dois toques na foto curtem. Repostar leva a publicação para o seu perfil. O último ícone copia o link.' },
       { pagina: '/feed', alvo: ['.tw-post [data-comentarios]'], clica: true, emoji: '💬', titulo: 'Este balão abre os comentários', texto: 'Cada publicação tem a sua conversa. Vou tocar nele para você ver por dentro…' },
       { pagina: '/feed', se: '.tw-post .tw-reply', alvo: ['.tw-post .tw-reply'], emoji: '📷', titulo: 'Comentar — até com foto', texto: 'Escreva, use os emojis rápidos ou toque no ícone de imagem para <strong>comentar com uma foto</strong>. "Responder" já puxa o @ da pessoa.', antes: abrirComentarios, depois: fecharComentarios, espera: 500 },
-      { pagina: '/feed', alvo: ['.side-sino', '.btn-sino'], clica: true, emoji: '🔔', titulo: 'O sino guarda as notificações', texto: 'Curtidas, comentários, menções, mensagens e aniversários chegam aqui. Tocando nele…' },
+      { pagina: '/feed', alvo: ['.side-sino', '.btn-sino'], clica: true, emoji: '🔔', titulo: 'O coração guarda as notificações', texto: 'Curtidas, comentários, menções, mensagens e aniversários chegam aqui. Tocando nele…' },
       { pagina: '/feed', se: '#painelNotif .notif-card', alvo: ['#painelNotif .notif-card'], emoji: '🔔', titulo: 'Painel de notificações', texto: 'Tudo numa lista, e na <strong>engrenagem</strong> você escolhe o que quer receber e ativa o aviso no celular (mesmo com o app fechado).', antes: abrirSino, depois: fecharSino, espera: 350 },
       { pagina: '/feed', alvo: ['.side-link[data-busca-abrir]', '.bi-item[data-busca-abrir]'], clica: true, emoji: '🔍', titulo: 'Pesquisar', texto: 'Aqui você encontra qualquer colega. Vou abrir…' },
       { pagina: '/feed', se: '#buscaTela .busca-campo', alvo: ['#buscaTela .busca-campo'], emoji: '🔍', titulo: 'Busca por nome ou @usuário', texto: 'Digite e toque na pessoa para abrir o perfil, os posts e os gostos dela.', antes: abrirBusca, depois: fecharBusca, espera: 400 },

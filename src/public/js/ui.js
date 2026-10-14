@@ -2762,6 +2762,7 @@
     var b = document.getElementById(id);
     if (b) b.addEventListener('click', alternarTema);
   });
+  document.querySelectorAll('[data-tema-toggle]').forEach(function (b) { b.addEventListener('click', alternarTema); });
 
   /* ---------- Menu lateral (off-canvas no mobile) ---------- */
   var sidebar = document.getElementById('sidebar');

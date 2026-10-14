@@ -44,19 +44,12 @@
     {{> sidebar}}
 
     <div class="conteudo">
+      {{#if (eq usuario.tipo_usuario "ADMINISTRADOR")}}
       <header class="topo-mobile">
-        <a class="topo-marca" href="{{#if (eq usuario.tipo_usuario "ADMINISTRADOR")}}/admin{{else}}/participante{{/if}}" aria-label="Início">
-          <span class="marca-emblema" aria-hidden="true">
-            <img src="/img/logo.png" alt="">
-          </span>
+        <a class="topo-marca" href="/admin" aria-label="Início">
+          <span class="marca-emblema" aria-hidden="true"><img src="/img/logo.png" alt=""></span>
         </a>
         <div class="topo-acoes">
-          {{#if usuario}}{{#unless (eq usuario.tipo_usuario "ADMINISTRADOR")}}
-          <button type="button" class="btn-icone btn-sino" data-abrir-modal="painelNotif" data-abrir-notif aria-label="Notificações">
-            <svg class="icon" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-            {{#if notifNaoLidas}}<span class="sino-badge js-notif-badge">{{notifNaoLidas}}</span>{{/if}}
-          </button>
-          {{/unless}}{{/if}}
           <button type="button" class="btn-icone" id="btn-tema-mob" aria-label="Alternar tema">
             <svg class="icon icone-lua" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
             <svg class="icon icone-sol" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
@@ -69,6 +62,25 @@
           </form>
         </div>
       </header>
+      {{else}}
+      {{! Celular, como no Instagram: "+" (criar) à esquerda, a marca no centro, o coração à direita.
+          Tema e Sair ficam no menu (≡) do próprio perfil. }}
+      <header class="topo-mobile topo-ig">
+        <a class="btn-icone topo-criar" href="/feed#criar" data-criar-post aria-label="Criar publicação">
+          <svg class="icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </a>
+        <a class="topo-marca" href="/feed" aria-label="Início">
+          <span class="marca-emblema" aria-hidden="true"><img src="/img/logo.png" alt=""></span>
+          <span class="topo-nome">Anjo Secreto</span>
+        </a>
+        <div class="topo-acoes">
+          <button type="button" class="btn-icone btn-sino" data-abrir-modal="painelNotif" data-abrir-notif aria-label="Notificações">
+            <svg class="icon" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            {{#if notifNaoLidas}}<span class="sino-badge js-notif-badge">{{notifNaoLidas}}</span>{{/if}}
+          </button>
+        </div>
+      </header>
+      {{/if}}
 
       <main class="container">
         {{> alertas}}

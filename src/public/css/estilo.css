@@ -3852,3 +3852,21 @@ body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
 .instalar-card { max-width: 420px; }
 .instalar-passos { margin: 12px 0 6px; padding-left: 22px; font-size: 14px; line-height: 1.6; }
 .instalar-passos li + li { margin-top: 6px; }
+
+/* ============================================================
+   TOPO DO CELULAR (Instagram): + à esquerda, marca no centro, coração à direita
+   ============================================================ */
+.topo-ig { position: sticky; }
+.topo-ig .topo-marca { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); gap: 7px; }
+.topo-ig .topo-marca .marca-emblema { width: 28px; height: 28px; }
+.topo-nome { font-weight: 800; font-size: 18px; letter-spacing: -0.02em; color: var(--text); white-space: nowrap; }
+.topo-criar { width: 42px; height: 42px; color: var(--text); display: grid; place-items: center; margin-left: -6px; }
+.topo-criar:hover { color: var(--text); text-decoration: none; }
+.topo-ig .topo-acoes { margin-right: -6px; }
+.topo-ig .btn-sino { color: var(--text); }
+.tw-menu { margin-left: auto; width: 40px; height: 40px; color: var(--text); }
+.comp-mais-form { margin: 0; }
+.comp-mais-op.comp-mais-sair .comp-mais-ic { color: var(--st-vermelho, #d1242f); }
+.comp-mais-op .icone-sol, .comp-mais-op .icone-lua { display: none; }
+[data-theme='dark'] .comp-mais-op .icone-sol { display: block; }
+[data-theme='light'] .comp-mais-op .icone-lua { display: block; }

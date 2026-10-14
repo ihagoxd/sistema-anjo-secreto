@@ -27,12 +27,19 @@ router.get('/estado', ctrl.getEstado);
 router.get('/anjo', ctrl.getAnjo);
 router.get('/protegido', ctrl.getProtegido);
 router.get('/u/:id', ctrl.getDireta);
+// Grupos do escritório
+router.get('/g/:id([0-9]+)', ctrl.getGrupo);
+router.get('/g/:id([0-9]+)/item', ctrl.getGrupoItem);
+router.post('/grupos', ctrl.postCriarGrupo);                    // JSON { nome, membros: [ids] }
+router.post('/g/:id([0-9]+)/membros', ctrl.postGrupoMembros);  // JSON { membros: [ids] }
+router.post('/g/:id([0-9]+)/sair', ctrl.postGrupoSair);
+router.post('/g/:id([0-9]+)/nome', ctrl.postGrupoNome);        // JSON { nome }
 
 // Tempo real: "digitando…" e "li as mensagens" (viram eventos SSE para o outro lado)
 router.post('/:canal(anjo|protegido)/digitando', ctrl.postDigitando);
-router.post('/:canal(u)/:id([0-9]+)/digitando', ctrl.postDigitando);
+router.post('/:canal(u|g)/:id([0-9]+)/digitando', ctrl.postDigitando);
 router.post('/:canal(anjo|protegido)/lidas', ctrl.postLidas);
-router.post('/:canal(u)/:id([0-9]+)/lidas', ctrl.postLidas);
+router.post('/:canal(u|g)/:id([0-9]+)/lidas', ctrl.postLidas);
 // Tema da conversa (só DM do escritório) — JSON { tema }
 router.post('/u/:id([0-9]+)/tema', ctrl.postTema);
 
@@ -40,6 +47,7 @@ router.post('/u/:id([0-9]+)/tema', ctrl.postTema);
 router.post('/anjo', midiaMsg, ctrl.postAnjo);
 router.post('/protegido', midiaMsg, ctrl.postProtegido);
 router.post('/u/:id', midiaMsg, ctrl.postDireta);
+router.post('/g/:id([0-9]+)', midiaMsg, ctrl.postGrupo);
 
 // Edição e exclusão (AJAX)
 router.post('/editar', ctrl.postEditar);

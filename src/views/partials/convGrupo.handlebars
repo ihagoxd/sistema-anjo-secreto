@@ -1,0 +1,9 @@
+{{! Item de grupo na lista do Direct (também devolvido pronto por /mensagens/g/:id/item para entrar ao vivo) }}
+<a class="conv conv-grupo{{#if this.ativa}} ativa{{/if}}{{#if this.naoLidas}} tem-novas{{/if}}" href="/mensagens/g/{{this.id_grupo}}" data-conv-g="{{this.id_grupo}}">
+  <span class="conv-av grupo-av">{{#if this.foto}}<img src="{{this.foto}}" alt="">{{else}}{{#each this.amostra}}<span class="grupo-av-m">{{#if this.foto}}<img src="{{this.foto}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</span>{{else}}<span class="grupo-av-m">👥</span>{{/each}}{{/if}}</span>
+  <div class="conv-txt">
+    <div class="conv-nome"><span class="conv-nome-txt">{{this.nome}}</span><span class="tag-grupo">grupo</span></div>
+    <div class="conv-sub">{{#if this.ultima}}{{this.ultima.texto}}{{else}}{{this.membrosN}} participantes{{/if}}</div>
+  </div>
+  {{#if this.naoLidas}}<span class="conv-badge">{{this.naoLidas}}</span>{{/if}}
+</a>

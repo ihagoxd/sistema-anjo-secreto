@@ -11,6 +11,7 @@ const postModel = require('../models/post.model');
 const storyModel = require('../models/story.model');
 const dmModel = require('../models/mensagemDireta.model');
 const mensagemModel = require('../models/mensagem.model');
+const grupoModel = require('../models/grupo.model');
 const render = require('./render.service');
 
 const STORY_ATIVO_MS = 24 * 3600 * 1000;
@@ -33,7 +34,7 @@ function anexarCitacoes(mensagens, extras = []) {
     if (!m.respondendo_a) return;
     const q = porId[m.respondendo_a];
     if (!q) return;
-    m.quote = { minha: !!q.minha, texto: trechoDe(q) };
+    m.quote = { minha: !!q.minha, texto: trechoDe(q), autor: q.autor ? String(q.autor.nome || '').split(' ')[0] : null };
   });
 }
 
@@ -151,9 +152,41 @@ async function bolhaJogo(idMensagem, idObservador, conversa) {
   return render.partial('dmBolha', Object.assign({ conversa }, m));
 }
 
+// Mensagem de grupo do ponto de vista de quem vai ver; "autor" aparece nas bolhas dos outros.
+function itemGrupo(r, idObservador) {
+  return {
+    id_mensagem: r.id_mensagem,
+    minha: r.id_remetente === idObservador,
+    sistema: !!r.sistema,
+    texto: r.texto, imagem: r.imagem, audio: r.audio, video: r.video,
+    apagada: !!r.apagada_em, editado_em: r.editado_em, criado_em: r.criado_em,
+    respondendo_a: r.respondendo_a, lida: false,
+    autor: r.id_remetente ? {
+      id: r.id_remetente, nome: r.remetente_nome, usuario: r.remetente_usuario, foto: r.remetente_foto,
+      cor: (Number(r.id_remetente) % 8) + 1,
+    } : null,
+  };
+}
+
+// HTML da bolha de uma mensagem de grupo (sistema vira a pílula central).
+async function bolhaGrupo(idMensagem, idObservador, conversa) {
+  const r = await grupoModel.buscarMensagem(idMensagem);
+  if (!r) return null;
+  const m = itemGrupo(r, idObservador);
+  if (m.sistema) return render.partial('dmSistema', m);
+  const extras = [];
+  if (m.respondendo_a) {
+    const q = await grupoModel.buscarMensagem(m.respondendo_a);
+    if (q) extras.push(itemGrupo(q, idObservador));
+  }
+  await anexarPreviasDePost([m], idObservador);
+  anexarCitacoes([m], extras);
+  return render.partial('dmBolha', Object.assign({ conversa }, m));
+}
+
 // Prévia curta para a lista de conversas (igual à do servidor na primeira carga).
 function previaDe(m) {
   return m.texto || (m.imagem ? '📷 Foto' : m.audio ? '🎤 Mensagem de voz' : m.video ? '🎬 Vídeo' : '📎 mídia');
 }
 
-module.exports = { prepararTodas, anexarCitacoes, anexarCartoesDeStory, anexarPreviasDePost, marcarVisto, bolhaDm, bolhaJogo, previaDe };
+module.exports = { prepararTodas, anexarCitacoes, anexarCartoesDeStory, anexarPreviasDePost, marcarVisto, bolhaDm, bolhaJogo, bolhaGrupo, itemGrupo, previaDe };

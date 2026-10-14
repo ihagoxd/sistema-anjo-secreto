@@ -42,6 +42,16 @@ const TIPOS = {
     titulo: () => 'Seu protegido',
     texto: (r, n) => (n > 1 ? `te mandou ${n} mensagens` : 'te mandou uma mensagem'),
   },
+  GRUPO: {
+    emoji: '👥', categoria: 'mensagens', temAtor: true,
+    titulo: (r) => r.ator_nome || 'Alguém',
+    texto: (r, n) => (n > 1 ? `mandou ${n} mensagens no grupo` : 'mandou uma mensagem no grupo'),
+  },
+  GRUPO_ADD: {
+    emoji: '👥', categoria: 'mensagens', temAtor: true,
+    titulo: (r) => r.ator_nome || 'Alguém',
+    texto: () => 'te adicionou a um grupo',
+  },
   CURTIDA: {
     emoji: '❤️', categoria: 'social', temAtor: true, agrupaPor: 'ref',
     titulo: nomes,
@@ -243,8 +253,8 @@ async function marcarTodasLidas(idUsuario) {
 // Abri/li uma conversa: as notificações de mensagem dela viram lidas e o badge atualiza.
 // canal: 'u' (DM com idOutro) | 'anjo' | 'protegido'
 async function lerConversa(idUsuario, canal, idOutro = null) {
-  const tipo = canal === 'u' ? 'MENSAGEM' : canal === 'anjo' ? 'MENSAGEM_ANJO' : 'MENSAGEM_PROTEGIDO';
-  const n = await notificacaoModel.marcarLidasDeMensagens(idUsuario, tipo, canal === 'u' ? Number(idOutro) : null);
+  const tipo = canal === 'u' ? 'MENSAGEM' : canal === 'g' ? 'GRUPO' : canal === 'anjo' ? 'MENSAGEM_ANJO' : 'MENSAGEM_PROTEGIDO';
+  const n = await notificacaoModel.marcarLidasDeMensagens(idUsuario, tipo, (canal === 'u' || canal === 'g') ? Number(idOutro) : null);
   if (n) await publicarContagem(idUsuario);
 }
 
@@ -328,6 +338,19 @@ function notificarMensagemDireta(idDestino, idRemetente, conteudo) {
   return seguro(() => criar({
     idUsuario: idDestino, tipo: 'MENSAGEM', idAtor: idRemetente,
     link: '/mensagens/u/' + idRemetente, ref: idRemetente, detalhe: previaMensagem(conteudo),
+  }));
+}
+
+// Grupo: "Fulano mandou uma mensagem no grupo" (detalhe = nome do grupo · prévia)
+function notificarGrupo(idDestino, idRemetente, idGrupo, nomeGrupo, conteudo) {
+  return seguro(() => criar({
+    idUsuario: idDestino, tipo: 'GRUPO', idAtor: idRemetente,
+    link: '/mensagens/g/' + idGrupo, ref: idGrupo, detalhe: `${nomeGrupo} · ${previaMensagem(conteudo) || ''}`,
+  }));
+}
+function notificarGrupoAdd(idDestino, idAtor, idGrupo, nomeGrupo) {
+  return seguro(() => criar({
+    idUsuario: idDestino, tipo: 'GRUPO_ADD', idAtor, link: '/mensagens/g/' + idGrupo, ref: idGrupo, detalhe: nomeGrupo,
   }));
 }
 
@@ -437,6 +460,8 @@ module.exports = {
   buscarPrefs,
   salvarPrefs,
   notificarMensagemDireta,
+  notificarGrupo,
+  notificarGrupoAdd,
   notificarMensagemJogo,
   notificarCurtida,
   notificarComentario,

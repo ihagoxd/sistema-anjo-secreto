@@ -2276,17 +2276,19 @@
     var prog = form ? form.querySelector('[data-dm-prog]') : null;
     var ta = form ? form.querySelector('textarea') : null;
 
-    function urlCanal(acao) { return canal === 'u' ? '/mensagens/u/' + convId + '/' + acao : '/mensagens/' + canal + '/' + acao; }
+    function urlCanal(acao) { return (canal === 'u' || canal === 'g') ? '/mensagens/' + canal + '/' + convId + '/' + acao : '/mensagens/' + canal + '/' + acao; }
     function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
     function acharConv(href) { return lista ? lista.querySelector('.conv[href="' + href + '"]') : null; }
     function convDe(d) { // item da lista a que o evento se refere
       if (!lista) return null;
+      if (d.canal === 'g') return lista.querySelector('.conv[data-conv-g="' + d.grupo + '"]');
       if (d.canal === 'u') return lista.querySelector('.conv[data-conv-u="' + (d.eco ? d.para : d.de) + '"]');
       return acharConv('/mensagens/' + d.canal);
     }
     // O evento é da conversa aberta nesta aba?
     function ehEsta(d) {
       if (!canal || !d || d.canal !== canal) return false;
+      if (canal === 'g') return Number(d.grupo) === convId;
       if (canal === 'u') return Number(d.eco ? d.para : d.de) === convId;
       return true;
     }
@@ -2339,18 +2341,18 @@
       sub.classList.remove('digitando');
       sub.innerHTML = sub.getAttribute('data-online') === '1' ? '<span class="dm-ativo">ativo agora</span>' : esc(sub.getAttribute('data-rotulo') || '');
     }
-    function digitandoCab() {
+    function digitandoCab(nome) {
       if (!sub) return;
       sub.classList.add('digitando');
-      sub.innerHTML = 'digitando<i class="dm-pontos"><i></i><i></i><i></i></i>';
+      sub.innerHTML = (nome ? esc(nome) + ' ' : '') + 'digitando<i class="dm-pontos"><i></i><i></i><i></i></i>';
       clearTimeout(tCab); tCab = setTimeout(restaurarSub, 3800);
     }
-    function digitandoLista(conv) {
+    function digitandoLista(conv, nome) {
       var s = conv && conv.querySelector('.conv-sub');
       if (!s) return;
       var chave = conv.getAttribute('href');
       if (!s.hasAttribute('data-digitando')) { s.setAttribute('data-antes', s.textContent); s.setAttribute('data-digitando', '1'); }
-      s.textContent = 'digitando…';
+      s.textContent = (nome ? nome + ' ' : '') + 'digitando…';
       s.classList.add('digitando');
       clearTimeout(tLista[chave]);
       tLista[chave] = setTimeout(function () {
@@ -2416,7 +2418,8 @@
       if (document.hidden) { lerPendente = true; return; }
       lerPendente = false;
       fetch(urlCanal('lidas'), { method: 'POST', headers: HEAD }).catch(function () {});
-      var conv = canal === 'u' ? (lista && lista.querySelector('.conv[data-conv-u="' + convId + '"]')) : acharConv('/mensagens/' + canal);
+      var conv = canal === 'u' ? (lista && lista.querySelector('.conv[data-conv-u="' + convId + '"]'))
+        : canal === 'g' ? (lista && lista.querySelector('.conv[data-conv-g="' + convId + '"]')) : acharConv('/mensagens/' + canal);
       if (conv) aplicarBadge(conv, 0);
       totalGlobal();
     }
@@ -2434,7 +2437,7 @@
       }
       var conv = convDe(d);
       if (conv) {
-        if (!d.eco) incBadge(conv);
+        if (!d.eco && !d.sistema) incBadge(conv);
         setPrevia(conv, d.previa, !!d.eco);
         subir(conv);
       }
@@ -2447,11 +2450,36 @@
     });
     document.addEventListener('sse:digitando', function (e) {
       var d = e.detail; if (!d) return;
-      if (ehEsta(d)) digitandoCab();
+      if (ehEsta(d)) digitandoCab(d.nome);
       var conv = convDe(d);
-      if (conv && !conv.classList.contains('ativa')) digitandoLista(conv);
+      if (conv && !conv.classList.contains('ativa')) digitandoLista(conv, d.nome);
     });
     document.addEventListener('sse:presenca', function (e) { var d = e.detail; if (d) setOnline(d.id_usuario, !!d.online); });
+    // Grupos: entrei num grupo novo (item entra na lista), saí (some), renomearam (troca o nome)
+    document.addEventListener('sse:grupo', function (e) {
+      var d = e.detail; if (!d || !lista) return;
+      var conv = lista.querySelector('.conv[data-conv-g="' + d.id_grupo + '"]');
+      var aberto = canal === 'g' && Number(d.id_grupo) === convId;
+      if (d.acao === 'saiu') { if (conv) conv.remove(); if (aberto) location.href = '/mensagens'; return; }
+      if (d.acao === 'nome') {
+        if (conv) { var n = conv.querySelector('.conv-nome-txt'); if (n) n.textContent = d.nome; }
+        if (aberto && sec) { var cn = sec.querySelector('.dm-cab-nome'); if (cn) cn.textContent = d.nome; var gi = document.querySelector('[data-g-nome]'); if (gi) gi.value = d.nome; }
+        return;
+      }
+      if (d.acao === 'novo' && !conv) {
+        fetch('/mensagens/g/' + d.id_grupo + '/item', { headers: { 'Accept': 'application/json' } })
+          .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+          .then(function (j) {
+            if (!j.html) return;
+            var tmp = document.createElement('div'); tmp.innerHTML = j.html.trim();
+            var el = tmp.firstElementChild; if (!el) return;
+            var primeiro = lista.querySelector('.conv:not(.fixado)');
+            if (primeiro) primeiro.parentNode.insertBefore(el, primeiro);
+            else { var sc = lista.querySelector('.direct-scroll'); if (sc) sc.appendChild(el); }
+            totalGlobal();
+          }).catch(function () {});
+      }
+    });
 
     /* ---- reserva: sincroniza badges/prévias/online (60 s e ao voltar pra aba) ---- */
     var buscando = false;
@@ -2469,6 +2497,12 @@
             var prev = d.previas && d.previas[id];
             var s = conv.querySelector('.conv-sub');
             if (prev && s && !s.hasAttribute('data-digitando')) s.textContent = (prev.minha ? 'Você: ' : '') + prev.texto;
+          });
+          if (d.grupos) lista.querySelectorAll('.conv[data-conv-g]').forEach(function (conv) {
+            var g = d.grupos[conv.getAttribute('data-conv-g')]; if (!g) return;
+            aplicarBadge(conv, g.n);
+            var s = conv.querySelector('.conv-sub');
+            if (g.previa && s && !s.hasAttribute('data-digitando')) s.textContent = g.previa;
           });
           if (d.online) {
             var on = {}; d.online.forEach(function (id) { on[id] = true; });
@@ -2546,6 +2580,77 @@
       });
       xhr.send(fd);
     });
+  })();
+
+  /* ---------- Grupos do Direct: criar, adicionar gente, renomear, sair ---------- */
+  (function () {
+    var direct = document.querySelector('.direct');
+    if (!direct) return;
+    var metaC = document.querySelector('meta[name="csrf-token"]');
+    var HEAD = { 'X-CSRF-Token': metaC ? metaC.getAttribute('content') : '', 'X-Requested-With': 'fetch', 'Accept': 'application/json', 'Content-Type': 'application/json' };
+    function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+    function post(url, corpo) {
+      return fetch(url, { method: 'POST', headers: HEAD, body: JSON.stringify(corpo || {}) })
+        .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { if (!r.ok || !j.ok) throw new Error((j && j.erro) || 'Não foi possível concluir.'); return j; }); });
+    }
+    function fecharFolha(m) { if (m) { m.hidden = true; m.setAttribute('aria-hidden', 'true'); } }
+
+    /* novo grupo */
+    var ng = document.getElementById('modal-novo-grupo');
+    if (ng) {
+      var nome = ng.querySelector('[data-ng-nome]'), chips = ng.querySelector('[data-ng-chips]'), criar = ng.querySelector('[data-ng-criar]');
+      var escolhidos = [];
+      function render() {
+        chips.innerHTML = escolhidos.length
+          ? escolhidos.map(function (p) { return '<span class="colab-chip"><strong>' + esc(p.nome) + '</strong><button type="button" class="colab-tirar" data-ng-tirar="' + esc(String(p.id)) + '" aria-label="Remover">&times;</button></span>'; }).join(' ')
+          : '<span class="texto-suave">Ninguém escolhido ainda.</span>';
+        criar.disabled = !escolhidos.length || !nome.value.trim();
+      }
+      nome.addEventListener('input', render);
+      chips.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-ng-tirar]'); if (!b) return;
+        escolhidos = escolhidos.filter(function (p) { return String(p.id) !== b.getAttribute('data-ng-tirar'); });
+        render();
+      });
+      ng.querySelector('[data-ng-escolher]').addEventListener('click', function () {
+        if (!window.__abrirSeletorPessoa) return;
+        window.__abrirSeletorPessoa('Participantes do grupo', function (pessoas) {
+          pessoas.forEach(function (p) { if (!escolhidos.some(function (x) { return String(x.id) === String(p.id); })) escolhidos.push(p); });
+          render();
+        });
+      });
+      criar.addEventListener('click', function () {
+        criar.disabled = true;
+        post('/mensagens/grupos', { nome: nome.value.trim(), membros: escolhidos.map(function (p) { return Number(p.id); }) })
+          .then(function (j) { location.href = j.url; })
+          .catch(function (e) { toast(e.message); criar.disabled = false; });
+      });
+      render();
+    }
+
+    /* grupo aberto: renomear, adicionar, sair */
+    var sec = direct.querySelector('.direct-conversa[data-conv-canal="g"]');
+    var mg = document.getElementById('modal-grupo');
+    if (sec && mg) {
+      var id = sec.getAttribute('data-conv-id');
+      mg.querySelector('[data-g-renomear]').addEventListener('click', function () {
+        var n = mg.querySelector('[data-g-nome]').value.trim(); if (!n) return;
+        post('/mensagens/g/' + id + '/nome', { nome: n }).then(function () { location.reload(); }).catch(function (e) { toast(e.message); });
+      });
+      mg.querySelector('[data-g-adicionar]').addEventListener('click', function () {
+        if (!window.__abrirSeletorPessoa) return;
+        fecharFolha(mg);
+        window.__abrirSeletorPessoa('Adicionar ao grupo', function (pessoas) {
+          post('/mensagens/g/' + id + '/membros', { membros: pessoas.map(function (p) { return Number(p.id); }) })
+            .then(function () { location.reload(); }).catch(function (e) { toast(e.message); });
+        });
+      });
+      mg.querySelector('[data-g-sair]').addEventListener('click', function () {
+        var b = this;
+        if (b.getAttribute('data-confirmando') !== '1') { b.setAttribute('data-confirmando', '1'); b.textContent = 'Toque de novo para sair'; setTimeout(function () { b.removeAttribute('data-confirmando'); b.textContent = 'Sair do grupo'; }, 3500); return; }
+        post('/mensagens/g/' + id + '/sair').then(function (j) { location.href = j.url; }).catch(function (e) { toast(e.message); });
+      });
+    }
   })();
 
   /* ---------- Avatar do perfil: TOQUE abre o story (se houver) ou amplia a foto;
@@ -2847,14 +2952,25 @@
     else fallback();
   });
 
-  /* ---------- "Mais" do compositor: bolinha no + quando algo da folha está ligado ---------- */
+  /* ---------- Compositor "aberto" (Instagram/Twitter): ao escrever, escolher foto ou abrir enquete,
+     aparecem as linhas Marcar pessoas / Localização / Presente. Volta a fechar depois de publicar. ---------- */
   (function () {
-    var dot = document.querySelector('[data-comp-mais-dot]');
-    var folha = document.getElementById('modal-comp-mais');
-    if (!dot || !folha) return;
-    function atualizar() { dot.hidden = !folha.querySelector('.comp-mais-op.ativo'); }
-    new MutationObserver(atualizar).observe(folha, { attributes: true, subtree: true, attributeFilter: ['class'] });
-    atualizar();
+    var comp = document.querySelector('form.post-compositor');
+    if (!comp) return;
+    var ta = comp.querySelector('textarea[name="texto"]');
+    function abrir() { comp.classList.add('aberto'); }
+    function temConteudo() {
+      if (ta && ta.value.trim()) return true;
+      var arq = Array.prototype.some.call(comp.querySelectorAll('input[type="file"]'), function (i) { return i.files && i.files.length; });
+      if (arq) return true;
+      var enq = comp.querySelector('[data-enquete-builder]');
+      return !!(enq && !enq.hidden);
+    }
+    if (ta) { ta.addEventListener('focus', abrir); ta.addEventListener('input', abrir); }
+    comp.addEventListener('change', function (e) { if (e.target.type === 'file') abrir(); });
+    comp.addEventListener('click', function (e) { if (e.target.closest('[data-enquete-btn], [data-camera], [data-foto-btn]')) abrir(); });
+    comp.addEventListener('reset', function () { setTimeout(function () { comp.classList.remove('aberto'); }, 0); });
+    if (temConteudo()) abrir();
   })();
 
   /* ---------- Modais (genérico: abrir/fechar por id) ---------- */

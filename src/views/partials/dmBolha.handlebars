@@ -1,11 +1,12 @@
 <div class="dm-bolha {{#if this.minha}}minha{{else}}deles{{/if}}{{#if this.imagem}} tem-img{{/if}}" data-id="{{this.id_mensagem}}">
+  {{#if this.autor}}{{#unless this.minha}}<span class="dm-autor autor-c{{this.autor.cor}}">{{this.autor.nome}}</span>{{/unless}}{{/if}}
   {{#if this.apagada}}
     <div class="dm-bolha-txt dm-apagada">🚫 Mensagem apagada</div>
   {{else}}
   {{#if this.quote}}
     {{! Citação (responder estilo WhatsApp): clica e rola até a mensagem original }}
     <div class="dm-cita" data-ir-msg="{{this.respondendo_a}}" role="button" tabindex="0" title="Ir para a mensagem original">
-      <span class="dm-cita-autor">{{#if this.quote.minha}}Você{{else}}{{@root.conversa.rotuloResposta}}{{/if}}</span>
+      <span class="dm-cita-autor">{{#if this.quote.minha}}Você{{else}}{{#if this.quote.autor}}{{this.quote.autor}}{{else}}{{@root.conversa.rotuloResposta}}{{/if}}{{/if}}</span>
       <span class="dm-cita-texto">{{this.quote.texto}}</span>
     </div>
   {{/if}}

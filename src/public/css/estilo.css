@@ -3858,7 +3858,7 @@ body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
    ============================================================ */
 .topo-ig { position: sticky; }
 .topo-ig .topo-marca { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); gap: 7px; }
-.topo-ig .topo-marca .marca-emblema { width: 28px; height: 28px; }
+.topo-ig .topo-marca .marca-emblema { width: 40px; height: 40px; }
 .topo-nome { font-weight: 800; font-size: 18px; letter-spacing: -0.02em; color: var(--text); white-space: nowrap; }
 .topo-criar { width: 42px; height: 42px; color: var(--text); display: grid; place-items: center; margin-left: -6px; }
 .topo-criar:hover { color: var(--text); text-decoration: none; }
@@ -3870,3 +3870,64 @@ body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
 .comp-mais-op .icone-sol, .comp-mais-op .icone-lua { display: none; }
 [data-theme='dark'] .comp-mais-op .icone-sol { display: block; }
 [data-theme='light'] .comp-mais-op .icone-lua { display: block; }
+/* O "+" rola até o compositor: a barra fixa do celular não pode cobrir o topo dele */
+.post-compositor { scroll-margin-top: 72px; }
+
+/* ============================================================
+   GRUPOS NO DIRECT: avatar empilhado, autor na bolha, pílulas de sistema, folhas
+   ============================================================ */
+.direct-lista-topo { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.direct-lista-sub { display: block; }
+.direct-novo-grupo { width: 40px; height: 40px; color: var(--accent); flex-shrink: 0; }
+.conv-av.grupo-av { overflow: visible; background: none; }
+.grupo-av-m { position: absolute; width: 31px; height: 31px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-strong); font-size: 13px; font-weight: 700; box-shadow: 0 0 0 2px var(--surface); }
+.grupo-av-m img { width: 100%; height: 100%; object-fit: cover; }
+.grupo-av-m:first-child { top: 0; left: 0; }
+.grupo-av-m:nth-child(2) { bottom: 0; right: 0; }
+.grupo-av-m:only-child { position: static; width: 100%; height: 100%; box-shadow: none; font-size: 18px; }
+.tag-grupo { font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-strong); margin-left: 5px; vertical-align: 1px; }
+.dm-autor { font-size: 12px; font-weight: 700; margin: 2px 0 2px 10px; }
+.autor-c1 { color: #e3b341; } .autor-c2 { color: #58a6ff; } .autor-c3 { color: #3fb950; } .autor-c4 { color: #f778ba; }
+.autor-c5 { color: #a371f7; } .autor-c6 { color: #f0883e; } .autor-c7 { color: #39c5bb; } .autor-c8 { color: #ff7b72; }
+.dm-sistema { align-self: center; max-width: 86%; text-align: center; font-size: 12px; color: var(--text-faint); background: var(--surface-2); border-radius: 999px; padding: 4px 12px; margin: 6px 0; }
+.dm-cab-txt[data-abrir-modal] { cursor: pointer; }
+.dm-grupo-btn { margin-left: auto; color: var(--text); }
+.grupo-card { max-width: 440px; }
+.grupo-label { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-faint); display: block; margin-top: 14px; }
+.grupo-label-linha { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; }
+.grupo-label-linha .grupo-label { margin-top: 0; }
+.grupo-input { width: 100%; margin-top: 6px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2); color: var(--text); font: inherit; font-size: 15px; box-sizing: border-box; }
+.grupo-add { border: none; background: none; color: var(--accent); font: inherit; font-weight: 700; font-size: 13px; cursor: pointer; padding: 4px 0; }
+.grupo-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; min-height: 28px; font-size: 13px; }
+.grupo-nome-linha { display: flex; gap: 8px; align-items: center; }
+.grupo-nome-linha .grupo-input { margin-top: 6px; }
+.grupo-membros { margin-top: 4px; }
+.grupo-membros .share-item { text-decoration: none; color: var(--text); }
+.grupo-sair { width: 100%; margin-top: 10px; padding: 11px; border: none; border-radius: 12px; background: color-mix(in srgb, var(--st-vermelho, #d1242f) 12%, transparent); color: var(--st-vermelho, #d1242f); font: inherit; font-weight: 700; cursor: pointer; }
+
+/* ============================================================
+   COMPOSITOR: linhas de opção (Marcar pessoas / Localização / Presente) ao abrir, como no Instagram
+   ============================================================ */
+.comp-opcoes { display: none; margin-top: 12px; border-top: 1px solid var(--line); }
+.post-compositor.aberto .comp-opcoes { display: block; }
+.comp-op { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 2px; border: none; border-bottom: 1px solid var(--line); background: none; font: inherit; color: var(--text); text-align: left; cursor: pointer; border-radius: 0; }
+.comp-op:hover { background: var(--hover); }
+.comp-opcoes > :last-child { border-bottom: none; }
+.comp-op-ic { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); color: var(--accent); flex-shrink: 0; font-size: 18px; }
+.comp-op-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.comp-op-txt strong { font-size: 14px; font-weight: 600; }
+.comp-op-txt small { font-size: 12px; color: var(--text-faint); }
+.comp-op-seta { color: var(--text-faint); font-size: 22px; line-height: 1; }
+.comp-op.ativo .comp-op-ic { background: var(--accent-soft); color: var(--accent-strong); }
+.comp-op.comp-presente.ativo { background: none; }
+.comp-op .comp-presente-ic { font-size: 18px; transform: none; }
+.comp-op.comp-presente.ativo .comp-presente-ic { transform: none; background: color-mix(in srgb, var(--ouro, var(--accent)) 22%, transparent); }
+.comp-switch { width: 40px; height: 24px; border-radius: 999px; background: var(--line-strong); position: relative; flex-shrink: 0; transition: background 0.15s; }
+.comp-switch i { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform 0.15s; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+.comp-op.ativo .comp-switch { background: var(--ouro, var(--accent)); }
+.comp-op.ativo .comp-switch i { transform: translateX(16px); }
+.comp-opcoes .colab-chips, .comp-opcoes .local-chip { margin: 0 0 10px 46px; }
+.comp-opcoes .colab-chips[hidden], .comp-opcoes .local-chip[hidden] { display: none; }
+/* Barra de cima do celular com o MESMO fundo da página (sem faixa de cor diferente), como no Instagram */
+.topo-ig { background: var(--bg); border-bottom: none; }
+[data-theme='dark'] .topo-ig, [data-theme='light'] .topo-ig { background: var(--bg); backdrop-filter: none; -webkit-backdrop-filter: none; }

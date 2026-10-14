@@ -2,8 +2,10 @@
 
   <aside class="direct-lista">
     <div class="direct-lista-topo">
-      <h1>Mensagens</h1>
-      <span class="direct-lista-sub">Direct do escritório</span>
+      <div><h1>Mensagens</h1><span class="direct-lista-sub">Direct do escritório</span></div>
+      <button type="button" class="btn-icone direct-novo-grupo" data-abrir-modal="modal-novo-grupo" title="Novo grupo" aria-label="Novo grupo">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+      </button>
     </div>
 
     {{! Notas (estilo Instagram): balãozinho acima do avatar, "Sua nota" primeiro.
@@ -61,8 +63,9 @@
         <div class="direct-secao">💬 Escritório</div>
       {{/if}}
 
-      {{#each equipe}}
-        <a class="conv {{#if (eq @root.conversa.id this.id_usuario)}}ativa{{/if}}{{#if this.naoLidas}} tem-novas{{/if}}" href="/mensagens/u/{{this.id_usuario}}" data-conv-u="{{this.id_usuario}}">
+      {{#each lista}}
+        {{#if this.ehGrupo}}{{> convGrupo}}{{else}}
+        <a class="conv {{#if (eq @root.conversa.tipo "u")}}{{#if (eq @root.conversa.id this.id_usuario)}}ativa{{/if}}{{/if}}{{#if this.naoLidas}} tem-novas{{/if}}" href="/mensagens/u/{{this.id_usuario}}" data-conv-u="{{this.id_usuario}}">
           <span class="conv-av{{#if this.temStory}} st-anel {{#if this.storyVisto}}st-visto{{else}}st-tem{{/if}}{{/if}}"{{#if this.temStory}} data-ver-stories="{{this.id_usuario}}" title="Ver o story de {{this.nome}}"{{/if}}>{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</span>
           <i class="online-dot" data-online-de="{{this.id_usuario}}"{{#unless this.online}} hidden{{/unless}} title="Ativo agora"></i>
           <div class="conv-txt">
@@ -71,6 +74,7 @@
           </div>
           {{#if this.naoLidas}}<span class="conv-badge">{{this.naoLidas}}</span>{{/if}}
         </a>
+        {{/if}}
       {{else}}
         <div class="direct-vazio-lista">Ninguém aprovado por aqui ainda.</div>
       {{/each}}
@@ -83,16 +87,18 @@
         <a href="/mensagens" class="dm-voltar" aria-label="Voltar para a lista">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </a>
-        <span class="conv-av {{#if conversa.anonimo}}anjo-av{{/if}}">
-          {{#if (eq conversa.tipo "protegido")}}
+        <span class="conv-av {{#if conversa.anonimo}}anjo-av{{/if}}{{#if conversa.grupo}} grupo-av{{/if}}">
+          {{#if conversa.grupo}}
+            {{#each conversa.amostra}}<span class="grupo-av-m">{{#if this.foto}}<img src="{{this.foto}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</span>{{else}}<span class="grupo-av-m">👥</span>{{/each}}
+          {{else}}{{#if (eq conversa.tipo "protegido")}}
             <span class="sig-emoji" aria-hidden="true">👀</span>
             <span class="sig-foto">{{#if conversa.foto}}<img src="{{conversa.foto}}" alt="">{{else}}{{inicial conversa.titulo}}{{/if}}</span>
             <span class="conv-mascara">🎭</span>
           {{else}}
             {{#if conversa.anonimo}}😇{{else}}{{#if conversa.foto}}<img src="{{conversa.foto}}" alt="">{{else}}{{inicial conversa.titulo}}{{/if}}{{/if}}
-          {{/if}}
+          {{/if}}{{/if}}
         </span>
-        <div class="dm-cab-txt">
+        <div class="dm-cab-txt"{{#if conversa.grupo}} data-abrir-modal="modal-grupo" role="button" tabindex="0" title="Participantes"{{/if}}>
           <div class="dm-cab-nome">{{#if (eq conversa.tipo "protegido")}}<span class="sig-generico">Seu protegido</span><span class="sig-real">{{conversa.titulo}}</span>{{else}}{{conversa.titulo}}{{/if}}{{#if conversa.secreto}} <span class="tag-secreto">🎭 anjo secreto</span>{{/if}}</div>
           <div class="dm-cab-sub" data-dm-sub data-rotulo="{{conversa.rotulo}}"{{#if conversa.online}} data-online="1"{{/if}}>{{#if conversa.online}}<span class="dm-ativo">ativo agora</span>{{else}}{{conversa.rotulo}}{{/if}}</div>
         </div>
@@ -108,6 +114,11 @@
           </button>
           <a href="/u/{{conversa.usuario}}" class="btn btn-secundario btn-sm dm-verperfil">Ver perfil</a>
         {{/if}}{{/unless}}
+        {{#if conversa.grupo}}
+          <button type="button" class="btn-icone dm-grupo-btn" data-abrir-modal="modal-grupo" title="Participantes" aria-label="Participantes">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </button>
+        {{/if}}
       </header>
 
       <div class="dm-msgs" id="dmMsgs" data-editar-url="/mensagens/editar">
@@ -119,7 +130,7 @@
           {{/if}}
         {{/if}}
         {{#each conversa.mensagens}}
-          {{> dmBolha}}
+          {{#if this.sistema}}{{> dmSistema}}{{else}}{{> dmBolha}}{{/if}}
         {{else}}
           {{#if (eq conversa.tipo "protegido")}}
             <div class="dm-inicio">Ainda não há mensagens. Mande um oi anônimo para começar.</div>
@@ -231,6 +242,50 @@
         </button>
       {{/each}}
     </div>
+  </div>
+</div>
+{{/if}}
+
+{{! Novo grupo: nome + participantes (seletor de pessoas) }}
+<div class="modal sheet-share" id="modal-novo-grupo" hidden aria-hidden="true">
+  <div class="modal-card share-card grupo-card">
+    <div class="sheet-cab sempre">
+      <span class="sheet-grab" aria-hidden="true"></span>
+      <span class="sheet-titulo">Novo grupo</span>
+      <button type="button" class="sheet-x" data-fechar-modal="modal-novo-grupo" aria-label="Fechar">&times;</button>
+    </div>
+    <label class="grupo-label" for="ng-nome">Nome do grupo</label>
+    <input type="text" id="ng-nome" class="grupo-input" maxlength="60" placeholder="Ex.: Equipe cível" autocomplete="off" data-ng-nome>
+    <div class="grupo-label-linha"><span class="grupo-label">Participantes</span><button type="button" class="grupo-add" data-ng-escolher>+ Escolher pessoas</button></div>
+    <div class="grupo-chips" data-ng-chips></div>
+    <div class="share-rodape"><button type="button" class="btn btn-primario share-enviar" data-ng-criar disabled>Criar grupo</button></div>
+  </div>
+</div>
+
+{{#if conversa.grupo}}
+{{! Participantes do grupo aberto: renomear, adicionar, sair }}
+<div class="modal sheet-share" id="modal-grupo" hidden aria-hidden="true">
+  <div class="modal-card share-card grupo-card">
+    <div class="sheet-cab sempre">
+      <span class="sheet-grab" aria-hidden="true"></span>
+      <span class="sheet-titulo">Grupo</span>
+      <button type="button" class="sheet-x" data-fechar-modal="modal-grupo" aria-label="Fechar">&times;</button>
+    </div>
+    <label class="grupo-label" for="g-nome">Nome</label>
+    <div class="grupo-nome-linha">
+      <input type="text" id="g-nome" class="grupo-input" value="{{conversa.titulo}}" maxlength="60" autocomplete="off" data-g-nome>
+      <button type="button" class="btn btn-secundario btn-sm" data-g-renomear>Salvar</button>
+    </div>
+    <div class="grupo-label-linha"><span class="grupo-label">{{conversa.membros.length}} participantes</span><button type="button" class="grupo-add" data-g-adicionar>+ Adicionar</button></div>
+    <div class="share-lista grupo-membros">
+      {{#each conversa.membros}}
+        <a class="share-item" href="/u/{{this.usuario}}">
+          <span class="share-av">{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</span>
+          <span class="share-txt"><span class="share-nome">{{this.nome}}{{#if (eq this.id_usuario @root.usuario.id_usuario)}} (você){{/if}}</span><span class="share-user">@{{this.usuario}}{{#if this.admin}} · criou o grupo{{/if}}</span></span>
+        </a>
+      {{/each}}
+    </div>
+    <button type="button" class="grupo-sair" data-g-sair>Sair do grupo</button>
   </div>
 </div>
 {{/if}}

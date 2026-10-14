@@ -15,6 +15,7 @@ const preferenciaService = require('../services/preferencia.service');
 const campanhaService = require('../services/campanha.service');
 const mensagemService = require('../services/mensagem.service');
 const dmService = require('../services/mensagemDireta.service');
+const grupoService = require('../services/grupo.service');
 const sorteioService = require('../services/sorteio.service');
 const participanteService = require('../services/participante.service');
 const temaService = require('../services/tema.service');
@@ -73,6 +74,7 @@ async function carregarContextoApp(req, res, next) {
     // Campanha ativa: alimenta o contador de não lidas e a roleta de revelação.
     const campanha = await campanhaService.buscarCampanhaAtiva();
     let totalMsg = await dmService.contarNaoLidasTotal(me);
+    totalMsg += await grupoService.contarNaoLidasTotal(me);
     if (campanha) totalMsg += await mensagemService.contarNaoLidas(campanha.id_campanha, me);
     res.locals.msgNaoLidas = totalMsg;
 

@@ -473,3 +473,36 @@ CREATE INDEX IF NOT EXISTS idx_logs_acao              ON logs_sistema(acao);
 -- bloco de posts recria a restrição sem a coluna enquete_pergunta.
 ALTER TABLE posts DROP CONSTRAINT IF EXISTS posts_conteudo;
 ALTER TABLE posts ADD CONSTRAINT posts_conteudo CHECK (texto IS NOT NULL OR imagem IS NOT NULL OR video IS NOT NULL OR enquete_pergunta IS NOT NULL);
+
+-- Grupos do Direct do escritório (como grupos do Instagram/WhatsApp)
+CREATE TABLE IF NOT EXISTS grupos (
+  id_grupo    SERIAL PRIMARY KEY,
+  nome        VARCHAR(60) NOT NULL,
+  foto        TEXT,
+  criado_por  INTEGER REFERENCES usuarios(id_usuario) ON DELETE SET NULL,
+  criado_em   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS grupo_membros (
+  id_grupo    INTEGER NOT NULL REFERENCES grupos(id_grupo) ON DELETE CASCADE,
+  id_usuario  INTEGER NOT NULL REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
+  admin       BOOLEAN NOT NULL DEFAULT FALSE,
+  entrou_em   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  lida_ate    INTEGER NOT NULL DEFAULT 0, -- id da última mensagem que a pessoa viu
+  PRIMARY KEY (id_grupo, id_usuario)
+);
+CREATE INDEX IF NOT EXISTS idx_grupo_membros_usuario ON grupo_membros (id_usuario);
+CREATE TABLE IF NOT EXISTS grupo_mensagens (
+  id_mensagem    SERIAL PRIMARY KEY,
+  id_grupo       INTEGER NOT NULL REFERENCES grupos(id_grupo) ON DELETE CASCADE,
+  id_remetente   INTEGER REFERENCES usuarios(id_usuario) ON DELETE SET NULL,
+  texto          TEXT,
+  imagem         TEXT,
+  audio          TEXT,
+  video          TEXT,
+  sistema        BOOLEAN NOT NULL DEFAULT FALSE, -- "Fulano criou o grupo", "saiu", "adicionou"…
+  respondendo_a  INTEGER,
+  editado_em     TIMESTAMPTZ,
+  apagada_em     TIMESTAMPTZ,
+  criado_em      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_grupo_mensagens_grupo ON grupo_mensagens (id_grupo, id_mensagem);

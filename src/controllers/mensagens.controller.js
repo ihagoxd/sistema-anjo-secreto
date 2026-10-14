@@ -20,6 +20,8 @@ const campanhaService = require('../services/campanha.service');
 const sorteioService = require('../services/sorteio.service');
 const mensagemService = require('../services/mensagem.service');
 const dmService = require('../services/mensagemDireta.service');
+const grupoService = require('../services/grupo.service');
+const render = require('../services/render.service');
 const conversaService = require('../services/conversa.service');
 const notificacaoService = require('../services/notificacao.service');
 const tempoReal = require('../services/tempoReal.service');
@@ -37,6 +39,8 @@ const MSG = {
   SEM_VINCULO: 'Você não está participando desta campanha.',
   ALVO_INVALIDO: 'Destinatário inválido.',
   NAO_PERMITIDO: 'Não foi possível editar a mensagem.',
+  NOME: 'Dê um nome ao grupo.',
+  SEM_MEMBROS: 'Escolha pelo menos uma pessoa.',
 };
 
 function ehFetch(req) {
@@ -47,6 +51,7 @@ function ehFetch(req) {
 const CTX_ANJO = { tipo: 'anjo', escopo: 'game', titulo: 'Seu anjo', rotuloResposta: 'Seu anjo' };
 function ctxProtegido(nome) { return { tipo: 'protegido', escopo: 'game', titulo: nome, rotuloResposta: 'Seu protegido' }; }
 function ctxDm(nome) { return { tipo: 'u', escopo: 'dm', titulo: nome, rotuloResposta: nome }; }
+function ctxGrupo(nome) { return { tipo: 'g', escopo: 'g', titulo: nome, rotuloResposta: nome, grupo: true }; }
 
 // Monta o "estado" comum (lista de conversas + jogo) — usado no GET.
 async function montarContexto(me) {
@@ -73,7 +78,7 @@ async function montarContexto(me) {
     naoLidas: resumo.naoLidas[u.id_usuario] || 0,
     online: tempoReal.online(u.id_usuario),
   }));
-  equipe.sort((a, b) => {
+  const ordem = (a, b) => {
     const au = a.naoLidas > 0 ? 1 : 0;
     const bu = b.naoLidas > 0 ? 1 : 0;
     if (au !== bu) return bu - au;
@@ -81,9 +86,13 @@ async function montarContexto(me) {
     const bt = b.ultima ? new Date(b.ultima.criado_em).getTime() : 0;
     if (at !== bt) return bt - at;
     return String(a.nome).localeCompare(String(b.nome));
-  });
+  };
+  equipe.sort(ordem);
+  // Grupos entram na mesma lista das pessoas, ordenados pela última mensagem (como no Instagram).
+  const grupos = await grupoService.listarDoUsuario(me);
+  const lista = equipe.concat(grupos).sort(ordem);
 
-  return { campanha, protegido, participaJogo, unread, equipe };
+  return { campanha, protegido, participaJogo, unread, equipe, lista };
 }
 
 // Avisa o OUTRO lado que eu li a thread (vira "Visto" debaixo da última mensagem dele)
@@ -91,6 +100,7 @@ async function montarContexto(me) {
 async function avisarLeitura(me, canal, idOutro, campanha) {
   try {
     await notificacaoService.lerConversa(me, canal, idOutro);
+    if (canal === 'g') return; // grupo não tem "Visto"
     if (canal === 'u') { tempoReal.publicar(idOutro, 'dm-lida', { por: me, canal: 'u' }); return; }
     if (!campanha) return;
     if (canal === 'anjo') {
@@ -141,6 +151,20 @@ async function renderInbox(req, res, sel) {
         if (alvo) alvo.naoLidas = 0;
         avisarLeitura(me, 'u', outro.id_usuario, null);
       }
+    } else if (sel.tipo === 'g') {
+      const g = await grupoService.abrir(me, sel.id);
+      if (g) {
+        await grupoService.marcarLidas(me, sel.id);
+        const msgs = await grupoService.listarConversa(sel.id, me);
+        conversa = Object.assign({
+          id: sel.id, rotulo: g.membros.length + ' participantes', foto: g.grupo.foto, membros: g.membros,
+          amostra: g.membros.filter((m) => m.id_usuario !== me).slice(0, 2).map((m) => ({ nome: m.nome, foto: m.foto_perfil })),
+          mensagens: msgs, action: '/mensagens/g/' + sel.id, placeholder: 'Mensagem…',
+        }, ctxGrupo(g.grupo.nome));
+        const item = ctx.lista.find((i) => i.ehGrupo && i.id_grupo === sel.id);
+        if (item) { item.naoLidas = 0; item.ativa = true; }
+        avisarLeitura(me, 'g', sel.id, null);
+      }
     }
   }
 
@@ -167,6 +191,7 @@ async function renderInbox(req, res, sel) {
     protegido: ctx.protegido,
     unread: ctx.unread,
     equipe: ctx.equipe,
+    lista: ctx.lista,
     conversa,
     limite: mensagemService.LIMITE,
     humorEu,
@@ -201,6 +226,7 @@ const getInbox = (req, res, next) => renderInbox(req, res, null).catch(next);
 const getAnjo = (req, res, next) => renderInbox(req, res, { tipo: 'anjo' }).catch(next);
 const getProtegido = (req, res, next) => renderInbox(req, res, { tipo: 'protegido' }).catch(next);
 const getDireta = (req, res, next) => renderInbox(req, res, { tipo: 'u', id: Number(req.params.id), prefill: req.query.texto }).catch(next);
+const getGrupo = (req, res, next) => renderInbox(req, res, { tipo: 'g', id: Number(req.params.id) }).catch(next);
 
 // ---------- Envio ----------
 // Mídia opcional da mensagem (multer .fields): imagem e/ou áudio de voz.
@@ -276,12 +302,112 @@ async function postDireta(req, res, next) {
   } catch (err) { next(err); }
 }
 
+async function postGrupo(req, res, next) {
+  try {
+    const me = req.session.usuario.id_usuario;
+    const id = Number(req.params.id);
+    const { imagem, audio, video } = midiaDaRequisicao(req);
+    const ajax = ehFetch(req);
+    const r = await grupoService.enviar(me, id, req.body.mensagem, imagem, audio, video, req.body.responder_a || null);
+    if (!r.ok) {
+      if (ajax) return res.status(400).json({ erro: MSG[r.motivo] || 'Não foi possível enviar.' });
+      req.session.flash = { erro: MSG[r.motivo] || 'Não foi possível enviar.' };
+      return res.redirect('/mensagens/g/' + id);
+    }
+    const ctx = ctxGrupo(r.grupo.nome);
+    // Para os outros a bolha é igual (deles, com o autor): renderiza uma vez só.
+    const [htmlMeu, htmlDeles, eu] = await Promise.all([
+      conversaService.bolhaGrupo(r.id_mensagem, me, ctx),
+      conversaService.bolhaGrupo(r.id_mensagem, 0, ctx),
+      usuarioModel.buscarPorId(me),
+    ]);
+    const corpo = conversaService.previaDe({ texto: String(req.body.mensagem || '').trim(), imagem, audio, video });
+    const previa = (eu ? eu.nome.split(' ')[0] : 'Alguém') + ': ' + corpo;
+    r.membros.forEach((m) => tempoReal.publicar(m, 'dm', { canal: 'g', grupo: id, de: me, id_mensagem: r.id_mensagem, html: htmlDeles, previa }));
+    tempoReal.publicar(me, 'dm', { canal: 'g', grupo: id, de: me, id_mensagem: r.id_mensagem, html: htmlMeu, previa: corpo, eco: true });
+    if (ajax) return res.json({ ok: true, id_mensagem: r.id_mensagem, html: htmlMeu });
+    res.redirect('/mensagens/g/' + id);
+  } catch (err) { next(err); }
+}
+
+// ---------- Grupos: criar, adicionar gente, sair, renomear ----------
+// Mensagem de sistema (pílula) para todo mundo do grupo, ao vivo.
+async function avisarGrupo(idGrupo, nomeGrupo, idMensagem, texto, membros) {
+  const html = await conversaService.bolhaGrupo(idMensagem, 0, ctxGrupo(nomeGrupo));
+  membros.forEach((m) => tempoReal.publicar(m, 'dm', { canal: 'g', grupo: idGrupo, id_mensagem: idMensagem, html, previa: texto, sistema: true }));
+}
+
+async function postCriarGrupo(req, res, next) {
+  try {
+    const me = req.session.usuario.id_usuario;
+    const r = await grupoService.criar(me, req.body.nome, req.body.membros);
+    if (!r.ok) return res.status(400).json({ ok: false, erro: MSG[r.motivo] || 'Não foi possível criar o grupo.' });
+    r.membros.forEach((m) => tempoReal.publicar(m, 'grupo', { acao: 'novo', id_grupo: r.id_grupo, nome: r.nome }));
+    res.json({ ok: true, id_grupo: r.id_grupo, url: '/mensagens/g/' + r.id_grupo });
+  } catch (err) { next(err); }
+}
+
+async function postGrupoMembros(req, res, next) {
+  try {
+    const me = req.session.usuario.id_usuario;
+    const id = Number(req.params.id);
+    const r = await grupoService.adicionar(me, id, req.body.membros);
+    if (!r.ok) return res.status(400).json({ ok: false, erro: MSG[r.motivo] || 'Não foi possível adicionar.' });
+    r.novos.forEach((m) => tempoReal.publicar(m, 'grupo', { acao: 'novo', id_grupo: id, nome: r.grupo.nome }));
+    await avisarGrupo(id, r.grupo.nome, r.id_mensagem, r.texto, r.membros);
+    res.json({ ok: true, novos: r.novos });
+  } catch (err) { next(err); }
+}
+
+async function postGrupoSair(req, res, next) {
+  try {
+    const me = req.session.usuario.id_usuario;
+    const id = Number(req.params.id);
+    const r = await grupoService.sair(me, id);
+    if (!r.ok) return res.status(400).json({ ok: false, erro: 'Você não está neste grupo.' });
+    tempoReal.publicar(me, 'grupo', { acao: 'saiu', id_grupo: id });
+    if (!r.apagado) await avisarGrupo(id, r.grupo.nome, r.id_mensagem, r.texto, r.membros);
+    res.json({ ok: true, url: '/mensagens' });
+  } catch (err) { next(err); }
+}
+
+async function postGrupoNome(req, res, next) {
+  try {
+    const me = req.session.usuario.id_usuario;
+    const id = Number(req.params.id);
+    const r = await grupoService.renomear(me, id, req.body.nome);
+    if (!r.ok) return res.status(400).json({ ok: false, erro: MSG[r.motivo] || 'Não foi possível renomear.' });
+    r.membros.forEach((m) => tempoReal.publicar(m, 'grupo', { acao: 'nome', id_grupo: id, nome: r.nome }));
+    await avisarGrupo(id, r.nome, r.id_mensagem, r.texto, r.membros);
+    res.json({ ok: true, nome: r.nome });
+  } catch (err) { next(err); }
+}
+
+// Item da lista (HTML pronto) para entrar ao vivo quando me colocam num grupo novo.
+async function getGrupoItem(req, res, next) {
+  try {
+    const me = req.session.usuario.id_usuario;
+    const id = Number(req.params.id);
+    const item = (await grupoService.listarDoUsuario(me)).find((g) => g.id_grupo === id);
+    if (!item) return res.status(404).json({ ok: false });
+    res.json({ ok: true, html: await render.partial('convGrupo', item) });
+  } catch (err) { next(err); }
+}
+
 // ---------- "digitando…" (sem banco: só um evento para o outro lado) ----------
 async function postDigitando(req, res, next) {
   try {
     const me = req.session.usuario.id_usuario;
-    const canal = req.params.canal; // 'anjo' | 'protegido' | 'u'
-    if (canal === 'u') {
+    const canal = req.params.canal; // 'anjo' | 'protegido' | 'u' | 'g'
+    if (canal === 'g') {
+      const id = Number(req.params.id);
+      const g = await grupoService.abrir(me, id);
+      if (g) {
+        const eu = g.membros.find((m) => m.id_usuario === me);
+        const nome = eu ? eu.nome.split(' ')[0] : '';
+        g.membros.forEach((m) => { if (m.id_usuario !== me) tempoReal.publicar(m.id_usuario, 'digitando', { de: me, canal: 'g', grupo: id, nome }); });
+      }
+    } else if (canal === 'u') {
       tempoReal.publicar(Number(req.params.id), 'digitando', { de: me, canal: 'u' });
     } else {
       const campanha = await campanhaService.buscarCampanhaAtiva();
@@ -304,7 +430,11 @@ async function postLidas(req, res, next) {
   try {
     const me = req.session.usuario.id_usuario;
     const canal = req.params.canal;
-    if (canal === 'u') {
+    if (canal === 'g') {
+      const id = Number(req.params.id);
+      await grupoService.marcarLidas(me, id);
+      await avisarLeitura(me, 'g', id, null);
+    } else if (canal === 'u') {
       const id = Number(req.params.id);
       await dmService.marcarLidas(me, id);
       await avisarLeitura(me, 'u', id, null);
@@ -335,7 +465,9 @@ async function getEstado(req, res, next) {
       const u = resumo.ultima[id];
       previas[id] = { minha: !!u.minha, texto: u.texto || '📎 mídia' };
     });
-    res.json({ anjo: unread.anjo, protegido: unread.protegido, porContato: resumo.naoLidas || {}, previas, online: tempoReal.listarOnline() });
+    const grupos = {};
+    (await grupoService.listarDoUsuario(me)).forEach((g) => { grupos[g.id_grupo] = { n: g.naoLidas, previa: g.ultima ? g.ultima.texto : null }; });
+    res.json({ anjo: unread.anjo, protegido: unread.protegido, porContato: resumo.naoLidas || {}, previas, grupos, online: tempoReal.listarOnline() });
   } catch (err) {
     next(err);
   }
@@ -349,6 +481,7 @@ async function postEditar(req, res, next) {
     const id = Number(req.body.id);
     let r;
     if (escopo === 'dm') r = await dmService.editar(me, id, req.body.texto);
+    else if (escopo === 'g') r = await grupoService.editar(me, id, req.body.texto);
     else r = await mensagemService.editarMensagem(me, id, req.body.texto);
     if (!r.ok) return res.status(400).json({ erro: MSG[r.motivo] || 'Não foi possível editar.' });
     res.json({ ok: true, texto: r.texto, editada: true });
@@ -363,10 +496,14 @@ async function postApagar(req, res, next) {
     const id = Number(req.body.id);
     let r;
     if (escopo === 'dm') r = await dmService.apagar(me, id);
+    else if (escopo === 'g') r = await grupoService.apagar(me, id);
     else r = await mensagemService.apagarMensagem(me, id);
     if (!r.ok) return res.status(400).json({ erro: 'Não foi possível apagar a mensagem.' });
     res.json({ ok: true });
   } catch (err) { next(err); }
 }
 
-module.exports = { getInbox, getAnjo, getProtegido, getDireta, postAnjo, postProtegido, postDireta, postEditar, postApagar, getEstado, postDigitando, postLidas, postTema };
+module.exports = {
+  getInbox, getAnjo, getProtegido, getDireta, postAnjo, postProtegido, postDireta, postEditar, postApagar, getEstado, postDigitando, postLidas, postTema,
+  getGrupo, postGrupo, postCriarGrupo, postGrupoMembros, postGrupoSair, postGrupoNome, getGrupoItem,
+};

@@ -156,7 +156,7 @@ const helpers = {
     if (!data) return '';
     const d = new Date(data);
     const seg = Math.floor((Date.now() - d.getTime()) / 1000);
-    if (seg < 45) return 'agora';
+    if (seg < 60) return 'agora';
     if (seg < 3600) return `há ${Math.floor(seg / 60)} min`;
     if (seg < 86400) return `há ${Math.floor(seg / 3600)} h`;
     if (seg < 604800) return `há ${Math.floor(seg / 86400)} d`;

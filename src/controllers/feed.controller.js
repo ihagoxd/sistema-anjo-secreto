@@ -6,6 +6,8 @@ const usuarioModel = require('../models/usuario.model');
 const preferenciaService = require('../services/preferencia.service');
 const storyService = require('../services/story.service');
 const temaService = require('../services/tema.service');
+const tempoReal = require('../services/tempoReal.service');
+const render = require('../services/render.service');
 const { montarGostos } = require('../config/gostos');
 
 function ehAdmin(req) {
@@ -27,13 +29,56 @@ function anotarStories(posts, aneis) {
   });
 }
 
+// Tudo que um card precisa para renderizar: comentários, enquetes e anéis de story.
+async function prepararPosts(posts, me) {
+  if (!posts.length) return;
+  const comentarios = await postModel.listarComentariosDeVarios(posts.map((p) => p.id_post));
+  anexarComentarios(posts, comentarios);
+  await postService.anexarEnquetes(posts, me);
+  anotarStories(posts, await storyService.resumoAneis(me));
+}
+
+// HTML de uma lista de cards (sem layout) — rolagem infinita, posts novos, publicação por AJAX.
+function htmlDePosts(req, res, posts) {
+  return new Promise((resolve, reject) => {
+    res.render('feed/_post', { layout: false, posts }, (err, html) => (err ? reject(err) : resolve(html)));
+  });
+}
+
+// Rolagem infinita: próxima página (JSON com o HTML dos cards mais antigos que "antes").
+async function getMais(req, res, next) {
+  try {
+    const me = req.session.usuario.id_usuario;
+    const antes = parseInt(req.query.antes, 10) || 0;
+    if (!antes) return res.json({ html: '', temMais: false, ultimoId: 0 });
+    const { posts, temMais } = await postService.listarFeed(me, antes);
+    await prepararPosts(posts, me);
+    const html = await htmlDePosts(req, res, posts);
+    res.json({ html, temMais, ultimoId: posts.length ? posts[posts.length - 1].id_post : antes });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// Feed ao vivo: cards dos posts publicados depois de "depois" (entram no topo sem recarregar).
+async function getNovos(req, res, next) {
+  try {
+    const me = req.session.usuario.id_usuario;
+    const depois = parseInt(req.query.depois, 10) || 0;
+    const posts = await postService.listarNovos(me, depois);
+    await prepararPosts(posts, me);
+    const html = await htmlDePosts(req, res, posts);
+    res.json({ html, ids: posts.map((p) => p.id_post), maiorId: posts.length ? posts[0].id_post : depois });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function getFeed(req, res, next) {
   try {
     const me = req.session.usuario.id_usuario;
-    const posts = await postService.listarFeed(me);
-    const comentarios = await postModel.listarComentariosDeVarios(posts.map((p) => p.id_post));
-    anexarComentarios(posts, comentarios);
-    await postService.anexarEnquetes(posts, me);
+    const { posts, temMais } = await postService.listarFeed(me);
+    await prepararPosts(posts, me);
     let equipe = await usuarioModel.listarAprovados(me, 30);
     // Anéis dos stories (estilo Instagram): dourado = tem story não visto; cinza = sem story ou tudo visto
     const aneis = await storyService.resumoAneis(me);
@@ -43,7 +88,6 @@ async function getFeed(req, res, next) {
       storyVisto: !!(aneis[u.id_usuario] && aneis[u.id_usuario].tudoVisto),
       storyUltimo: aneis[u.id_usuario] ? new Date(aneis[u.id_usuario].ultimo).getTime() : 0,
     }));
-    anotarStories(posts, aneis);
     const sugestoes = equipe.slice(0, 5); // sidebar segue em ordem alfabética
     // Fileira de stories, como no Instagram: (0) story não visto, com o MAIS RECENTE na
     // frente; (1) quem deixou uma NOTA hoje (mesmo sem story novo); (2) story já visto,
@@ -68,6 +112,8 @@ async function getFeed(req, res, next) {
       equipe,
       sugestoes,
       tenhoStory: !!meuAnel,
+      temMais,
+      ultimoId: posts.length ? posts[posts.length - 1].id_post : 0,
     });
   } catch (err) {
     next(err);
@@ -91,6 +137,7 @@ async function postCriar(req, res, next) {
       ENQUETE_POUCAS: 'A enquete precisa de pelo menos 2 opções.',
       ENQUETE_SEM_PERGUNTA: 'Escreva a pergunta da enquete.',
     };
+    if (r.ok) tempoReal.publicarTodos('post-novo', { id_post: r.id_post, de: req.session.usuario.id_usuario }, req.session.usuario.id_usuario);
     // Publicação fluida (AJAX): devolve o card do post pronto para entrar no topo do mural
     if ((req.get('x-requested-with') || '') === 'fetch') {
       if (!r.ok) return res.status(400).json({ ok: false, erro: ERROS[r.motivo] || 'Escreva algo ou adicione uma foto.' });
@@ -346,4 +393,4 @@ async function getMencoes(req, res, next) {
   }
 }
 
-module.exports = { getFeed, getPost, postCriar, postEditarTexto, postCurtir, getCurtidas, postRepost, postVotar, getEnquete, postEnquetePergunta, postComentar, postRemover, postRemoverComentario, getPerfil, getPerfilReposts, getPerfilGostos, getMencoes, getBusca, getNovidades };
+module.exports = { getFeed, getMais, getNovos, getPost, postCriar, postEditarTexto, postCurtir, getCurtidas, postRepost, postVotar, getEnquete, postEnquetePergunta, postComentar, postRemover, postRemoverComentario, getPerfil, getPerfilReposts, getPerfilGostos, getMencoes, getBusca, getNovidades };

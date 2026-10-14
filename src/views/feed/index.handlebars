@@ -1,5 +1,7 @@
 <div class="mural-layout">
   <div class="mural-centro">
+    {{! Puxar para atualizar (celular): o indicador desce com o dedo e gira enquanto busca }}
+    <div class="ptr" data-ptr aria-hidden="true"><span class="feed-spinner"></span></div>
     {{! Faixa do tema da rede (ex.: Mês das Crianças) — só quando o admin ativa um tema com faixa }}
     {{> temaBanner}}
 
@@ -121,6 +123,11 @@
       {{else}}
         <div class="card card-centro"><p class="texto-suave" style="margin:0;">Nenhuma publicação ainda. Seja o primeiro a postar.</p></div>
       {{/each}}
+    </div>
+    {{! Rolagem infinita: quando este marcador aparece na tela, a próxima página entra sozinha }}
+    <div class="feed-fim" data-feed-mais data-ultimo="{{ultimoId}}"{{#unless temMais}} data-fim="1"{{/unless}}>
+      <span class="feed-spinner" aria-hidden="true"></span>
+      <span class="feed-fim-txt">Você está em dia por aqui</span>
     </div>
   </div>
 

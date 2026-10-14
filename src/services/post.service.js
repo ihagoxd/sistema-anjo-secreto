@@ -130,8 +130,16 @@ async function criarPost(idUsuario, texto, imagemPath, videoPath = null, colabor
   return { ok: true, id_post: novo.id_post };
 }
 
-function listarFeed(idUsuarioAtual) {
-  return postModel.listarFeed(idUsuarioAtual, 60);
+// Primeira página / próximas páginas (rolagem infinita). Pede um a mais para saber se há "mais".
+const FEED_PAGINA = 15;
+async function listarFeed(idUsuarioAtual, antesDe = null) {
+  const rows = await postModel.listarFeed(idUsuarioAtual, FEED_PAGINA + 1, antesDe);
+  const temMais = rows.length > FEED_PAGINA;
+  return { posts: rows.slice(0, FEED_PAGINA), temMais };
+}
+
+function listarNovos(idUsuarioAtual, depois) {
+  return postModel.listarNovosDesde(idUsuarioAtual, depois, 20);
 }
 
 // O dono edita o texto da publicação (escreveu errado, quis completar). Só o texto:
@@ -272,7 +280,7 @@ async function removerComentario(idComentario, idUsuario, ehAdmin) {
 
 module.exports = {
   LIMITE_TEXTO,
-  criarPost, editarPost, listarFeed, buscarPost, perfilPublico,
+  criarPost, editarPost, listarFeed, listarNovos, buscarPost, perfilPublico,
   alternarCurtida, listarCurtidores, alternarRepost, listarRepostados, comentar, listarComentarios,
   removerPost, removerComentario,
   anexarEnquetes, buscarEnquete, votar, montarEnquete, editarPergunta,

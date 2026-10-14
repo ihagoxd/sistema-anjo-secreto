@@ -91,8 +91,21 @@ async function votoDoUsuario(idPost, idUsuario) {
   return (res.rows[0] && res.rows[0].votou) || null;
 }
 
-async function listarFeed(idUsuarioAtual, limite = 50) {
-  const res = await db.query(`${SELECT_POST} ORDER BY p.criado_em DESC LIMIT $2`, [idUsuarioAtual, limite]);
+// Feed paginado por cursor: "antesDe" = id do post mais antigo já na tela (rolagem infinita).
+async function listarFeed(idUsuarioAtual, limite = 50, antesDe = null) {
+  const res = await db.query(
+    `${SELECT_POST} WHERE ($3::int IS NULL OR p.id_post < $3) ORDER BY p.id_post DESC LIMIT $2`,
+    [idUsuarioAtual, limite, antesDe || null]
+  );
+  return res.rows;
+}
+
+// Posts publicados DEPOIS do id informado (feed ao vivo: entram no topo sem recarregar).
+async function listarNovosDesde(idUsuarioAtual, depois, limite = 20) {
+  const res = await db.query(
+    `${SELECT_POST} WHERE p.id_post > $2 ORDER BY p.id_post DESC LIMIT $3`,
+    [idUsuarioAtual, depois || 0, limite]
+  );
   return res.rows;
 }
 
@@ -251,7 +264,7 @@ async function removerComentario(idComentario) {
 }
 
 module.exports = {
-  criar, listarFeed, listarPorUsuario, listarRepostadosPor, buscarPorId, buscarFeedUm, remover, contarNovosDesde, adicionarColaboradores, atualizarTexto,
+  criar, listarFeed, listarNovosDesde, listarPorUsuario, listarRepostadosPor, buscarPorId, buscarFeedUm, remover, contarNovosDesde, adicionarColaboradores, atualizarTexto,
   curtir, descurtir, jaCurtiu, contarCurtidas, listarCurtidores,
   repostar, desfazerRepost, jaRepostou, contarReposts,
   adicionarComentario, listarComentarios, listarComentariosDeVarios, buscarComentario, removerComentario, listarImagensComentarios,

@@ -1999,38 +1999,77 @@
     }
   })();
 
-  /* ---------- Feed ao vivo: checa novidades a cada 25s (e ao voltar pra aba) ----------
-     Post novo → pílula "novas publicações" no topo. Anel de story aparece/atualiza
-     sozinho, sem F5. Nada é injetado no meio do feed — zero risco de quebrar. */
+  /* ---------- Feed ao vivo (SSE + reserva de 25s) + rolagem infinita + puxar para atualizar ----------
+     Post novo de alguém: se você está no topo, entra sozinho (animado); se já rolou,
+     vira a pílula "novas publicações" que insere no topo SEM recarregar. Anéis de story
+     atualizam junto. Rolagem infinita: a próxima página entra quando o fim aparece. ---------- */
   (function () {
     var stories = document.querySelector('.stories');
     var feed = document.querySelector('.feed');
     if (!stories || !feed) return; // só na página do mural
+    var sentinela = document.querySelector('[data-feed-mais]');
     var maiorId = 0;
     document.querySelectorAll('.tw-post[data-id]').forEach(function (p) {
       maiorId = Math.max(maiorId, parseInt(p.getAttribute('data-id'), 10) || 0);
     });
     // Post publicado por mim sem recarregar: não é "novidade" a avisar
     document.addEventListener('feed:novo', function (e) { maiorId = Math.max(maiorId, e.detail | 0); });
-    var aviso = null, buscando = false;
+    var aviso = null, buscando = false, pendentes = 0;
 
+    function inserirHtml(html) {
+      var tmp = document.createElement('div'); tmp.innerHTML = String(html || '').trim();
+      var cards = Array.prototype.slice.call(tmp.children).reverse(); // o mais antigo entra primeiro: o mais novo fica no topo
+      var vazio = feed.querySelector('.card-centro'); if (vazio) vazio.remove();
+      var n = 0;
+      cards.forEach(function (card) {
+        var id = card.getAttribute('data-id');
+        if (id && feed.querySelector('.tw-post[data-id="' + id + '"]')) return;
+        card.classList.add('novo');
+        feed.insertBefore(card, feed.firstChild);
+        setTimeout(function () { card.classList.remove('novo'); }, 2200);
+        n++;
+      });
+      return n;
+    }
+    function esconderAviso() { if (aviso) aviso.hidden = true; pendentes = 0; }
     function mostrarAviso(n) {
       if (!aviso) {
         aviso = document.createElement('button');
         aviso.type = 'button';
         aviso.className = 'feed-novas';
-        aviso.addEventListener('click', function () { window.scrollTo(0, 0); window.location.reload(); });
+        aviso.addEventListener('click', function () { puxarNovos(true); });
         document.body.appendChild(aviso);
       }
+      pendentes = n;
       aviso.textContent = '↑ ' + (n === 1 ? '1 nova publicação' : n + ' novas publicações');
       aviso.hidden = false;
+    }
+    // Busca os posts novos e põe no topo. forcar = clique na pílula (sempre insere e sobe)
+    function puxarNovos(forcar) {
+      if (buscando) return Promise.resolve();
+      buscando = true;
+      return fetch('/feed/novos?depois=' + maiorId, { headers: { 'Accept': 'application/json' } })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+        .then(function (d) {
+          if (!d.ids || !d.ids.length) { esconderAviso(); return; }
+          var noTopo = window.scrollY < 260;
+          if (forcar || noTopo) {
+            inserirHtml(d.html);
+            maiorId = Math.max(maiorId, d.maiorId | 0);
+            esconderAviso();
+            if (forcar) window.scrollTo({ top: 0, behavior: 'smooth' });
+          } else {
+            mostrarAviso(d.ids.length);
+          }
+        })
+        .catch(function () {})
+        .finally(function () { buscando = false; });
     }
 
     function aplicarAneis(d) {
       try {
         var mapa = {};
         (d.aneis || []).forEach(function (a) { mapa[a.id_usuario] = a; });
-        // meu anel: ganhou story (aqui, em outro aparelho ou via repost) → dourado na hora
         var meu = document.querySelector('.story-ring.eu-story');
         if (meu && d.euTenho) {
           meu.classList.remove('sem'); meu.classList.add('tem');
@@ -2040,7 +2079,6 @@
             meu.removeAttribute('data-add-story');
           }
         }
-        // anéis da equipe (só promove/atualiza; reordenação fica pro próximo load)
         document.querySelectorAll('.stories .story[data-usuario-id]').forEach(function (el) {
           var id = parseInt(el.getAttribute('data-usuario-id'), 10);
           var anel = el.querySelector('.story-ring');
@@ -2055,19 +2093,86 @@
     }
 
     function checar() {
-      if (document.hidden || buscando) return;
-      buscando = true;
+      if (document.hidden) return;
       fetch('/feed/novidades?depois=' + maiorId, { headers: { 'Accept': 'application/json' } })
         .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
         .then(function (d) {
-          if (d.novosPosts > 0) mostrarAviso(d.novosPosts);
           aplicarAneis(d);
+          if (d.novosPosts > 0) puxarNovos(false);
         })
-        .catch(function () {})
-        .finally(function () { buscando = false; });
+        .catch(function () {});
     }
     window.setInterval(checar, 25000);
     document.addEventListener('visibilitychange', function () { if (!document.hidden) checar(); });
+    // Tempo real: alguém publicou → busca na hora (um pequeno atraso para o banco gravar as fotos)
+    document.addEventListener('sse:post-novo', function () { setTimeout(function () { puxarNovos(false); }, 400); });
+
+    /* ---- Rolagem infinita ---- */
+    if (sentinela && 'IntersectionObserver' in window) {
+      var carregando = false;
+      function carregarMais() {
+        if (carregando || sentinela.hasAttribute('data-fim')) return;
+        var ultimo = parseInt(sentinela.getAttribute('data-ultimo'), 10) || 0;
+        if (!ultimo) { sentinela.setAttribute('data-fim', '1'); return; }
+        carregando = true;
+        sentinela.classList.add('carregando');
+        fetch('/feed/mais?antes=' + ultimo, { headers: { 'Accept': 'application/json' } })
+          .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+          .then(function (d) {
+            var tmp = document.createElement('div'); tmp.innerHTML = String(d.html || '').trim();
+            Array.prototype.slice.call(tmp.children).forEach(function (card) {
+              var id = card.getAttribute('data-id');
+              if (id && feed.querySelector('.tw-post[data-id="' + id + '"]')) return;
+              feed.appendChild(card);
+            });
+            sentinela.setAttribute('data-ultimo', d.ultimoId || ultimo);
+            if (!d.temMais) sentinela.setAttribute('data-fim', '1');
+          })
+          .catch(function () {})
+          .finally(function () { carregando = false; sentinela.classList.remove('carregando'); if (!sentinela.hasAttribute('data-fim') && estaVisivel(sentinela)) carregarMais(); });
+      }
+      function estaVisivel(el) { var r = el.getBoundingClientRect(); return r.top < window.innerHeight + 200; }
+      new IntersectionObserver(function (entries) {
+        if (entries.some(function (en) { return en.isIntersecting; })) carregarMais();
+      }, { rootMargin: '600px 0px' }).observe(sentinela);
+    }
+
+    /* ---- Puxar para atualizar (toque, no topo da página) ---- */
+    var ptr = document.querySelector('[data-ptr]');
+    if (ptr && window.matchMedia('(pointer: coarse)').matches) {
+      var y0 = -1, puxando = false, dist = 0;
+      var LIMITE = 72;
+      document.addEventListener('touchstart', function (e) {
+        if (window.scrollY > 0 || document.body.classList.contains('sem-scroll')) { y0 = -1; return; }
+        y0 = e.touches[0].clientY; dist = 0; puxando = false;
+      }, { passive: true });
+      document.addEventListener('touchmove', function (e) {
+        if (y0 < 0) return;
+        dist = e.touches[0].clientY - y0;
+        if (dist > 10 && window.scrollY === 0) {
+          puxando = true;
+          var d = Math.min(LIMITE * 1.4, dist * 0.55);
+          ptr.style.transform = 'translateY(' + d + 'px)';
+          ptr.style.opacity = String(Math.min(1, d / LIMITE));
+          ptr.classList.toggle('pronto', d >= LIMITE);
+        }
+      }, { passive: true });
+      function soltar() {
+        if (!puxando) { y0 = -1; return; }
+        var pronto = ptr.classList.contains('pronto');
+        puxando = false; y0 = -1;
+        if (!pronto) { ptr.style.transform = ''; ptr.style.opacity = ''; ptr.classList.remove('pronto'); return; }
+        ptr.classList.add('girando');
+        ptr.style.transform = 'translateY(' + LIMITE + 'px)';
+        try { if (navigator.vibrate) navigator.vibrate(12); } catch (x) {}
+        Promise.all([puxarNovos(true), fetch('/feed/novidades?depois=' + maiorId, { headers: { 'Accept': 'application/json' } }).then(function (r) { return r.json(); }).then(aplicarAneis).catch(function () {})])
+          .finally(function () {
+            setTimeout(function () { ptr.classList.remove('girando', 'pronto'); ptr.style.transform = ''; ptr.style.opacity = ''; }, 250);
+          });
+      }
+      document.addEventListener('touchend', soltar, { passive: true });
+      document.addEventListener('touchcancel', soltar, { passive: true });
+    }
   })();
 
   /* ---------- Direct ao vivo (SSE) ----------

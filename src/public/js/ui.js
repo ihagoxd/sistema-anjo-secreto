@@ -2631,6 +2631,39 @@
     });
   })();
 
+  /* ---------- Pesquisa do Direct: filtra a lista na hora (nome, @usuário, grupo), sem recarregar ---------- */
+  (function () {
+    var inp = document.querySelector('[data-direct-busca]');
+    var scroll = document.querySelector('.direct-scroll');
+    if (!inp || !scroll) return;
+    var x = document.querySelector('[data-direct-busca-x]');
+    var notas = document.querySelector('.notas');
+    var vazio = null;
+    function norm(t) { return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+    function filtrar() {
+      var q = norm(inp.value.trim());
+      if (x) x.hidden = !q;
+      var n = 0;
+      scroll.querySelectorAll('.conv').forEach(function (c) {
+        var nome = c.querySelector('.conv-nome');
+        var txt = norm((c.getAttribute('data-busca') || '') + ' ' + (nome ? nome.textContent : ''));
+        var ok = !q || txt.indexOf(q) >= 0;
+        c.hidden = !ok; if (ok) n++;
+      });
+      scroll.querySelectorAll('.direct-secao').forEach(function (sec) { sec.hidden = !!q; });
+      if (notas) notas.hidden = !!q;
+      if (!vazio) { vazio = document.createElement('div'); vazio.className = 'direct-vazio-lista'; vazio.hidden = true; scroll.appendChild(vazio); }
+      vazio.textContent = 'Nenhuma conversa com "' + inp.value.trim() + '".';
+      vazio.hidden = !q || n > 0;
+      scroll.scrollTop = 0;
+    }
+    inp.addEventListener('input', filtrar);
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Escape') { inp.value = ''; filtrar(); inp.blur(); } });
+    if (x) x.addEventListener('click', function () { inp.value = ''; filtrar(); inp.focus(); });
+    // Item novo que entra ao vivo (grupo/mensagem) respeita o filtro atual
+    new MutationObserver(function () { if (inp.value.trim()) filtrar(); }).observe(scroll, { childList: true });
+  })();
+
   /* ---------- Grupos do Direct: criar, adicionar gente, renomear, sair ---------- */
   (function () {
     var direct = document.querySelector('.direct');
@@ -2727,6 +2760,51 @@
         post('/mensagens/g/' + id + '/sair').then(function (j) { location.href = j.url; }).catch(function (e) { toast(e.message); });
       });
     }
+  })();
+
+  /* ---------- Abas do perfil sem recarregar (Publicações / Reposts / Gostos / Salvos):
+     busca só o conteúdo da aba por fetch, troca na hora e atualiza a URL (voltar funciona). ---------- */
+  (function () {
+    var cont = document.querySelector('[data-aba-conteudo]');
+    var tabs = document.querySelector('.tw-tabs');
+    if (!cont || !tabs || !window.fetch || !window.history.pushState) return;
+    var atual = null;
+    function ativar(href) {
+      tabs.querySelectorAll('.tw-tab').forEach(function (t) { t.classList.toggle('ativo', t.getAttribute('href') === href); });
+    }
+    function carregar(href, empurrar) {
+      if (atual) atual.abort();
+      var ctrl = window.AbortController ? new AbortController() : null;
+      atual = ctrl;
+      cont.classList.add('trocando');
+      ativar(href);
+      fetch(href, { headers: { 'X-Requested-With': 'fetch', 'Accept': 'application/json' }, signal: ctrl ? ctrl.signal : undefined })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(new Error('http')); })
+        .then(function (d) {
+          if (!d || !d.html) throw new Error('vazio');
+          cont.innerHTML = d.html;
+          cont.classList.remove('trocando');
+          if (empurrar) history.pushState({ abaPerfil: href }, '', href);
+          var r = tabs.getBoundingClientRect();
+          if (r.top < 0) tabs.scrollIntoView({ block: 'start', behavior: 'smooth' });
+        })
+        .catch(function (e) {
+          if (e && e.name === 'AbortError') return;
+          location.href = href; // qualquer problema: navega normal
+        });
+    }
+    tabs.addEventListener('click', function (e) {
+      var a = e.target.closest('a.tw-tab');
+      if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button === 1) return;
+      e.preventDefault();
+      if (a.classList.contains('ativo')) return;
+      carregar(a.getAttribute('href'), true);
+    });
+    history.replaceState({ abaPerfil: location.pathname }, '', location.href);
+    window.addEventListener('popstate', function (e) {
+      var href = e.state && e.state.abaPerfil;
+      if (href && tabs.querySelector('.tw-tab[href="' + href + '"]')) carregar(href, false);
+    });
   })();
 
   /* ---------- Avatar do perfil: TOQUE abre o story (se houver) ou amplia a foto;

@@ -66,84 +66,9 @@
     {{#if (eq alvo.id_usuario usuario.id_usuario)}}<a href="/u/{{alvo.usuario}}/salvos" class="tw-tab {{#if (eq aba "salvos")}}ativo{{/if}}" title="Só você vê">Salvos</a>{{/if}}
   </div>
 
-  {{#if (eq aba "gostos")}}
-    {{#if gostosTema.length}}<div class="tw-gostos-tema">{{> gostosTema nome=alvo.nome}}</div>{{/if}}
-    {{#if (ou gostos.length fotosGosta.length)}}
-      <div class="tw-gostos">
-        <div class="tw-gostos-intro">O que faz {{alvo.nome}} feliz</div>
-        {{#each gostos}}
-          <div class="tw-gosto">
-            <span class="tw-gosto-emoji">{{this.emoji}}</span>
-            <div class="tw-gosto-txt">
-              <div class="tw-gosto-rotulo">{{this.rotulo}}</div>
-              <div class="tw-gosto-valor">{{this.valor}}</div>
-            </div>
-          </div>
-        {{/each}}
-        {{#if fotosGosta.length}}
-          <div class="tw-fotos-tit">📸 Fotos de ideias</div>
-          {{> galeriaGosta fotos=fotosGosta}}
-        {{/if}}
-      </div>
-    {{else}}{{#unless gostosTema.length}}
-      <div class="tw-vazio">
-        {{#if (eq alvo.id_usuario usuario.id_usuario)}}
-          <div class="tw-vazio-tit">Conte o que você gosta</div>
-          <p>Preencha suas preferências pra galera acertar no seu presente.</p>
-          <a href="/participante/preferencias" class="btn btn-primario btn-sm">Preencher preferências</a>
-        {{else}}
-          <div class="tw-vazio-tit">Ainda é um mistério 🤔</div>
-          <p>{{alvo.nome}} ainda não contou o que gosta.</p>
-        {{/if}}
-      </div>
-    {{/unless}}{{/if}}
-
-  {{else if (eq aba "salvos")}}
-    {{#if posts.length}}
-      <div class="feed feed-perfil">
-        {{#each posts}}{{> postCard}}{{/each}}
-      </div>
-    {{else}}
-      <div class="tw-vazio">
-        <div class="tw-vazio-tit">Nada salvo ainda</div>
-        <p>Toque no marcador de uma publicação para guardar aqui. Só você vê.</p>
-      </div>
-    {{/if}}
-
-  {{else if (eq aba "reposts")}}
-    {{#if posts.length}}
-      <div class="feed feed-perfil">
-        {{#each posts}}{{> postCard}}{{/each}}
-      </div>
-    {{else}}
-      <div class="tw-vazio">
-        <div class="tw-vazio-tit">Nenhum repost ainda 🔁</div>
-        {{#if (eq alvo.id_usuario usuario.id_usuario)}}
-          <p>Ao repostar uma publicação, ela aparece aqui.</p>
-        {{else}}
-          <p>{{alvo.nome}} ainda não repostou nada.</p>
-        {{/if}}
-      </div>
-    {{/if}}
-
-  {{else}}
-    {{#if posts.length}}
-      <div class="feed feed-perfil">
-        {{#each posts}}{{> postCard}}{{/each}}
-      </div>
-    {{else}}
-      <div class="tw-vazio">
-        {{#if (eq alvo.id_usuario usuario.id_usuario)}}
-          <div class="tw-vazio-tit">Você ainda não publicou nada</div>
-          <p>Quando você compartilhar algo no feed, aparece aqui no seu perfil.</p>
-          <a href="/feed" class="btn btn-primario btn-sm">Publicar no feed</a>
-        {{else}}
-          <div class="tw-vazio-tit">Nada por aqui ainda</div>
-          <p>{{alvo.nome}} ainda não publicou nada.</p>
-        {{/if}}
-      </div>
-    {{/if}}
-  {{/if}}
+  <div class="tw-aba-conteudo" data-aba-conteudo>
+    {{> perfilAba}}
+  </div>
 </div>
 
 {{#if (eq alvo.id_usuario usuario.id_usuario)}}

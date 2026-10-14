@@ -8,6 +8,13 @@
       </button>
     </div>
 
+    {{! Pesquisa (como no Direct do Instagram): filtra as conversas na hora, sem recarregar }}
+    <div class="direct-busca">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="search" placeholder="Pesquisar" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="60" aria-label="Pesquisar conversas" data-direct-busca>
+      <button type="button" class="direct-busca-x" data-direct-busca-x aria-label="Limpar" hidden>&times;</button>
+    </div>
+
     {{! Notas (estilo Instagram): balãozinho acima do avatar, "Sua nota" primeiro.
         Identidade pública do escritório — não toca nos canais secretos do jogo. }}
     <div class="notas">
@@ -32,7 +39,7 @@
           <span class="secao-hint">anônimo · só você vê</span>
         </div>
 
-        <a class="conv fixado conv-secreto {{#if (eq conversa.tipo "anjo")}}ativa{{/if}}{{#if unread.anjo}} tem-novas{{/if}}" href="/mensagens/anjo">
+        <a class="conv fixado conv-secreto {{#if (eq conversa.tipo "anjo")}}ativa{{/if}}{{#if unread.anjo}} tem-novas{{/if}}" href="/mensagens/anjo" data-busca="seu anjo anonimo">
           <span class="conv-av anjo-av">😇</span>
           <div class="conv-txt">
             <div class="conv-nome">Seu anjo <span class="tag-secreto">anônimo</span></div>
@@ -41,7 +48,7 @@
           {{#if unread.anjo}}<span class="conv-badge">{{unread.anjo}}</span>{{/if}}
         </a>
 
-        <a class="conv fixado conv-secreto sigilo {{#if (eq conversa.tipo "protegido")}}ativa{{/if}}{{#if unread.protegido}} tem-novas{{/if}}" href="/mensagens/protegido" data-sigilo>
+        <a class="conv fixado conv-secreto sigilo {{#if (eq conversa.tipo "protegido")}}ativa{{/if}}{{#if unread.protegido}} tem-novas{{/if}}" href="/mensagens/protegido" data-sigilo data-busca="seu protegido {{protegido.nome}}">
           <span class="conv-av">
             <span class="sig-emoji" aria-hidden="true">👀</span>
             <span class="sig-foto">{{#if protegido.foto_perfil}}<img src="{{protegido.foto_perfil}}" alt="">{{else}}{{inicial protegido.nome}}{{/if}}</span>
@@ -65,7 +72,7 @@
 
       {{#each lista}}
         {{#if this.ehGrupo}}{{> convGrupo}}{{else}}
-        <a class="conv {{#if (eq @root.conversa.tipo "u")}}{{#if (eq @root.conversa.id this.id_usuario)}}ativa{{/if}}{{/if}}{{#if this.naoLidas}} tem-novas{{/if}}" href="/mensagens/u/{{this.id_usuario}}" data-conv-u="{{this.id_usuario}}">
+        <a class="conv {{#if (eq @root.conversa.tipo "u")}}{{#if (eq @root.conversa.id this.id_usuario)}}ativa{{/if}}{{/if}}{{#if this.naoLidas}} tem-novas{{/if}}" href="/mensagens/u/{{this.id_usuario}}" data-conv-u="{{this.id_usuario}}" data-busca="{{this.nome}} {{this.usuario}}">
           <span class="conv-av{{#if this.temStory}} st-anel {{#if this.storyVisto}}st-visto{{else}}st-tem{{/if}}{{/if}}"{{#if this.temStory}} data-ver-stories="{{this.id_usuario}}" title="Ver o story de {{this.nome}}"{{/if}}>{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</span>
           <i class="online-dot" data-online-de="{{this.id_usuario}}"{{#unless this.online}} hidden{{/unless}} title="Ativo agora"></i>
           <div class="conv-txt">

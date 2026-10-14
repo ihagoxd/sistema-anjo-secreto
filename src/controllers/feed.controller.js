@@ -368,7 +368,10 @@ async function renderPerfil(req, res, aba) {
     posts = await postService.listarRepostados(dados.alvo.id_usuario, me);
   } else if (aba === 'salvos') {
     // Salvos são privados: só no MEU perfil
-    if (dados.alvo.id_usuario !== me) return res.redirect('/u/' + encodeURIComponent(req.params.usuario));
+    if (dados.alvo.id_usuario !== me) {
+      if ((req.get('x-requested-with') || '') === 'fetch') return res.status(403).json({ ok: false });
+      return res.redirect('/u/' + encodeURIComponent(req.params.usuario));
+    }
     posts = await postService.listarSalvos(me);
   }
   // Comentários (para expandir inline nos cards do perfil, igual ao mural).
@@ -380,10 +383,16 @@ async function renderPerfil(req, res, aba) {
   // Anel + toque no avatar do CABEÇALHO do perfil abre o story (segurar amplia a foto)
   dados.alvo.temStory = !!aneis[dados.alvo.id_usuario];
   dados.alvo.storyVisto = !!(aneis[dados.alvo.id_usuario] && aneis[dados.alvo.id_usuario].tudoVisto);
-  res.render('feed/perfil', {
+  const ctx = {
     titulo: dados.alvo.nome, alvo: dados.alvo, posts, aba, gostos, fotosGosta, gostosTema,
     numPublicacoes: dados.posts.length, pagina: 'perfil',
-  });
+  };
+  // Troca de aba sem recarregar: só o conteúdo da aba, pronto em HTML
+  if ((req.get('x-requested-with') || '') === 'fetch') {
+    const html = await render.partial('perfilAba', Object.assign({}, res.locals, ctx));
+    return res.json({ ok: true, html, aba });
+  }
+  res.render('feed/perfil', ctx);
 }
 
 const getPerfil = (req, res, next) => renderPerfil(req, res, 'publicacoes').catch(next);

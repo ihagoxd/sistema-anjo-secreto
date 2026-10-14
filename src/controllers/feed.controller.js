@@ -6,6 +6,7 @@ const usuarioModel = require('../models/usuario.model');
 const preferenciaService = require('../services/preferencia.service');
 const storyService = require('../services/story.service');
 const temaService = require('../services/tema.service');
+const geoService = require('../services/geo.service');
 const tempoReal = require('../services/tempoReal.service');
 const render = require('../services/render.service');
 const { montarGostos } = require('../config/gostos');
@@ -131,7 +132,9 @@ async function postCriar(req, res, next) {
     const enquete = (opcoes || req.body.enquete_pergunta)
       ? { pergunta: req.body.enquete_pergunta, opcoes: opcoes || [], multipla: req.body.enquete_multipla === '1' }
       : null;
-    const r = await postService.criarPost(req.session.usuario.id_usuario, req.body.texto, um('imagem'), um('video'), req.body.colaborador || null, enquete, req.body.presente_anjo === '1');
+    // Várias fotos (carrossel, até 10) + localização opcional
+    const imagens = (req.files && req.files.imagem ? req.files.imagem : []).map((f) => '/uploads/' + f.filename);
+    const r = await postService.criarPost(req.session.usuario.id_usuario, req.body.texto, um('imagem'), um('video'), req.body.colaborador || null, enquete, req.body.presente_anjo === '1', { local: req.body.local, imagens });
     const ERROS = {
       LONGO: 'Texto longo demais.',
       ENQUETE_POUCAS: 'A enquete precisa de pelo menos 2 opções.',
@@ -178,12 +181,40 @@ async function postEditarTexto(req, res, next) {
   }
 }
 
-// Curtir/descurtir (AJAX → JSON).
+// Curtir/reagir (AJAX → JSON). body.reacao opcional (😂 😮 😢 👏 🔥); sem ela é o coração.
 async function postCurtir(req, res, next) {
   try {
-    const r = await postService.alternarCurtida(req.params.id_post, req.session.usuario.id_usuario);
+    const r = await postService.alternarCurtida(req.params.id_post, req.session.usuario.id_usuario, req.body && req.body.reacao);
     if (!r.ok) return res.status(404).json({ erro: 'Post não encontrado.' });
-    res.json({ curtiu: r.curtiu, total: r.total, curtidor: r.curtidor });
+    res.json({ curtiu: r.curtiu, reacao: r.reacao, total: r.total, curtidor: r.curtidor, reacoesTop: r.reacoesTop });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// Salvar/remover dos salvos (AJAX → JSON).
+async function postSalvar(req, res, next) {
+  try {
+    const r = await postService.alternarSalvo(req.params.id_post, req.session.usuario.id_usuario);
+    if (!r.ok) return res.status(404).json({ erro: 'Post não encontrado.' });
+    res.json({ salvo: r.salvo });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// Localização: sugestões (JSON) e "usar minha localização" (lat/lon → nome do lugar).
+async function getLocais(req, res, next) {
+  try {
+    res.json({ locais: await postService.locaisSugeridos(req.session.usuario.id_usuario) });
+  } catch (err) {
+    next(err);
+  }
+}
+async function getLocalReverso(req, res, next) {
+  try {
+    const nome = await geoService.nomeDoLugar(req.query.lat, req.query.lon);
+    res.json({ nome: nome || null });
   } catch (err) {
     next(err);
   }
@@ -334,6 +365,10 @@ async function renderPerfil(req, res, aba) {
     gostosTema = gt;
   } else if (aba === 'reposts') {
     posts = await postService.listarRepostados(dados.alvo.id_usuario, me);
+  } else if (aba === 'salvos') {
+    // Salvos são privados: só no MEU perfil
+    if (dados.alvo.id_usuario !== me) return res.redirect('/u/' + encodeURIComponent(req.params.usuario));
+    posts = await postService.listarSalvos(me);
   }
   // Comentários (para expandir inline nos cards do perfil, igual ao mural).
   const comentarios = await postModel.listarComentariosDeVarios(posts.map((p) => p.id_post));
@@ -353,6 +388,7 @@ async function renderPerfil(req, res, aba) {
 const getPerfil = (req, res, next) => renderPerfil(req, res, 'publicacoes').catch(next);
 const getPerfilReposts = (req, res, next) => renderPerfil(req, res, 'reposts').catch(next);
 const getPerfilGostos = (req, res, next) => renderPerfil(req, res, 'gostos').catch(next);
+const getPerfilSalvos = (req, res, next) => renderPerfil(req, res, 'salvos').catch(next);
 
 // Feed ao vivo (polling leve): quantos posts novos desde o id X + estado dos anéis de story.
 async function getNovidades(req, res, next) {
@@ -393,4 +429,4 @@ async function getMencoes(req, res, next) {
   }
 }
 
-module.exports = { getFeed, getMais, getNovos, getPost, postCriar, postEditarTexto, postCurtir, getCurtidas, postRepost, postVotar, getEnquete, postEnquetePergunta, postComentar, postRemover, postRemoverComentario, getPerfil, getPerfilReposts, getPerfilGostos, getMencoes, getBusca, getNovidades };
+module.exports = { getFeed, getMais, getNovos, getPost, postSalvar, getLocais, getLocalReverso, getPerfilSalvos, postCriar, postEditarTexto, postCurtir, getCurtidas, postRepost, postVotar, getEnquete, postEnquetePergunta, postComentar, postRemover, postRemoverComentario, getPerfil, getPerfilReposts, getPerfilGostos, getMencoes, getBusca, getNovidades };

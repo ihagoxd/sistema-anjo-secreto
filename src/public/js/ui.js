@@ -3582,6 +3582,7 @@
       fetch('/feed/' + id + '/curtir', { method: 'POST', headers: { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch' } })
         .then(function (r) { return r.json(); })
         .then(function (d) {
+          if (window.__aplicarReacao) { window.__aplicarReacao(b, d); return; }
           b.classList.toggle('ativo', !!d.curtiu);
           b.setAttribute('aria-pressed', d.curtiu ? 'true' : 'false');
           // Atualiza a linha "N curtidas" (estilo Instagram) do post
@@ -4865,6 +4866,7 @@
         var input = form.querySelector(t.sel);
         var f = input && input.files && input.files[0];
         if (!f) return;
+        if (t.tag === 'img' && input.files.length > 1) { algum = true; return; } // várias fotos: a tira do compositor desenha
         algum = true;
         var wrap = document.createElement('div'); wrap.className = 'anexo-item';
         var el = document.createElement(t.tag);
@@ -5597,6 +5599,219 @@
       if (focarCompositor()) e.preventDefault();
     });
     if (location.hash === '#criar') setTimeout(focarCompositor, 150);
+  })();
+
+  /* ---------- Posts: várias fotos (prévia + carrossel), localização, reações, salvar ---------- */
+  (function () {
+    var metaP = document.querySelector('meta[name="csrf-token"]');
+    var CSRF = metaP ? metaP.getAttribute('content') : '';
+    var HEAD = { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch', 'Accept': 'application/json' };
+
+    /* ---- Compositor: prévia de VÁRIAS fotos (tira uma a uma) ---- */
+    var comp = document.querySelector('.post-compositor');
+    if (comp) {
+      var fotoIn = comp.querySelector('[data-foto]');
+      var prev = comp.querySelector('[data-preview]');
+      function arquivos() { return fotoIn && fotoIn.files ? Array.prototype.slice.call(fotoIn.files) : []; }
+      function definirArquivos(lista) {
+        try { var dt = new DataTransfer(); lista.forEach(function (f) { dt.items.add(f); }); fotoIn.files = dt.files; } catch (e) {}
+        fotoIn.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      function montarPrevia() {
+        var fs = arquivos();
+        var vid = comp.querySelector('[data-video]');
+        var temVideo = vid && vid.files && vid.files.length;
+        if (!fs.length || temVideo) return; // uma foto / vídeo: a prévia padrão cuida
+        prev.innerHTML = '';
+        var tira = document.createElement('div'); tira.className = 'prev-tira';
+        fs.slice(0, 10).forEach(function (f, i) {
+          var it = document.createElement('div'); it.className = 'prev-item' + (i === 0 ? ' capa' : '');
+          var img = document.createElement('img'); img.src = URL.createObjectURL(f); img.alt = '';
+          var rm = document.createElement('button'); rm.type = 'button'; rm.className = 'anexo-remover'; rm.setAttribute('aria-label', 'Remover'); rm.innerHTML = '&times;';
+          rm.addEventListener('click', function () { var l = arquivos(); l.splice(i, 1); definirArquivos(l); });
+          it.appendChild(img); it.appendChild(rm);
+          if (i === 0 && fs.length > 1) { var tag = document.createElement('span'); tag.className = 'prev-capa'; tag.textContent = 'capa'; it.appendChild(tag); }
+          tira.appendChild(it);
+        });
+        if (fs.length > 10) { var mais = document.createElement('div'); mais.className = 'prev-aviso'; mais.textContent = 'Só as 10 primeiras fotos entram.'; tira.appendChild(mais); }
+        prev.appendChild(tira);
+        prev.hidden = false;
+      }
+      if (fotoIn) fotoIn.addEventListener('change', function () { setTimeout(montarPrevia, 0); }); // depois da prévia padrão
+
+      /* ---- Localização ---- */
+      var modalLocal = document.getElementById('modal-local');
+      var localIn = comp.querySelector('[data-local-input]');
+      var chip = comp.querySelector('[data-local-chip]');
+      function setLocal(nome) {
+        nome = String(nome || '').trim().slice(0, 120);
+        localIn.value = nome;
+        chip.hidden = !nome;
+        chip.querySelector('[data-local-nome]').textContent = nome;
+        comp.querySelector('[data-local-btn]').classList.toggle('ativo', !!nome);
+        if (modalLocal) { modalLocal.hidden = true; modalLocal.setAttribute('aria-hidden', 'true'); }
+      }
+      if (modalLocal && localIn && chip) {
+        var lista = modalLocal.querySelector('[data-local-lista]');
+        var busca = modalLocal.querySelector('[data-local-busca]');
+        var gps = modalLocal.querySelector('[data-local-gps]');
+        var gpsTxt = modalLocal.querySelector('[data-local-gps-txt]');
+        var sugestoes = [];
+        function renderLista() {
+          var q = busca.value.trim().toLowerCase();
+          var itens = sugestoes.filter(function (s) { return !q || s.toLowerCase().indexOf(q) >= 0; });
+          var html = '';
+          if (q && !itens.some(function (s) { return s.toLowerCase() === q; })) html += '<button type="button" class="local-op nova" data-local-op="' + esc(busca.value.trim()) + '"><span class="local-op-ic">+</span><span>Usar "' + esc(busca.value.trim()) + '"</span></button>';
+          html += itens.map(function (s) { return '<button type="button" class="local-op" data-local-op="' + esc(s) + '"><span class="local-op-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span><span>' + esc(s) + '</span></button>'; }).join('');
+          lista.innerHTML = html || '<div class="texto-suave" style="padding:10px 6px;">Digite o nome do lugar.</div>';
+        }
+        function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+        comp.querySelector('[data-local-btn]').addEventListener('click', function () {
+          modalLocal.hidden = false; modalLocal.setAttribute('aria-hidden', 'false');
+          busca.value = localIn.value || '';
+          renderLista();
+          fetch('/feed/locais', { headers: HEAD }).then(function (r) { return r.json(); }).then(function (d) { sugestoes = d.locais || []; renderLista(); }).catch(function () {});
+          setTimeout(function () { if (!window.matchMedia('(pointer: coarse)').matches) busca.focus(); }, 60);
+        });
+        busca.addEventListener('input', renderLista);
+        busca.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); if (busca.value.trim()) setLocal(busca.value); } });
+        lista.addEventListener('click', function (e) { var b = e.target.closest('[data-local-op]'); if (b) setLocal(b.getAttribute('data-local-op')); });
+        chip.querySelector('[data-local-tirar]').addEventListener('click', function () { setLocal(''); });
+        gps.addEventListener('click', function () {
+          if (!navigator.geolocation) { toast('Seu navegador não tem localização.'); return; }
+          gpsTxt.textContent = 'Localizando…'; gps.disabled = true;
+          navigator.geolocation.getCurrentPosition(function (p) {
+            fetch('/local/reverso?lat=' + p.coords.latitude + '&lon=' + p.coords.longitude, { headers: HEAD })
+              .then(function (r) { return r.json(); })
+              .then(function (d) { if (d.nome) setLocal(d.nome); else toast('Não achei o nome do lugar. Digite abaixo.'); })
+              .catch(function () { toast('Não foi possível localizar.'); })
+              .finally(function () { gpsTxt.textContent = 'Usar minha localização'; gps.disabled = false; });
+          }, function () { toast('Permita a localização no navegador para usar.'); gpsTxt.textContent = 'Usar minha localização'; gps.disabled = false; }, { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 });
+        });
+        comp.addEventListener('compositor:reset', function () { setLocal(''); });
+      }
+    }
+
+    /* ---- Reações: segurar (toque) ou passar o mouse no coração abre a barra ---- */
+    var aberta = null, tHover = 0, tPress = 0, pressou = false;
+    function fecharBarra() { if (aberta) { aberta.hidden = true; aberta = null; } }
+    function abrirBarra(btn) {
+      fecharBarra();
+      var wrap = btn.closest('.ig-curtir-wrap');
+      var bar = wrap && wrap.querySelector('[data-reacoes]');
+      if (!bar) return;
+      bar.hidden = false; aberta = bar;
+      try { if (navigator.vibrate) navigator.vibrate(15); } catch (e) {}
+    }
+    document.addEventListener('pointerdown', function (e) {
+      var btn = e.target.closest('[data-curtir]');
+      if (!btn) { if (aberta && !e.target.closest('[data-reacoes]')) fecharBarra(); return; }
+      if (e.pointerType === 'mouse') return;
+      pressou = false;
+      clearTimeout(tPress);
+      tPress = setTimeout(function () { pressou = true; abrirBarra(btn); }, 420);
+    }, true);
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (ev) { document.addEventListener(ev, function () { clearTimeout(tPress); }, true); });
+    document.addEventListener('contextmenu', function (e) { if (e.target.closest('[data-curtir]')) e.preventDefault(); });
+    document.addEventListener('mouseover', function (e) {
+      var btn = e.target.closest('[data-curtir]');
+      if (!btn || !window.matchMedia('(hover: hover)').matches) return;
+      clearTimeout(tHover);
+      tHover = setTimeout(function () { abrirBarra(btn); }, 450);
+    });
+    document.addEventListener('mouseout', function (e) {
+      var wrap = e.target.closest('.ig-curtir-wrap');
+      if (!wrap) return;
+      var para = e.relatedTarget;
+      if (para && wrap.contains(para)) return;
+      clearTimeout(tHover);
+      setTimeout(function () { if (aberta && !wrap.matches(':hover')) fecharBarra(); }, 250);
+    });
+    // toque curto no coração depois de segurar: não dispara o like normal
+    document.addEventListener('click', function (e) {
+      if (e.target.closest('[data-curtir]') && pressou) { e.stopPropagation(); e.preventDefault(); pressou = false; }
+    }, true);
+
+    function aplicarReacao(btn, d) {
+      var art = btn.closest('.tw-post');
+      btn.classList.toggle('ativo', !!d.curtiu);
+      btn.setAttribute('aria-pressed', d.curtiu ? 'true' : 'false');
+      btn.setAttribute('data-reacao-minha', d.reacao || '');
+      var mine = btn.querySelector('.ig-reacao-minha');
+      var outro = d.curtiu && d.reacao && d.reacao !== '❤️';
+      if (mine) mine.textContent = outro ? d.reacao : '';
+      btn.classList.toggle('com-emoji', !!outro);
+      if (outro) { btn.classList.add('pop'); setTimeout(function () { btn.classList.remove('pop'); }, 500); }
+      var cont = btn.querySelector('.post-curtidas');
+      var n = Number(d.total) || 0;
+      if (cont) cont.textContent = !n ? '' : n < 1000 ? String(n) : ((n / 1000) % 1 === 0 || n >= 10000 ? Math.round(n / 1000) : (n / 1000).toFixed(1).replace('.', ',')) + ' mil';
+      var linha = art && art.querySelector('.ig-curtidas');
+      if (linha) {
+        linha.hidden = !n;
+        var top = linha.querySelector('[data-reacoes-top]');
+        if (top) top.innerHTML = (d.reacoesTop || []).map(function (r) { return '<i>' + r + '</i>'; }).join('');
+        var txt = linha.querySelector('[data-linha-curtidas]');
+        if (txt) {
+          if (d.curtidor) { var dv = document.createElement('div'); dv.textContent = d.curtidor; txt.innerHTML = 'Curtido por <strong>' + dv.innerHTML + '</strong>' + (n > 1 ? ' e <strong>outras pessoas</strong>' : ''); }
+          else txt.innerHTML = '<strong>' + n + '</strong> curtida' + (n === 1 ? '' : 's');
+        }
+      }
+    }
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-reacao]');
+      if (!b || !b.closest('[data-reacoes]')) return;
+      e.preventDefault(); e.stopPropagation();
+      var wrap = b.closest('.ig-curtir-wrap');
+      var btn = wrap.querySelector('[data-curtir]');
+      var id = btn.getAttribute('data-curtir');
+      fecharBarra();
+      // voa um emoji do botão
+      var voa = document.createElement('span'); voa.className = 'ig-reacao-voa'; voa.textContent = b.getAttribute('data-reacao');
+      var r = btn.getBoundingClientRect(); voa.style.left = (r.left + 4) + 'px'; voa.style.top = (r.top - 6) + 'px';
+      document.body.appendChild(voa); setTimeout(function () { voa.remove(); }, 900);
+      fetch('/feed/' + id + '/curtir', { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, HEAD), body: JSON.stringify({ reacao: b.getAttribute('data-reacao') }) })
+        .then(function (r2) { return r2.json(); })
+        .then(function (d) { aplicarReacao(btn, d); })
+        .catch(function () {});
+    }, true);
+    window.__aplicarReacao = aplicarReacao;
+
+    /* ---- Salvar ---- */
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-salvar]');
+      if (!b) return;
+      var id = b.getAttribute('data-salvar');
+      b.disabled = true;
+      var antes = b.classList.contains('ativo');
+      b.classList.toggle('ativo', !antes); // otimista
+      fetch('/feed/' + id + '/salvar', { method: 'POST', headers: HEAD })
+        .then(function (r) { return r.json(); })
+        .then(function (d) { b.classList.toggle('ativo', !!d.salvo); b.setAttribute('aria-pressed', d.salvo ? 'true' : 'false'); toast(d.salvo ? 'Salvo no seu perfil' : 'Removido dos salvos'); })
+        .catch(function () { b.classList.toggle('ativo', antes); })
+        .then(function () { b.disabled = false; });
+    });
+
+    /* ---- Carrossel: bolinhas, contador e setas ---- */
+    function ligarCarrossel(car) {
+      if (car.__ok) return; car.__ok = true;
+      var track = car.querySelector('[data-car-track]');
+      var dots = car.querySelectorAll('[data-car-dots] i');
+      var cont = car.querySelector('[data-car-cont]');
+      var n = track.children.length;
+      function atual() { return Math.round(track.scrollLeft / Math.max(1, track.clientWidth)); }
+      function atualizar() {
+        var i = Math.max(0, Math.min(n - 1, atual()));
+        dots.forEach(function (d, k) { d.classList.toggle('on', k === i); });
+        if (cont) cont.textContent = (i + 1) + '/' + n;
+        car.classList.toggle('no-inicio', i === 0); car.classList.toggle('no-fim', i === n - 1);
+      }
+      track.addEventListener('scroll', function () { window.requestAnimationFrame(atualizar); }, { passive: true });
+      car.querySelector('[data-car-prev]').addEventListener('click', function (e) { e.stopPropagation(); track.scrollBy({ left: -track.clientWidth, behavior: 'smooth' }); });
+      car.querySelector('[data-car-next]').addEventListener('click', function (e) { e.stopPropagation(); track.scrollBy({ left: track.clientWidth, behavior: 'smooth' }); });
+      atualizar();
+    }
+    document.querySelectorAll('[data-carrossel]').forEach(ligarCarrossel);
+    new MutationObserver(function () { document.querySelectorAll('[data-carrossel]').forEach(ligarCarrossel); }).observe(document.body, { childList: true, subtree: true });
   })();
 
   /* ---------- Tutorial passo a passo (feed) ----------

@@ -58,6 +58,7 @@
     <a href="/u/{{alvo.usuario}}" class="tw-tab {{#if (eq aba "publicacoes")}}ativo{{/if}}">Publicações</a>
     <a href="/u/{{alvo.usuario}}/reposts" class="tw-tab {{#if (eq aba "reposts")}}ativo{{/if}}">Reposts</a>
     <a href="/u/{{alvo.usuario}}/gostos" class="tw-tab {{#if (eq aba "gostos")}}ativo{{/if}}">Gostos</a>
+    {{#if (eq alvo.id_usuario usuario.id_usuario)}}<a href="/u/{{alvo.usuario}}/salvos" class="tw-tab {{#if (eq aba "salvos")}}ativo{{/if}}" title="Só você vê">Salvos</a>{{/if}}
   </div>
 
   {{#if (eq aba "gostos")}}
@@ -91,6 +92,18 @@
         {{/if}}
       </div>
     {{/unless}}{{/if}}
+
+  {{else if (eq aba "salvos")}}
+    {{#if posts.length}}
+      <div class="feed feed-perfil">
+        {{#each posts}}{{> postCard}}{{/each}}
+      </div>
+    {{else}}
+      <div class="tw-vazio">
+        <div class="tw-vazio-tit">Nada salvo ainda</div>
+        <p>Toque no marcador de uma publicação para guardar aqui. Só você vê.</p>
+      </div>
+    {{/if}}
 
   {{else if (eq aba "reposts")}}
     {{#if posts.length}}

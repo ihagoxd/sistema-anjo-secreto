@@ -6,8 +6,14 @@
 const db = require('../config/db');
 
 const SELECT_POST = `
-  SELECT p.id_post, p.texto, p.imagem, p.video, p.criado_em, p.editado_em, p.presente_anjo,
+  SELECT p.id_post, p.texto, p.imagem, p.video, p.criado_em, p.editado_em, p.presente_anjo, p.local,
          u.id_usuario, u.nome, u.usuario, u.foto_perfil,
+         (SELECT COALESCE(json_agg(pm.caminho ORDER BY pm.ordem, pm.id_midia), '[]'::json)
+            FROM post_midias pm WHERE pm.id_post = p.id_post) AS midias,
+         (SELECT c3.reacao FROM post_curtidas c3 WHERE c3.id_post = p.id_post AND c3.id_usuario = $1) AS minha_reacao,
+         (SELECT array_agg(t.reacao ORDER BY t.n DESC, t.reacao)
+            FROM (SELECT reacao, COUNT(*) AS n FROM post_curtidas c4 WHERE c4.id_post = p.id_post GROUP BY reacao ORDER BY n DESC LIMIT 3) t) AS reacoes_top,
+         EXISTS(SELECT 1 FROM post_salvos ps WHERE ps.id_post = p.id_post AND ps.id_usuario = $1) AS salvei,
          uc.id_usuario AS id_colaborador, uc.usuario AS usuario_colab, uc.nome AS nome_colab,
          (SELECT array_agg(u3.usuario ORDER BY u3.usuario)
             FROM post_colaboradores pc JOIN usuarios u3 ON u3.id_usuario = pc.id_usuario
@@ -25,12 +31,53 @@ const SELECT_POST = `
     JOIN usuarios u ON u.id_usuario = p.id_usuario
     LEFT JOIN usuarios uc ON uc.id_usuario = p.id_colaborador`;
 
-async function criar({ idUsuario, texto, imagem, video = null, idColaborador = null, enqueteMultipla = false, enquetePergunta = null, presenteAnjo = false }) {
+async function criar({ idUsuario, texto, imagem, video = null, idColaborador = null, enqueteMultipla = false, enquetePergunta = null, presenteAnjo = false, local = null }) {
   const res = await db.query(
-    `INSERT INTO posts (id_usuario, texto, imagem, video, id_colaborador, enquete_multipla, enquete_pergunta, presente_anjo) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id_post`,
-    [idUsuario, texto, imagem, video, idColaborador, !!enqueteMultipla, enquetePergunta, !!presenteAnjo]
+    `INSERT INTO posts (id_usuario, texto, imagem, video, id_colaborador, enquete_multipla, enquete_pergunta, presente_anjo, local) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id_post`,
+    [idUsuario, texto, imagem, video, idColaborador, !!enqueteMultipla, enquetePergunta, !!presenteAnjo, local]
   );
   return res.rows[0];
+}
+
+// ---------- Várias fotos (carrossel) ----------
+async function adicionarMidias(idPost, caminhos) {
+  for (let i = 0; i < caminhos.length; i++) {
+    await db.query(`INSERT INTO post_midias (id_post, caminho, ordem) VALUES ($1, $2, $3)`, [idPost, caminhos[i], i]);
+  }
+}
+async function listarMidias(idPost) {
+  const res = await db.query(`SELECT caminho FROM post_midias WHERE id_post = $1 ORDER BY ordem, id_midia`, [idPost]);
+  return res.rows.map((r) => r.caminho);
+}
+
+// ---------- Localização: sugestões (as minhas recentes + as mais usadas pela equipe) ----------
+async function locaisSugeridos(idUsuario, limite = 8) {
+  const res = await db.query(
+    `SELECT local, MAX(criado_em) AS ultimo, COUNT(*) AS n, bool_or(id_usuario = $1) AS meu
+       FROM posts WHERE local IS NOT NULL AND local <> ''
+      GROUP BY local ORDER BY meu DESC, ultimo DESC LIMIT $2`,
+    [idUsuario, limite]
+  );
+  return res.rows.map((r) => r.local);
+}
+
+// ---------- Salvos (marcador) ----------
+async function salvar(idPost, idUsuario) {
+  await db.query(`INSERT INTO post_salvos (id_post, id_usuario) VALUES ($1, $2) ON CONFLICT DO NOTHING`, [idPost, idUsuario]);
+}
+async function dessalvar(idPost, idUsuario) {
+  await db.query(`DELETE FROM post_salvos WHERE id_post = $1 AND id_usuario = $2`, [idPost, idUsuario]);
+}
+async function jaSalvou(idPost, idUsuario) {
+  const res = await db.query(`SELECT 1 FROM post_salvos WHERE id_post = $1 AND id_usuario = $2`, [idPost, idUsuario]);
+  return res.rowCount > 0;
+}
+async function listarSalvosPor(idUsuario) {
+  const res = await db.query(
+    `${SELECT_POST} JOIN post_salvos ps2 ON ps2.id_post = p.id_post AND ps2.id_usuario = $1 ORDER BY ps2.criado_em DESC`,
+    [idUsuario]
+  );
+  return res.rows;
 }
 
 async function atualizarPergunta(idPost, pergunta) {
@@ -171,11 +218,24 @@ async function remover(idPost) {
 }
 
 // ---------- Curtidas ----------
-async function curtir(idPost, idUsuario) {
+// Curtir com reação (❤️ por padrão). Reagir de novo com outro emoji troca a reação.
+async function curtir(idPost, idUsuario, reacao = '❤️') {
   await db.query(
-    `INSERT INTO post_curtidas (id_post, id_usuario) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
-    [idPost, idUsuario]
+    `INSERT INTO post_curtidas (id_post, id_usuario, reacao) VALUES ($1, $2, $3)
+     ON CONFLICT (id_post, id_usuario) DO UPDATE SET reacao = EXCLUDED.reacao, criado_em = now()`,
+    [idPost, idUsuario, reacao]
   );
+}
+async function reacaoDe(idPost, idUsuario) {
+  const res = await db.query(`SELECT reacao FROM post_curtidas WHERE id_post = $1 AND id_usuario = $2`, [idPost, idUsuario]);
+  return res.rows[0] ? res.rows[0].reacao : null;
+}
+async function reacoesTop(idPost) {
+  const res = await db.query(
+    `SELECT reacao FROM post_curtidas WHERE id_post = $1 GROUP BY reacao ORDER BY COUNT(*) DESC, reacao LIMIT 3`,
+    [idPost]
+  );
+  return res.rows.map((r) => r.reacao);
 }
 async function descurtir(idPost, idUsuario) {
   await db.query(`DELETE FROM post_curtidas WHERE id_post = $1 AND id_usuario = $2`, [idPost, idUsuario]);
@@ -191,7 +251,7 @@ async function contarCurtidas(idPost) {
 // Quem curtiu (mais recentes primeiro) — para a folha "Curtidas" do post.
 async function listarCurtidores(idPost, limite = 200) {
   const res = await db.query(
-    `SELECT u.nome, u.usuario, u.foto_perfil
+    `SELECT u.nome, u.usuario, u.foto_perfil, c.reacao
        FROM post_curtidas c
        JOIN usuarios u ON u.id_usuario = c.id_usuario
       WHERE c.id_post = $1
@@ -265,7 +325,8 @@ async function removerComentario(idComentario) {
 
 module.exports = {
   criar, listarFeed, listarNovosDesde, listarPorUsuario, listarRepostadosPor, buscarPorId, buscarFeedUm, remover, contarNovosDesde, adicionarColaboradores, atualizarTexto,
-  curtir, descurtir, jaCurtiu, contarCurtidas, listarCurtidores,
+  curtir, descurtir, jaCurtiu, contarCurtidas, listarCurtidores, reacaoDe, reacoesTop,
+  adicionarMidias, listarMidias, locaisSugeridos, salvar, dessalvar, jaSalvou, listarSalvosPor,
   repostar, desfazerRepost, jaRepostou, contarReposts,
   adicionarComentario, listarComentarios, listarComentariosDeVarios, buscarComentario, removerComentario, listarImagensComentarios,
   criarOpcoes, listarEnquetesDeVarios, buscarOpcao, alternarVoto, votoDoUsuario, atualizarPergunta,

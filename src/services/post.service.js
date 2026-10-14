@@ -98,11 +98,21 @@ async function votar(idPost, idOpcao, idUsuario) {
   return { ok: true, enquete, votou };
 }
 
+const REACOES = ['❤️', '😂', '😮', '😢', '👏', '🔥'];
+const LOCAL_MAX = 120;
+function limparLocal(v) {
+  const s = String(v || '').trim().replace(/\s+/g, ' ').slice(0, LOCAL_MAX);
+  return s || null;
+}
+
 // presenteAnjo: a pessoa marcou "Presente de Anjo" antes de publicar → card premium dourado.
-async function criarPost(idUsuario, texto, imagemPath, videoPath = null, colaboradorId = null, enqueteBruta = null, presenteAnjo = false) {
+// extras: { local, imagens: [caminhos] } — várias fotos viram carrossel (a 1ª continua em posts.imagem)
+async function criarPost(idUsuario, texto, imagemPath, videoPath = null, colaboradorId = null, enqueteBruta = null, presenteAnjo = false, extras = {}) {
   const t = String(texto || '').trim();
   const e = normalizarEnquete(enqueteBruta);
   if (!e.ok) return e;
+  const imagens = Array.isArray(extras.imagens) && extras.imagens.length ? extras.imagens.slice(0, 10) : (imagemPath ? [imagemPath] : []);
+  imagemPath = imagens[0] || null;
   if (!t && !imagemPath && !videoPath && !e.enquete) return { ok: false, motivo: 'VAZIO' };
   if (t.length > LIMITE_TEXTO) return { ok: false, motivo: 'LONGO' };
 
@@ -120,7 +130,9 @@ async function criarPost(idUsuario, texto, imagemPath, videoPath = null, colabor
     idColaborador: colaboradores[0] || null, enqueteMultipla: !!(e.enquete && e.enquete.multipla),
     enquetePergunta: e.enquete ? e.enquete.pergunta : null,
     presenteAnjo: !!presenteAnjo,
+    local: limparLocal(extras.local),
   });
+  if (imagens.length > 1) await postModel.adicionarMidias(novo.id_post, imagens);
   if (e.enquete) await postModel.criarOpcoes(novo.id_post, e.enquete.opcoes);
   if (colaboradores.length) {
     await postModel.adicionarColaboradores(novo.id_post, colaboradores);
@@ -184,20 +196,49 @@ async function perfilPublico(usuario, idUsuarioAtual) {
   };
 }
 
-// Curtir/descurtir (toggle). Retorna estado + total.
-async function alternarCurtida(idPost, idUsuario) {
+// Curtir/reagir (toggle). Tocar no coração: curte ❤️ / descurte. Escolher um emoji: reage
+// com ele (trocar o emoji só atualiza; repetir o mesmo tira). Retorna estado + total.
+async function alternarCurtida(idPost, idUsuario, reacaoPedida = null) {
   const post = await postModel.buscarPorId(idPost);
   if (!post) return { ok: false };
-  const curtiu = await postModel.jaCurtiu(idPost, idUsuario);
-  if (curtiu) await postModel.descurtir(idPost, idUsuario);
-  else {
-    await postModel.curtir(idPost, idUsuario);
+  const reacao = REACOES.includes(reacaoPedida) ? reacaoPedida : null;
+  const atual = await postModel.reacaoDe(idPost, idUsuario);
+  let curtiu;
+  if (reacao) {
+    if (atual === reacao) { await postModel.descurtir(idPost, idUsuario); curtiu = false; }
+    else {
+      await postModel.curtir(idPost, idUsuario, reacao); curtiu = true;
+      if (!atual) await notificacaoService.notificarCurtida(post.id_usuario, idUsuario, idPost, post.imagem);
+    }
+  } else if (atual) {
+    await postModel.descurtir(idPost, idUsuario); curtiu = false;
+  } else {
+    await postModel.curtir(idPost, idUsuario, '❤️'); curtiu = true;
     await notificacaoService.notificarCurtida(post.id_usuario, idUsuario, idPost, post.imagem);
   }
   const total = await postModel.contarCurtidas(idPost);
   // Quem aparece na linha "Curtido por fulano e outras pessoas" (o curtidor mais recente)
   const primeiros = await postModel.listarCurtidores(idPost, 1);
-  return { ok: true, curtiu: !curtiu, total, curtidor: primeiros.length ? primeiros[0].usuario : null };
+  return {
+    ok: true, curtiu, reacao: curtiu ? (reacao || '❤️') : null, total,
+    curtidor: primeiros.length ? primeiros[0].usuario : null,
+    reacoesTop: await postModel.reacoesTop(idPost),
+  };
+}
+
+// Salvar/remover dos salvos (marcador). Só quem salvou vê a lista.
+async function alternarSalvo(idPost, idUsuario) {
+  const post = await postModel.buscarPorId(idPost);
+  if (!post) return { ok: false };
+  const ja = await postModel.jaSalvou(idPost, idUsuario);
+  if (ja) await postModel.dessalvar(idPost, idUsuario); else await postModel.salvar(idPost, idUsuario);
+  return { ok: true, salvo: !ja };
+}
+function listarSalvos(idUsuario) {
+  return postModel.listarSalvosPor(idUsuario);
+}
+function locaisSugeridos(idUsuario) {
+  return postModel.locaisSugeridos(idUsuario);
 }
 
 // Quem curtiu o post (para a folha "Curtidas").
@@ -257,6 +298,8 @@ async function removerPost(idPost, idUsuario, ehAdmin) {
   if (!post) return { ok: false, motivo: 'NAO_ENCONTRADO' };
   if (post.id_usuario !== idUsuario && !ehAdmin) return { ok: false, motivo: 'SEM_PERMISSAO' };
   if (post.imagem) apagarUpload(post.imagem);
+  if (post.video) apagarUpload(post.video);
+  (await postModel.listarMidias(idPost)).forEach(apagarUpload); // fotos do carrossel
   // Fotos dos comentários somem junto (o banco apaga as linhas em cascata; o disco não)
   (await postModel.listarImagensComentarios(idPost)).forEach(apagarUpload);
   await postModel.remover(idPost);
@@ -282,6 +325,7 @@ module.exports = {
   LIMITE_TEXTO,
   criarPost, editarPost, listarFeed, listarNovos, buscarPost, perfilPublico,
   alternarCurtida, listarCurtidores, alternarRepost, listarRepostados, comentar, listarComentarios,
+  alternarSalvo, listarSalvos, locaisSugeridos, REACOES,
   removerPost, removerComentario,
   anexarEnquetes, buscarEnquete, votar, montarEnquete, editarPergunta,
 };

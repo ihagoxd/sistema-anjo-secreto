@@ -359,6 +359,25 @@ ALTER TABLE posts ADD COLUMN IF NOT EXISTS id_colaborador INTEGER REFERENCES usu
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS editado_em TIMESTAMPTZ;
 -- Post "Presente de Anjo": card premium dourado (a pessoa marca antes de publicar)
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS presente_anjo BOOLEAN NOT NULL DEFAULT FALSE;
+-- Localização do post (texto livre, como no Instagram: "Setor Bueno, Goiânia")
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS local VARCHAR(120);
+-- Várias fotos num post (carrossel): posts.imagem continua sendo a primeira (miniaturas, notificações)
+CREATE TABLE IF NOT EXISTS post_midias (
+  id_midia  SERIAL PRIMARY KEY,
+  id_post   INTEGER NOT NULL REFERENCES posts(id_post) ON DELETE CASCADE,
+  caminho   TEXT NOT NULL,
+  ordem     SMALLINT NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_post_midias_post ON post_midias(id_post, ordem);
+-- Reações além do coração (😂 😮 😢 👏 🔥): a curtida guarda qual emoji foi
+ALTER TABLE post_curtidas ADD COLUMN IF NOT EXISTS reacao VARCHAR(8) NOT NULL DEFAULT '❤️';
+-- Posts salvos (marcador), como no Instagram — só quem salvou vê a lista
+CREATE TABLE IF NOT EXISTS post_salvos (
+  id_post     INTEGER NOT NULL REFERENCES posts(id_post) ON DELETE CASCADE,
+  id_usuario  INTEGER NOT NULL REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
+  criado_em   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (id_post, id_usuario)
+);
 -- Vários colaboradores por post ("fulano e +N")
 CREATE TABLE IF NOT EXISTS post_colaboradores (
   id_post     INTEGER NOT NULL REFERENCES posts(id_post) ON DELETE CASCADE,

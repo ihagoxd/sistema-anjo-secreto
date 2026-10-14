@@ -10,9 +10,9 @@ const { uploadMsg, uploadComentario, conferirAssinaturas } = require('../config/
 const router = express.Router();
 const guard = [exigeAutenticacao, exigeSenhaDefinitiva, bloquearAdmin];
 
-// Mídia opcional do post: imagem OU vídeo gravado na câmera
+// Mídia opcional do post: até 10 imagens (carrossel) OU vídeo gravado na câmera
 const receberImagem = (req, res, next) => {
-  uploadMsg.fields([{ name: 'imagem', maxCount: 1 }, { name: 'video', maxCount: 1 }])(req, res, function (err) {
+  uploadMsg.fields([{ name: 'imagem', maxCount: 10 }, { name: 'video', maxCount: 1 }])(req, res, function (err) {
     if (err) { req.session.flash = { erro: err.message || 'Falha no envio do arquivo.' }; return res.redirect('/feed'); }
     next();
   });
@@ -25,6 +25,9 @@ router.get('/feed/novos', guard, ctrl.getNovos); // posts novos entram no topo s
 router.post('/feed', guard, receberImagem, conferirAssinaturas, verifyCsrfAposUpload, ctrl.postCriar);
 router.post('/feed/:id_post/editar', guard, ctrl.postEditarTexto); // dono edita o texto
 router.post('/feed/:id_post/curtir', guard, ctrl.postCurtir);
+router.post('/feed/:id_post/salvar', guard, ctrl.postSalvar);
+router.get('/feed/locais', guard, ctrl.getLocais);            // sugestões de localização
+router.get('/local/reverso', guard, ctrl.getLocalReverso);     // lat/lon → nome do lugar
 router.get('/feed/:id_post/curtidas', guard, ctrl.getCurtidas);
 router.post('/feed/:id_post/repostar', guard, ctrl.postRepost);
 router.post('/feed/:id_post/votar', guard, ctrl.postVotar);
@@ -70,5 +73,6 @@ router.get('/p/:id_post', guard, ctrl.getPost);
 router.get('/u/:usuario', guard, ctrl.getPerfil);
 router.get('/u/:usuario/reposts', guard, ctrl.getPerfilReposts);
 router.get('/u/:usuario/gostos', guard, ctrl.getPerfilGostos);
+router.get('/u/:usuario/salvos', guard, ctrl.getPerfilSalvos); // só o próprio perfil
 
 module.exports = router;

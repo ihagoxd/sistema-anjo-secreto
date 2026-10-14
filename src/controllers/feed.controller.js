@@ -419,6 +419,34 @@ async function getBusca(req, res, next) {
   }
 }
 
+// Busca de publicações (tela de pesquisa): texto, lugar ou autor → cartões compactos.
+async function getBuscaPosts(req, res, next) {
+  try {
+    const q = String(req.query.q || '').trim().slice(0, 60);
+    const me = req.session.usuario.id_usuario;
+    const posts = q ? await postModel.buscarPosts(me, q, 12) : [];
+    res.json(posts.map((p) => ({
+      id_post: p.id_post,
+      texto: String(p.texto || '').replace(/\s+/g, ' ').slice(0, 120),
+      imagem: p.imagem || (Array.isArray(p.midias) && p.midias[0]) || null,
+      video: !!p.video,
+      local: p.local || null,
+      nome: p.nome, usuario: p.usuario, foto_perfil: p.foto_perfil,
+      quando: tempoRelativo(p.criado_em),
+    })));
+  } catch (err) {
+    next(err);
+  }
+}
+function tempoRelativo(data) {
+  const seg = Math.max(0, (Date.now() - new Date(data).getTime()) / 1000);
+  if (seg < 60) return 'agora';
+  if (seg < 3600) return `há ${Math.floor(seg / 60)} min`;
+  if (seg < 86400) return `há ${Math.floor(seg / 3600)} h`;
+  if (seg < 86400 * 30) return `há ${Math.floor(seg / 86400)} d`;
+  return new Date(data).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+}
+
 // Autocomplete de @menções (AJAX → JSON).
 async function getMencoes(req, res, next) {
   try {
@@ -429,4 +457,4 @@ async function getMencoes(req, res, next) {
   }
 }
 
-module.exports = { getFeed, getMais, getNovos, getPost, postSalvar, getLocais, getLocalReverso, getPerfilSalvos, postCriar, postEditarTexto, postCurtir, getCurtidas, postRepost, postVotar, getEnquete, postEnquetePergunta, postComentar, postRemover, postRemoverComentario, getPerfil, getPerfilReposts, getPerfilGostos, getMencoes, getBusca, getNovidades };
+module.exports = { getFeed, getMais, getNovos, getPost, postSalvar, getLocais, getLocalReverso, getPerfilSalvos, postCriar, postEditarTexto, postCurtir, getCurtidas, postRepost, postVotar, getEnquete, postEnquetePergunta, postComentar, postRemover, postRemoverComentario, getPerfil, getPerfilReposts, getPerfilGostos, getMencoes, getBusca, getBuscaPosts, getNovidades };

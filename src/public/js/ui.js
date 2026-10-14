@@ -446,6 +446,16 @@
         + (comRemover ? '<button type="button" class="busca-remover" data-busca-remover="' + esc(p.usuario) + '" aria-label="Remover dos recentes">&times;</button>' : '')
         + '</a>';
     }
+    function postHtml(p) {
+      var thumb = p.imagem ? '<img src="' + esc(p.imagem) + '" alt="">'
+        : p.video ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>'
+        : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
+      return '<a class="busca-post" href="/p/' + p.id_post + '">'
+        + '<span class="busca-post-thumb' + (p.imagem ? '' : ' sem-img') + '">' + thumb + '</span>'
+        + '<span class="busca-post-txt"><span class="busca-post-texto">' + (p.texto ? esc(p.texto) : '<i>Sem legenda</i>') + '</span>'
+        + '<span class="busca-post-meta">@' + esc(p.usuario) + ' · ' + esc(p.quando) + (p.local ? ' · ' + esc(p.local) : '') + '</span></span>'
+        + '</a>';
+    }
     // Estado inicial da tela: "Recentes" (localStorage) + "Sugestões" com os usuários cadastrados.
     // As sugestões ficam em cache: a tela abre instantânea (sem a lista "pular" depois).
     var sugCache = null;
@@ -520,16 +530,20 @@
       if (!q) { mostrarInicio(); return; }
       timer = setTimeout(function () {
         var minha = ++seq;
-        fetch('/buscar?q=' + encodeURIComponent(q), { headers: { 'Accept': 'application/json' } })
-          .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
-          .then(function (pessoas) {
-            if (minha !== seq || inp.value.trim() !== q) return; // resposta atrasada: ignora
-            cabRec.hidden = true;
-            lista.innerHTML = pessoas.length
-              ? pessoas.map(function (p) { return itemHtml(p, false); }).join('')
-              : '<div class="texto-suave busca-vazio">Ninguém encontrado para “' + esc(q) + '”.</div>';
-          })
-          .catch(function () {});
+        var H = { headers: { 'Accept': 'application/json' } };
+        // Pessoas e publicações em paralelo (como no Instagram: contas em cima, posts embaixo)
+        Promise.all([
+          fetch('/buscar?q=' + encodeURIComponent(q), H).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; }),
+          fetch('/buscar/posts?q=' + encodeURIComponent(q), H).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; }),
+        ]).then(function (res) {
+          var pessoas = res[0] || [], posts = res[1] || [];
+          if (minha !== seq || inp.value.trim() !== q) return; // resposta atrasada: ignora
+          cabRec.hidden = true;
+          var html = '';
+          if (pessoas.length) html += '<div class="busca-subtitulo">Pessoas</div>' + pessoas.map(function (p) { return itemHtml(p, false); }).join('');
+          if (posts.length) html += '<div class="busca-subtitulo">Publicações</div>' + posts.map(postHtml).join('');
+          lista.innerHTML = html || '<div class="texto-suave busca-vazio">Nada encontrado para “' + esc(q) + '”.</div>';
+        });
       }, 220);
     });
 

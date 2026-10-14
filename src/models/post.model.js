@@ -208,6 +208,18 @@ async function contarNovosDesde(idPost) {
 }
 
 // Post completo (com autor + contagens + curtiu) para a página individual.
+// Busca de publicações (texto, localização ou @autor), mais novas primeiro.
+async function buscarPosts(idUsuarioAtual, termo, limite = 12) {
+  const t = String(termo || '').trim();
+  if (!t) return [];
+  const res = await db.query(
+    `${SELECT_POST} WHERE (p.texto ILIKE $3 OR p.local ILIKE $3 OR u.usuario ILIKE $3 OR u.nome ILIKE $3)
+     ORDER BY p.id_post DESC LIMIT $2`,
+    [idUsuarioAtual, limite, `%${t}%`]
+  );
+  return res.rows;
+}
+
 async function buscarFeedUm(idPost, idUsuarioAtual) {
   const res = await db.query(`${SELECT_POST} WHERE p.id_post = $2`, [idUsuarioAtual, idPost]);
   return res.rows[0] || null;
@@ -324,6 +336,7 @@ async function removerComentario(idComentario) {
 }
 
 module.exports = {
+  buscarPosts,
   criar, listarFeed, listarNovosDesde, listarPorUsuario, listarRepostadosPor, buscarPorId, buscarFeedUm, remover, contarNovosDesde, adicionarColaboradores, atualizarTexto,
   curtir, descurtir, jaCurtiu, contarCurtidas, listarCurtidores, reacaoDe, reacoesTop,
   adicionarMidias, listarMidias, locaisSugeridos, salvar, dessalvar, jaSalvou, listarSalvosPor,

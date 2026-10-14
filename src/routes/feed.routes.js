@@ -69,6 +69,7 @@ router.post('/stories/:id_story/remover', guard, storiesCtrl.postRemover);
 
 router.get('/mencoes', guard, ctrl.getMencoes);
 router.get('/buscar', guard, ctrl.getBusca);
+router.get('/buscar/posts', guard, ctrl.getBuscaPosts); // publicações na tela de pesquisa
 router.get('/p/:id_post', guard, ctrl.getPost);
 router.get('/u/:usuario', guard, ctrl.getPerfil);
 router.get('/u/:usuario/reposts', guard, ctrl.getPerfilReposts);

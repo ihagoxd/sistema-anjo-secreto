@@ -411,6 +411,9 @@ CREATE TABLE IF NOT EXISTS stories (
 CREATE INDEX IF NOT EXISTS idx_stories_usuario ON stories(id_usuario, criado_em DESC);
 -- Menção no story (a pessoa marcada pode repostar, como no Instagram)
 ALTER TABLE stories ADD COLUMN IF NOT EXISTS mencao INTEGER REFERENCES usuarios(id_usuario) ON DELETE SET NULL;
+-- Sobreposições do editor (texto, figurinhas, menções): em vídeo o visualizador desenha
+-- por cima; em foto já vão "queimadas" na imagem e aqui ficam só as áreas de menção clicáveis.
+ALTER TABLE stories ADD COLUMN IF NOT EXISTS sobreposicoes JSONB;
 -- Menções múltiplas (dá pra marcar mais gente, inclusive depois de postar)
 CREATE TABLE IF NOT EXISTS story_mencoes (
   id_story    INTEGER NOT NULL REFERENCES stories(id_story) ON DELETE CASCADE,

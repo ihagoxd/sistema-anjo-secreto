@@ -3644,3 +3644,108 @@ body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
 .ptr.pronto .feed-spinner { border-top-color: var(--ouro); }
 .ptr.girando .feed-spinner { animation-play-state: running; border-top-color: var(--ouro); }
 @media (min-width: 900px) { .ptr { display: none; } }
+
+/* ============================================================
+   EDITOR DE STORIES (estilo Instagram) + sobreposições no visualizador
+   ============================================================ */
+.sted { position: fixed; inset: 0; z-index: 650; background: #000; display: flex; align-items: center; justify-content: center; touch-action: none; }
+.sted[hidden] { display: none; }
+.sted-stage { position: relative; width: 100vw; height: 100dvh; max-height: 100vh; overflow: hidden; background: #111; user-select: none; -webkit-user-select: none; }
+@media (min-width: 900px), (min-aspect-ratio: 9/16) {
+  .sted-stage { width: min(100vw, calc(100dvh * 9 / 16)); height: min(100dvh, calc(100vw * 16 / 9)); border-radius: 14px; }
+}
+.sted-midia { position: absolute; inset: 0; overflow: hidden; display: grid; place-items: center; }
+.sted-midia img, .sted-midia video { width: 100%; height: 100%; object-fit: cover; display: block; will-change: transform; -webkit-user-drag: none; }
+.sted-desenho { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.sted.desenhando .sted-desenho { pointer-events: auto; cursor: crosshair; }
+.sted-camada { position: absolute; inset: 0; z-index: 3; }
+.sted.desenhando .sted-camada { pointer-events: none; }
+.sted-topo { position: absolute; top: calc(10px + env(safe-area-inset-top, 0px)); left: 10px; right: 10px; z-index: 6; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.sted-ferr { display: flex; align-items: center; gap: 4px; }
+.sted-ic { width: 44px; height: 44px; border-radius: 50%; border: none; background: rgba(0, 0, 0, 0.35); color: #fff; display: grid; place-items: center; cursor: pointer; font: inherit; font-weight: 800; font-size: 17px; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); transition: background 0.12s, transform 0.12s; }
+.sted-ic:hover { background: rgba(0, 0, 0, 0.55); }
+.sted-ic:active { transform: scale(0.92); }
+.sted-ic.ativo { background: #fff; color: #111; }
+.sted-x { font-size: 30px; font-weight: 400; line-height: 1; }
+.sted-aa { font-size: 19px; letter-spacing: -0.02em; }
+.sted-at { font-size: 22px; }
+.sted-fundo-dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #fff; }
+.sted-rodape { position: absolute; left: 16px; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 6; }
+.sted-enviar { width: 100%; border-radius: 999px; min-height: 48px; font-weight: 700; font-size: 15.5px; }
+.sted.editando-texto .sted-topo, .sted.editando-texto .sted-rodape, .sted.desenhando .sted-rodape { opacity: 0; pointer-events: none; }
+.sted-lixo { position: absolute; left: 50%; bottom: calc(26px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 7; width: 56px; height: 56px; border-radius: 50%; background: rgba(0, 0, 0, 0.55); color: #fff; display: grid; place-items: center; transition: transform 0.15s, background 0.15s; }
+.sted-lixo[hidden] { display: none; }
+.sted-lixo.pronto { background: #ed4956; transform: translateX(-50%) scale(1.25); }
+
+/* Sobreposições (editor e visualizador compartilham) */
+.st-ov { position: absolute; z-index: 3; transform-origin: center; white-space: pre-wrap; line-height: 1.25; max-width: 86%; cursor: grab; touch-action: none; }
+.st-ov:active { cursor: grabbing; }
+.st-ov-inner { display: inline-block; padding: 0.08em 0.28em; border-radius: 0.28em; background: var(--ov-fundo, transparent); box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.st-ov-texto.com-fundo .st-ov-inner { padding: 0.12em 0.32em; }
+.st-ov-emoji { line-height: 1; }
+.st-ov-emoji .st-ov-inner { padding: 0; background: none; }
+.st-ov-mencao .st-ov-inner { background: rgba(255, 255, 255, 0.92); color: #111; font-weight: 700; padding: 0.3em 0.75em; border-radius: 999px; font-family: 'Inter', system-ui, sans-serif; text-decoration: none; }
+.st-ov.sel { outline: 1.5px dashed rgba(255, 255, 255, 0.75); outline-offset: 4px; }
+.st-ov.entrando { animation: st-ov-pop 0.3s var(--ease-spring) both; }
+@keyframes st-ov-pop { from { opacity: 0; transform: translate(-50%, -50%) scale(0.5); } to { opacity: 1; } }
+.stv-ovs { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.stv-ovs .st-ov { cursor: default; }
+.stv-ovs .st-ov-mencao { pointer-events: auto; }
+.stv-ovs .st-ov-oculta .st-ov-inner { background: transparent; color: transparent; } /* na foto o texto já está queimado: só a área clicável */
+
+/* Painel de texto */
+.sted-txt { position: absolute; inset: 0; z-index: 8; background: rgba(0, 0, 0, 0.55); display: flex; flex-direction: column; }
+.sted-txt[hidden] { display: none; }
+.sted-txt-topo { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: calc(12px + env(safe-area-inset-top, 0px)) 14px 6px; }
+.sted-fontes { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.sted-fontes::-webkit-scrollbar { display: none; }
+.sted-fonte { flex-shrink: 0; border: 1px solid rgba(255, 255, 255, 0.5); background: rgba(0, 0, 0, 0.35); color: #fff; border-radius: 999px; padding: 6px 13px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.sted-fonte.sel { background: #fff; color: #111; }
+.sted-ok { border: none; background: none; color: #fff; font: inherit; font-weight: 800; font-size: 16px; cursor: pointer; padding: 8px 10px; flex-shrink: 0; }
+.sted-txt-meio { flex: 1; display: grid; place-items: center; padding: 0 24px; min-height: 0; }
+.sted-txt-area { width: 100%; max-height: 50dvh; background: transparent; border: none; outline: none; resize: none; text-align: center; color: #fff; font-size: 34px; line-height: 1.25; padding: 0.12em 0.32em; border-radius: 0.3em; font-weight: 600; overflow: auto; }
+.sted-txt-area::placeholder { color: rgba(255, 255, 255, 0.55); }
+.sted-txt-barra { display: flex; align-items: center; gap: 8px; padding: 10px 12px calc(14px + env(safe-area-inset-bottom, 0px)); }
+.sted-cores { display: flex; gap: 8px; overflow-x: auto; flex: 1; padding: 4px 2px; scrollbar-width: none; }
+.sted-cores::-webkit-scrollbar { display: none; }
+.sted-cor { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.85); cursor: pointer; padding: 0; transition: transform 0.12s; }
+.sted-cor.sel { transform: scale(1.25); box-shadow: 0 0 0 2px #000; }
+.sted-txt-op { width: 40px; height: 40px; flex-shrink: 0; }
+.sted-bg { font-weight: 900; font-size: 18px; }
+.sted-bg.ativo { background: #fff; color: #111; }
+
+/* Figurinhas / fundos */
+.sted-emojis, .sted-fundos { position: absolute; left: 0; right: 0; bottom: 0; z-index: 8; background: var(--surface, #161b22); color: var(--text, #fff); border-radius: 18px 18px 0 0; max-height: 55dvh; display: flex; flex-direction: column; animation: sheet-sobe 0.25s var(--ease-out) both; }
+@keyframes sheet-sobe { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+.sted-emojis[hidden], .sted-fundos[hidden] { display: none; }
+.sted-painel-cab { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 6px; font-weight: 700; }
+.sted-painel-cab .sted-ok { color: var(--accent, #e3b341); }
+.sted-emoji-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 2px; padding: 4px 10px calc(14px + env(safe-area-inset-bottom, 0px)); overflow-y: auto; }
+.sted-emoji { border: none; background: none; font-size: 32px; line-height: 1; padding: 8px 0; border-radius: 10px; cursor: pointer; }
+.sted-emoji:hover { background: var(--hover, rgba(255,255,255,0.08)); }
+.sted-fundo-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 12px; padding: 6px 16px calc(16px + env(safe-area-inset-bottom, 0px)); }
+.sted-fundo-op { aspect-ratio: 1; border-radius: 50%; border: 3px solid var(--surface, #161b22); box-shadow: 0 0 0 1px var(--line, #30363d); cursor: pointer; }
+.sted-fundo-op:hover { transform: scale(1.06); }
+
+/* Barra de desenho */
+.sted-desbarra { position: absolute; left: 10px; right: 10px; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 8; display: flex; align-items: center; gap: 8px; background: rgba(0, 0, 0, 0.5); border-radius: 999px; padding: 6px 8px; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.sted-desbarra[hidden] { display: none; }
+.sted-des-larg { width: 90px; accent-color: #fff; }
+
+/* Reações rápidas no visualizador (aparecem ao tocar em "Responder…") */
+.stview-reacoes { position: absolute; left: 12px; right: 12px; bottom: 70px; display: none; justify-content: space-around; gap: 4px; z-index: 6; }
+.stview.respondendo .stview-reacoes { display: flex; }
+.stview-reacao { border: none; background: none; font-size: 34px; line-height: 1; padding: 4px; cursor: pointer; transition: transform 0.12s; animation: st-ov-pop 0.3s var(--ease-spring) both; }
+.stview-reacao:hover { transform: scale(1.2); }
+.stview-reacao:active { transform: scale(0.9); }
+.stview-reacao-voa { position: fixed; z-index: 700; font-size: 48px; pointer-events: none; animation: reacao-voa 1s ease-out forwards; }
+@keyframes reacao-voa { 0% { opacity: 1; transform: translateY(0) scale(0.8); } 100% { opacity: 0; transform: translateY(-220px) scale(1.6); } }
+/* Segurar para pausar: ícone no centro */
+.stview.pausado .stview-media::after { content: ''; position: absolute; top: 50%; left: 50%; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; background: rgba(0,0,0,0.45) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fff'%3E%3Crect x='6' y='4' width='4' height='16' rx='1'/%3E%3Crect x='14' y='4' width='4' height='16' rx='1'/%3E%3C/svg%3E") center/22px no-repeat; z-index: 3; animation: st-ov-pop 0.2s ease both; }
+
+/* Folha "Criar story": Câmera · Galeria · Texto */
+.criar-story-ops { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 12px 4px 6px; }
+.criar-story-op { display: flex; flex-direction: column; align-items: center; gap: 8px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 16px; padding: 16px 6px; font: inherit; font-size: 13px; font-weight: 600; color: var(--text); cursor: pointer; transition: transform 0.12s, border-color 0.12s; }
+.criar-story-op:hover { transform: translateY(-2px); border-color: var(--line-strong); }
+.criar-story-op svg { width: 26px; height: 26px; }
+.criar-story-op .cs-aa { font-size: 22px; font-weight: 800; line-height: 26px; }

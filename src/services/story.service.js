@@ -17,8 +17,45 @@ async function limparExpirados() {
   mortos.forEach((m) => { apagarUpload(m.imagem); apagarUpload(m.video); });
 }
 
-async function publicar(idUsuario, imagem, video, mencaoIds = null) {
+// Sobreposições do editor (texto/figurinha/menção) — só o que é válido entra, com limites.
+const FONTES = ['classico', 'moderno', 'maquina', 'neon'];
+const ALINHAMENTOS = ['center', 'left', 'right'];
+function limparSobreposicoes(bruto) {
+  let lista = bruto;
+  if (typeof bruto === 'string') { try { lista = JSON.parse(bruto); } catch (e) { return null; } }
+  if (!Array.isArray(lista)) return null;
+  const num = (v, min, max, padrao) => { const n = Number(v); return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : padrao; };
+  const out = [];
+  for (const o of lista.slice(0, 30)) {
+    if (!o || typeof o !== 'object') continue;
+    const tipo = ['texto', 'emoji', 'mencao'].includes(o.tipo) ? o.tipo : null;
+    if (!tipo) continue;
+    const item = {
+      tipo,
+      x: num(o.x, 0, 1, 0.5), y: num(o.y, 0, 1, 0.5),
+      rot: num(o.rot, -360, 360, 0), tam: num(o.tam, 0.02, 0.6, 0.1),
+      texto: String(o.texto || '').slice(0, 300),
+    };
+    if (tipo === 'texto') {
+      item.cor = /^#[0-9a-f]{6}$/i.test(String(o.cor)) ? String(o.cor) : '#ffffff';
+      item.fundo = !!o.fundo;
+      item.fonte = FONTES.includes(o.fonte) ? o.fonte : 'classico';
+      item.alinhamento = ALINHAMENTOS.includes(o.alinhamento) ? o.alinhamento : 'center';
+    }
+    if (tipo === 'mencao') {
+      item.id_usuario = Number(o.id_usuario) || null;
+      item.usuario = String(o.usuario || '').replace(/[^a-z0-9._]/gi, '').slice(0, 40);
+      if (!item.id_usuario || !item.usuario) continue;
+    }
+    if (tipo !== 'mencao' && !item.texto) continue;
+    out.push(item);
+  }
+  return out.length ? out : null;
+}
+
+async function publicar(idUsuario, imagem, video, mencaoIds = null, sobreposicoesBrutas = null) {
   if (!imagem && !video) return { ok: false, motivo: 'VAZIO' };
+  const sobreposicoes = limparSobreposicoes(sobreposicoesBrutas);
 
   // Menções (pode marcar VÁRIAS pessoas): valida cada uma; inválidas são ignoradas.
   const marcados = [];
@@ -29,7 +66,15 @@ async function publicar(idUsuario, imagem, video, mencaoIds = null) {
     if (m && m.status === 'APROVADO' && m.ativo && m.tipo_usuario === 'PARTICIPANTE') marcados.push(m.id_usuario);
   }
 
-  const id = await storyModel.criar(idUsuario, imagem, video, marcados[0] || null);
+  // Menção colocada como figurinha no editor também conta como pessoa marcada
+  if (sobreposicoes) {
+    for (const o of sobreposicoes) {
+      if (o.tipo !== 'mencao' || marcados.includes(o.id_usuario) || o.id_usuario === Number(idUsuario)) continue;
+      const m = await usuarioModel.buscarPorId(o.id_usuario);
+      if (m && m.status === 'APROVADO' && m.ativo && m.tipo_usuario === 'PARTICIPANTE') marcados.push(m.id_usuario);
+    }
+  }
+  const id = await storyModel.criar(idUsuario, imagem, video, marcados[0] || null, sobreposicoes);
   for (const mid of marcados) await enviarCardDeMencao(id, idUsuario, mid, imagem, video);
   return { ok: true, id_story: id };
 }
@@ -98,6 +143,7 @@ async function listarAgrupado(meId) {
       id_story: s.id_story, imagem: s.imagem, video: s.video,
       criado_em: s.criado_em, visto: s.visto, vistos: s.vistos,
       curti: s.curti, curtidas: s.curtidas,
+      sobreposicoes: s.sobreposicoes || null,
     });
     if (!s.visto) g.tudoVisto = false;
   });

@@ -7,10 +7,10 @@ const db = require('../config/db');
 
 const ATIVO = `s.criado_em > now() - interval '24 hours'`;
 
-async function criar(idUsuario, imagem, video, mencao = null) {
+async function criar(idUsuario, imagem, video, mencao = null, sobreposicoes = null) {
   const res = await db.query(
-    `INSERT INTO stories (id_usuario, imagem, video, mencao) VALUES ($1, $2, $3, $4) RETURNING id_story`,
-    [idUsuario, imagem || null, video || null, mencao]
+    `INSERT INTO stories (id_usuario, imagem, video, mencao, sobreposicoes) VALUES ($1, $2, $3, $4, $5::jsonb) RETURNING id_story`,
+    [idUsuario, imagem || null, video || null, mencao, sobreposicoes ? JSON.stringify(sobreposicoes) : null]
   );
   return res.rows[0].id_story;
 }
@@ -24,7 +24,7 @@ async function buscarPorId(idStory) {
 // se EU já vi cada um e quantas pessoas viram (para o autor ver "Visto por N").
 async function listarAtivos(meId) {
   const res = await db.query(
-    `SELECT s.id_story, s.id_usuario, s.imagem, s.video, s.criado_em,
+    `SELECT s.id_story, s.id_usuario, s.imagem, s.video, s.criado_em, s.sobreposicoes,
             u.nome, u.usuario, u.foto_perfil,
             EXISTS(SELECT 1 FROM story_vistos v WHERE v.id_story = s.id_story AND v.id_usuario = $1) AS visto,
             (SELECT COUNT(*) FROM story_vistos v WHERE v.id_story = s.id_story AND v.id_usuario <> s.id_usuario)::int AS vistos,

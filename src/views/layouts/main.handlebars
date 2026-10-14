@@ -84,5 +84,6 @@
   {{#if tour}}{{! Tutorial passo a passo: o ui.js vê este marcador, leva ao Feed e começa o tour }}<div id="tour-start" data-nome="{{primeiroNome}}" data-sorteio="{{#if tourSorteio}}1{{/if}}" hidden></div>{{/if}}
 
   <script src="/js/ui.js?v={{assetVer}}" defer nonce="{{cspNonce}}"></script>
+  {{#unless (eq usuario.tipo_usuario "ADMINISTRADOR")}}<script src="/js/story-editor.js?v={{assetVer}}" defer nonce="{{cspNonce}}"></script>{{/unless}}
 </body>
 </html>

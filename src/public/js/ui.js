@@ -622,11 +622,40 @@
     // --- Publicar: o + abre direto a galeria do celular (foto OU vídeo num seletor só).
     // Depois de escolher, abre o COMPOSITOR (preview em tela cheia + "Compartilhar no
     // story", como no Instagram) e publica por AJAX — sem recarregar a página. ---
+    var criarSheet = null;
+    function abrirCriarStory() {
+      var form = document.getElementById('formStory');
+      if (!form) return;
+      if (!criarSheet) {
+        criarSheet = document.createElement('div');
+        criarSheet.className = 'modal sheet-share';
+        criarSheet.hidden = true; criarSheet.setAttribute('aria-hidden', 'true');
+        criarSheet.innerHTML = '<div class="modal-card share-card">'
+          + '<div class="sheet-cab sempre"><span class="sheet-grab" aria-hidden="true"></span><span class="sheet-titulo">Criar story</span>'
+          + '<button type="button" class="sheet-x" data-cs-fechar aria-label="Fechar">&times;</button></div>'
+          + '<div class="criar-story-ops">'
+          + '<button type="button" class="criar-story-op" data-cs="camera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>Câmera</button>'
+          + '<button type="button" class="criar-story-op" data-cs="galeria"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Galeria</button>'
+          + '<button type="button" class="criar-story-op" data-cs="texto"><span class="cs-aa">Aa</span>Texto</button>'
+          + '</div></div>';
+        document.body.appendChild(criarSheet);
+        criarSheet.addEventListener('click', function (ev) {
+          var op = ev.target.closest('[data-cs]');
+          if (ev.target.closest('[data-cs-fechar]') || ev.target === criarSheet) { fecharCriar(); return; }
+          if (!op) return;
+          var qual = op.getAttribute('data-cs');
+          fecharCriar();
+          if (qual === 'galeria') { var picker = form.querySelector('[data-story-picker]'); if (picker) { picker.value = ''; picker.click(); } }
+          else if (qual === 'camera') { var cam = form.querySelector('[data-camera]'); if (cam) cam.click(); }
+          else if (qual === 'texto') { if (window.AnjoStoryEditor) window.AnjoStoryEditor.abrir(null, false, { enviar: publicarStory }); }
+        });
+      }
+      criarSheet.hidden = false; criarSheet.setAttribute('aria-hidden', 'false');
+    }
+    function fecharCriar() { if (criarSheet) { criarSheet.hidden = true; criarSheet.setAttribute('aria-hidden', 'true'); } }
     document.addEventListener('click', function (e) {
       if (!e.target.closest('[data-add-story]')) return;
-      var form = document.getElementById('formStory');
-      var picker = form && form.querySelector('[data-story-picker]');
-      if (picker) { picker.value = ''; picker.click(); }
+      abrirCriarStory();
     });
 
     var comp = null, compFile = null, compEhVideo = false, compUrl = '', compMencoes = [];
@@ -681,7 +710,31 @@
       if (compUrl) { URL.revokeObjectURL(compUrl); compUrl = ''; }
       compFile = null;
     }
+    // Publica a partir do EDITOR (foto já montada em JPEG / vídeo + sobreposições em JSON)
+    function publicarStory(arquivo, meta) {
+      var fd = new FormData();
+      var form = document.getElementById('formStory');
+      var tk = (form && form.querySelector('input[name="_csrf"]')) || document.querySelector('input[name="_csrf"]');
+      if (tk) fd.append('_csrf', tk.value);
+      fd.append(meta.ehVideo ? 'video' : 'imagem', arquivo, arquivo.name || (meta.ehVideo ? 'story.mp4' : 'story.jpg'));
+      if (meta.mencoes && meta.mencoes.length) fd.append('mencao', meta.mencoes.join(','));
+      if (meta.sobreposicoes && meta.sobreposicoes.length) fd.append('sobreposicoes', JSON.stringify(meta.sobreposicoes));
+      return fetch('/stories', { method: 'POST', headers: { 'X-Requested-With': 'fetch', 'Accept': 'application/json', 'X-CSRF-Token': CSRF }, body: fd })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+        .then(function () {
+          invalidarDados();
+          toast('Story publicado');
+          var anel = document.querySelector('.story-ring.eu-story');
+          if (anel) {
+            anel.classList.remove('sem'); anel.classList.add('tem');
+            var meuId = anel.getAttribute('data-meu-id');
+            if (meuId) { anel.setAttribute('data-ver-stories', meuId); anel.removeAttribute('data-add-story'); }
+          }
+        })
+        .catch(function (e) { toast('Não foi possível publicar. Tente de novo.'); throw e; });
+    }
     function abrirComposer(file, ehVideo) {
+      if (window.AnjoStoryEditor) { window.AnjoStoryEditor.abrir(file, ehVideo, { enviar: publicarStory }); return; }
       montarComposer();
       compFile = file; compEhVideo = ehVideo;
       if (compUrl) URL.revokeObjectURL(compUrl);
@@ -1044,6 +1097,7 @@
         + '  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>'
         + '</button>'
         + '<button type="button" class="stview-marcar" hidden title="Marcar pessoa neste story" aria-label="Marcar pessoa">@</button>'
+        + '<div class="stview-reacoes" aria-hidden="true">' + ['❤️', '🙌', '🔥', '👏', '😢', '😍', '😮', '😂'].map(function (e) { return '<button type="button" class="stview-reacao" data-reacao="' + e + '">' + e + '</button>'; }).join('') + '</div>'
         + '<div class="stview-rodape" hidden>'
         + '  <input class="stview-resp" type="text" placeholder="Responder…" maxlength="500" autocomplete="off">'
         + '  <button type="button" class="stview-enviar" hidden>Enviar</button>'
@@ -1149,6 +1203,24 @@
       });
       enviarEl.addEventListener('pointerdown', function (e) { e.preventDefault(); }); // não rouba o foco do input
       enviarEl.addEventListener('click', enviarResposta);
+      // Reações rápidas (aparecem ao tocar em "Responder…"): mandam o emoji como resposta no Direct
+      var reacoesEl = view.querySelector('.stview-reacoes');
+      reacoesEl.addEventListener('pointerdown', function (e) { e.preventDefault(); });
+      reacoesEl.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-reacao]');
+        var item = grupos[gi] && grupos[gi].itens[ii];
+        if (!b || !item) return;
+        var emoji = b.getAttribute('data-reacao');
+        var voa = document.createElement('span'); voa.className = 'stview-reacao-voa'; voa.textContent = emoji;
+        var r = b.getBoundingClientRect(); voa.style.left = (r.left + r.width / 2 - 24) + 'px'; voa.style.top = (r.top - 10) + 'px';
+        document.body.appendChild(voa); setTimeout(function () { voa.remove(); }, 1000);
+        respEl.blur();
+        fetch('/stories/' + item.id_story + '/responder', {
+          method: 'POST',
+          headers: { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch', 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ texto: emoji }),
+        }).then(function (r2) { if (!r2.ok) throw new Error(); toast('Reação enviada'); }).catch(function () { toast('Não foi possível reagir.'); });
+      });
 
       // "👁 N · ❤ M" (no seu story) abre a lista de quem viu, coração ao lado de quem curtiu
       vistosEl.addEventListener('click', abrirVistos);
@@ -1355,6 +1427,7 @@
 
     function pausar(sim) {
       pausado = sim;
+      if (view) view.classList.toggle('pausado', !!sim && !view.classList.contains('respondendo'));
       if (videoEl) { if (sim) videoEl.pause(); else videoEl.play().catch(function () {}); }
       else if (sim) { decorrido += performance.now() - t0; cancelAnimationFrame(raf); }
       else if (!view.classList.contains('carregando')) { t0 = performance.now(); raf = requestAnimationFrame(tick); }
@@ -1452,6 +1525,11 @@
         if (img.decode) img.decode().then(iniciar).catch(iniciar);
         else if (img.complete) iniciar();
         else { img.onload = iniciar; img.onerror = iniciar; }
+      }
+      // Sobreposições do editor: no vídeo desenha texto/figurinhas; na foto só as menções clicáveis
+      var ovs = document.createElement('div'); ovs.className = 'stv-ovs'; mediaBox.appendChild(ovs);
+      if (item.sobreposicoes && window.AnjoStoryEditor) {
+        try { window.AnjoStoryEditor.renderEm(ovs, item.sobreposicoes, mediaBox.clientWidth || window.innerWidth, !item.video); } catch (x) {}
       }
       preCarregar(); // próximo story baixa em segundo plano (transição instantânea)
       atualizarVizinhos(); // prévias laterais do desktop
@@ -2549,6 +2627,7 @@
 
   /* ---------- Toast (aviso curto flutuante) ---------- */
   var toastTimer = null;
+  window.toast = toast;
   function toast(msg) {
     var t = document.getElementById('toast-ui');
     if (!t) { t = document.createElement('div'); t.id = 'toast-ui'; t.className = 'toast-ui'; document.body.appendChild(t); }
@@ -2563,6 +2642,7 @@
      marca várias de uma vez, sem confirmar uma por uma. O callback recebe a LISTA. ---------- */
   var selPessoaModal = null, selPessoaCb = null, selPessoaSeq = 0, selPessoaTimer = null, selPessoaFechar = null;
   var selPessoaSel = {}; // id → pessoa selecionada
+  window.__abrirSeletorPessoa = abrirSeletorPessoa;
   function abrirSeletorPessoa(titulo, cb, aoFechar) {
     selPessoaCb = cb;
     selPessoaFechar = aoFechar || null;

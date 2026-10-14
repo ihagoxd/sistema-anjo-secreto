@@ -62,6 +62,11 @@ const TIPOS = {
     titulo: nomes,
     texto: (r, n) => (n > 1 ? 'comentaram no seu post' : 'comentou no seu post'),
   },
+  RESPOSTA: {
+    emoji: '↩️', categoria: 'social', temAtor: true, agrupaPor: 'ref',
+    titulo: nomes,
+    texto: (r, n) => (n > 1 ? 'responderam ao seu comentário' : 'respondeu ao seu comentário'),
+  },
   REPOST: {
     emoji: '🔁', categoria: 'social', temAtor: true, agrupaPor: 'ref',
     titulo: nomes,
@@ -377,6 +382,14 @@ function notificarComentario(idDono, idAtor, idPost, texto = null, imagemPost = 
   }));
 }
 
+function notificarResposta(idDono, idAtor, idPost, texto = null, imagemPost = null) {
+  if (idDono === idAtor) return Promise.resolve();
+  return seguro(() => criar({
+    idUsuario: idDono, tipo: 'RESPOSTA', idAtor, link: '/p/' + idPost, ref: idPost,
+    detalhe: previaTexto(texto), imagem: imagemPost,
+  }));
+}
+
 function notificarRepost(idDono, idAtor, idPost, imagemPost = null) {
   if (idDono === idAtor) return Promise.resolve();
   return seguro(() => criar({
@@ -465,6 +478,7 @@ module.exports = {
   notificarMensagemJogo,
   notificarCurtida,
   notificarComentario,
+  notificarResposta,
   notificarRepost,
   notificarMencao,
   notificarSorteio,

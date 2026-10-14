@@ -405,6 +405,9 @@ CREATE INDEX IF NOT EXISTS idx_coment_post ON post_comentarios(id_post);
 -- Comentário com foto (texto vira opcional quando há imagem; nunca os dois vazios)
 ALTER TABLE post_comentarios ADD COLUMN IF NOT EXISTS imagem TEXT;
 ALTER TABLE post_comentarios ALTER COLUMN texto DROP NOT NULL;
+-- Respostas em fio (como no Instagram): aponta para o comentário raiz (um nível só)
+ALTER TABLE post_comentarios ADD COLUMN IF NOT EXISTS responde_a INTEGER REFERENCES post_comentarios(id_comentario) ON DELETE CASCADE;
+CREATE INDEX IF NOT EXISTS idx_coment_responde ON post_comentarios(responde_a);
 ALTER TABLE post_comentarios DROP CONSTRAINT IF EXISTS pc_conteudo;
 ALTER TABLE post_comentarios ADD CONSTRAINT pc_conteudo CHECK (texto IS NOT NULL OR imagem IS NOT NULL);
 

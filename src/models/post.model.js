@@ -291,10 +291,10 @@ async function contarReposts(idPost) {
 }
 
 // ---------- Comentários ----------
-async function adicionarComentario(idPost, idUsuario, texto, imagem = null) {
+async function adicionarComentario(idPost, idUsuario, texto, imagem = null, respondeA = null) {
   const res = await db.query(
-    `INSERT INTO post_comentarios (id_post, id_usuario, texto, imagem) VALUES ($1, $2, $3, $4) RETURNING id_comentario`,
-    [idPost, idUsuario, texto || null, imagem || null]
+    `INSERT INTO post_comentarios (id_post, id_usuario, texto, imagem, responde_a) VALUES ($1, $2, $3, $4, $5) RETURNING id_comentario`,
+    [idPost, idUsuario, texto || null, imagem || null, respondeA || null]
   );
   return res.rows[0];
 }
@@ -304,7 +304,7 @@ const VOTOU = `(SELECT string_agg(o.texto, ', ' ORDER BY o.ordem)
                  WHERE v.id_post = m.id_post AND v.id_usuario = m.id_usuario) AS votou`;
 async function listarComentarios(idPost) {
   const res = await db.query(
-    `SELECT m.id_comentario, m.texto, m.imagem, m.criado_em, m.id_usuario, u.nome, u.usuario, u.foto_perfil, ${VOTOU}
+    `SELECT m.id_comentario, m.texto, m.imagem, m.criado_em, m.id_usuario, m.responde_a, u.nome, u.usuario, u.foto_perfil, ${VOTOU}
        FROM post_comentarios m JOIN usuarios u ON u.id_usuario = m.id_usuario
       WHERE m.id_post = $1 ORDER BY m.criado_em ASC`,
     [idPost]
@@ -314,7 +314,7 @@ async function listarComentarios(idPost) {
 async function listarComentariosDeVarios(ids) {
   if (!ids || !ids.length) return [];
   const res = await db.query(
-    `SELECT m.id_comentario, m.id_post, m.texto, m.imagem, m.criado_em, m.id_usuario, u.nome, u.usuario, u.foto_perfil, ${VOTOU}
+    `SELECT m.id_comentario, m.id_post, m.texto, m.imagem, m.criado_em, m.id_usuario, m.responde_a, u.nome, u.usuario, u.foto_perfil, ${VOTOU}
        FROM post_comentarios m JOIN usuarios u ON u.id_usuario = m.id_usuario
       WHERE m.id_post = ANY($1) ORDER BY m.criado_em ASC`,
     [ids]
@@ -323,7 +323,7 @@ async function listarComentariosDeVarios(ids) {
 }
 
 async function buscarComentario(idComentario) {
-  const res = await db.query(`SELECT id_comentario, id_usuario, id_post, imagem FROM post_comentarios WHERE id_comentario = $1`, [idComentario]);
+  const res = await db.query(`SELECT id_comentario, id_usuario, id_post, imagem, responde_a FROM post_comentarios WHERE id_comentario = $1`, [idComentario]);
   return res.rows[0] || null;
 }
 // Fotos dos comentários de um post (para apagar do disco junto com o post).

@@ -108,28 +108,7 @@
     </div>
     <div class="tw-comentarios">
       {{#each this.comentariosLista}}
-        <div class="tw-coment" data-coment="{{this.id_comentario}}" data-uid="{{this.id_usuario}}">
-          <a href="/u/{{this.usuario}}" class="tw-coment-av">{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="" loading="lazy">{{else}}{{inicial this.nome}}{{/if}}</a>
-          <div class="tw-coment-main">
-            <div class="tw-coment-top">
-              <a href="/u/{{this.usuario}}" class="tw-coment-nome">{{this.nome}}</a>
-              {{#if this.votou}}<span class="tw-coment-voto" data-voto-tag title="Votou em: {{this.votou}}">votou em {{this.votou}}</span>{{/if}}
-              <span class="tw-coment-meta">· {{tempoRel this.criado_em}}</span>
-              {{! Pode apagar: quem comentou, o DONO do post ou o admin }}
-              {{#if (ou (ou (eq this.id_usuario @root.usuario.id_usuario) (eq ../id_usuario @root.usuario.id_usuario)) (eq @root.usuario.tipo_usuario "ADMINISTRADOR"))}}
-                <form action="/feed/comentarios/{{this.id_comentario}}/remover" method="POST" class="tw-coment-del" data-coment-del data-confirmar="{{#if (eq this.id_usuario @root.usuario.id_usuario)}}Apagar seu comentário?{{else}}Remover o comentário de {{this.nome}} do seu post?{{/if}}">
-                  <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
-                  <button type="submit" class="btn-icone" aria-label="Remover comentário" title="{{#if (eq this.id_usuario @root.usuario.id_usuario)}}Apagar meu comentário{{else}}Remover este comentário do meu post{{/if}}">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                  </button>
-                </form>
-              {{/if}}
-            </div>
-            {{#if this.texto}}<div class="tw-coment-texto">{{comMencoes this.texto}}</div>{{/if}}
-            {{#if this.imagem}}<div class="tw-coment-img" data-img="{{this.imagem}}" role="button" tabindex="0" aria-label="Ampliar imagem"><img src="{{this.imagem}}" alt="Imagem do comentário" loading="lazy" draggable="false"></div>{{/if}}
-            <button type="button" class="tw-coment-resp" data-coment-responder="{{this.usuario}}">Responder</button>
-          </div>
-        </div>
+        {{> comentario this dono=../id_usuario}}
       {{/each}}
     </div>
 
@@ -146,6 +125,9 @@
 
     <form class="tw-reply" action="/feed/{{this.id_post}}/comentar" method="POST" enctype="multipart/form-data" data-reply>
       <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
+      <input type="hidden" name="responde_a" value="" data-resp-pai>
+      {{! "Respondendo a @fulano" (fio) — o × volta a comentar no post }}
+      <div class="tw-reply-a" data-reply-a hidden><span>Respondendo a <strong data-reply-a-quem></strong></span><button type="button" class="tw-reply-a-x" data-reply-a-x aria-label="Cancelar resposta">&times;</button></div>
       {{! Prévia da foto escolhida (aparece acima do campo; o × tira a foto) }}
       <div class="tw-reply-prev" data-reply-prev hidden>
         <span class="tw-reply-prev-item"><img src="" alt="Foto escolhida"><button type="button" class="tw-reply-prev-x" data-reply-prev-x aria-label="Remover foto" title="Remover foto">&times;</button></span>

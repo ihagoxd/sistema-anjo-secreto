@@ -1,0 +1,33 @@
+{{! Um comentário do post (e, dentro dele, as respostas em fio, como no Instagram).
+    Contexto: o comentário; "dono" = id do autor do post (quem pode remover); "resposta" = é uma resposta. }}
+<div class="tw-coment{{#if resposta}} resposta{{/if}}" data-coment="{{id_comentario}}" data-uid="{{id_usuario}}">
+  <a href="/u/{{usuario}}" class="tw-coment-av">{{#if foto_perfil}}<img src="{{foto_perfil}}" alt="" loading="lazy">{{else}}{{inicial nome}}{{/if}}</a>
+  <div class="tw-coment-main">
+    <div class="tw-coment-top">
+      <a href="/u/{{usuario}}" class="tw-coment-nome">{{nome}}</a>
+      {{#if votou}}<span class="tw-coment-voto" data-voto-tag title="Votou em: {{votou}}">votou em {{votou}}</span>{{/if}}
+      <span class="tw-coment-meta">· {{tempoRel criado_em}}</span>
+      {{! Pode apagar: quem comentou, o DONO do post ou o admin }}
+      {{#if (ou (ou (eq id_usuario @root.usuario.id_usuario) (eq dono @root.usuario.id_usuario)) (eq @root.usuario.tipo_usuario "ADMINISTRADOR"))}}
+        <form action="/feed/comentarios/{{id_comentario}}/remover" method="POST" class="tw-coment-del" data-coment-del data-confirmar="{{#if (eq id_usuario @root.usuario.id_usuario)}}Apagar seu comentário?{{else}}Remover o comentário de {{nome}} do seu post?{{/if}}">
+          <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
+          <button type="submit" class="btn-icone" aria-label="Remover comentário" title="{{#if (eq id_usuario @root.usuario.id_usuario)}}Apagar meu comentário{{else}}Remover este comentário do meu post{{/if}}">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+        </form>
+      {{/if}}
+    </div>
+    {{#if texto}}<div class="tw-coment-texto">{{comMencoes texto}}</div>{{/if}}
+    {{#if imagem}}<div class="tw-coment-img" data-img="{{imagem}}" role="button" tabindex="0" aria-label="Ampliar imagem"><img src="{{imagem}}" alt="Imagem do comentário" loading="lazy" draggable="false"></div>{{/if}}
+    <button type="button" class="tw-coment-resp" data-coment-responder="{{usuario}}" data-coment-pai="{{#if responde_a}}{{responde_a}}{{else}}{{id_comentario}}{{/if}}">Responder</button>
+    {{#unless resposta}}
+    {{! Fio de respostas: fechado por padrão ("Ver N respostas"), como no Instagram }}
+    <div class="tw-fio" data-fio="{{id_comentario}}"{{#unless respostas.length}} hidden{{/unless}}>
+      <button type="button" class="tw-ver-respostas" data-ver-respostas data-n="{{respostas.length}}">Ver {{#if (eq respostas.length 1)}}1 resposta{{else}}{{respostas.length}} respostas{{/if}}</button>
+      <div class="tw-respostas" hidden>
+        {{#each respostas}}{{> comentario this dono=../dono resposta=true}}{{/each}}
+      </div>
+    </div>
+    {{/unless}}
+  </div>
+</div>

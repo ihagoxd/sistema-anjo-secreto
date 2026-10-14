@@ -79,13 +79,32 @@
         .catch(function () { if (item) item.classList.remove('saindo'); delete form.dataset.enviando; toast('Não foi possível remover.'); });
     });
 
-    // "Responder" num comentário: o campo já vem com o @ da pessoa (estilo Instagram)
+    // "Responder" num comentário: vira resposta em fio (responde_a) e o campo já vem com o @ (estilo Instagram)
+    function cancelarRespostaFio(form) {
+      var pai = form.querySelector('[data-resp-pai]'); if (pai) pai.value = '';
+      var bar = form.querySelector('[data-reply-a]'); if (bar) bar.hidden = true;
+    }
     document.addEventListener('click', function (e) {
+      var x = e.target.closest('[data-reply-a-x]');
+      if (x && x.form) { cancelarRespostaFio(x.form); var t0 = x.form.querySelector('input[name="texto"]'); if (t0) { t0.value = t0.value.replace(/^@\S+\s*/, ''); t0.focus(); } return; }
+      var ver = e.target.closest('[data-ver-respostas]');
+      if (ver) {
+        var fio = ver.closest('.tw-fio'); var lista = fio && fio.querySelector('.tw-respostas');
+        if (!lista) return;
+        lista.hidden = !lista.hidden;
+        var n = parseInt(ver.getAttribute('data-n'), 10) || 0;
+        ver.textContent = lista.hidden ? ('Ver ' + (n === 1 ? '1 resposta' : n + ' respostas')) : 'Ocultar respostas';
+        return;
+      }
       var b = e.target.closest('[data-coment-responder]');
       if (!b) return;
       var bloco = b.closest('.tw-comentarios-bloco');
-      var inp = bloco && bloco.querySelector('.tw-reply input[name="texto"]');
+      var form = bloco && bloco.querySelector('form.tw-reply');
+      var inp = form && form.querySelector('input[name="texto"]');
       if (!inp) return;
+      var pai = form.querySelector('[data-resp-pai]'); if (pai) pai.value = b.getAttribute('data-coment-pai') || '';
+      var bar = form.querySelector('[data-reply-a]'); var quem = form.querySelector('[data-reply-a-quem]');
+      if (bar && quem) { quem.textContent = '@' + b.getAttribute('data-coment-responder'); bar.hidden = false; }
       var arroba = '@' + b.getAttribute('data-coment-responder') + ' ';
       if (inp.value.indexOf(arroba.trim()) !== 0) inp.value = arroba + inp.value.replace(/^@\S+\s*/, '');
       inp.focus();
@@ -203,8 +222,16 @@
           var bloco = form.closest('.tw-comentarios-bloco');
           var lista = bloco.querySelector('.tw-comentarios');
           var c = d.comentario;
+          // Resposta em fio: entra dentro do comentário pai (fio aberto); senão, no fim da lista
+          var fioPai = c.responde_a ? bloco.querySelector('.tw-fio[data-fio="' + c.responde_a + '"]') : null;
+          if (fioPai) {
+            lista = fioPai.querySelector('.tw-respostas');
+            fioPai.hidden = false; lista.hidden = false;
+            var verBtn = fioPai.querySelector('[data-ver-respostas]');
+            if (verBtn) { verBtn.setAttribute('data-n', (parseInt(verBtn.getAttribute('data-n'), 10) || 0) + 1); verBtn.textContent = 'Ocultar respostas'; }
+          }
           var el = document.createElement('div');
-          el.className = 'tw-coment';
+          el.className = 'tw-coment' + (fioPai ? ' resposta' : '');
           el.setAttribute('data-coment', c.id_comentario);
           el.setAttribute('data-uid', c.id_usuario);
           var av = c.foto_perfil ? '<img src="' + c.foto_perfil + '" alt="">' : escaparHtml((c.nome || '?').trim().charAt(0).toUpperCase());
@@ -221,9 +248,12 @@
             '</button></form></div>' +
             (c.texto ? '<div class="tw-coment-texto">' + comMencoesJs(c.texto) + '</div>' : '') +
             (c.imagem ? '<div class="tw-coment-img" data-img="' + escaparHtml(c.imagem) + '" role="button" tabindex="0" aria-label="Ampliar imagem"><img src="' + escaparHtml(c.imagem) + '" alt="Imagem do comentário" draggable="false"></div>' : '') +
-            '<button type="button" class="tw-coment-resp" data-coment-responder="' + escaparHtml(c.usuario) + '">Responder</button></div>';
+            '<button type="button" class="tw-coment-resp" data-coment-responder="' + escaparHtml(c.usuario) + '" data-coment-pai="' + (c.responde_a || c.id_comentario) + '">Responder</button>'
+            + (fioPai ? '' : '<div class="tw-fio" data-fio="' + c.id_comentario + '" hidden><button type="button" class="tw-ver-respostas" data-ver-respostas data-n="0">Ver respostas</button><div class="tw-respostas" hidden></div></div>')
+            + '</div>';
           if (lista) lista.appendChild(el);
           if (inp) inp.value = '';
+          cancelarRespostaFio(form);
           limparFotoReply(form);
           if (lista && c.imagem) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
           // incrementa o contador do ícone e o "Ver todos os N comentários"

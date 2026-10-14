@@ -19,7 +19,7 @@ function ehAdmin(req) {
 function anexarComentarios(posts, comentarios) {
   const porPost = {};
   comentarios.forEach((c) => { (porPost[c.id_post] = porPost[c.id_post] || []).push(c); });
-  posts.forEach((p) => { p.comentariosLista = porPost[p.id_post] || []; });
+  posts.forEach((p) => { p.comentariosLista = postService.montarFios(porPost[p.id_post] || []); });
 }
 
 // Marca em cada post se o AUTOR tem story ativo (anel no avatar do card).
@@ -277,7 +277,7 @@ async function postComentar(req, res, next) {
     // Foto opcional do comentário (multipart; já conferida e otimizada pelo upload)
     const f = req.files && req.files.imagem && req.files.imagem[0];
     const imagem = f ? '/uploads/' + f.filename : null;
-    const r = await postService.comentar(req.params.id_post, req.session.usuario.id_usuario, req.body.texto, imagem);
+    const r = await postService.comentar(req.params.id_post, req.session.usuario.id_usuario, req.body.texto, imagem, req.body.responde_a || null);
     // Pedido via AJAX (comentário inline no feed): responde em JSON, sem recarregar.
     const querJson = req.xhr || (req.get('Accept') || '').includes('application/json');
     if (querJson) {
@@ -287,6 +287,7 @@ async function postComentar(req, res, next) {
         ok: true,
         comentario: {
           id_comentario: r.idComentario,
+          responde_a: r.responde_a || null,
           texto: r.texto,
           imagem: r.imagem,
           id_usuario: u.id_usuario,

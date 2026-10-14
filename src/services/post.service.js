@@ -176,7 +176,7 @@ async function editarPost(idPost, idUsuario, texto) {
 async function buscarPost(idPost, idUsuarioAtual) {
   const post = await postModel.buscarFeedUm(idPost, idUsuarioAtual);
   if (!post) return null;
-  post.comentariosLista = await postModel.listarComentarios(idPost);
+  post.comentariosLista = montarFios(await postModel.listarComentarios(idPost));
   return post;
 }
 
@@ -268,24 +268,45 @@ function listarRepostados(idAutor, idUsuarioAtual) {
 }
 
 // Comentário: texto, foto ou os dois. Se a validação falhar, a foto já gravada é apagada.
-async function comentar(idPost, idUsuario, texto, imagemPath = null) {
+// Comentários em fio: os de cima (sem responde_a) levam suas respostas em "respostas".
+function montarFios(lista) {
+  const raizes = [];
+  const porId = {};
+  (lista || []).forEach((c) => { c.respostas = []; porId[c.id_comentario] = c; });
+  (lista || []).forEach((c) => {
+    const pai = c.responde_a && porId[c.responde_a];
+    if (pai) pai.respostas.push(c); else raizes.push(c);
+  });
+  return raizes;
+}
+
+async function comentar(idPost, idUsuario, texto, imagemPath = null, respondeA = null) {
   const falha = (motivo) => { if (imagemPath) apagarUpload(imagemPath); return { ok: false, motivo }; };
   const post = await postModel.buscarPorId(idPost);
   if (!post) return falha('NAO_ENCONTRADO');
   const t = String(texto || '').trim();
   if (!t && !imagemPath) return falha('VAZIO');
   if (t.length > 500) return falha('LONGO');
+  // Resposta: só a comentário DESTE post; responder uma resposta cai no mesmo fio (um nível, como no Instagram)
+  let pai = null;
+  if (respondeA) {
+    const c = await postModel.buscarComentario(Number(respondeA));
+    if (c && c.id_post === Number(idPost)) pai = c.responde_a ? await postModel.buscarComentario(c.responde_a) : c;
+  }
   let novo;
   try {
-    novo = await postModel.adicionarComentario(idPost, idUsuario, t || null, imagemPath);
+    novo = await postModel.adicionarComentario(idPost, idUsuario, t || null, imagemPath, pai ? pai.id_comentario : null);
   } catch (e) {
     if (imagemPath) apagarUpload(imagemPath); // não deixa a foto órfã no disco se o banco recusar
     throw e;
   }
   // Prévia da notificação: o texto; se veio só a foto, "📷 Foto". Miniatura: a do post, senão a do comentário.
   await notificacaoService.notificarComentario(post.id_usuario, idUsuario, idPost, t || '📷 Foto', post.imagem || imagemPath);
+  if (pai && pai.id_usuario !== idUsuario && pai.id_usuario !== post.id_usuario) {
+    await notificacaoService.notificarResposta(pai.id_usuario, idUsuario, idPost, t || '📷 Foto', post.imagem || imagemPath);
+  }
   await notificarMencoes(t, idUsuario, idPost);
-  return { ok: true, idComentario: novo.id_comentario, texto: t || null, imagem: imagemPath };
+  return { ok: true, idComentario: novo.id_comentario, texto: t || null, imagem: imagemPath, responde_a: pai ? pai.id_comentario : null };
 }
 
 function listarComentarios(idPost) {
@@ -322,6 +343,7 @@ async function removerComentario(idComentario, idUsuario, ehAdmin) {
 }
 
 module.exports = {
+  montarFios,
   LIMITE_TEXTO,
   criarPost, editarPost, listarFeed, listarNovos, buscarPost, perfilPublico,
   alternarCurtida, listarCurtidores, alternarRepost, listarRepostados, comentar, listarComentarios,

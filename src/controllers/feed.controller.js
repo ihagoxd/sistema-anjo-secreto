@@ -438,7 +438,7 @@ async function getBuscaPosts(req, res, next) {
     res.json(posts.map((p) => ({
       id_post: p.id_post,
       texto: String(p.texto || '').replace(/\s+/g, ' ').slice(0, 120),
-      imagem: p.imagem || (Array.isArray(p.midias) && p.midias[0]) || null,
+      imagem: p.imagem || (Array.isArray(p.midias) && p.midias[0]) || p.video_poster || null,
       video: !!p.video,
       local: p.local || null,
       nome: p.nome, usuario: p.usuario, foto_perfil: p.foto_perfil,

@@ -7,6 +7,7 @@
 const fs = require('fs');
 const path = require('path');
 const storyModel = require('../models/story.model');
+const videoService = require('./video.service');
 const usuarioModel = require('../models/usuario.model');
 const dmService = require('./mensagemDireta.service');
 const { apagarUpload, UPLOAD_DIR } = require('../config/upload');
@@ -76,6 +77,7 @@ async function publicar(idUsuario, imagem, video, mencaoIds = null, sobreposicoe
     }
   }
   const id = await storyModel.criar(idUsuario, imagem, video, marcados[0] || null, sobreposicoes);
+  if (video) videoService.processar(video, async (r) => { await storyModel.atualizarVideo(id.id_story, r.video); });
   for (const mid of marcados) await enviarCardDeMencao(id, idUsuario, mid, imagem, video);
   return { ok: true, id_story: id };
 }

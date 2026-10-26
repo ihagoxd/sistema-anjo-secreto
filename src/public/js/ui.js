@@ -3463,7 +3463,7 @@
       });
       es.addEventListener('contagem', function (ev) { try { setContagem(JSON.parse(ev.data).count); } catch (e) {} });
       // Barramento: outros módulos (Direct, feed) escutam os eventos como 'sse:<nome>' no document
-      ['dm', 'dm-lida', 'dm-tema', 'digitando', 'presenca', 'post-novo', 'grupo'].forEach(function (nome) {
+      ['dm', 'dm-lida', 'dm-tema', 'digitando', 'presenca', 'post-novo', 'post-video', 'grupo'].forEach(function (nome) {
         es.addEventListener(nome, function (ev) {
           var d = null; try { d = JSON.parse(ev.data); } catch (e) {}
           document.dispatchEvent(new CustomEvent('sse:' + nome, { detail: d }));
@@ -5932,6 +5932,57 @@
     if (location.hash === '#criar') setTimeout(focarCompositor, 150);
   })();
 
+  /* ---------- Vídeos do feed (Instagram): toca sozinho sem som quando aparece, pausa ao sair,
+     toque liga o som (e os próximos já vêm com som), toque no vídeo pausa/retoma, um só com som ---------- */
+  (function () {
+    var SOM_ON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+    var SOM_OFF = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>';
+    var somLigado = false;
+    function icone(btn, mudo) { if (btn) btn.innerHTML = mudo ? SOM_OFF : SOM_ON; }
+    function silenciarOutros(v) {
+      document.querySelectorAll('.ig-video video').forEach(function (o) { if (o !== v && !o.muted) { o.muted = true; icone(o.parentNode.querySelector('[data-video-som]'), true); } });
+    }
+    function ligar(box) {
+      if (box.__ligado) return; box.__ligado = true;
+      var v = box.querySelector('video'), btn = box.querySelector('[data-video-som]');
+      v.muted = !somLigado; icone(btn, v.muted);
+      if (btn) btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        v.muted = !v.muted; somLigado = !v.muted; icone(btn, v.muted);
+        if (!v.muted) { silenciarOutros(v); if (v.paused) { box.classList.remove('pausado'); v.play().catch(function () {}); } }
+      });
+      v.addEventListener('click', function () {
+        if (v.paused) { box.classList.remove('pausado'); v.play().catch(function () {}); }
+        else { v.pause(); box.classList.add('pausado'); }
+      });
+      v.addEventListener('error', function () { box.classList.add('erro'); });
+    }
+    var io = ('IntersectionObserver' in window) ? new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        var v = en.target.querySelector('video'); if (!v) return;
+        if (en.isIntersecting && en.intersectionRatio >= 0.6) { if (!en.target.classList.contains('pausado')) v.play().catch(function () {}); }
+        else if (!v.paused) v.pause();
+      });
+    }, { threshold: [0, 0.6] }) : null;
+    function observar() {
+      document.querySelectorAll('.ig-video[data-video-post]').forEach(function (b) { if (!b.__ligado) { ligar(b); if (io) io.observe(b); } });
+    }
+    observar();
+    new MutationObserver(observar).observe(document.body, { childList: true, subtree: true });
+    // Vídeo convertido no servidor (H.264 + capa): troca na hora onde o original não toca ou está parado
+    document.addEventListener('sse:post-video', function (e) {
+      var d = e.detail; if (!d || !d.video) return;
+      document.querySelectorAll('.ig-video[data-video-post="' + d.id_post + '"] video').forEach(function (v) {
+        if (d.poster) v.setAttribute('poster', d.poster);
+        if (v.getAttribute('src') === d.video) return;
+        var tocando = !v.paused && !v.error;
+        var t = v.currentTime || 0;
+        v.setAttribute('src', d.video); v.load();
+        if (tocando) { try { v.currentTime = t; } catch (x) {} v.play().catch(function () {}); }
+      });
+    });
+  })();
+
   /* ---------- Posts: várias fotos (prévia + carrossel), localização, reações, salvar ---------- */
   (function () {
     var metaP = document.querySelector('meta[name="csrf-token"]');
@@ -5969,6 +6020,54 @@
         prev.hidden = false;
       }
       if (fotoIn) fotoIn.addEventListener('change', function () { setTimeout(montarPrevia, 0); }); // depois da prévia padrão
+
+      /* ---- Vídeo escolhido pelo botão Foto (galeria no celular, arquivo no desktop): vai para o campo de vídeo ---- */
+      var VIDEO_MAX_MB = 100, VIDEO_MAX_SEG = 90;
+      var videoIn = comp.querySelector('[data-video]');
+      function medirVideoLocal(f) {
+        return new Promise(function (resolve) {
+          var v = document.createElement('video'); v.preload = 'metadata'; v.muted = true;
+          var url = URL.createObjectURL(f);
+          var fim = function (d) { URL.revokeObjectURL(url); resolve(d); };
+          v.onloadedmetadata = function () { fim({ dur: v.duration || 0, w: v.videoWidth, h: v.videoHeight }); };
+          v.onerror = function () { fim({ dur: 0, w: 0, h: 0, erro: true }); };
+          v.src = url;
+        });
+      }
+      function setVideo(f) {
+        try { var dt = new DataTransfer(); if (f) dt.items.add(f); videoIn.files = dt.files; } catch (e) {}
+        videoIn.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      function legendaVideo(f, m) {
+        var prevEl = comp.querySelector('[data-preview] .anexo-item'); if (!prevEl) return;
+        var leg = prevEl.querySelector('.anexo-legenda') || document.createElement('span');
+        leg.className = 'anexo-legenda';
+        var s = Math.round(m.dur || 0), mm = Math.floor(s / 60), ss = ('0' + (s % 60)).slice(-2);
+        leg.textContent = 'Vídeo · ' + mm + ':' + ss + ' · ' + Math.max(1, Math.round(f.size / 1048576)) + ' MB' + (m.h ? ' · ' + m.h + 'p' : '');
+        prevEl.appendChild(leg);
+      }
+      if (fotoIn && videoIn) {
+        fotoIn.addEventListener('change', function () {
+          var lista = arquivos();
+          var videos = lista.filter(function (f) { return f.type.indexOf('video/') === 0; });
+          if (!videos.length) return;
+          var fotos = lista.filter(function (f) { return f.type.indexOf('video/') !== 0; });
+          var f = videos[0];
+          definirArquivos([]); // o campo de fotos fica vazio: vídeo vai sozinho
+          if (fotos.length || videos.length > 1) toast('O vídeo vai sozinho na publicação, sem fotos.');
+          if (f.size > VIDEO_MAX_MB * 1048576) { toast('Esse vídeo passa de ' + VIDEO_MAX_MB + ' MB. Corte um trecho menor ou grave em 1080p.'); return; }
+          medirVideoLocal(f).then(function (m) {
+            if (m.erro) { toast('Não consegui ler esse vídeo. Tente MP4 ou MOV.'); return; }
+            if (m.dur > VIDEO_MAX_SEG + 0.5) { toast('O vídeo pode ter no máximo ' + VIDEO_MAX_SEG + ' segundos. Esse tem ' + Math.round(m.dur) + 's.'); return; }
+            setVideo(f);
+            setTimeout(function () { legendaVideo(f, m); }, 60);
+          });
+        }, true);
+        videoIn.addEventListener('change', function () {
+          var f = videoIn.files && videoIn.files[0];
+          if (f) medirVideoLocal(f).then(function (m) { setTimeout(function () { legendaVideo(f, m); }, 60); });
+        });
+      }
 
       /* ---- Localização ---- */
       var modalLocal = document.getElementById('modal-local');

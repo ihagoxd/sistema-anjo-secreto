@@ -7,6 +7,10 @@ const db = require('../config/db');
 
 const ATIVO = `s.criado_em > now() - interval '24 hours'`;
 
+async function atualizarVideo(idStory, video) {
+  await db.query(`UPDATE stories SET video = $2 WHERE id_story = $1`, [idStory, video]);
+}
+
 async function criar(idUsuario, imagem, video, mencao = null, sobreposicoes = null) {
   const res = await db.query(
     `INSERT INTO stories (id_usuario, imagem, video, mencao, sobreposicoes) VALUES ($1, $2, $3, $4, $5::jsonb) RETURNING id_story`,
@@ -126,6 +130,7 @@ async function removerExpirados() {
 }
 
 module.exports = {
+  atualizarVideo,
   criar, buscarPorId, listarAtivos, resumoAneis, marcarVisto, remover, removerExpirados, listarViram,
   adicionarMencao, foiMencionado,
   curtir, descurtir, jaCurtiu, contarCurtidas,

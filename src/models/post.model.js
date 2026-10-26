@@ -6,7 +6,7 @@
 const db = require('../config/db');
 
 const SELECT_POST = `
-  SELECT p.id_post, p.texto, p.imagem, p.video, p.criado_em, p.editado_em, p.presente_anjo, p.local,
+  SELECT p.id_post, p.texto, p.imagem, p.video, p.video_poster, p.criado_em, p.editado_em, p.presente_anjo, p.local,
          u.id_usuario, u.nome, u.usuario, u.foto_perfil,
          (SELECT COALESCE(json_agg(pm.caminho ORDER BY pm.ordem, pm.id_midia), '[]'::json)
             FROM post_midias pm WHERE pm.id_post = p.id_post) AS midias,
@@ -37,6 +37,11 @@ async function criar({ idUsuario, texto, imagem, video = null, idColaborador = n
     [idUsuario, texto, imagem, video, idColaborador, !!enqueteMultipla, enquetePergunta, !!presenteAnjo, local]
   );
   return res.rows[0];
+}
+
+// Vídeo convertido/capa prontos (ffmpeg em segundo plano)
+async function atualizarVideo(idPost, video, poster) {
+  await db.query(`UPDATE posts SET video = $2, video_poster = $3 WHERE id_post = $1`, [idPost, video, poster || null]);
 }
 
 // ---------- Várias fotos (carrossel) ----------
@@ -336,6 +341,7 @@ async function removerComentario(idComentario) {
 }
 
 module.exports = {
+  atualizarVideo,
   buscarPosts,
   criar, listarFeed, listarNovosDesde, listarPorUsuario, listarRepostadosPor, buscarPorId, buscarFeedUm, remover, contarNovosDesde, adicionarColaboradores, atualizarTexto,
   curtir, descurtir, jaCurtiu, contarCurtidas, listarCurtidores, reacaoDe, reacoesTop,

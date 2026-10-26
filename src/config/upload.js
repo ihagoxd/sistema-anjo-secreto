@@ -34,6 +34,7 @@ const EXT_VIDEO = {
   'video/webm': '.webm',
   'video/mp4': '.mp4',
   'video/quicktime': '.mov',
+  'video/x-m4v': '.m4v',
 };
 
 const storage = multer.diskStorage({
@@ -59,7 +60,7 @@ const upload = multer({
 // Mídia do chat e do mural: imagem, áudio de voz OU vídeo (campos separados, tipos por campo).
 const uploadMsg = multer({
   storage,
-  limits: { fileSize: 60 * 1024 * 1024 }, // 60 MB (vídeo de 1 min cabe folgado)
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100 MB (vídeo de até 1 min e meio em 1080p; é o teto do Cloudflare)
   fileFilter: (req, file, cb) => {
     if (file.fieldname === 'audio') {
       if (EXT_AUDIO[file.mimetype]) return cb(null, true);

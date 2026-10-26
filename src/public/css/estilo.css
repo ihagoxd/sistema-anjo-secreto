@@ -4075,3 +4075,19 @@ body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
 /* Texto do story: o elemento absoluto ocupava só até o meio do palco e quebrava linha cedo; agora mede pelo conteúdo (até 86%) */
 .st-ov { width: max-content; max-width: 86%; }
 .st-ov-mencao, .st-ov-emoji { width: max-content; }
+
+/* ============================================================
+   VÍDEO NO POST (player Instagram): toca sozinho sem som, botão de som, toque pausa
+   ============================================================ */
+.ig-video { position: relative; border-radius: 14px; overflow: hidden; background: #000; margin-top: 10px; }
+.ig-post .ig-video { margin-top: 0; }
+.ig-video video { display: block; width: 100%; max-height: 600px; object-fit: contain; background: #000; cursor: pointer; }
+.ig-video-som { position: absolute; right: 10px; bottom: 10px; width: 32px; height: 32px; border-radius: 50%; border: none; background: rgba(0, 0, 0, 0.65); color: #fff; display: grid; place-items: center; cursor: pointer; z-index: 2; }
+.ig-video-som:active { transform: scale(0.92); }
+.ig-video-play { position: absolute; inset: 0; display: none; place-items: center; pointer-events: none; z-index: 1; }
+.ig-video.pausado .ig-video-play { display: grid; }
+.ig-video.erro::after { content: 'Vídeo ainda sendo preparado…'; position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 13px; background: rgba(0, 0, 0, 0.55); }
+@media (max-width: 899px) { .ig-post .ig-video { margin-inline: -16px; border-radius: 0; } .ig-video video { max-height: 80vh; } }
+.anexo-item { position: relative; }
+.anexo-item video { display: block; width: 100%; max-height: 320px; border-radius: 14px; background: #000; }
+.anexo-legenda { display: block; margin-top: 6px; font-size: 12.5px; color: var(--text-faint); }

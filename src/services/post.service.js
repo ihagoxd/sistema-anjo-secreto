@@ -5,6 +5,8 @@
  */
 const postModel = require('../models/post.model');
 const usuarioModel = require('../models/usuario.model');
+const videoService = require('./video.service');
+const tempoReal = require('./tempoReal.service');
 const notificacaoService = require('./notificacao.service');
 const { extrair } = require('../config/mencoes');
 const { apagarUpload } = require('../config/upload');
@@ -133,6 +135,13 @@ async function criarPost(idUsuario, texto, imagemPath, videoPath = null, colabor
     local: limparLocal(extras.local),
   });
   if (imagens.length > 1) await postModel.adicionarMidias(novo.id_post, imagens);
+  if (videoPath) {
+    // Converte para H.264 MP4 + capa em segundo plano; quando pronto, troca no post e avisa quem está no feed
+    videoService.processar(videoPath, async (r) => {
+      await postModel.atualizarVideo(novo.id_post, r.video, r.poster);
+      tempoReal.publicarTodos('post-video', { id_post: novo.id_post, antigo: videoPath, video: r.video, poster: r.poster });
+    });
+  }
   if (e.enquete) await postModel.criarOpcoes(novo.id_post, e.enquete.opcoes);
   if (colaboradores.length) {
     await postModel.adicionarColaboradores(novo.id_post, colaboradores);

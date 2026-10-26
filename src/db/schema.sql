@@ -351,6 +351,7 @@ CREATE TABLE IF NOT EXISTS posts (
   CHECK (texto IS NOT NULL OR imagem IS NOT NULL)
 );
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS video TEXT;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS video_poster TEXT; -- capa (JPEG) gerada pelo ffmpeg
 ALTER TABLE posts DROP CONSTRAINT IF EXISTS posts_texto_check;
 ALTER TABLE posts DROP CONSTRAINT IF EXISTS posts_check;
 ALTER TABLE posts DROP CONSTRAINT IF EXISTS posts_conteudo;

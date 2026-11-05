@@ -10,7 +10,10 @@ function nomeValido(nome) {
   return String(nome || '').trim().length >= 2;
 }
 
-async function criarCampanha({ nome, descricao }) {
+const { porChave: temaPorChave } = require('../config/temas');
+function temaValido(chave) { return temaPorChave(String(chave || '')) ? String(chave) : null; }
+
+async function criarCampanha({ nome, descricao, tema }) {
   if (!nomeValido(nome)) return { ok: false, motivo: 'NOME' };
   // Uma rodada por vez: se já existe campanha em aberto (rascunho ou em andamento),
   // não cria outra — devolve a aberta para o admin continuar de onde parou.
@@ -20,11 +23,12 @@ async function criarCampanha({ nome, descricao }) {
   const nova = await campanhaModel.criar({
     nome: String(nome).trim(),
     descricao: descricao ? String(descricao).trim() : null,
+    tema: temaValido(tema) || 'padrao',
   });
   return { ok: true, campanha: nova };
 }
 
-async function editarCampanha(idCampanha, { nome, descricao }) {
+async function editarCampanha(idCampanha, { nome, descricao, tema }) {
   const c = await campanhaModel.buscarPorId(idCampanha);
   if (!c) return { ok: false, motivo: 'NAO_ENCONTRADA' };
   if (c.status === 'ENCERRADA') return { ok: false, motivo: 'ENCERRADA' };
@@ -32,6 +36,7 @@ async function editarCampanha(idCampanha, { nome, descricao }) {
   const atualizada = await campanhaModel.atualizar(idCampanha, {
     nome: String(nome).trim(),
     descricao: descricao ? String(descricao).trim() : null,
+    tema: temaValido(tema),
   });
   return { ok: true, campanha: atualizada };
 }

@@ -513,3 +513,6 @@ CREATE TABLE IF NOT EXISTS grupo_mensagens (
   criado_em      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_grupo_mensagens_grupo ON grupo_mensagens (id_grupo, id_mensagem);
+
+-- Tema da rede escolhido para a campanha (chave do catálogo em config/temas.js)
+ALTER TABLE campanhas ADD COLUMN IF NOT EXISTS tema VARCHAR(30);

@@ -5,6 +5,7 @@
       {{#if (eq campanha.status "RASCUNHO")}}<span class="badge rascunho">Rascunho — sorteio ainda não feito</span>{{/if}}
       {{#if (eq campanha.status "EM_ANDAMENTO")}}<span class="badge andamento">Em andamento</span>{{/if}}
       {{#if (eq campanha.status "ENCERRADA")}}<span class="badge encerrada">Encerrada em {{formatarData campanha.encerrado_em}}</span>{{/if}}
+      {{#if campanha.temaInfo}} · <span class="badge badge-tema">{{campanha.temaInfo.emoji}} {{campanha.temaInfo.nome}}</span>{{/if}}
       {{#if campanha.descricao}} · {{campanha.descricao}}{{/if}}
     </p>
   </div>
@@ -140,6 +141,13 @@
       <div class="campo">
         <label for="descricao">Descrição</label>
         <textarea id="descricao" name="descricao" rows="2">{{campanha.descricao}}</textarea>
+      </div>
+      <div class="campo">
+        <label for="tema">Tema da rede durante a campanha</label>
+        <select id="tema" name="tema">
+          {{#each temas}}<option value="{{this.chave}}"{{#if (eq this.chave ../campanha.temaSel)}} selected{{/if}}>{{this.emoji}} {{this.nome}}</option>{{/each}}
+        </select>
+        <small class="texto-suave">Ao salvar, o tema escolhido passa a valer para todo mundo. Quando a campanha encerra, a rede volta ao padrão.</small>
       </div>
       <button type="submit" class="btn btn-primario">Salvar</button>
     </form>

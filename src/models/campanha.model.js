@@ -5,21 +5,21 @@
  */
 const db = require('../config/db');
 
-const COLUNAS = `id_campanha, nome, descricao, status, criado_em, atualizado_em, encerrado_em`;
+const COLUNAS = `id_campanha, nome, descricao, tema, status, criado_em, atualizado_em, encerrado_em`;
 
-async function criar({ nome, descricao }) {
+async function criar({ nome, descricao, tema = null }) {
   const res = await db.query(
-    `INSERT INTO campanhas (nome, descricao, status) VALUES ($1, $2, 'RASCUNHO')
+    `INSERT INTO campanhas (nome, descricao, tema, status) VALUES ($1, $2, $3, 'RASCUNHO')
      RETURNING ${COLUNAS}`,
-    [nome, descricao]
+    [nome, descricao, tema]
   );
   return res.rows[0];
 }
 
-async function atualizar(idCampanha, { nome, descricao }) {
+async function atualizar(idCampanha, { nome, descricao, tema = null }) {
   const res = await db.query(
-    `UPDATE campanhas SET nome = $2, descricao = $3 WHERE id_campanha = $1 RETURNING ${COLUNAS}`,
-    [idCampanha, nome, descricao]
+    `UPDATE campanhas SET nome = $2, descricao = $3, tema = COALESCE($4, tema) WHERE id_campanha = $1 RETURNING ${COLUNAS}`,
+    [idCampanha, nome, descricao, tema]
   );
   return res.rows[0];
 }

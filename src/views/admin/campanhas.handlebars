@@ -21,6 +21,21 @@
       <strong>🎁 Campanha do mês</strong>
       <span class="texto-suave">Nasce configurada como "{{sugestao}}" — dá para renomear depois.</span>
     </div>
+    {{! Tema da rede durante a campanha: vem marcado o tema em uso; escolher outro ativa na hora para todo mundo }}
+    <div class="camp-temas">
+      <div class="camp-temas-tit">Tema da rede durante esta campanha</div>
+      <div class="camp-temas-grade">
+        {{#each temas}}
+          <label class="camp-tema tc-{{this.chave}}">
+            <input type="radio" name="tema" value="{{this.chave}}"{{#if this.ativo}} checked{{/if}}>
+            <span class="camp-tema-emoji" aria-hidden="true">{{this.emoji}}</span>
+            <span class="camp-tema-txt"><strong>{{this.nome}}</strong><small>{{this.slogan}}</small></span>
+            {{#if this.ativo}}<span class="camp-tema-tag">em uso</span>{{/if}}
+          </label>
+        {{/each}}
+      </div>
+      <label class="check-linha camp-temas-avisar"><input type="checkbox" name="avisar" value="1" checked> Avisar todo mundo se o tema mudar</label>
+    </div>
     <button type="submit" class="btn btn-primario">Criar campanha do mês</button>
   </form>
 {{/if}}

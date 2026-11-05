@@ -4,6 +4,27 @@ const campanhaService = require('../services/campanha.service');
 const participanteService = require('../services/participante.service');
 const usuarioModel = require('../models/usuario.model');
 const { registrarLog } = require('../services/log.service');
+const temaService = require('../services/tema.service');
+const notificacaoService = require('../services/notificacao.service');
+const avisoModel = require('../models/aviso.model');
+const { porChave: temaPorChave } = require('../config/temas');
+
+// O tema escolhido para a campanha passa a valer para todo mundo (igual a Admin → Tema da rede).
+async function ativarTemaDaCampanha(req, chave, avisar) {
+  const me = req.session.usuario;
+  const r = await temaService.definir(String(chave || 'padrao'), me.nome);
+  if (!r.ok || !r.mudou) return { mudou: false, tema: r.ok ? r.tema : null };
+  await registrarLog({
+    idUsuario: me.id_usuario, acao: 'TEMA_ALTERADO',
+    descricao: `${r.anterior.emoji} ${r.anterior.nome} → ${r.tema.emoji} ${r.tema.nome} (pela campanha)`,
+    entidade: 'tema', ip: req.ip,
+  });
+  if (avisar) {
+    const ids = await avisoModel.idsDestinatarios(me.id_usuario);
+    await notificacaoService.notificarTema(ids, r.tema);
+  }
+  return { mudou: true, tema: r.tema };
+}
 
 const MSG = {
   NOME: 'Dê um nome à campanha (mínimo 2 caracteres).',
@@ -32,7 +53,8 @@ async function getLista(req, res, next) {
     const campanhas = await campanhaService.listarCampanhas();
     // Campanha "em aberto" (rascunho ou em andamento): o botão de criar dá lugar ao atalho dela.
     const aberta = campanhas.find((c) => c.status !== 'ENCERRADA') || null;
-    res.render('admin/campanhas', { titulo: 'Campanhas', campanhas, aberta, sugestao: sugestaoNome() });
+    const temas = await temaService.listarParaAdmin();
+    res.render('admin/campanhas', { titulo: 'Campanhas', campanhas, aberta, sugestao: sugestaoNome(), temas });
   } catch (err) {
     next(err);
   }
@@ -44,6 +66,7 @@ async function postCriar(req, res, next) {
     const r = await campanhaService.criarCampanha({
       nome: req.body.nome || sugestaoNome(),
       descricao: req.body.descricao,
+      tema: req.body.tema,
     });
     if (!r.ok) {
       if (r.motivo === 'JA_EXISTE') {
@@ -54,7 +77,9 @@ async function postCriar(req, res, next) {
       return res.redirect('/admin/campanhas');
     }
     await registrarLog({ idUsuario: req.session.usuario.id_usuario, acao: 'CAMPANHA_CRIADA', descricao: r.campanha.nome, entidade: 'campanha', idReferencia: r.campanha.id_campanha, ip: req.ip });
-    flash(req, 'sucesso', `Campanha "${r.campanha.nome}" criada.`);
+    // Tema escolhido para a rodada entra em vigor agora (se for diferente do atual)
+    const t = await ativarTemaDaCampanha(req, r.campanha.tema, req.body.avisar === '1');
+    flash(req, 'sucesso', `Campanha "${r.campanha.nome}" criada${t.mudou ? ` com o tema ${t.tema.emoji} ${t.tema.nome} ativado para todo mundo` : ''}.`);
     res.redirect(`/admin/campanhas/${r.campanha.id_campanha}`);
   } catch (err) {
     next(err);
@@ -86,9 +111,14 @@ async function getDetalhe(req, res, next) {
       revelacao = req.session.revelacao;
     }
     delete req.session.revelacao;
+    campanha.temaInfo = temaPorChave(campanha.tema) || null;
+    // Campanha antiga sem tema gravado: o select vem com o tema em uso hoje
+    campanha.temaSel = campanha.tema || (await temaService.ativo()).chave;
+    const temas = await temaService.listarParaAdmin();
     res.render('admin/campanha', {
       titulo: campanha.nome,
       campanha,
+      temas,
       participantes,
       totalParticipantes: participantes.length,
       totalAtivos: ativos.length,
@@ -107,13 +137,14 @@ async function getDetalhe(req, res, next) {
 
 async function postEditar(req, res, next) {
   try {
-    const r = await campanhaService.editarCampanha(req.params.id_campanha, { nome: req.body.nome, descricao: req.body.descricao });
+    const r = await campanhaService.editarCampanha(req.params.id_campanha, { nome: req.body.nome, descricao: req.body.descricao, tema: req.body.tema });
     if (!r.ok) {
       flash(req, 'erro', MSG[r.motivo] || 'Não foi possível salvar.');
       return res.redirect(`/admin/campanhas/${req.params.id_campanha}`);
     }
     await registrarLog({ idUsuario: req.session.usuario.id_usuario, acao: 'CAMPANHA_EDITADA', descricao: r.campanha.nome, entidade: 'campanha', idReferencia: r.campanha.id_campanha, ip: req.ip });
-    flash(req, 'sucesso', 'Campanha atualizada.');
+    const t = req.body.tema ? await ativarTemaDaCampanha(req, r.campanha.tema, true) : { mudou: false };
+    flash(req, 'sucesso', `Campanha atualizada${t.mudou ? `. Tema ${t.tema.emoji} ${t.tema.nome} ativado para todo mundo` : ''}.`);
     res.redirect(`/admin/campanhas/${req.params.id_campanha}`);
   } catch (err) {
     next(err);
@@ -125,7 +156,17 @@ async function postEncerrar(req, res, next) {
     const r = await campanhaService.encerrarCampanha(req.params.id_campanha);
     if (r.ok) {
       await registrarLog({ idUsuario: req.session.usuario.id_usuario, acao: 'CAMPANHA_ENCERRADA', descricao: r.campanha.nome, entidade: 'campanha', idReferencia: r.campanha.id_campanha, ip: req.ip });
-      flash(req, 'sucesso', `Campanha "${r.campanha.nome}" encerrada.`);
+      // O tema era "durante a campanha": ao encerrar, a rede volta ao padrão (sem notificar ninguém)
+      let voltou = false;
+      const ativo = await temaService.ativo();
+      if (r.campanha.tema && r.campanha.tema !== 'padrao' && ativo.chave === r.campanha.tema) {
+        const v = await temaService.definir('padrao', req.session.usuario.nome);
+        if (v.ok && v.mudou) {
+          voltou = true;
+          await registrarLog({ idUsuario: req.session.usuario.id_usuario, acao: 'TEMA_ALTERADO', descricao: `${v.anterior.emoji} ${v.anterior.nome} → ${v.tema.emoji} ${v.tema.nome} (campanha encerrada)`, entidade: 'tema', ip: req.ip });
+        }
+      }
+      flash(req, 'sucesso', `Campanha "${r.campanha.nome}" encerrada.${voltou ? ' O tema da rede voltou ao padrão.' : ''}`);
     } else {
       flash(req, 'erro', MSG[r.motivo] || 'Não foi possível encerrar.');
     }

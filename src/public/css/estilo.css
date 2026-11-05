@@ -4091,3 +4091,14 @@ body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
 .anexo-item { position: relative; }
 .anexo-item video { display: block; width: 100%; max-height: 320px; border-radius: 14px; background: #000; }
 .anexo-legenda { display: block; margin-top: 6px; font-size: 12.5px; color: var(--text-faint); }
+
+/* Admin → Tema da rede: prévia do Halloween */
+.tc-halloween { --tp-fundo: linear-gradient(160deg, #2a0f4a, #120a1f); --tp-bg: #0f0818; --tp-surface: #1a0f2b; --tp-linha: #35244f; --tp-texto: #f3ecff; --tp-accent: #ff7a1a; --tp-accent2: #8a3ffc; }
+.tc-halloween .tp-stories i:nth-child(1), .tc-halloween .tp-stories i:nth-child(4) { border-color: #ff7a1a; }
+.tc-halloween .tp-stories i:nth-child(2), .tc-halloween .tp-stories i:nth-child(5) { border-color: #8a3ffc; }
+.tc-halloween .tp-stories i:nth-child(3) { border-color: #9dff57; }
+.tp-lua { position: absolute; top: 10px; right: 14px; width: 26px; height: 26px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff8e8, #f0cf93); box-shadow: 0 0 14px 4px rgba(255, 224, 170, 0.35); }
+.tp-bat { position: absolute; left: -20px; width: 14px; height: 8px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 36'%3E%3Cpath fill='%23ffd9a8' d='M32 10c2-5 5-8 9-9-1 3-1 6 1 8 5-5 12-7 22-6-6 4-9 10-9 17-4-3-8-3-11 1-2 3-4 6-6 10-1-3-1-7 0-10-1 2-3 3-6 3s-5-1-6-3c1 3 1 7 0 10-2-4-4-7-6-10-3-4-7-4-11-1 0-7-3-13-9-17 10-1 17 1 22 6 2-2 2-5 1-8 4 1 7 4 9 9z'/%3E%3C/svg%3E") no-repeat center / contain; animation: tp-voa var(--d, 7s) linear infinite; }
+@keyframes tp-voa { 0% { transform: translate3d(0, 0, 0); } 50% { transform: translate3d(90px, -8px, 0); } 100% { transform: translate3d(200px, 0, 0); } }
+.tp-neblina { position: absolute; left: -20%; right: -20%; bottom: 0; height: 36px; background: radial-gradient(ellipse 30% 100% at 25% 100%, rgba(255,255,255,0.14), transparent 70%), radial-gradient(ellipse 30% 100% at 75% 100%, rgba(255,255,255,0.12), transparent 70%); }
+.tema-card.tc-halloween .tema-card-tit h2 { font-family: 'Creepster', inherit; font-weight: 400; letter-spacing: 0.04em; font-size: 24px; color: #ff7a1a; }

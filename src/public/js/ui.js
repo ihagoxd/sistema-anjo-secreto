@@ -5858,6 +5858,58 @@
     setTimeout(function () { festa.remove(); }, 4500);
   })();
 
+  /* ---------- Halloween: chuva de doces ao salvar a lista, revoada de morcegos de vez em quando
+     e a abóbora da faixa que pula ao toque (nada disso roda com "menos movimento") ---------- */
+  (function () {
+    if (!document.body.classList.contains('tema-halloween')) return;
+    var reduz = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var DOCES = ['🍬', '🍭', '🍫', '🎃', '👻', '🍪', '🍩'];
+    function chuva(n, lista) {
+      if (reduz) return;
+      var itens = lista || DOCES;
+      var caixa = document.createElement('div'); caixa.className = 'hw-chuva'; caixa.setAttribute('aria-hidden', 'true');
+      for (var i = 0; i < n; i++) {
+        var p = document.createElement('i');
+        p.textContent = itens[i % itens.length];
+        p.style.left = (Math.random() * 100) + '%';
+        p.style.setProperty('--t', (Math.random() * 14 + 20).toFixed(0) + 'px');
+        p.style.setProperty('--x', (Math.random() * 160 - 80).toFixed(0) + 'px');
+        p.style.setProperty('--r', (Math.random() * 720 + 180).toFixed(0) + 'deg');
+        p.style.setProperty('--d', (Math.random() * 1.4 + 2.4).toFixed(2) + 's');
+        p.style.setProperty('--delay', (Math.random() * 0.9).toFixed(2) + 's');
+        caixa.appendChild(p);
+      }
+      document.body.appendChild(caixa);
+      setTimeout(function () { caixa.remove(); }, 5000);
+    }
+    if (document.querySelector('[data-confete]')) chuva(64);
+    // Revoada: de tempos em tempos, 3 a 5 morcegos cruzam a tela
+    var camada = document.querySelector('.hw-deco');
+    function revoada() {
+      if (reduz || document.hidden || !camada) return;
+      var n = 3 + Math.floor(Math.random() * 3);
+      for (var i = 0; i < n; i++) {
+        var m = document.createElement('i'); m.className = 'hw-morcego solto';
+        m.innerHTML = '<b></b>';
+        m.style.top = (8 + Math.random() * 50).toFixed(0) + '%';
+        m.style.setProperty('--d', (5 + Math.random() * 3).toFixed(1) + 's');
+        m.style.setProperty('--dy', ((Math.random() * 16) - 8).toFixed(0) + 'vh');
+        m.style.setProperty('--s', (0.55 + Math.random() * 0.6).toFixed(2));
+        m.style.animationDelay = (Math.random() * 1.2).toFixed(2) + 's';
+        m.addEventListener('animationend', function (e) { if (e.target === this) this.remove(); });
+        camada.appendChild(m);
+      }
+    }
+    if (camada) { setTimeout(revoada, 7000); setInterval(revoada, 38000 + Math.random() * 20000); }
+    // Abóbora da faixa: pula e solta morceguinhos
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest('[data-abobora]'); if (!a) return;
+      a.classList.remove('pula'); void a.offsetWidth; a.classList.add('pula');
+      try { if (navigator.vibrate) navigator.vibrate(15); } catch (x) {}
+      chuva(14, ['🦇', '🦇', '👻', '🍬']);
+    });
+  })();
+
   /* ---------- Tema da conversa (Direct do escritório, como no Instagram) ----------
      A folha lista os temas; tocar num salva (vale para os dois lados) e aplica na hora.
      O outro lado recebe por SSE e a conversa dele muda também, com um aviso na tela. */

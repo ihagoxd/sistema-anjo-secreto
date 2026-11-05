@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "ClaudeInChromeDomain(localhost:3000)"
+      "ClaudeInChromeDomain(localhost:3000)",
+      "mcp__claude-in-chrome__select_browser",
+      "mcp__claude-in-chrome__tabs_context_mcp",
+      "ClaudeInChromeDomain(anjo.sistemastron.com.br)"
     ]
   }
 }

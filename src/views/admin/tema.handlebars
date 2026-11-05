@@ -34,6 +34,12 @@
           </div>
           <div class="tp-chat"><span class="tp-b deles"></span><span class="tp-b minha"></span><span class="tp-b deles curta"></span></div>
           <div class="tp-barra"><i></i><i></i><i class="on"></i><i></i><i></i></div>
+          {{#if (eq chave "halloween")}}
+            <span class="tp-lua"></span>
+            <span class="tp-bat" style="top:18%;--d:6s"></span>
+            <span class="tp-bat" style="top:34%;--d:8s;animation-delay:-3s;transform:scale(.7)"></span>
+            <span class="tp-neblina"></span>
+          {{/if}}
           {{#if (eq chave "criancas")}}
             <span class="tp-balao" style="--c:#ff5a5f;left:8%;animation-delay:-1s"></span>
             <span class="tp-balao" style="--c:#4cc9f0;left:50%;animation-delay:-4s;transform:scale(.8)"></span>

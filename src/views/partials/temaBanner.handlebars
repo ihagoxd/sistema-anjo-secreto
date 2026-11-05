@@ -3,6 +3,12 @@
 {{#if tema.banner}}
 <section class="tema-banner tb-{{tema.chave}}" data-tema-banner="{{tema.chave}}">
   <div class="tb-deco" aria-hidden="true">
+    {{#if (eq tema.chave "halloween")}}
+    <i class="tb-bat" style="top:16%;--d:11s"><b></b></i>
+    <i class="tb-bat" style="top:8%;--d:14s;animation-delay:-6s"><b></b></i>
+    <i class="tb-bat" style="top:26%;--d:12s;animation-delay:-3s"><b></b></i>
+    <span class="tb-neblina"></span>
+    {{else}}
     <span class="tb-balao" style="--c:#ff5a5f;left:3%;animation-delay:-2s"></span>
     <span class="tb-balao" style="--c:#4cc9f0;left:11%;animation-delay:-6s;transform:scale(.7)"></span>
     <span class="tb-balao" style="--c:#ffd166;left:90%;animation-delay:-4s"></span>
@@ -12,6 +18,7 @@
     <i class="tb-confete" style="--c:#06d6a0;left:58%;animation-delay:-5s"></i>
     <i class="tb-confete" style="--c:#ffd166;left:76%;animation-delay:-2.5s"></i>
     <i class="tb-confete" style="--c:#4cc9f0;left:84%;animation-delay:-4.2s"></i>
+    {{/if}}
   </div>
   <div class="tb-txt">
     <span class="tb-kicker">{{tema.emoji}} {{tema.slogan}}</span>
@@ -21,7 +28,7 @@
       <a class="btn btn-primario tb-btn" href="/participante/preferencias/tema">{{#if temaPrefsPreenchido}}{{tema.banner.botaoPreenchido}}{{else}}{{tema.banner.botao}}{{/if}} →</a>
     {{/unless}}{{/if}}
   </div>
-  <div class="tb-arte" aria-hidden="true"><span>🎁</span><span>🧸</span><span>🎈</span></div>
+  <div class="tb-arte" aria-hidden="true">{{#if (eq tema.chave "halloween")}}<span data-abobora title="Toque!">🎃</span><span>👻</span><span>🦇</span>{{else}}<span>🎁</span><span>🧸</span><span>🎈</span>{{/if}}</div>
   <button type="button" class="tb-x" data-fechar-banner="{{tema.chave}}" aria-label="Esconder esta faixa" title="Esconder">&times;</button>
 </section>
 {{/if}}

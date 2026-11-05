@@ -1,0 +1,520 @@
+/* ============================================================
+   TEMA DA REDE: HALLOWEEN (Noite das Bruxas) 🎃
+   Carregado só quando o admin ativa o tema. Entra DEPOIS do estilo.css e
+   repinta o app inteiro: noite roxa com lua cheia, morcegos cruzando a tela,
+   fantasmas flutuando, teias nos cantos, neblina rasteira, títulos em fonte
+   "arrepiante" (Creepster, OFL) e botões laranja com brilho de abóbora.
+   Só movimento barato (transform/opacity), menos elementos no celular e nada
+   de animação para quem pede "menos movimento". Dois modos (claro/escuro).
+   Degradês sempre de DUAS cores (laranja + roxo / laranja + laranja-claro).
+   ============================================================ */
+
+/* ---------- FONTE DOS TÍTULOS: Creepster (OFL, servida localmente) ---------- */
+@font-face {
+  font-family: 'Creepster';
+  src: url('/fonts/Creepster.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ---------- TOKENS DO TEMA ---------- */
+body.tema-halloween {
+  --font-display: 'Creepster', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --radius: 16px;
+  --hw-laranja: #ff7a1a;
+  --hw-laranja-claro: #ffa552;
+  --hw-roxo: #8a3ffc;
+  --hw-roxo-escuro: #3a1a6e;
+  --hw-verde: #9dff57;
+  --hw-osso: #f6efe6;
+  --hw-noite: #0f0818;
+  --hw-grad: linear-gradient(135deg, #ff7a1a, #ffa552);          /* abóbora */
+  --hw-grad-roxo: linear-gradient(135deg, #8a3ffc, #4b1d9e);     /* bruxa */
+  --hw-grad-fogo: linear-gradient(135deg, #ff7a1a, #8a3ffc);     /* laranja → roxo */
+  --hw-faixa: linear-gradient(90deg, #ff7a1a, #8a3ffc, #ff7a1a);
+  --hw-brilho: 0 0 18px rgba(255, 122, 26, 0.45);
+}
+
+/* ESCURO (o modo "de verdade" do Halloween): noite roxa, texto osso, laranja de destaque */
+[data-theme='dark'] body.tema-halloween {
+  --bg: #0f0818; --bg-2: #090412;
+  --surface: #1a0f2b; --surface-2: #231538; --hover: #2c1c45;
+  --line: #35244f; --line-strong: #4a3468;
+  --text: #f3ecff; --text-soft: #c9b8e6; --text-faint: #9a89b8;
+  --accent: #ff8a2a; --accent-strong: #ffa052; --accent-soft: #3a2240; --accent-ring: rgba(255, 138, 42, 0.35); --on-accent: #1a0b00;
+  --ouro: #ff7a1a; --ouro-forte: #ff9340; --on-ouro: #1a0b00;
+  --success: #9dff57; --success-strong: #b5ff7f;
+  --btn-2-bg: #2c1c45; --btn-2-hover: #35244f;
+  --st-cinza: #9a89b8; --st-azul: #8a3ffc; --st-laranja: #ff8a2a; --st-amarelo: #ffc857; --st-verde: #9dff57; --st-vermelho: #ff5c7a;
+  --shadow-pop: 0 16px 40px rgba(0, 0, 0, 0.55);
+}
+/* CLARO: creme de abóbora, texto roxo-escuro, laranja de destaque */
+[data-theme='light'] body.tema-halloween {
+  --bg: #fff4e8; --bg-2: #ffe9d2;
+  --surface: #fffaf5; --surface-2: #fff1e3; --hover: #ffe6cf;
+  --line: #f1d3b3; --line-strong: #e6b98a;
+  --text: #2a1238; --text-soft: #6b4d80; --text-faint: #9a85ab;
+  --accent: #ea6a00; --accent-strong: #c85a00; --accent-soft: #ffe3c9; --accent-ring: rgba(234, 106, 0, 0.28); --on-accent: #ffffff;
+  --ouro: #ff7a1a; --ouro-forte: #e86a0d; --on-ouro: #ffffff;
+  --success: #3fa34d; --success-strong: #2f8a3e;
+  --btn-2-bg: #ffffff; --btn-2-hover: #ffe6cf;
+  --st-cinza: #9a85ab; --st-azul: #6d2fd6; --st-laranja: #ea6a00; --st-amarelo: #d99a00; --st-verde: #3fa34d; --st-vermelho: #e0405e;
+  --shadow-pop: 0 14px 34px rgba(120, 60, 20, 0.18);
+}
+
+/* ---------- FUNDO: noite com brilho da lua e estrelas (no lugar do céu dourado) ---------- */
+[data-theme='dark'] body.tema-halloween {
+  background:
+    radial-gradient(circle at 86% 9%, rgba(255, 214, 150, 0.16), transparent 22%),
+    radial-gradient(circle at 12% 80%, rgba(138, 63, 252, 0.18), transparent 32%),
+    radial-gradient(120% 100% at 50% 110%, #1c0e32 0%, #0b0612 70%);
+  background-attachment: fixed;
+}
+[data-theme='light'] body.tema-halloween {
+  background:
+    radial-gradient(circle at 86% 9%, rgba(255, 122, 26, 0.16), transparent 24%),
+    radial-gradient(circle at 12% 84%, rgba(138, 63, 252, 0.1), transparent 30%),
+    var(--bg);
+  background-attachment: fixed;
+}
+/* Estrelas miúdas (fixas, atrás de tudo) */
+[data-theme='dark'] body.tema-halloween::before {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.9;
+  background-size: 520px 520px;
+  background-image:
+    radial-gradient(1.6px 1.6px at 40px 60px, #fff, transparent),
+    radial-gradient(1.2px 1.2px at 160px 140px, #ffd9a8, transparent),
+    radial-gradient(1.8px 1.8px at 300px 40px, #fff, transparent),
+    radial-gradient(1.2px 1.2px at 420px 200px, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 90px 300px, #ffd9a8, transparent),
+    radial-gradient(1.2px 1.2px at 250px 360px, #fff, transparent),
+    radial-gradient(1.7px 1.7px at 380px 320px, #fff, transparent),
+    radial-gradient(1.2px 1.2px at 60px 460px, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 210px 480px, #ffd9a8, transparent),
+    radial-gradient(1.2px 1.2px at 470px 440px, #fff, transparent);
+}
+[data-theme='light'] body.tema-halloween::before { display: none; }
+[data-theme] body.tema-halloween::after { display: none; animation: none; }
+body.tema-halloween .app { position: relative; z-index: 1; }
+
+/* ---------- DECORAÇÃO FIXA (partial temaDecoracao) ---------- */
+.hw-deco { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+/* Lua cheia com crateras e brilho que "respira" */
+.hw-lua {
+  position: absolute; top: 56px; right: 7%; width: 130px; height: 130px; border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 34%, rgba(0, 0, 0, 0.12) 0 9px, transparent 10px),
+    radial-gradient(circle at 62% 58%, rgba(0, 0, 0, 0.1) 0 13px, transparent 14px),
+    radial-gradient(circle at 44% 72%, rgba(0, 0, 0, 0.09) 0 6px, transparent 7px),
+    radial-gradient(circle at 70% 28%, rgba(0, 0, 0, 0.08) 0 5px, transparent 6px),
+    radial-gradient(circle at 35% 30%, #fff8e8, #f5d9a4 70%, #e9c58a);
+  box-shadow: 0 0 40px 14px rgba(255, 224, 170, 0.22), 0 0 120px 40px rgba(255, 200, 120, 0.1);
+  animation: hw-lua-respira 7s ease-in-out infinite;
+}
+[data-theme='light'] .hw-lua { opacity: 0.55; box-shadow: 0 0 30px 10px rgba(255, 180, 90, 0.18); }
+@keyframes hw-lua-respira { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+/* Teias nos cantos de cima */
+.hw-teia {
+  position: absolute; top: 0; width: 150px; height: 150px; opacity: 0.22;
+  background-repeat: no-repeat; background-size: contain;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%23ffffff' stroke-width='1'%3E%3Cpath d='M0 0 L100 0 M0 0 L0 100 M0 0 L70 70 M0 0 L95 35 M0 0 L35 95 M0 0 L100 12 M0 0 L12 100'/%3E%3Cpath d='M22 0 Q20 12 0 22 M44 0 Q40 30 0 44 M66 0 Q58 50 0 66 M88 0 Q76 70 0 88'/%3E%3C/svg%3E");
+}
+.hw-teia.esq { left: 0; }
+.hw-teia.dir { right: 0; transform: scaleX(-1); }
+[data-theme='light'] .hw-teia { opacity: 0.16; filter: invert(1); }
+/* Morcego: silhueta em SVG; o <b> de dentro bate as asas (scaleY), o <i> de fora faz o voo */
+.hw-morcego { position: absolute; left: -12vw; width: 40px; height: 22px; animation: hw-voa var(--d, 24s) linear infinite; }
+.hw-morcego b {
+  display: block; width: 100%; height: 100%; transform-origin: 50% 40%;
+  background-repeat: no-repeat; background-size: contain; background-position: center;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 36'%3E%3Cpath fill='%235b4586' d='M32 10c2-5 5-8 9-9-1 3-1 6 1 8 5-5 12-7 22-6-6 4-9 10-9 17-4-3-8-3-11 1-2 3-4 6-6 10-1-3-1-7 0-10-1 2-3 3-6 3s-5-1-6-3c1 3 1 7 0 10-2-4-4-7-6-10-3-4-7-4-11-1 0-7-3-13-9-17 10-1 17 1 22 6 2-2 2-5 1-8 4 1 7 4 9 9z'/%3E%3C/svg%3E");
+  animation: hw-bate 0.34s ease-in-out infinite alternate;
+}
+[data-theme='light'] .hw-morcego b { filter: brightness(0.35) drop-shadow(0 2px 2px rgba(0, 0, 0, 0.25)); }
+[data-theme='dark'] .hw-morcego b { filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.7)); opacity: 0.9; }
+@keyframes hw-bate { from { transform: scaleY(1); } to { transform: scaleY(0.55); } }
+@keyframes hw-voa {
+  0%   { transform: translate3d(0, 0, 0) scale(var(--s, 1)); }
+  25%  { transform: translate3d(30vw, calc(var(--dy, 0vh) * 0.4), 0) scale(var(--s, 1)); }
+  50%  { transform: translate3d(60vw, var(--dy, 0vh), 0) scale(var(--s, 1)); }
+  75%  { transform: translate3d(90vw, calc(var(--dy, 0vh) * 0.3), 0) scale(var(--s, 1)); }
+  100% { transform: translate3d(125vw, 0, 0) scale(var(--s, 1)); }
+}
+.hw-morcego.solto { animation: hw-voa var(--d, 7s) linear 1 forwards; }
+/* Fantasma desenhado em CSS: corpo, olhos e barra ondulada */
+.hw-fantasma { position: absolute; width: 46px; height: 58px; opacity: 0.85; animation: hw-flutua-fant var(--d, 8s) ease-in-out infinite; }
+.hw-fantasma::before {
+  content: ''; position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 36% 42%, #1a0f2b 0 3.5px, transparent 4.5px),
+    radial-gradient(circle at 64% 42%, #1a0f2b 0 3.5px, transparent 4.5px),
+    radial-gradient(ellipse at 50% 60%, #1a0f2b 0 3px, transparent 4px),
+    linear-gradient(#ffffff, #e6e0ff);
+  border-radius: 50% 50% 10% 10% / 42% 42% 8% 8%;
+  clip-path: polygon(0 0, 100% 0, 100% 88%, 87% 100%, 74% 88%, 62% 100%, 50% 88%, 38% 100%, 26% 88%, 13% 100%, 0 88%);
+}
+.hw-fantasma::after { content: ''; position: absolute; inset: -8px; border-radius: 50%; background: radial-gradient(circle, rgba(157, 255, 87, 0.22), transparent 70%); z-index: -1; }
+[data-theme='light'] .hw-fantasma { opacity: 0.7; }
+[data-theme='light'] .hw-fantasma::before { filter: drop-shadow(0 4px 6px rgba(42, 18, 56, 0.25)); }
+@keyframes hw-flutua-fant {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(-4deg) scale(var(--s, 1)); }
+  50% { transform: translate3d(10px, -16px, 0) rotate(4deg) scale(var(--s, 1)); }
+}
+/* Aranha pendurada no fio */
+.hw-aranha { position: absolute; top: 0; width: 1px; height: 120px; background: rgba(255, 255, 255, 0.35); animation: hw-desce var(--d, 8s) ease-in-out infinite alternate; transform-origin: top; }
+.hw-aranha::after { content: '🕷️'; position: absolute; left: 50%; bottom: -16px; transform: translateX(-50%); font-size: 18px; line-height: 1; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.5)); }
+@keyframes hw-desce { from { transform: scaleY(0.6); } to { transform: scaleY(1); } }
+/* Neblina rasteira (duas camadas andando em velocidades diferentes) */
+.hw-neblina {
+  position: absolute; bottom: -30px; left: -50vw; width: 220vw; height: 170px; opacity: 0.55;
+  background:
+    radial-gradient(ellipse 30% 70% at 15% 100%, rgba(255, 255, 255, 0.12), transparent 70%),
+    radial-gradient(ellipse 36% 80% at 45% 100%, rgba(255, 255, 255, 0.1), transparent 70%),
+    radial-gradient(ellipse 30% 65% at 72% 100%, rgba(255, 255, 255, 0.12), transparent 70%),
+    radial-gradient(ellipse 28% 60% at 95% 100%, rgba(255, 255, 255, 0.09), transparent 70%);
+  animation: hw-neblina 60s linear infinite;
+}
+.hw-neblina.b { height: 120px; opacity: 0.4; animation-duration: 90s; animation-direction: reverse; }
+[data-theme='light'] .hw-neblina { opacity: 0.35; }
+@keyframes hw-neblina { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(25vw, 0, 0); } }
+/* Abóbora no canto (desktop) */
+.hw-abobora { position: absolute; left: 18px; bottom: 14px; font-size: 44px; line-height: 1; filter: drop-shadow(0 0 14px rgba(255, 122, 26, 0.55)); animation: hw-abobora-brilha 3s ease-in-out infinite; }
+@keyframes hw-abobora-brilha { 0%, 100% { filter: drop-shadow(0 0 10px rgba(255, 122, 26, 0.4)); } 50% { filter: drop-shadow(0 0 22px rgba(255, 122, 26, 0.75)); } }
+
+/* ---------- TIPOGRAFIA ---------- */
+body.tema-halloween .pagina-cabecalho h1, body.tema-halloween .painel-hero-nome, body.tema-halloween .pft-hero-tit,
+body.tema-halloween .direct-lista-topo h1, body.tema-halloween .direct-placeholder h2, body.tema-halloween .tb-tit,
+body.tema-halloween .auth-wordmark, body.tema-halloween .loader-wordmark .nome, body.tema-halloween .tw-vazio-tit, body.tema-halloween .gt-tit {
+  font-family: var(--font-display); font-weight: 400; letter-spacing: 0.04em;
+}
+body.tema-halloween .pagina-cabecalho h1 { font-size: 30px; color: var(--hw-laranja); text-shadow: var(--hw-brilho); }
+body.tema-halloween .pagina-cabecalho { border-bottom: 1px solid var(--line-strong); }
+body.tema-halloween ::selection { background: #ffd9b8; color: #2a1238; }
+
+/* ---------- SIDEBAR / TOPO / BARRA INFERIOR ---------- */
+body.tema-halloween .sidebar { background: var(--surface); border-right: 1px solid var(--line); backdrop-filter: none; -webkit-backdrop-filter: none; }
+body.tema-halloween .sidebar::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: var(--hw-faixa); background-size: 200% 100%; animation: hw-faixa-anda 6s linear infinite; }
+@keyframes hw-faixa-anda { to { background-position: 200% 0; } }
+body.tema-halloween .marca-tag { color: var(--hw-laranja); letter-spacing: 0.1em; }
+body.tema-halloween .marca-emblema { filter: drop-shadow(0 0 10px rgba(255, 122, 26, 0.55)); animation: hw-abobora-brilha 3.6s ease-in-out infinite; }
+body.tema-halloween .side-link { border-radius: 12px; }
+body.tema-halloween .side-link.ativo { background: var(--hw-grad); color: #1a0b00; box-shadow: 0 8px 20px rgba(255, 122, 26, 0.3); }
+body.tema-halloween .side-link.ativo .icon { color: #1a0b00; }
+body.tema-halloween .side-link.ativo .nav-badge { background: #1a0b00; color: #ffa552; }
+body.tema-halloween .side-secao { color: var(--hw-roxo); }
+[data-theme='dark'] body.tema-halloween .side-secao { color: #c9a3ff; }
+body.tema-halloween .side-link-tema { background: color-mix(in srgb, var(--hw-laranja) 14%, transparent); border: 1px dashed color-mix(in srgb, var(--hw-laranja) 55%, transparent); margin-top: 4px; }
+body.tema-halloween .side-link-tema:hover { background: color-mix(in srgb, var(--hw-laranja) 24%, transparent); }
+body.tema-halloween .side-link-tema.ativo { border-color: transparent; }
+body.tema-halloween .nav-badge, body.tema-halloween .conv-badge, body.tema-halloween .bi-badge, body.tema-halloween .sino-badge { background: var(--hw-roxo); color: #fff; }
+body.tema-halloween .avatar { background: var(--hw-laranja); color: #1a0b00; }
+body.tema-halloween .side-rodape { border-top: 1px dashed var(--line-strong); }
+body.tema-halloween .topo-mobile { border-bottom: none; }
+body.tema-halloween .topo-ig .topo-marca .marca-emblema { filter: drop-shadow(0 0 8px rgba(255, 122, 26, 0.6)); }
+body.tema-halloween .barra-inferior { background: var(--surface); border-top: none; backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.35); }
+body.tema-halloween .barra-inferior::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--hw-faixa); background-size: 200% 100%; animation: hw-faixa-anda 6s linear infinite; }
+body.tema-halloween .bi-item.ativo { color: var(--hw-laranja); }
+body.tema-halloween .bi-item.ativo svg { animation: hw-pula 0.5s var(--ease-spring); filter: drop-shadow(0 0 6px rgba(255, 122, 26, 0.6)); }
+@keyframes hw-pula { 0% { transform: scale(0.8); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }
+body.tema-halloween .bi-perfil.ativo .bi-perfil-av { border-color: var(--hw-laranja); }
+
+/* ---------- CARTÕES, BOTÕES, CAMPOS ---------- */
+body.tema-halloween .card, body.tema-halloween .painel, body.tema-halloween .tabela-wrap, body.tema-halloween .acao-card, body.tema-halloween .stat {
+  border-radius: 18px; background: var(--surface); border-color: var(--line); backdrop-filter: none; -webkit-backdrop-filter: none;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+}
+[data-theme='light'] body.tema-halloween .card, [data-theme='light'] body.tema-halloween .painel, [data-theme='light'] body.tema-halloween .acao-card, [data-theme='light'] body.tema-halloween .stat { box-shadow: 0 8px 22px rgba(120, 60, 20, 0.1); }
+body.tema-halloween .btn { border-radius: 999px; font-weight: 700; }
+body.tema-halloween .btn-primario { background: var(--hw-grad); color: #1a0b00; border-color: transparent; box-shadow: 0 6px 18px rgba(255, 122, 26, 0.38); transition: transform 0.14s var(--ease-spring), box-shadow 0.14s, filter 0.14s; }
+body.tema-halloween .btn-primario:hover { background: var(--hw-grad); color: #1a0b00; filter: brightness(1.06); transform: translateY(-1px) scale(1.02); box-shadow: 0 10px 26px rgba(255, 122, 26, 0.48); }
+body.tema-halloween .btn-primario:active { transform: scale(0.97); }
+body.tema-halloween .btn-secundario { border-color: var(--line-strong); }
+body.tema-halloween .btn-secundario:hover { border-color: var(--hw-roxo); }
+body.tema-halloween .btn-link { color: var(--accent); }
+body.tema-halloween .campo input, body.tema-halloween .campo textarea, body.tema-halloween .campo select { border: 1.5px solid var(--line); border-radius: 12px; }
+body.tema-halloween .campo input:focus, body.tema-halloween .campo textarea:focus, body.tema-halloween .campo select:focus { border-color: var(--hw-laranja); box-shadow: 0 0 0 4px rgba(255, 122, 26, 0.2); }
+body.tema-halloween .pref-switch:checked { background: var(--hw-laranja); }
+body.tema-halloween .check-linha input { accent-color: var(--hw-laranja); }
+body.tema-halloween .alerta { border-radius: 14px; }
+body.tema-halloween .alerta-sucesso { border-color: var(--hw-verde); background: color-mix(in srgb, var(--hw-verde) 12%, var(--surface)); }
+body.tema-halloween .alerta-erro { border-color: var(--st-vermelho); background: color-mix(in srgb, var(--st-vermelho) 12%, var(--surface)); }
+
+/* Painel do participante / admin: teia no canto e brilho da lua */
+body.tema-halloween .painel-hero {
+  position: relative; overflow: hidden; border: 1px solid color-mix(in srgb, var(--hw-laranja) 45%, var(--line)); border-radius: 22px;
+  background:
+    radial-gradient(circle at 88% 12%, rgba(255, 214, 150, 0.2), transparent 26%),
+    radial-gradient(circle at 10% 90%, rgba(138, 63, 252, 0.22), transparent 36%),
+    var(--surface);
+}
+body.tema-halloween .painel-hero::before { content: ''; position: absolute; top: 0; left: 0; width: 110px; height: 110px; opacity: 0.18; pointer-events: none; background-repeat: no-repeat; background-size: contain; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%23ffffff' stroke-width='1'%3E%3Cpath d='M0 0 L100 0 M0 0 L0 100 M0 0 L70 70 M0 0 L95 35 M0 0 L35 95'/%3E%3Cpath d='M22 0 Q20 12 0 22 M44 0 Q40 30 0 44 M66 0 Q58 50 0 66 M88 0 Q76 70 0 88'/%3E%3C/svg%3E"); }
+[data-theme='light'] body.tema-halloween .painel-hero::before { filter: invert(1); opacity: 0.12; }
+body.tema-halloween .painel-hero-av { border: 3px solid var(--surface); box-shadow: 0 0 0 3px var(--hw-laranja), 0 0 24px rgba(255, 122, 26, 0.45); background: var(--hw-laranja); color: #1a0b00; }
+body.tema-halloween .painel-hero-nome { font-size: 34px; color: var(--hw-laranja); text-shadow: var(--hw-brilho); }
+body.tema-halloween .painel-hero-rot { color: var(--hw-roxo); }
+[data-theme='dark'] body.tema-halloween .painel-hero-rot { color: #c9a3ff; }
+body.tema-halloween .acao-ic { background: var(--hw-laranja); color: #1a0b00; border-radius: 12px; }
+body.tema-halloween .acoes-rapidas .acao-card:nth-child(3n+2) .acao-ic { background: var(--hw-roxo); color: #fff; }
+body.tema-halloween .acoes-rapidas .acao-card:nth-child(3n) .acao-ic { background: var(--hw-verde); color: #0b2a00; }
+body.tema-halloween .acao-card-tema { border: 1px dashed var(--hw-laranja); }
+body.tema-halloween .acao-card-tema .acao-ic { background: var(--hw-grad-fogo); color: #fff; }
+body.tema-halloween .stat-ic { background: var(--hw-laranja); color: #1a0b00; border-radius: 12px; }
+body.tema-halloween .painel-stats .stat:nth-child(2) .stat-ic { background: var(--hw-roxo); color: #fff; }
+body.tema-halloween .painel-stats .stat:nth-child(3) .stat-ic { background: var(--hw-verde); color: #0b2a00; }
+body.tema-halloween .atv-dot { background: var(--hw-laranja); }
+body.tema-halloween .tema-chip { background: var(--hw-grad-fogo); color: #fff; }
+
+/* ---------- FEED ---------- */
+body.tema-halloween .stories { border-bottom: 1px dashed var(--line-strong); }
+/* Anel de story: laranja e roxo girando devagar (duas cores, sem arco-íris) */
+body.tema-halloween .story-ring.tem { background: conic-gradient(from 0deg, #ff7a1a 0 50%, #8a3ffc 50% 100%); animation: hw-gira 9s linear infinite; }
+@keyframes hw-gira { to { transform: rotate(360deg); } }
+body.tema-halloween .story-ring.tem .story-ring-in { animation: hw-gira 9s linear infinite reverse; }
+body.tema-halloween .story-ring.visto { background: color-mix(in srgb, var(--hw-roxo) 40%, var(--line-strong)); }
+body.tema-halloween .story-ring.sem { background: var(--line-strong); }
+body.tema-halloween .story-ring-in { background: var(--surface); border-color: var(--surface); }
+body.tema-halloween .story-badge.mais { background: var(--hw-laranja); color: #1a0b00; border-color: var(--bg); }
+body.tema-halloween .post-compositor {
+  border: 2px solid transparent; border-radius: 20px;
+  background: linear-gradient(var(--surface), var(--surface)) padding-box, var(--hw-faixa) border-box;
+  background-size: 100% 100%, 300% 100%;
+  animation: hw-borda-anda 8s linear infinite;
+}
+@keyframes hw-borda-anda { to { background-position: 0 0, 300% 0; } }
+body.tema-halloween .compositor-topo textarea::placeholder { color: var(--hw-laranja); opacity: 0.85; }
+body.tema-halloween .comp-acao { color: var(--hw-laranja); }
+body.tema-halloween .comp-acao:hover { background: color-mix(in srgb, var(--hw-laranja) 16%, transparent); transform: scale(1.1); }
+body.tema-halloween .comp-op-ic { background: color-mix(in srgb, var(--hw-roxo) 22%, var(--surface-2)); color: var(--hw-laranja); }
+body.tema-halloween .comp-op.ativo .comp-switch { background: var(--hw-laranja); }
+body.tema-halloween .tw-post { border-radius: 20px; border-color: var(--line); }
+body.tema-halloween .tw-post-av, body.tema-halloween .tw-coment-av, body.tema-halloween .tw-reply-av, body.tema-halloween .post-avatar, body.tema-halloween .sug-av, body.tema-halloween .lado-eu-av, body.tema-halloween .nota-av, body.tema-halloween .ig-av { background: var(--hw-roxo-escuro); color: #ffa552; }
+body.tema-halloween .ig-acoes button:hover { transform: scale(1.12); }
+body.tema-halloween .tw-acao.curtir.ativo { color: var(--hw-laranja); }
+body.tema-halloween .tw-reply input { border: 1.5px solid var(--line); background: var(--surface); }
+body.tema-halloween .tw-reply input:focus { border-color: var(--hw-laranja); box-shadow: 0 0 0 4px rgba(255, 122, 26, 0.18); }
+body.tema-halloween .feed-novas { background: var(--hw-grad); color: #1a0b00; }
+body.tema-halloween .lado-titulo { color: var(--hw-roxo); }
+[data-theme='dark'] body.tema-halloween .lado-titulo { color: #c9a3ff; }
+body.tema-halloween .lado-rodape::after { content: ' · Noite das Bruxas 🎃'; }
+body.tema-halloween .tw-banner { background: linear-gradient(120deg, #3a1a6e 0%, #ff7a1a 100%); }
+body.tema-halloween .tw-banner::after { background: radial-gradient(120% 90% at 85% 10%, rgba(255, 230, 180, 0.35), transparent 40%); }
+body.tema-halloween .tw-tab.ativo::after { background: var(--hw-grad); width: 64px; }
+body.tema-halloween .tw-avatar.st-tem { box-shadow: 0 0 0 3px var(--surface), 0 0 0 7px var(--hw-laranja); }
+body.tema-halloween .tw-gostos-intro { background: color-mix(in srgb, var(--hw-laranja) 18%, var(--surface)); }
+body.tema-halloween .chip-item, body.tema-halloween .gt-chips .chip-item { font-weight: 600; }
+body.tema-halloween .chip-item:nth-child(3n+1) { background: #ffe3c9; color: #9a4200; }
+body.tema-halloween .chip-item:nth-child(3n+2) { background: #ead9ff; color: #4b1d9e; }
+body.tema-halloween .chip-item:nth-child(3n+3) { background: #e3ffcf; color: #2f6b12; }
+[data-theme='dark'] body.tema-halloween .chip-item:nth-child(3n+1) { background: #4a2a12; color: #ffc08a; }
+[data-theme='dark'] body.tema-halloween .chip-item:nth-child(3n+2) { background: #3a2066; color: #d9bfff; }
+[data-theme='dark'] body.tema-halloween .chip-item:nth-child(3n+3) { background: #24401a; color: #c6ff9e; }
+body.tema-halloween .gt-cab { background: linear-gradient(135deg, #ffe3c9, #ead9ff); }
+[data-theme='dark'] body.tema-halloween .gt-cab { background: linear-gradient(135deg, #4a2a12, #3a2066); }
+body.tema-halloween .gt-kicker { color: var(--hw-laranja); }
+body.tema-halloween .gt-tit { font-size: 24px; letter-spacing: 0.05em; }
+body.tema-halloween .pf-abas { background: var(--surface); border: 1px solid var(--line); }
+body.tema-halloween .pf-aba.ativo { background: var(--hw-grad); color: #1a0b00; box-shadow: 0 6px 16px rgba(255, 122, 26, 0.3); }
+body.tema-halloween .pf-aba-novo, body.tema-halloween .nav-badge.nav-badge-novo { background: var(--hw-roxo); }
+body.tema-halloween .pft-hero { border: 1px dashed var(--hw-laranja); background: radial-gradient(circle at 85% 20%, rgba(255, 214, 150, 0.22), transparent 30%), radial-gradient(circle at 10% 80%, rgba(138, 63, 252, 0.2), transparent 36%), var(--surface); }
+body.tema-halloween .pft-hero-tit { font-size: 32px; color: var(--hw-laranja); text-shadow: var(--hw-brilho); }
+body.tema-halloween .chips { border: 1.5px solid var(--line); border-radius: 14px; }
+body.tema-halloween .chips:focus-within { border-color: var(--hw-laranja); box-shadow: 0 0 0 4px rgba(255, 122, 26, 0.18); }
+body.tema-halloween .chips-sug button { border-color: var(--line-strong); }
+body.tema-halloween .pf-secao { border-top: 1px dashed var(--line-strong); }
+body.tema-halloween .avatar-editor:hover .avatar-editor-img { border-color: var(--hw-laranja); box-shadow: 0 0 0 4px rgba(255, 122, 26, 0.22); }
+body.tema-halloween .galeria-add:hover { border-color: var(--hw-laranja); color: var(--hw-laranja); }
+
+/* Faixa "Noite das Bruxas" no topo do feed */
+html.sem-banner-tema .tema-banner { display: none; }
+.tema-banner.tb-halloween {
+  position: relative; overflow: hidden; display: flex; align-items: center; gap: 16px;
+  margin: 0 0 18px; padding: 22px 22px; border-radius: 22px; color: var(--hw-osso);
+  background:
+    radial-gradient(circle at 86% 18%, rgba(255, 224, 170, 0.28), transparent 22%),
+    linear-gradient(120deg, #2a0f4a 0%, #120a1f 100%);
+  border: 1px solid rgba(255, 122, 26, 0.35);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(138, 63, 252, 0.15) inset;
+  animation: tb-entra 0.6s var(--ease-spring) both;
+}
+@keyframes tb-entra { from { opacity: 0; transform: translateY(-10px) scale(0.98); } to { opacity: 1; transform: none; } }
+.tb-halloween .tb-deco { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.tb-halloween .tb-bat { position: absolute; left: -40px; width: 24px; height: 13px; animation: tb-voa var(--d, 10s) linear infinite; }
+.tb-halloween .tb-bat b { display: block; width: 100%; height: 100%; background-repeat: no-repeat; background-size: contain; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 36'%3E%3Cpath fill='%23ffd9a8' d='M32 10c2-5 5-8 9-9-1 3-1 6 1 8 5-5 12-7 22-6-6 4-9 10-9 17-4-3-8-3-11 1-2 3-4 6-6 10-1-3-1-7 0-10-1 2-3 3-6 3s-5-1-6-3c1 3 1 7 0 10-2-4-4-7-6-10-3-4-7-4-11-1 0-7-3-13-9-17 10-1 17 1 22 6 2-2 2-5 1-8 4 1 7 4 9 9z'/%3E%3C/svg%3E"); opacity: 0.7; transform-origin: 50% 40%; animation: hw-bate 0.3s ease-in-out infinite alternate; }
+@keyframes tb-voa { 0% { transform: translate3d(0, 0, 0); } 50% { transform: translate3d(50vw, -14px, 0); } 100% { transform: translate3d(110vw, 0, 0); } }
+.tb-halloween .tb-neblina { position: absolute; left: -20%; right: -20%; bottom: -30px; height: 70px; background: radial-gradient(ellipse 30% 100% at 20% 100%, rgba(255, 255, 255, 0.12), transparent 70%), radial-gradient(ellipse 34% 100% at 60% 100%, rgba(255, 255, 255, 0.1), transparent 70%), radial-gradient(ellipse 30% 100% at 90% 100%, rgba(255, 255, 255, 0.12), transparent 70%); animation: hw-neblina 40s linear infinite; }
+.tb-halloween .tb-txt { position: relative; flex: 1; min-width: 0; }
+.tb-halloween .tb-kicker { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; background: rgba(255, 122, 26, 0.18); color: #ffb067; padding: 3px 10px; border-radius: 999px; margin-bottom: 8px; }
+.tb-halloween .tb-tit { margin: 0 0 4px; font-size: 30px; line-height: 1.1; color: var(--hw-laranja); text-shadow: 0 0 22px rgba(255, 122, 26, 0.55), 0 2px 8px rgba(0, 0, 0, 0.4); }
+.tb-halloween .tb-sub { margin: 0; font-size: 14px; line-height: 1.5; max-width: 50ch; color: #e6dcf5; }
+.tb-halloween .tb-btn { margin-top: 12px; background: var(--hw-grad) !important; color: #1a0b00 !important; box-shadow: 0 8px 22px rgba(255, 122, 26, 0.4) !important; }
+.tb-halloween .tb-btn:hover { filter: brightness(1.06) !important; transform: translateY(-1px) scale(1.03); }
+.tb-halloween .tb-arte { position: relative; display: flex; flex-direction: column; gap: 4px; font-size: 44px; line-height: 1; flex-shrink: 0; }
+.tb-halloween .tb-arte span { display: inline-block; animation: hw-flutua 3s ease-in-out infinite; filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.45)); }
+.tb-halloween .tb-arte span:nth-child(1) { cursor: pointer; filter: drop-shadow(0 0 16px rgba(255, 122, 26, 0.7)); }
+.tb-halloween .tb-arte span:nth-child(2) { animation-delay: 0.6s; font-size: 34px; margin-left: 22px; }
+.tb-halloween .tb-arte span:nth-child(3) { animation-delay: 1.2s; font-size: 26px; margin-left: -4px; }
+.tb-halloween .tb-arte span.pula { animation: hw-pula-abobora 0.6s var(--ease-spring); }
+@keyframes hw-flutua { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-7px) rotate(3deg); } }
+@keyframes hw-pula-abobora { 0% { transform: scale(1) rotate(0); } 35% { transform: scale(1.25) rotate(-10deg); } 70% { transform: scale(0.95) rotate(8deg); } 100% { transform: scale(1) rotate(0); } }
+.tb-halloween .tb-x { position: absolute; top: 8px; right: 10px; width: 30px; height: 30px; border: none; border-radius: 50%; background: rgba(255, 255, 255, 0.14); color: #fff; font-size: 20px; line-height: 1; cursor: pointer; display: grid; place-items: center; }
+.tb-halloween .tb-x:hover { background: rgba(255, 255, 255, 0.28); }
+@media (max-width: 640px) {
+  .tema-banner.tb-halloween { padding: 18px 16px; gap: 10px; border-radius: 18px; }
+  .tb-halloween .tb-tit { font-size: 25px; }
+  .tb-halloween .tb-sub { font-size: 13px; }
+  .tb-halloween .tb-arte { font-size: 34px; }
+  .tb-halloween .tb-arte span:nth-child(2) { font-size: 26px; margin-left: 12px; }
+  .tb-halloween .tb-btn { width: 100%; }
+}
+
+/* ---------- DIRECT ---------- */
+body.tema-halloween .direct { border: 1px solid var(--line); border-radius: 22px; background: var(--surface); backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35); }
+body.tema-halloween .direct-lista { border-right: 1px dashed var(--line-strong); }
+body.tema-halloween .direct-lista-topo { background: var(--hw-grad-roxo); border-bottom: none; position: relative; overflow: hidden; }
+body.tema-halloween .direct-lista-topo::after { content: '🦇'; position: absolute; right: 56px; top: 12px; font-size: 26px; animation: hw-flutua 2.6s ease-in-out infinite; opacity: 0.9; }
+body.tema-halloween .direct-lista-topo h1 { color: #fff; font-size: 30px; }
+body.tema-halloween .direct-lista-sub { color: rgba(255, 255, 255, 0.8); }
+body.tema-halloween .direct-novo-grupo { color: #fff; }
+body.tema-halloween .direct-busca input { background: var(--surface-2); }
+body.tema-halloween .notas { border-bottom: 1px dashed var(--line-strong); }
+body.tema-halloween .nota-bolha { background: color-mix(in srgb, var(--hw-roxo) 25%, var(--surface-2)); }
+body.tema-halloween .nota-bolha::before, body.tema-halloween .nota-bolha::after { background: color-mix(in srgb, var(--hw-roxo) 25%, var(--surface-2)); }
+body.tema-halloween .nota-bolha.vazia { color: var(--hw-laranja); }
+body.tema-halloween .conv { border-radius: 14px; }
+body.tema-halloween .conv.ativa { background: var(--accent-soft); }
+body.tema-halloween .conv-av { background: var(--hw-roxo-escuro); color: #ffa552; }
+body.tema-halloween .conv-av.anjo-av { background: var(--hw-grad-fogo); }
+body.tema-halloween .direct-secao { color: var(--hw-laranja); }
+body.tema-halloween .secao-secreta { color: #c9a3ff; }
+body.tema-halloween .conv-secreto { border-left: 3px solid var(--hw-roxo); background: color-mix(in srgb, var(--hw-roxo) 10%, transparent); }
+body.tema-halloween .conv-secreto:hover { background: color-mix(in srgb, var(--hw-roxo) 16%, transparent); }
+body.tema-halloween .conv-secreto.ativa { background: color-mix(in srgb, var(--hw-roxo) 24%, transparent); }
+body.tema-halloween .tag-secreto { background: var(--hw-roxo); color: #fff; }
+body.tema-halloween .tag-tirei, body.tema-halloween .tag-grupo { background: var(--hw-laranja); color: #1a0b00; }
+body.tema-halloween .dm-cab { border-bottom: 1px dashed var(--line-strong); }
+body.tema-halloween .dm-secreto { background: radial-gradient(120% 60% at 50% 0%, color-mix(in srgb, var(--hw-roxo) 18%, transparent), transparent 60%); }
+body.tema-halloween .dm-secreto .dm-cab { box-shadow: inset 0 3px 0 var(--hw-roxo); }
+body.tema-halloween .dm-aviso-secreto { background: color-mix(in srgb, var(--hw-roxo) 14%, transparent); border-color: color-mix(in srgb, var(--hw-roxo) 40%, var(--line)); color: var(--text); }
+/* Fundo da conversa: teia bem suave repetida */
+body.tema-halloween .direct-conversa:not([data-tema]) .dm-msgs, body.tema-halloween .direct-conversa[data-tema="padrao"] .dm-msgs {
+  background-size: 180px 180px; background-position: center;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180' fill='none' stroke='%23ffffff' stroke-opacity='0.06' stroke-width='1'%3E%3Ccircle cx='90' cy='90' r='22'/%3E%3Ccircle cx='90' cy='90' r='44'/%3E%3Ccircle cx='90' cy='90' r='66'/%3E%3Cpath d='M90 24v132M24 90h132M43 43l94 94M137 43l-94 94'/%3E%3C/svg%3E");
+}
+[data-theme='light'] body.tema-halloween .direct-conversa:not([data-tema]) .dm-msgs { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180' fill='none' stroke='%232a1238' stroke-opacity='0.06' stroke-width='1'%3E%3Ccircle cx='90' cy='90' r='22'/%3E%3Ccircle cx='90' cy='90' r='44'/%3E%3Ccircle cx='90' cy='90' r='66'/%3E%3Cpath d='M90 24v132M24 90h132M43 43l94 94M137 43l-94 94'/%3E%3C/svg%3E"); }
+body.tema-halloween .dm-bolha-txt { border-radius: 18px; border: 1px solid var(--line); background: var(--surface-2); font-size: 14.5px; }
+body.tema-halloween .dm-bolha.deles .dm-bolha-txt { border-bottom-left-radius: 6px; }
+body.tema-halloween .dm-bolha.minha .dm-bolha-txt { background: var(--hw-grad); color: #1a0b00; border-color: transparent; border-bottom-right-radius: 6px; box-shadow: 0 6px 18px rgba(255, 122, 26, 0.28); }
+body.tema-halloween .dm-secreto .dm-bolha.minha .dm-bolha-txt { background: var(--hw-grad-roxo); color: #fff; box-shadow: 0 6px 18px rgba(138, 63, 252, 0.32); }
+body.tema-halloween .dm-bolha-img { border-radius: 16px; }
+body.tema-halloween .dm-inicio, body.tema-halloween .dm-aviso { border: 1px dashed var(--line-strong); background: var(--surface); border-radius: 999px; }
+body.tema-halloween .dm-sistema { background: color-mix(in srgb, var(--hw-roxo) 18%, var(--surface-2)); }
+body.tema-halloween .dm-campo { border: 1.5px solid var(--line-strong); border-radius: 22px; background: var(--surface); }
+body.tema-halloween .dm-campo:focus-within { border-color: var(--hw-laranja); box-shadow: 0 0 0 4px rgba(255, 122, 26, 0.18); }
+body.tema-halloween .dm-composer { border-top: 1px dashed var(--line-strong); }
+body.tema-halloween .dm-enviar { background: var(--hw-grad); color: #1a0b00; box-shadow: 0 6px 16px rgba(255, 122, 26, 0.32); }
+body.tema-halloween .dm-secreto .dm-enviar { background: var(--hw-grad-roxo); color: #fff; box-shadow: 0 6px 16px rgba(138, 63, 252, 0.32); }
+body.tema-halloween .dm-filtro-op.sel { background: var(--hw-laranja); color: #1a0b00; }
+body.tema-halloween .dm-acao-in { color: var(--hw-laranja); }
+body.tema-halloween .direct-placeholder-ic { border: 2px dashed var(--hw-laranja); color: var(--hw-laranja); animation: hw-flutua 3s ease-in-out infinite; }
+body.tema-halloween .direct-placeholder h2 { font-size: 30px; color: var(--hw-laranja); text-shadow: var(--hw-brilho); }
+body.tema-halloween .grupo-av-m { background: var(--hw-roxo-escuro); color: #ffa552; }
+body.tema-halloween .autor-c1 { color: #ffa552; }
+
+/* ---------- MODAIS, NOTIFICAÇÕES, BUSCA, TUTORIAL ---------- */
+body.tema-halloween .modal-card { border: 2px solid transparent; border-radius: 22px; background: linear-gradient(var(--surface), var(--surface)) padding-box, var(--hw-grad-fogo) border-box; }
+body.tema-halloween .conf-card .conf-ok:not(.conf-perigo) { background: var(--hw-grad); color: #1a0b00; }
+body.tema-halloween .notif-item.nova { background: color-mix(in srgb, var(--hw-laranja) 12%, transparent); }
+body.tema-halloween .notif-item { border-radius: 14px; }
+body.tema-halloween .busca-tela { background: var(--bg); }
+body.tema-halloween .busca-campo { border: 1.5px solid var(--line); border-radius: 999px; }
+body.tema-halloween .tour-card, body.tema-halloween .aviso-card { border-radius: 22px; }
+body.tema-halloween .comp-mais-ic { background: color-mix(in srgb, var(--hw-roxo) 22%, var(--surface-2)); color: var(--hw-laranja); }
+
+/* ---------- LOADER (tela do anjo) ---------- */
+body.tema-halloween #loader {
+  color: var(--hw-osso);
+  background:
+    radial-gradient(circle at 84% 14%, rgba(255, 224, 170, 0.3), transparent 22%),
+    radial-gradient(circle at 12% 88%, rgba(138, 63, 252, 0.35), transparent 36%),
+    linear-gradient(160deg, #2a0f4a 0%, #0b0612 100%);
+}
+body.tema-halloween .loader-ceu span { background: #ffd9a8; }
+body.tema-halloween .loader-ceu span.g { background: #c9a3ff; }
+body.tema-halloween .loader-wordmark .sub { color: var(--hw-laranja); letter-spacing: 0.3em; }
+body.tema-halloween .loader-progresso::after { background: linear-gradient(90deg, transparent, #ff7a1a, #ffd9a8); }
+html.mini body.tema-halloween #loader { background: color-mix(in srgb, #0f0818 50%, transparent); }
+
+/* ---------- LOGIN / REGISTRO ---------- */
+body.tema-halloween .auth-tela {
+  color: var(--hw-osso);
+  background:
+    radial-gradient(circle at 82% 12%, rgba(255, 224, 170, 0.3), transparent 20%),
+    radial-gradient(circle at 10% 90%, rgba(138, 63, 252, 0.35), transparent 36%),
+    linear-gradient(160deg, #2a0f4a 0%, #0b0612 100%);
+}
+[data-theme='light'] body.tema-halloween .auth-tela {
+  color: #2a1238;
+  background:
+    radial-gradient(circle at 82% 12%, rgba(255, 122, 26, 0.22), transparent 24%),
+    radial-gradient(circle at 10% 90%, rgba(138, 63, 252, 0.16), transparent 36%),
+    linear-gradient(160deg, #fff4e8 0%, #ffe9d2 60%, #f1e3ff 100%);
+}
+body.tema-halloween .auth-ceu, [data-theme='light'] body.tema-halloween .auth-ceu { display: block; }
+body.tema-halloween .auth-ceu span { background: #ffd9a8; opacity: 0.9; animation: brilhar 3s ease-in-out infinite; }
+body.tema-halloween .auth-ceu span.g { background: #c9a3ff; }
+body.tema-halloween .auth-ceu span:nth-child(3n) { background: #ff7a1a; }
+[data-theme='light'] body.tema-halloween .auth-ceu span { background: #ff7a1a; opacity: 0.5; }
+body.tema-halloween .auth-molduras { display: none; }
+/* Moldura em degradê laranja → roxo; a camada de dentro é OPACA para o degradê não vazar */
+body.tema-halloween .auth-plate {
+  border: 2px solid transparent; border-radius: 26px;
+  background: linear-gradient(160deg, #1f1136, #120a1f) padding-box, var(--hw-grad-fogo) border-box;
+  box-shadow: 0 40px 90px -34px rgba(0, 0, 0, 0.7), 0 0 60px -10px rgba(255, 122, 26, 0.18);
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+[data-theme='light'] body.tema-halloween .auth-plate { background: linear-gradient(180deg, #ffffff, #fff4e8) padding-box, var(--hw-grad-fogo) border-box; box-shadow: 0 30px 70px -34px rgba(120, 60, 20, 0.35); }
+body.tema-halloween .auth-kicker { color: var(--hw-laranja); }
+body.tema-halloween .auth-kicker .fio { background: rgba(255, 255, 255, 0.4); }
+body.tema-halloween .auth-wordmark { font-size: 46px; color: var(--hw-laranja); text-shadow: 0 0 24px rgba(255, 122, 26, 0.6), 0 4px 18px rgba(0, 0, 0, 0.3); }
+body.tema-halloween .auth-sub { color: #c9a3ff; letter-spacing: 0.3em; }
+[data-theme='light'] body.tema-halloween .auth-sub { color: #6d2fd6; }
+body.tema-halloween .auth-losango .d { background: var(--hw-laranja); }
+body.tema-halloween .auth-tela .campo input { border: 1.5px solid rgba(255, 255, 255, 0.28); border-radius: 12px; background: rgba(255, 255, 255, 0.08); }
+[data-theme='light'] body.tema-halloween .auth-tela .campo input { background: #fff; border-color: var(--line-strong); }
+body.tema-halloween .auth-tela .campo input:focus { border-color: var(--hw-laranja); box-shadow: 0 0 0 4px rgba(255, 122, 26, 0.28); }
+body.tema-halloween .auth-anjo { animation: hw-flutua 3.5s ease-in-out infinite; filter: drop-shadow(0 0 14px rgba(255, 122, 26, 0.45)); }
+
+/* ---------- CHUVA DE DOCES (JS: ao salvar a lista / toque na abóbora) ---------- */
+.hw-chuva { position: fixed; inset: 0; z-index: 900; pointer-events: none; overflow: hidden; }
+.hw-chuva i { position: absolute; top: -40px; font-style: normal; font-size: var(--t, 26px); line-height: 1; animation: hw-chuva-cai var(--d, 2.6s) cubic-bezier(0.2, 0.7, 0.4, 1) var(--delay, 0s) forwards; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.35)); }
+@keyframes hw-chuva-cai {
+  0%   { opacity: 1; transform: translate3d(0, 0, 0) rotate(0); }
+  100% { opacity: 0.7; transform: translate3d(var(--x, 0px), 108vh, 0) rotate(var(--r, 540deg)); }
+}
+
+/* ---------- MOBILE ---------- */
+@media (max-width: 899px) {
+  .hw-lua { width: 84px; height: 84px; top: 64px; right: 6%; }
+  .hw-teia { width: 96px; height: 96px; }
+  .hw-morcego:nth-of-type(n+4) { display: none; }
+  .hw-fantasma:nth-of-type(n+2) { display: none; }
+  .hw-aranha, .hw-abobora { display: none; }
+  .hw-neblina { height: 110px; }
+  body.tema-halloween .pagina-cabecalho h1 { font-size: 26px; }
+}
+
+/* ---------- MENOS MOVIMENTO ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .hw-deco .hw-morcego, .hw-deco .hw-fantasma, .hw-deco .hw-aranha, .hw-deco .hw-neblina, .hw-chuva { display: none !important; }
+  .hw-lua, .hw-abobora, .tb-bat, .tb-neblina, .tb-arte span, .tema-banner,
+  body.tema-halloween .sidebar::before, body.tema-halloween .barra-inferior::before,
+  body.tema-halloween .marca-emblema, body.tema-halloween .story-ring.tem, body.tema-halloween .story-ring.tem .story-ring-in,
+  body.tema-halloween .post-compositor, body.tema-halloween .direct-lista-topo::after,
+  body.tema-halloween .direct-placeholder-ic, body.tema-halloween .auth-anjo, body.tema-halloween .bi-item.ativo svg,
+  body.tema-halloween .loader-ceu span, body.tema-halloween .auth-ceu span { animation: none !important; }
+}
+
+/* Login: a tela fica transparente para a lua, os morcegos e a neblina aparecerem em volta da moldura */
+body.tema-halloween .auth-tela, [data-theme='light'] body.tema-halloween .auth-tela { background: transparent !important; position: relative; z-index: 1; }
+body.tema-halloween .auth-tela .auth-plate { position: relative; z-index: 2; }

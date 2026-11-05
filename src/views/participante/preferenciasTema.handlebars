@@ -10,14 +10,18 @@
   {{> pfAbas abaAtiva="tema"}}
 
   <div class="pft-hero">
-    <div class="pft-hero-deco" aria-hidden="true">
+    <div class="pft-hero-deco tb-deco" aria-hidden="true">
+      {{#if (eq tema.chave "halloween")}}
+      <i class="tb-bat" style="top:14%;--d:10s"><b></b></i><i class="tb-bat" style="top:30%;--d:13s;animation-delay:-6s"><b></b></i><span class="tb-neblina"></span>
+      {{else}}
       <span class="tb-balao" style="--c:#ff5a5f;left:4%;animation-delay:-2s"></span>
       <span class="tb-balao" style="--c:#4cc9f0;left:92%;animation-delay:-6s;transform:scale(.8)"></span>
       <i class="tb-confete" style="--c:#ffd166;left:20%;animation-delay:-1s"></i>
       <i class="tb-confete" style="--c:#06d6a0;left:50%;animation-delay:-3s"></i>
       <i class="tb-confete" style="--c:#8338ec;left:78%;animation-delay:-5s"></i>
+      {{/if}}
     </div>
-    <div class="pft-hero-emojis" aria-hidden="true"><span>🧸</span><span>🎁</span><span>🍭</span></div>
+    <div class="pft-hero-emojis" aria-hidden="true">{{#if (eq tema.chave "halloween")}}<span>🎃</span><span>🍬</span><span>👻</span>{{else}}<span>🧸</span><span>🎁</span><span>🍭</span>{{/if}}</div>
     <h2 class="pft-hero-tit">{{tema.prefs.heroTitulo}}</h2>
     <p class="pft-hero-txt">{{tema.prefs.heroTexto}}</p>
   </div>

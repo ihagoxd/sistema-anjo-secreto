@@ -24,7 +24,7 @@
       {{#if tema.temPrefs}}
       <a class="acao-card acao-card-tema" href="/participante/preferencias/tema">
         <span class="acao-ic acao-ic-emoji">{{tema.emoji}}</span>
-        <div><strong>{{tema.prefs.titulo}}</strong><small>{{#if temaPrefsPreenchido}}Ver ou editar minha lista de presentes{{else}}Conte o que você quer ganhar{{/if}}</small></div>
+        <div><strong>{{tema.prefs.titulo}}</strong><small>{{#if temaPrefsPreenchido}}{{#if tema.prefs.cardPreenchido}}{{tema.prefs.cardPreenchido}}{{else}}Ver ou editar minha lista de presentes{{/if}}{{else}}{{#if tema.prefs.cardTexto}}{{tema.prefs.cardTexto}}{{else}}Conte o que você quer ganhar{{/if}}{{/if}}</small></div>
       </a>
       {{/if}}
       <a class="acao-card" href="/mensagens" >
@@ -63,7 +63,7 @@
     {{#if tema.temPrefs}}
     <a class="acao-card acao-card-tema" href="/participante/preferencias/tema">
       <span class="acao-ic acao-ic-emoji">{{tema.emoji}}</span>
-      <div><strong>{{tema.prefs.titulo}}</strong><small>{{#if temaPrefsPreenchido}}Ver ou editar minha lista de presentes{{else}}Conte o que você quer ganhar{{/if}}</small></div>
+      <div><strong>{{tema.prefs.titulo}}</strong><small>{{#if temaPrefsPreenchido}}{{#if tema.prefs.cardPreenchido}}{{tema.prefs.cardPreenchido}}{{else}}Ver ou editar minha lista de presentes{{/if}}{{else}}{{#if tema.prefs.cardTexto}}{{tema.prefs.cardTexto}}{{else}}Conte o que você quer ganhar{{/if}}{{/if}}</small></div>
     </a>
     {{/if}}
     <a class="acao-card" href="/participante/preferencias">

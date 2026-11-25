@@ -8475,6 +8475,69 @@
         .finally(function () { delete form.dataset.enviando; botoes.forEach(function (b) { b.classList.remove('enviando'); }); });
     });
 
+    /* --- Logs: busca (com pausa curta), filtro por ação e "carregar mais" ao chegar no fim --- */
+    var logs = document.querySelector('[data-adm-logs]');
+    if (logs) (function () {
+      var lista = logs.querySelector('[data-logs-lista]'), mais = logs.querySelector('[data-logs-mais]');
+      var busca = logs.querySelector('[data-logs-busca]'), xB = logs.querySelector('[data-logs-busca-x]');
+      var totalEl = logs.querySelector('[data-logs-total]');
+      var chip = logs.querySelector('[data-logs-acao].ativo');
+      var est = { acao: chip ? chip.getAttribute('data-logs-acao') : '', q: busca ? busca.value.trim() : '', pagina: 1 };
+      var seq = 0, carregando = false, timer = null;
+      function carregar(maisUm) {
+        var meu = ++seq;
+        carregando = true;
+        if (maisUm) mais.classList.add('carregando'); else lista.classList.add('trocando');
+        var p = new URLSearchParams({ acao: est.acao, q: est.q, pagina: String(est.pagina) });
+        fetch('/admin/logs?' + p.toString(), { headers: { 'X-Requested-With': 'fetch', 'Accept': 'application/json' } })
+          .then(function (r) { return r.json(); })
+          .then(function (d) {
+            if (meu !== seq || !d || !d.ok) return;
+            if (maisUm) lista.insertAdjacentHTML('beforeend', d.html); else { lista.innerHTML = d.html; }
+            mais.hidden = !d.proxima;
+            var filtrando = !!(est.acao || est.q);
+            if (totalEl) totalEl.textContent = d.total + (d.total === 1 ? ' registro' : ' registros') + (filtrando ? (d.total === 1 ? ' encontrado' : ' encontrados') : '');
+          })
+          .catch(function () { toast('Sem conexão. Tente de novo.'); })
+          .finally(function () { if (meu === seq) { carregando = false; mais.classList.remove('carregando'); lista.classList.remove('trocando'); } });
+        var u = new URLSearchParams();
+        if (est.acao) u.set('acao', est.acao);
+        if (est.q) u.set('q', est.q);
+        history.replaceState(history.state, '', '/admin/logs' + (u.toString() ? '?' + u : ''));
+      }
+      logs.addEventListener('click', function (e) {
+        var c = e.target.closest('[data-logs-acao]');
+        if (c && !e.metaKey && !e.ctrlKey) {
+          e.preventDefault();
+          est.acao = c.getAttribute('data-logs-acao'); est.pagina = 1;
+          logs.querySelectorAll('[data-logs-acao]').forEach(function (x) { x.classList.toggle('ativo', x === c); });
+          c.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+          carregar(false);
+          return;
+        }
+        if (e.target.closest('[data-logs-mais]')) {
+          e.preventDefault();
+          if (carregando) return;
+          est.pagina++; carregar(true);
+        }
+      });
+      if (busca) {
+        busca.addEventListener('input', function () {
+          if (xB) xB.hidden = !busca.value;
+          clearTimeout(timer);
+          timer = setTimeout(function () { est.q = busca.value.trim(); est.pagina = 1; carregar(false); }, 260);
+        });
+        busca.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); busca.blur(); } });
+        if (xB) xB.addEventListener('click', function () { busca.value = ''; busca.dispatchEvent(new Event('input')); busca.focus(); });
+      }
+      // Chegou perto do fim: carrega a próxima leva sozinho (como o feed)
+      if ('IntersectionObserver' in window && mais) {
+        new IntersectionObserver(function (ent) {
+          if (ent[0].isIntersecting && !mais.hidden && !carregando) { est.pagina++; carregar(true); }
+        }, { rootMargin: '300px 0px' }).observe(mais);
+      }
+    })();
+
     /* --- Folha de ações de uma pessoa (⋯), como o menu de opções do Instagram --- */
     var IC = {
       editar: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',

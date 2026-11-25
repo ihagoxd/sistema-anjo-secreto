@@ -5068,3 +5068,9 @@ form.treme { animation: auth-treme 0.42s ease; }
 .gt-item-emoji { font-size: 21px; display: grid; place-items: center; }
 .tema-card-emoji, .camp-tema-emoji { font-size: 22px; display: inline-grid; place-items: center; }
 .tb-kicker .tema-ic { font-size: 1.25em; vertical-align: -0.28em; margin-right: 2px; }
+
+/* Direct sem emoji nos rótulos: menu da mensagem com ícone e "Mensagem apagada" com sinal */
+.msg-menu-op { gap: 12px; }
+.msg-menu-ic { flex-shrink: 0; }
+.dm-apagada { display: inline-flex; align-items: center; gap: 6px; }
+.dm-apagada-ic { flex-shrink: 0; opacity: 0.8; }

@@ -1,7 +1,7 @@
 <div class="dm-bolha {{#if this.minha}}minha{{else}}deles{{/if}}{{#if this.imagem}} tem-img{{/if}}" data-id="{{this.id_mensagem}}">
   {{#if this.autor}}{{#unless this.minha}}<span class="dm-autor autor-c{{this.autor.cor}}">{{this.autor.nome}}</span>{{/unless}}{{/if}}
   {{#if this.apagada}}
-    <div class="dm-bolha-txt dm-apagada">🚫 Mensagem apagada</div>
+    <div class="dm-bolha-txt dm-apagada"><svg class="dm-apagada-ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="4.9" y1="4.9" x2="19.1" y2="19.1"/></svg>Mensagem apagada</div>
   {{else}}
   {{#if this.quote}}
     {{! Citação (responder estilo WhatsApp): clica e rola até a mensagem original }}
@@ -13,7 +13,7 @@
   {{#if this.storyPrev}}
     {{#if (eq this.storyPrev.tipo "mencao")}}
       {{! Menção no story: quem foi marcado vê a prévia + botão "Repostar esse story" }}
-      <span class="dm-story-rotulo">{{#if this.minha}}🏷️ Você marcou {{@root.conversa.titulo}} no seu story{{else}}🏷️ Te marcou no story{{/if}}</span>
+      <span class="dm-story-rotulo">{{#if this.minha}}Você marcou {{@root.conversa.titulo}} no seu story{{else}}Marcou você no story{{/if}}</span>
       <div class="dm-story-thumb{{#unless this.storyPrev.ativo}} expirado{{/unless}}"{{#if this.storyPrev.ativo}} data-abrir-story="{{this.storyPrev.id_autor}}" data-story-id="{{this.storyPrev.id_story}}" role="button" tabindex="0" title="Ver story"{{/if}}>
         {{#if this.imagem}}<img src="{{this.imagem}}" alt="" draggable="false">{{/if}}
         {{#if this.video}}<video src="{{this.video}}" preload="metadata" muted playsinline></video>{{/if}}
@@ -35,7 +35,7 @@
     {{else}}
       {{! Encaminhamento: cartão com rótulo + mídia + "Ver story" }}
       <div class="dm-storyprev{{#unless this.storyPrev.ativo}} expirado{{/unless}}"{{#if this.storyPrev.ativo}} data-abrir-story="{{this.storyPrev.id_autor}}" data-story-id="{{this.storyPrev.id_story}}" role="button" tabindex="0"{{/if}}>
-        <span class="dm-storyprev-rotulo">📤 Story de <strong>@{{this.storyPrev.usuario}}</strong></span>
+        <span class="dm-storyprev-rotulo">Story de <strong>@{{this.storyPrev.usuario}}</strong></span>
         {{#if this.imagem}}<img class="dm-storyprev-img" src="{{this.imagem}}" alt="" draggable="false">{{/if}}
         {{#if this.video}}<video class="dm-storyprev-img" src="{{this.video}}" preload="metadata" muted playsinline></video>{{/if}}
         <span class="dm-storyprev-hint">{{#if this.storyPrev.ativo}}Ver story ›{{else}}Story indisponível{{/if}}</span>

@@ -6518,9 +6518,9 @@
           menu.innerHTML =
             '<div class="msg-menu-fundo" data-mm-fechar></div>'
             + '<div class="msg-menu-box">'
-            + '<button type="button" class="msg-menu-op" data-mm-responder>↩️ Responder</button>'
-            + '<button type="button" class="msg-menu-op" data-mm-editar>✏️ Editar</button>'
-            + '<button type="button" class="msg-menu-op perigo" data-mm-apagar>🗑️ Apagar para todos</button>'
+            + '<button type="button" class="msg-menu-op" data-mm-responder><svg class="msg-menu-ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>Responder</button>'
+            + '<button type="button" class="msg-menu-op" data-mm-editar><svg class="msg-menu-ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Editar</button>'
+            + '<button type="button" class="msg-menu-op perigo" data-mm-apagar><svg class="msg-menu-ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>Apagar para todos</button>'
             + '<button type="button" class="msg-menu-op" data-mm-fechar>Cancelar</button>'
             + '</div>';
           document.body.appendChild(menu);
@@ -6598,7 +6598,7 @@
             var bolha = btn.closest('.dm-bolha');
             var hora = bolha.querySelector('.dm-hora');
             bolha.className = bolha.className.replace(' tem-img', '');
-            bolha.innerHTML = '<div class="dm-bolha-txt dm-apagada">🚫 Mensagem apagada</div>'
+            bolha.innerHTML = '<div class="dm-bolha-txt dm-apagada"><svg class="dm-apagada-ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="4.9" y1="4.9" x2="19.1" y2="19.1"/></svg>Mensagem apagada</div>'
               + '<div class="dm-bolha-meta"><span class="dm-hora">' + (hora ? hora.textContent : '') + '</span></div>';
           })
           .catch(function (err) { btn.disabled = false; alert(err.message || 'Não foi possível apagar.'); });

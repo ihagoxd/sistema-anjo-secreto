@@ -20,21 +20,25 @@
     </div>
 
     <div class="ed-campos">
-      <label class="ed-campo">
+      <label class="ed-campo com-ic">
+        <span class="ed-ic" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
         <span class="ed-rot">Nome</span>
         <input type="text" id="nome" name="nome" value="{{u.nome}}" maxlength="80" minlength="2" required autocomplete="name" enterkeyhint="done" data-ed-nome>
         <small class="ed-erro" data-ed-erro-nome hidden>O nome precisa ter pelo menos 2 letras.</small>
       </label>
-      <div class="ed-campo ed-campo-fixo">
+      <div class="ed-campo com-ic ed-campo-fixo">
+        <span class="ed-ic" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.9 7.9"/></svg></span>
         <span class="ed-rot">Nome de usuário</span>
         <span class="ed-valor">@{{u.usuario}}</span>
         <small class="ed-dica">Não pode ser alterado.</small>
       </div>
-      <label class="ed-campo">
+      <label class="ed-campo com-ic">
+        <span class="ed-ic" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg></span>
         <span class="ed-rot">Bio <span class="ed-cont" data-ed-cont>0/150</span></span>
         <textarea id="bio" name="bio" maxlength="150" rows="1" placeholder="Conte um pouco sobre você" data-ed-bio>{{u.bio}}</textarea>
       </label>
-      <div class="ed-campo">
+      <div class="ed-campo com-ic">
+        <span class="ed-ic" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M7 8v3"/><path d="M12 8v3"/><path d="M17 8v3"/><path d="M7 4h.01"/><path d="M12 4h.01"/><path d="M17 4h.01"/></svg></span>
         <span class="ed-rot">Aniversário</span>
         <div class="linha-data ed-data" data-data-nasc>
           <input type="hidden" id="data_nascimento" name="data_nascimento" value="{{dataISO u.data_nascimento}}">

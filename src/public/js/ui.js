@@ -4119,6 +4119,225 @@
     });
   })();
 
+  /* ---------- Formulário fluido ([data-fluido]): grava por fetch sem recarregar ----------
+     "Salvar" ([data-fluido-salvar], dentro do form ou no topo com form="id") só acende quando
+     algo mudou; voltar ([data-fluido-voltar]) com alteração pergunta antes de descartar.
+     Resposta JSON: { ok, msg, redirect, festejar }. ---------- */
+  (function () {
+    var forms = document.querySelectorAll('form[data-fluido]');
+    if (!forms.length) return;
+    var modalDesc = null, destino = null, algumSujo = function () { return false; };
+    function serial(f) {
+      var fd = new FormData(f), partes = [];
+      fd.forEach(function (v, k) { if (k !== '_csrf' && typeof v === 'string') partes.push(k + '=' + v.trim()); });
+      return partes.join('\u0001');
+    }
+    var lista = [];
+    forms.forEach(function (form) {
+      var botoes = Array.prototype.slice.call(form.querySelectorAll('[data-fluido-salvar]'));
+      if (form.id) botoes = botoes.concat(Array.prototype.slice.call(document.querySelectorAll('[data-fluido-salvar][form="' + form.id + '"]')));
+      var salvo = serial(form), salvando = false;
+      var item = { sujo: function () { return serial(form) !== salvo; } };
+      lista.push(item);
+      function atualizar() { var ok = item.sujo() && !salvando; botoes.forEach(function (b) { b.disabled = !ok; }); }
+      ['input', 'change', 'click', 'keyup'].forEach(function (ev) { form.addEventListener(ev, function () { setTimeout(atualizar, 0); }); });
+      new MutationObserver(function () { setTimeout(atualizar, 0); }).observe(form, { subtree: true, childList: true, attributes: true, attributeFilter: ['value'] });
+      form.querySelectorAll('textarea[data-cresce]').forEach(function (t) {
+        function crescer() { t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 180) + 'px'; }
+        t.addEventListener('input', crescer); crescer();
+      });
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (salvando || !item.sujo()) return;
+        salvando = true; atualizar();
+        botoes.forEach(function (b) { b.classList.add('salvando'); });
+        // multipart só quando o form é multipart (rota com upload); senão, urlencoded como um envio normal
+        var multi = (form.getAttribute('enctype') || '').indexOf('multipart') === 0;
+        var corpo = multi ? new FormData(form) : new URLSearchParams(new FormData(form));
+        var csrfF = form.querySelector('input[name="_csrf"]');
+        var cab = { 'X-Requested-With': 'fetch', 'Accept': 'application/json', 'X-CSRF-Token': csrfF ? csrfF.value : '' };
+        fetch(form.action, { method: 'POST', body: corpo, headers: cab })
+          .then(function (r) { return r.json().catch(function () { return { ok: false }; }); })
+          .then(function (d) {
+            if (!d || !d.ok) { if (window.toast) window.toast((d && d.erro) || 'Não foi possível salvar.'); return; }
+            salvo = serial(form);
+            if (d.redirect) { location.href = d.redirect; return; }
+            if (window.toast) window.toast(d.msg || 'Salvo');
+            if (d.festejar && window.__festejar) window.__festejar();
+            form.dispatchEvent(new CustomEvent('fluido:salvo', { detail: d }));
+          })
+          .catch(function () { if (window.toast) window.toast('Sem conexão. Tente de novo.'); })
+          .finally(function () { salvando = false; botoes.forEach(function (b) { b.classList.remove('salvando'); }); atualizar(); });
+      });
+      atualizar();
+    });
+    algumSujo = function () { return lista.some(function (i) { return i.sujo(); }); };
+
+    document.addEventListener('click', function (e) {
+      var v = e.target.closest('[data-fluido-voltar], .pf-aba');
+      if (v && algumSujo()) {
+        e.preventDefault();
+        destino = v.getAttribute('href');
+        if (!modalDesc) {
+          modalDesc = document.createElement('div');
+          modalDesc.className = 'modal'; modalDesc.hidden = true; modalDesc.setAttribute('aria-hidden', 'true');
+          modalDesc.innerHTML = '<div class="modal-card conf-card"><h3 class="conf-titulo">Descartar alterações?</h3>'
+            + '<p class="texto-suave conf-sub">O que você mudou ainda não foi salvo.</p>'
+            + '<div class="modal-acoes"><button type="button" class="btn btn-secundario btn-sm" data-fechar-modal>Continuar editando</button>'
+            + '<button type="button" class="btn btn-primario btn-sm conf-perigo" data-fluido-descartar>Descartar</button></div></div>';
+          document.body.appendChild(modalDesc);
+          modalDesc.addEventListener('click', function (ev) {
+            if (ev.target.closest('[data-fluido-descartar]')) { algumSujo = function () { return false; }; location.href = destino || '/participante'; }
+          });
+        }
+        abrirModal(modalDesc);
+        return;
+      }
+      // Voltar sem alterações: volta para onde a pessoa estava (se veio de dentro do app)
+      if (v && v.hasAttribute('data-fluido-voltar') && !e.metaKey && !e.ctrlKey && history.length > 1 && document.referrer.indexOf(location.origin) === 0 && document.referrer.indexOf('/participante/preferencias') < 0) {
+        e.preventDefault(); history.back();
+      }
+    });
+  })();
+
+  /* ---------- Preferências do Anjo: progresso ao vivo + fotos de ideias na hora ---------- */
+  (function () {
+    var form = document.querySelector('[data-pr-form]');
+    var caixa = document.querySelector('[data-pr-fotos]');
+    var CSRF = form ? ((form.querySelector('input[name="_csrf"]') || {}).value || '') : '';
+    if (form) {
+      var txt = document.querySelector('[data-pr-prog-txt]'), barra = document.querySelector('[data-pr-prog-barra]');
+      var campos = form.querySelectorAll('input[type="text"], textarea');
+      function progresso() {
+        var n = 0;
+        campos.forEach(function (c) { if (c.value.trim()) n++; });
+        if (txt) txt.textContent = n + ' de ' + campos.length + ' preenchidos';
+        if (barra) barra.style.width = Math.round(n / campos.length * 100) + '%';
+      }
+      form.addEventListener('input', progresso);
+      progresso();
+      // Enter num campo de uma linha pula para o próximo (como num formulário de app)
+      form.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter' || e.target.tagName !== 'INPUT') return;
+        e.preventDefault();
+        var arr = Array.prototype.slice.call(campos), i = arr.indexOf(e.target);
+        if (arr[i + 1]) arr[i + 1].focus(); else e.target.blur();
+      });
+    }
+    if (!caixa) return;
+    var inp = document.querySelector('[data-pr-fotos-input]');
+    var add = caixa.querySelector('[data-pr-foto-add]');
+    var cont = document.querySelector('[data-pr-fotos-cont]');
+    var MAX = parseInt(caixa.getAttribute('data-max'), 10) || 6;
+    var H = { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch', 'Accept': 'application/json' };
+    function total() { return caixa.querySelectorAll('.pr-foto').length; }
+    function contar() {
+      if (cont) cont.textContent = caixa.querySelectorAll('.pr-foto:not(.subindo)').length + '/' + MAX;
+      add.hidden = total() >= MAX;
+    }
+    function montar(f) {
+      var d = document.createElement('div');
+      d.className = 'pr-foto'; d.setAttribute('data-pr-foto', f.id_foto);
+      d.innerHTML = '<div class="pr-foto-img"><img alt="" decoding="async"><button type="button" class="pr-foto-x" data-pr-foto-remover aria-label="Remover foto">&times;</button></div>'
+        + '<input type="text" class="pr-foto-leg" data-pr-legenda maxlength="120" placeholder="O que é essa foto?" enterkeyhint="done">';
+      d.querySelector('img').src = f.caminho;
+      return d;
+    }
+    function enviar(blob) {
+      var temp = document.createElement('div');
+      temp.className = 'pr-foto subindo';
+      temp.innerHTML = '<div class="pr-foto-img"><img alt=""></div><div class="pr-foto-leg pr-foto-leg-fake"></div>';
+      temp.querySelector('img').src = URL.createObjectURL(blob);
+      caixa.insertBefore(temp, add); contar();
+      var fd = new FormData();
+      fd.append('_csrf', CSRF); fd.append('so_fotos', '1');
+      fd.append('fotos', new File([blob], 'ideia-' + Date.now() + '.jpg', { type: blob.type || 'image/jpeg' }));
+      return fetch('/participante/perfil', { method: 'POST', body: fd, headers: { 'X-Requested-With': 'fetch', 'Accept': 'application/json' } })
+        .then(function (r) { return r.json().catch(function () { return { ok: false }; }); })
+        .then(function (d) {
+          if (!d || !d.ok || !d.fotos || !d.fotos.length) {
+            temp.remove();
+            if (window.toast) window.toast((d && d.erro) || (d && d.ignoradas ? 'Limite de ' + MAX + ' fotos' : 'Não foi possível enviar a foto.'));
+            return;
+          }
+          var nova = montar(d.fotos[0]);
+          caixa.replaceChild(nova, temp);
+          var leg = nova.querySelector('[data-pr-legenda]');
+          if (leg && !caixa.querySelector('.subindo')) leg.focus({ preventScroll: true });
+        })
+        .catch(function () { temp.remove(); if (window.toast) window.toast('Sem conexão. Tente de novo.'); })
+        .finally(contar);
+    }
+    add.addEventListener('click', function () { if (total() < MAX) inp.click(); });
+    inp.addEventListener('change', function () {
+      var novos = Array.prototype.slice.call(inp.files || []).slice(0, Math.max(0, MAX - total()));
+      inp.value = '';
+      (function proximo(i) {
+        if (i >= novos.length) return;
+        if (!Cropper) { enviar(novos[i]); proximo(i + 1); return; }
+        Cropper.abrir(novos[i], { formato: 'quadrado', titulo: novos.length > 1 ? 'Ajuste a foto ' + (i + 1) + ' de ' + novos.length : 'Ajuste a foto' }, function (blob) {
+          if (blob) enviar(blob);
+          proximo(i + 1);
+        });
+      })(0);
+    });
+    // Legenda: salva ao sair do campo (ou Enter), com um "salvo" discreto
+    caixa.addEventListener('focusin', function (e) { var l = e.target.closest('[data-pr-legenda]'); if (l) l.__antes = l.value; });
+    function salvarLegenda(l) {
+      var foto = l.closest('[data-pr-foto]');
+      clearTimeout(l.__t);
+      if (l.__antes === undefined) l.__antes = l.defaultValue;
+      if (!foto || l.value === l.__antes) return;
+      var valor = l.value; l.__antes = valor;
+      fetch('/participante/perfil/fotos/' + foto.getAttribute('data-pr-foto') + '/legenda', {
+        method: 'POST', headers: Object.assign({ 'Content-Type': 'application/x-www-form-urlencoded' }, H),
+        body: '_csrf=' + encodeURIComponent(CSRF) + '&legenda=' + encodeURIComponent(valor),
+      }).then(function (r) {
+        if (!r.ok) throw new Error();
+        foto.classList.remove('salvo'); void foto.offsetWidth; foto.classList.add('salvo');
+      }).catch(function () { l.__antes = null; if (window.toast) window.toast('Não foi possível salvar a legenda.'); });
+    }
+    caixa.addEventListener('focusout', function (e) { var l = e.target.closest('[data-pr-legenda]'); if (l) salvarLegenda(l); });
+    // e também sozinha, um instante depois de parar de digitar
+    caixa.addEventListener('input', function (e) {
+      var l = e.target.closest('[data-pr-legenda]'); if (!l) return;
+      if (l.__antes === undefined) l.__antes = l.defaultValue;
+      clearTimeout(l.__t); l.__t = setTimeout(function () { salvarLegenda(l); }, 900);
+    });
+    caixa.addEventListener('keydown', function (e) { var l = e.target.closest('[data-pr-legenda]'); if (l && e.key === 'Enter') { e.preventDefault(); l.blur(); } });
+    // Remover: confirma e some na hora
+    var conf = null, alvo = null;
+    caixa.addEventListener('click', function (e) {
+      var x = e.target.closest('[data-pr-foto-remover]');
+      if (!x) return;
+      alvo = x.closest('[data-pr-foto]');
+      if (!conf) {
+        conf = document.createElement('div');
+        conf.className = 'modal'; conf.hidden = true; conf.setAttribute('aria-hidden', 'true');
+        conf.innerHTML = '<div class="modal-card conf-card"><h3 class="conf-titulo">Remover esta foto?</h3>'
+          + '<p class="texto-suave conf-sub">Ela sai das suas preferências e o seu anjo deixa de ver.</p>'
+          + '<div class="modal-acoes"><button type="button" class="btn btn-secundario btn-sm" data-fechar-modal>Cancelar</button>'
+          + '<button type="button" class="btn btn-primario btn-sm conf-perigo" data-pr-conf-ok>Sim, remover</button></div></div>';
+        document.body.appendChild(conf);
+        conf.addEventListener('click', function (ev) {
+          if (!ev.target.closest('[data-pr-conf-ok]') || !alvo) return;
+          fecharModal(conf);
+          var f = alvo; alvo = null;
+          f.classList.add('saindo');
+          fetch('/participante/perfil/fotos/' + f.getAttribute('data-pr-foto') + '/remover', {
+            method: 'POST', headers: Object.assign({ 'Content-Type': 'application/x-www-form-urlencoded' }, H),
+            body: '_csrf=' + encodeURIComponent(CSRF),
+          }).then(function (r) {
+            if (!r.ok) throw new Error();
+            setTimeout(function () { f.remove(); contar(); }, 180);
+          }).catch(function () { f.classList.remove('saindo'); if (window.toast) window.toast('Não foi possível remover.'); });
+        });
+      }
+      abrirModal(conf);
+    });
+    contar();
+  })();
+
   /* ---------- Editar perfil: salvar sem recarregar, Salvar só quando mudou, sair sem perder ---------- */
   (function () {
     var form = document.querySelector('[data-ed-form]');
@@ -6182,7 +6401,9 @@
   /* ---------- Chuva de confete (tema Dia das Crianças: salvou a lista 🎉) ---------- */
   (function () {
     if (!document.body.classList.contains('tema-criancas')) return;
-    if (!document.querySelector('[data-confete]')) return;
+    window.__festejar = festejar;
+    if (document.querySelector('[data-confete]')) festejar();
+    function festejar() {
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     var cores = ['#ff5a5f', '#ff9f1c', '#ffd166', '#06d6a0', '#4cc9f0', '#8338ec', '#ff70a6', '#3a86ff'];
     var festa = document.createElement('div');
@@ -6200,6 +6421,7 @@
     }
     document.body.appendChild(festa);
     setTimeout(function () { festa.remove(); }, 4500);
+    }
   })();
 
   /* ---------- Halloween: chuva de doces ao salvar a lista, revoada de morcegos de vez em quando
@@ -6227,6 +6449,7 @@
       setTimeout(function () { caixa.remove(); }, 5000);
     }
     if (document.querySelector('[data-confete]')) chuva(64);
+    window.__festejar = function () { chuva(64); };
     // Revoada: de tempos em tempos, 3 a 5 morcegos cruzam a tela
     var camada = document.querySelector('.hw-deco');
     function revoada() {

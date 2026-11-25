@@ -15,7 +15,9 @@ const camposImagem = upload.fields([{ name: 'foto_perfil', maxCount: 1 }, { name
 function receberImagens(req, res, next) {
   camposImagem(req, res, function (err) {
     if (err) {
-      req.session.flash = { erro: err.message || 'Falha no envio da imagem.' };
+      const erro = err.message || 'Falha no envio da imagem.';
+      if ((req.get('x-requested-with') || '') === 'fetch') return res.status(400).json({ ok: false, erro });
+      req.session.flash = { erro };
       return res.redirect(req.get('Referer') || '/participante/preferencias');
     }
     next();

@@ -1,13 +1,11 @@
-<div class="pf-wrap pft-wrap"{{#if sucesso}} data-confete{{/if}}>
-  <div class="pagina-cabecalho">
-    <div>
-      <h1>{{tema.prefs.titulo}} {{tema.emoji}}</h1>
-      <p class="subtitulo">{{tema.prefs.subtitulo}}</p>
-    </div>
-    <a href="/participante" class="btn btn-secundario btn-sm">Voltar</a>
-  </div>
+<div class="ed pr pft-wrap"{{#if sucesso}} data-confete{{/if}}>
+  <header class="ed-topo">
+    <a href="/participante" class="ed-topo-btn" data-fluido-voltar aria-label="Voltar"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></a>
+    <h1 class="ed-titulo">Preferências do Anjo</h1>
+    <button type="submit" form="formPrefsTema" class="ed-salvar" data-fluido-salvar disabled>Salvar</button>
+  </header>
 
-  {{> pfAbas abaAtiva="tema"}}
+  <div class="pr-abas">{{> pfAbas abaAtiva="tema"}}</div>
 
   <div class="pft-hero">
     <div class="pft-hero-deco tb-deco" aria-hidden="true">
@@ -26,7 +24,7 @@
     <p class="pft-hero-txt">{{tema.prefs.heroTexto}}</p>
   </div>
 
-  <form class="form card pf-form pft-form" action="/participante/preferencias/tema" method="POST" novalidate>
+  <form id="formPrefsTema" class="form card pf-form pft-form" action="/participante/preferencias/tema" method="POST" novalidate data-fluido>
     <input type="hidden" name="_csrf" value="{{csrfToken}}">
 
     {{#each tema.prefs.campos}}
@@ -60,7 +58,7 @@
     {{/each}}
 
     <div class="pf-salvar">
-      <button type="submit" class="btn btn-primario btn-bloco">Salvar minha lista {{tema.emoji}}</button>
+      <button type="submit" class="btn btn-primario btn-bloco" data-fluido-salvar disabled>Salvar minha lista</button>
     </div>
   </form>
 

@@ -34,14 +34,15 @@ async function salvarPreferencias(idUsuario, dados) {
 
 // Adiciona fotos à galeria (respeitando o limite total). Sobras são apagadas.
 async function adicionarFotos(idUsuario, caminhos) {
-  if (!caminhos || !caminhos.length) return { adicionadas: 0, ignoradas: 0 };
+  if (!caminhos || !caminhos.length) return { adicionadas: 0, ignoradas: 0, fotos: [] };
   const atual = await preferenciaModel.contarFotos(idUsuario);
   const vagas = Math.max(0, MAX_FOTOS - atual);
   const entram = caminhos.slice(0, vagas);
   const sobram = caminhos.slice(vagas);
-  for (const c of entram) await preferenciaModel.adicionarFoto(idUsuario, c);
+  const fotos = [];
+  for (const c of entram) fotos.push(await preferenciaModel.adicionarFoto(idUsuario, c));
   sobram.forEach((c) => apagarUpload(c));
-  return { adicionadas: entram.length, ignoradas: sobram.length };
+  return { adicionadas: entram.length, ignoradas: sobram.length, fotos };
 }
 
 async function removerFoto(idFoto, idUsuario) {

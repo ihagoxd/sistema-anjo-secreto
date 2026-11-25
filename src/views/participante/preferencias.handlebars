@@ -1,57 +1,88 @@
-<div class="pf-wrap">
-  <div class="pagina-cabecalho">
-    <div>
-      <h1>Meu perfil</h1>
-      <p class="subtitulo">Sua foto e suas preferências — para o anjo te presentear melhor.</p>
-    </div>
-    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-      <a href="/feed?tour=1" class="btn btn-secundario btn-sm" title="Rever o passo a passo de como o app funciona">🎬 Ver o tutorial de novo</a>
-      <a href="/participante" class="btn btn-secundario btn-sm">Voltar</a>
-    </div>
+{{! Preferências do Anjo (mesmo padrão do Editar perfil), tudo sem recarregar: "Salvar" só
+    acende quando algo mudou; fotos de ideias sobem na hora e a legenda salva ao sair do campo. }}
+<div class="ed pr">
+  <header class="ed-topo">
+    <a href="/participante" class="ed-topo-btn" data-fluido-voltar aria-label="Voltar"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></a>
+    <h1 class="ed-titulo">Preferências do Anjo</h1>
+    <button type="submit" form="formPrefs" class="ed-salvar" data-fluido-salvar disabled>Salvar</button>
+  </header>
+
+  <div class="pr-abas">{{> pfAbas abaAtiva="perfil"}}</div>
+
+  <div class="pr-intro" data-pr-progresso>
+    <div class="pr-prog-linha"><strong data-pr-prog-txt></strong><span class="texto-suave">quanto mais você contar, mais fácil o seu anjo acertar</span></div>
+    <div class="pr-barra"><i data-pr-prog-barra></i></div>
   </div>
 
-  {{> pfAbas abaAtiva="perfil"}}
-
-  <form class="form card pf-form" action="/participante/perfil" method="POST" enctype="multipart/form-data" novalidate>
+  <form id="formPrefs" class="ed-form" action="/participante/perfil" method="POST" enctype="multipart/form-data" novalidate data-fluido data-pr-form>
     <input type="hidden" name="_csrf" value="{{csrfToken}}">
-    {{> perfilCampos}}
-    <div class="pf-salvar">
-      <button type="submit" class="btn btn-primario btn-bloco">Salvar perfil</button>
+    <div class="pr-secao-tit">Gostos e sabores</div>
+    <div class="ed-campos">
+      <label class="ed-campo com-ic">
+        <span class="ed-ic" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h18"/><path d="M4 11a8 8 0 0 1 16 0"/><path d="M5 15h14l-1 4H6z"/></svg></span>
+        <span class="ed-rot">Lanche favorito</span>
+        <input type="text" name="lanche_favorito" value="{{prefs.lanche_favorito}}" maxlength="200" placeholder="Ex.: coxinha, pipoca" enterkeyhint="next">
+      </label>
+      <label class="ed-campo com-ic">
+        <span class="ed-ic" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1.5 13h-9z"/><path d="M5 8h14"/><path d="M13 8l2-6h3"/></svg></span>
+        <span class="ed-rot">Bebida favorita</span>
+        <input type="text" name="bebida_favorita" value="{{prefs.bebida_favorita}}" maxlength="200" placeholder="Ex.: guaraná, café" enterkeyhint="next">
+      </label>
+      <label class="ed-campo com-ic">
+        <span class="ed-ic" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="5" y1="9" x2="19" y2="9"/><line x1="5" y1="15" x2="19" y2="15"/></svg></span>
+        <span class="ed-rot">Chocolate favorito</span>
+        <input type="text" name="chocolate_favorito" value="{{prefs.chocolate_favorito}}" maxlength="200" placeholder="Ex.: Kit Kat, Lacta" enterkeyhint="next">
+      </label>
+      <label class="ed-campo com-ic">
+        <span class="ed-ic" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg></span>
+        <span class="ed-rot">Coisas que gosta</span>
+        <textarea name="coisas_que_gosta" rows="1" maxlength="1000" placeholder="Cores, marcas, personagens, estilos" data-cresce>{{prefs.coisas_que_gosta}}</textarea>
+      </label>
+      <label class="ed-campo com-ic">
+        <span class="ed-ic" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="12" rx="4"/><line x1="7" y1="11" x2="7" y2="15"/><line x1="5" y1="13" x2="9" y2="13"/><circle cx="15.5" cy="12" r="1"/><circle cx="18" cy="14.5" r="1"/></svg></span>
+        <span class="ed-rot">Hobbies</span>
+        <textarea name="hobbies" rows="1" maxlength="1000" placeholder="O que você curte fazer no tempo livre?" data-cresce>{{prefs.hobbies}}</textarea>
+      </label>
+    </div>
+    <div class="pr-secao-tit">Pra acertar no presente</div>
+    <div class="ed-campos">
+      <label class="ed-campo com-ic">
+        <span class="ed-ic" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.9" y1="4.9" x2="19.1" y2="19.1"/></svg></span>
+        <span class="ed-rot">Coisas que não gosta</span>
+        <textarea name="coisas_que_nao_gosta" rows="1" maxlength="1000" placeholder="Pra evitar na hora do presente" data-cresce>{{prefs.coisas_que_nao_gosta}}</textarea>
+      </label>
+      <label class="ed-campo com-ic">
+        <span class="ed-ic" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+        <span class="ed-rot">Restrições alimentares</span>
+        <textarea name="restricoes_alimentares" rows="1" maxlength="1000" placeholder="Alergias, intolerâncias, dieta" data-cresce>{{prefs.restricoes_alimentares}}</textarea>
+      </label>
+      <label class="ed-campo com-ic">
+        <span class="ed-ic" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></span>
+        <span class="ed-rot">Observações</span>
+        <textarea name="observacoes" rows="1" maxlength="1000" placeholder="Qualquer dica extra pro seu anjo" data-cresce>{{prefs.observacoes}}</textarea>
+      </label>
     </div>
   </form>
 
-  {{#if fotoPerfil}}
-    <form action="/participante/perfil/foto/remover" method="POST" data-confirmar="Remover sua foto de perfil?" class="pf-remover">
-      <input type="hidden" name="_csrf" value="{{csrfToken}}">
-      <button type="submit" class="btn-link" style="color:var(--st-vermelho);">Remover foto de perfil</button>
-    </form>
-  {{/if}}
-
-  {{#if fotos.length}}
-    <div class="card pf-fotos-card">
-      <h3>Suas fotos <span class="texto-suave">({{fotos.length}})</span></h3>
-      <p class="texto-suave" style="margin-top:0;">Escreva o que é cada foto — assim quem for te presentear entende a ideia. ✍️</p>
-      <div class="fotos-lista">
-        {{#each fotos}}
-          <div class="foto-item">
-            <div class="foto-thumb">
-              <img src="{{this.caminho}}" alt="Foto">
-              <form action="/participante/perfil/fotos/{{this.id_foto}}/remover" method="POST" data-confirmar="Remover esta foto?">
-                <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
-                <button type="submit" class="galeria-remover" aria-label="Remover foto">&times;</button>
-              </form>
-            </div>
-            <form class="foto-legenda-form" action="/participante/perfil/fotos/{{this.id_foto}}/legenda" method="POST">
-              <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
-              <label class="foto-legenda-lbl">Legenda</label>
-              <div class="foto-legenda-linha">
-                <input type="text" name="legenda" maxlength="120" value="{{this.legenda}}" placeholder="O que é essa foto?">
-                <button type="submit" class="btn btn-secundario btn-sm">Salvar</button>
-              </div>
-            </form>
-          </div>
-        {{/each}}
+  <div class="pr-secao-tit pr-fotos-tit">Fotos de ideias <span class="texto-suave" data-pr-fotos-cont>{{fotos.length}}/{{maxFotos}}</span></div>
+  <p class="pr-dica">Suba fotos do que você curte e escreva o que é cada uma. Seu anjo vê tudo aqui.</p>
+  <div class="pr-fotos" data-pr-fotos data-max="{{maxFotos}}">
+    {{#each fotos}}
+      <div class="pr-foto" data-pr-foto="{{this.id_foto}}">
+        <div class="pr-foto-img">
+          <img src="{{this.caminho}}" alt="" loading="lazy" decoding="async">
+          <button type="button" class="pr-foto-x" data-pr-foto-remover aria-label="Remover foto">&times;</button>
+        </div>
+        <input type="text" class="pr-foto-leg" data-pr-legenda value="{{this.legenda}}" maxlength="120" placeholder="O que é essa foto?" enterkeyhint="done">
       </div>
-    </div>
-  {{/if}}
+    {{/each}}
+    <button type="button" class="pr-foto-add" data-pr-foto-add aria-label="Adicionar fotos"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span>Adicionar</span></button>
+  </div>
+  <input type="file" accept="image/png,image/jpeg,image/gif,image/webp" multiple class="visualmente-oculto" data-pr-fotos-input tabindex="-1">
+
+  <a class="ed-linha" href="/feed?tour=1">
+    <span class="ed-linha-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg></span>
+    <span class="ed-linha-txt"><strong>Ver o tutorial de novo</strong><small>O passo a passo de como o app funciona</small></span>
+    <span class="ed-linha-seta"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+  </a>
 </div>

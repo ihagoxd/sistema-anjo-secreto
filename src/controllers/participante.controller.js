@@ -14,6 +14,8 @@ function ehParticipante(req) {
 }
 
 // Painel: campanha + protegido + não lidas + (modal de 1º acesso).
+const ehFetch = (req) => (req.get('x-requested-with') || '') === 'fetch';
+
 async function getDashboard(req, res, next) {
   try {
     const idUsuario = req.session.usuario.id_usuario;
@@ -99,7 +101,7 @@ async function getPreferenciasTema(req, res, next) {
     const dados = await temaService.buscarDados(req.session.usuario.id_usuario, tema);
     res.render('participante/preferenciasTema', {
       titulo: tema.prefs.titulo,
-      pagina: 'prefs-tema',
+      pagina: 'prefs prefs-tema',
       dados,
     });
   } catch (err) {
@@ -115,6 +117,7 @@ async function postPreferenciasTema(req, res, next) {
       return res.redirect('/participante/preferencias');
     }
     const r = await temaService.salvarDados(req.session.usuario.id_usuario, tema, req.body);
+    if (ehFetch(req)) return res.json({ ok: true, msg: r.vazio ? 'Lista limpa' : 'Lista salva', festejar: !r.vazio });
     req.session.flash = {
       sucesso: r.vazio
         ? 'Lista limpa. Quando quiser, conte o que gostaria de ganhar. 🎈'
@@ -136,7 +139,8 @@ async function getPreferencias(req, res, next) {
       usuarioModel.buscarPorId(idUsuario),
     ]);
     res.render('participante/preferencias', {
-      titulo: 'Meu perfil',
+      titulo: 'Preferências do Anjo',
+      pagina: 'prefs',
       prefs: prefs || {},
       fotos,
       fotoPerfil: req.session.usuario.foto_perfil,
@@ -154,19 +158,33 @@ async function getPreferencias(req, res, next) {
 async function postPerfil(req, res, next) {
   try {
     const idUsuario = req.session.usuario.id_usuario;
+    const tem = (k) => Object.prototype.hasOwnProperty.call(req.body, k);
+
+    // Só fotos de ideias (a tela de preferências sobe cada foto na hora)
+    if (req.body.so_fotos === '1') {
+      const caminhos = (req.files && req.files.fotos) ? req.files.fotos.map((f) => '/uploads/' + f.filename) : [];
+      const r = await preferenciaService.adicionarFotos(idUsuario, caminhos);
+      return res.json({ ok: true, fotos: r.fotos || [], ignoradas: r.ignoradas, max: preferenciaService.MAX_FOTOS });
+    }
+
     await preferenciaService.salvarPreferencias(idUsuario, req.body);
 
-    const bio = String(req.body.bio || '').trim().slice(0, 200) || null;
-    await usuarioModel.atualizarBio(idUsuario, bio);
-
-    // Data de nascimento (YYYY-MM-DD válido e não futuro) ou limpar.
-    const dn = String(req.body.data_nascimento || '').trim();
-    let nascimento = null;
-    if (/^\d{4}-\d{2}-\d{2}$/.test(dn)) {
-      const d = new Date(dn);
-      if (!Number.isNaN(d.getTime()) && d <= new Date()) nascimento = dn;
+    // Bio e aniversário só quando vierem no formulário (a tela de preferências não tem mais esses
+    // campos; o modal de primeiro acesso do painel tem)
+    if (tem('bio')) {
+      const bio = String(req.body.bio || '').trim().slice(0, 200) || null;
+      await usuarioModel.atualizarBio(idUsuario, bio);
     }
-    await usuarioModel.atualizarNascimento(idUsuario, nascimento);
+    if (tem('data_nascimento')) {
+      // Data de nascimento (YYYY-MM-DD válido e não futuro) ou limpar.
+      const dn = String(req.body.data_nascimento || '').trim();
+      let nascimento = null;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dn)) {
+        const d = new Date(dn);
+        if (!Number.isNaN(d.getTime()) && d <= new Date()) nascimento = dn;
+      }
+      await usuarioModel.atualizarNascimento(idUsuario, nascimento);
+    }
 
     const fp = req.files && req.files.foto_perfil && req.files.foto_perfil[0];
     if (fp) {
@@ -190,8 +208,10 @@ async function postPerfil(req, res, next) {
     // começa sozinho (só para quem ainda não viu).
     if (primeiraVez && !req.session.usuario.tutorial_visto) {
       req.session.flash = { sucesso: 'Perfil salvo! Agora um tour rapidinho pelo app. 🎬' };
+      if (ehFetch(req)) return res.json({ ok: true, redirect: '/feed' });
       return res.redirect('/feed');
     }
+    if (ehFetch(req)) return res.json({ ok: true, msg: 'Preferências salvas' });
     req.session.flash = { sucesso: msg };
     res.redirect('/participante/preferencias');
   } catch (err) {
@@ -215,7 +235,8 @@ async function postRemoverFotoPerfil(req, res, next) {
 
 async function postRemoverFoto(req, res, next) {
   try {
-    await preferenciaService.removerFoto(req.params.id_foto, req.session.usuario.id_usuario);
+    const r = await preferenciaService.removerFoto(req.params.id_foto, req.session.usuario.id_usuario);
+    if (ehFetch(req)) return res.status(r.ok ? 200 : 404).json({ ok: !!r.ok });
     req.session.flash = { sucesso: 'Foto removida.' };
     res.redirect('/participante/preferencias');
   } catch (err) {
@@ -226,6 +247,7 @@ async function postRemoverFoto(req, res, next) {
 async function postLegendaFoto(req, res, next) {
   try {
     await preferenciaService.salvarLegenda(req.params.id_foto, req.session.usuario.id_usuario, req.body.legenda);
+    if (ehFetch(req)) return res.json({ ok: true });
     req.session.flash = { sucesso: 'Legenda salva. ✍️' };
     res.redirect('/participante/preferencias');
   } catch (err) {

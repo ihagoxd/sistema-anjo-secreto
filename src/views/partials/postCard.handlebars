@@ -4,13 +4,13 @@
     <span class="presente-aura" aria-hidden="true"></span>
     <div class="presente-faixa" aria-label="Presente de Anjo">
       <span class="presente-faixa-brilho" aria-hidden="true"></span>
-      <span class="presente-faixa-ic" aria-hidden="true">🎁</span>
+      <span class="presente-faixa-ic" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span>
       <div class="presente-faixa-txt"><strong>Presente de Anjo</strong><small>Olha o mimo que chegou</small></div>
       <span class="presente-faixa-estrelas" aria-hidden="true"><i>✦</i><i>✧</i><i>✦</i></span>
     </div>
   {{/if}}
   <header class="ig-cab">
-    {{#if this.presente_anjo}}<span class="presente-av-badge" aria-hidden="true">👼</span>{{/if}}
+    {{#if this.presente_anjo}}<span class="presente-av-badge" aria-hidden="true"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span>{{/if}}
     {{#if this.temStory}}
       <button type="button" class="ig-av av-story {{#if this.storyVisto}}visto{{else}}tem{{/if}}" data-ver-stories="{{this.id_usuario}}" title="Ver o story de {{this.usuario}}">{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</button>
     {{else}}
@@ -56,7 +56,7 @@
       <span class="ig-car-cont" data-car-cont>1/{{this.midias.length}}</span>
       <div class="ig-car-dots" data-car-dots>{{#each this.midias}}<i{{#if @first}} class="on"{{/if}}></i>{{/each}}</div>
     </div>
-  {{else}}{{#if this.imagem}}<div class="tw-post-midia" data-post-id="{{this.id_post}}" data-img="{{this.imagem}}" role="button" tabindex="0" aria-label="Ampliar imagem (clique 2x para curtir)">{{#if this.presente_anjo}}<span class="presente-laco" aria-hidden="true">🎁</span><span class="presente-faiscas" aria-hidden="true"><i>✦</i><i>✧</i><i>✦</i><i>✧</i></span>{{/if}}<img src="{{this.imagem}}" alt="Foto" draggable="false" loading="lazy" decoding="async"></div>{{/if}}{{/if}}
+  {{else}}{{#if this.imagem}}<div class="tw-post-midia" data-post-id="{{this.id_post}}" data-img="{{this.imagem}}" role="button" tabindex="0" aria-label="Ampliar imagem (clique 2x para curtir)">{{#if this.presente_anjo}}<span class="presente-laco" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span><span class="presente-faiscas" aria-hidden="true"><i>✦</i><i>✧</i><i>✦</i><i>✧</i></span>{{/if}}<img src="{{this.imagem}}" alt="Foto" draggable="false" loading="lazy" decoding="async"></div>{{/if}}{{/if}}
   {{#if this.video}}<div class="ig-video" data-video-post="{{this.id_post}}">{{#if this.presente_anjo}}<span class="presente-laco" aria-hidden="true">🎁</span>{{/if}}<video src="{{this.video}}"{{#if this.video_poster}} poster="{{this.video_poster}}"{{/if}} playsinline muted loop preload="metadata"></video><button type="button" class="ig-video-som" data-video-som aria-label="Som"></button><span class="ig-video-play" aria-hidden="true"><svg width="54" height="54" viewBox="0 0 24 24" fill="rgba(255,255,255,0.92)"><polygon points="7 4 20 12 7 20"/></svg></span></div>{{/if}}
 
   <div class="tw-post-acoes ig-acoes">

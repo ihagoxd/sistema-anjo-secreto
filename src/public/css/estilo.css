@@ -5074,3 +5074,21 @@ form.treme { animation: auth-treme 0.42s ease; }
 .msg-menu-ic { flex-shrink: 0; }
 .dm-apagada { display: inline-flex; align-items: center; gap: 6px; }
 .dm-apagada-ic { flex-shrink: 0; opacity: 0.8; }
+
+/* Feed e stories sem emoji nos rótulos: ícones SVG nos lugares que eram emoji */
+.presente-faixa-ic { display: grid; place-items: center; color: var(--ouro); }
+.presente-faixa-ic svg { width: 26px; height: 26px; }
+.presente-av-badge { color: var(--ouro); }
+.presente-laco { width: 38px; height: 38px; top: -12px; right: -6px; border-radius: 50%; display: grid; place-items: center; background: var(--ouro); color: var(--on-ouro, #1b1300); }
+.presente-laco svg { width: 20px; height: 20px; }
+.comp-presente .comp-presente-ic { display: inline-grid; place-items: center; color: var(--text-soft); filter: none; }
+.comp-presente.ativo .comp-presente-ic { color: var(--ouro); }
+.comp-mais-op .comp-presente-ic { color: var(--ouro); }
+.enq-icone { display: inline-grid; place-items: center; color: var(--accent-strong); }
+.vq-icone { color: var(--st-vermelho); }
+.fviz-video, .stviz-fundo-video { display: grid; place-items: center; color: rgba(255, 255, 255, 0.85); }
+.fviz-video svg, .stviz-fundo-video svg { width: 30px; height: 30px; }
+.vistos-resumo svg { vertical-align: -2px; }
+.stview-som { display: grid; place-items: center; }
+.colab-ic { vertical-align: -2px; }
+.stcomp-marcar { display: inline-flex; align-items: center; gap: 6px; }

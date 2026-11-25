@@ -517,7 +517,7 @@
       btn.setAttribute('aria-pressed', ligado ? 'true' : 'false');
       form.classList.toggle('presente', ligado);
       if (aviso) aviso.hidden = !ligado;
-      if (ta) ta.setAttribute('placeholder', ligado ? 'Conte como foi o presente do seu anjo… 🎁' : placeholderNormal);
+      if (ta) ta.setAttribute('placeholder', ligado ? 'Conte como foi o presente do seu anjo…' : placeholderNormal);
       if (ligado && ta) ta.focus();
     }
     btn.addEventListener('click', function () { aplicar(input.value !== '1'); });
@@ -1025,7 +1025,7 @@
         vqModal.innerHTML = '<div class="modal-card share-card vq-card">'
           + '<div class="sheet-cab sempre"><span class="sheet-grab" aria-hidden="true"></span><span class="sheet-titulo">Qualidade do vídeo</span>'
           + '<button type="button" class="sheet-x" data-vq-trocar aria-label="Fechar">&times;</button></div>'
-          + '<div class="vq-topo"><span class="vq-icone">📉</span><div><strong>O iPhone comprimiu esse vídeo</strong>'
+          + '<div class="vq-topo"><span class="vq-icone"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg></span><div><strong>O iPhone comprimiu esse vídeo</strong>'
           + '<small data-vq-dims></small></div></div>'
           + '<p class="vq-txt">Ao escolher pela <strong>Fototeca</strong>, o iOS reduz o vídeo para 480p antes de entregar ao site. É do sistema, não do app. Para enviar na qualidade original:</p>'
           + '<ol class="vq-passos">'
@@ -1102,7 +1102,7 @@
       if (!compMencoes.length) { box.hidden = true; box.innerHTML = ''; return; }
       box.hidden = false;
       box.innerHTML = compMencoes.map(function (m) {
-        return '<span class="stcomp-chip">🏷️ @' + m.usuario
+        return '<span class="stcomp-chip">@' + m.usuario
           + '<button type="button" class="stcomp-chip-x" data-tirar-mencao="' + m.id + '" aria-label="Remover marcação">&times;</button></span>';
       }).join('');
     }
@@ -1116,7 +1116,7 @@
         + '<button type="button" class="stview-x" data-comp-fechar aria-label="Cancelar">&times;</button></div>'
         + '<div class="stcomp-media"></div>'
         + '<div class="stcomp-acoes">'
-        + '  <button type="button" class="stcomp-marcar">🏷️ Marcar pessoas</button>'
+        + '  <button type="button" class="stcomp-marcar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8z"/><circle cx="7" cy="7" r="1.3" fill="currentColor"/></svg> Marcar pessoas</button>'
         + '  <span class="stcomp-chips" hidden></span>'
         + '</div>'
         + '<button type="button" class="btn btn-primario stcomp-enviar">Compartilhar no story</button>';
@@ -1360,7 +1360,7 @@
         el.hidden = false;
         var it = g.itens[0];
         var av = g.foto_perfil ? '<img src="' + escSt(g.foto_perfil) + '" alt="">' : escSt((g.nome || '?').trim().charAt(0).toUpperCase());
-        el.innerHTML = (it.imagem ? '<img class="stviz-fundo" src="' + escSt(it.imagem) + '" alt="">' : '<span class="stviz-fundo-video">🎬</span>')
+        el.innerHTML = (it.imagem ? '<img class="stviz-fundo" src="' + escSt(it.imagem) + '" alt="">' : '<span class="stviz-fundo-video"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></span>')
           + '<span class="stviz-info"><span class="stviz-av">' + av + '</span>'
           + '<span class="stviz-nome">' + escSt(g.usuario) + '</span>'
           + '<span class="stviz-tempo">' + tempoRelJs(g.itens[g.itens.length - 1].criado_em) + '</span></span>';
@@ -1389,7 +1389,7 @@
         im.src = viz.imagem; im.alt = '';
         faceEl.appendChild(im);
       } else if (viz && viz.video) {
-        faceEl.innerHTML = '<div class="fviz-video">🎬</div>';
+        faceEl.innerHTML = '<div class="fviz-video"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>';
       }
     }
     function limparCubo() {
@@ -1431,8 +1431,8 @@
         .then(function (pessoas) {
           if (!pessoas.length) { lista.innerHTML = '<div class="texto-suave" style="padding:10px 6px;">Ninguém viu ainda.</div>'; return; }
           var curtidas = pessoas.filter(function (p) { return p.curtiu; }).length;
-          lista.innerHTML = '<div class="vistos-resumo">👁 ' + pessoas.length + (pessoas.length === 1 ? ' visualização' : ' visualizações')
-            + (curtidas ? ' · ❤ ' + curtidas + (curtidas === 1 ? ' curtida' : ' curtidas') : '') + '</div>'
+          lista.innerHTML = '<div class="vistos-resumo"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> ' + pessoas.length + (pessoas.length === 1 ? ' visualização' : ' visualizações')
+            + (curtidas ? ' · <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg> ' + curtidas + (curtidas === 1 ? ' curtida' : ' curtidas') : '') + '</div>'
             + pessoas.map(function (p) {
             var av = p.foto_perfil ? '<img src="' + escSt(p.foto_perfil) + '" alt="">' : escSt((p.nome || '?').trim().charAt(0).toUpperCase());
             return '<a class="share-item" href="/u/' + encodeURIComponent(p.usuario) + '">'
@@ -1527,7 +1527,7 @@
         + '    <span class="stview-nome"></span>'
         + '  </a><span class="stview-tempo"></span>'
         + '  <span class="stview-esp" aria-hidden="true"></span>'
-        + '  <button type="button" class="stview-som" hidden aria-label="Som">🔊</button>'
+        + '  <button type="button" class="stview-som" hidden aria-label="Som"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a10 10 0 0 1 0 14"/></svg></button>'
         + '  <button type="button" class="stview-x" aria-label="Fechar">&times;</button>'
         + '</div>'
         + '<div class="stview-palco"><div class="stview-cubo"><div class="stview-media"></div><div class="stview-face" aria-hidden="true"></div></div></div>'
@@ -1707,7 +1707,7 @@
               var fila = alvoP.pessoas.slice();
               (function proximaMarca() {
                 if (!fila.length) {
-                  toast(oks ? 'Marcado! ' + oks + (oks === 1 ? ' pessoa recebeu' : ' pessoas receberam') + ' no Direct 🏷️' : 'Não foi possível marcar.');
+                  toast(oks ? 'Marcado! ' + oks + (oks === 1 ? ' pessoa recebeu' : ' pessoas receberam') + ' no Direct' : 'Não foi possível marcar.');
                   pausar(false);
                   return;
                 }
@@ -1747,7 +1747,7 @@
       somBtn.addEventListener('click', function () {
         if (!videoEl) return;
         videoEl.muted = !videoEl.muted;
-        somBtn.textContent = videoEl.muted ? '🔇' : '🔊';
+        somBtn.innerHTML = videoEl.muted ? '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>' : '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a10 10 0 0 1 0 14"/></svg>';
       });
       // Lixeira → cardzinho de confirmação (pausa o story enquanto decide)
       delBtn.addEventListener('click', function () {
@@ -2486,7 +2486,7 @@
         colabId.value = colabs.map(function (c) { return c.id; }).join(',');
         if (!colabs.length) { colabChips.hidden = true; colabChips.innerHTML = ''; return; }
         colabChips.hidden = false;
-        colabChips.innerHTML = '👥 com ' + colabs.map(function (c) {
+        colabChips.innerHTML = '<svg class="colab-ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg> com ' + colabs.map(function (c) {
           return '<span class="colab-chip"><strong>@' + c.usuario + '</strong>'
             + '<button type="button" class="colab-tirar" data-tirar="' + c.id + '" aria-label="Remover colaborador">&times;</button></span>';
         }).join(' ');
@@ -2684,7 +2684,7 @@
       opts = opts || {};
       var h = '';
       if (e.pergunta) {
-        h += '<div class="enq-titulo"><span class="enq-icone" aria-hidden="true">📊</span><h4 class="enq-pergunta" data-enq-pergunta-txt>' + esc(e.pergunta) + '</h4>'
+        h += '<div class="enq-titulo"><span class="enq-icone" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span><h4 class="enq-pergunta" data-enq-pergunta-txt>' + esc(e.pergunta) + '</h4>'
           + (opts.souAutor ? '<button type="button" class="enq-editar" data-enq-editar title="Editar pergunta" aria-label="Editar pergunta"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>' : '')
           + '</div>';
       }
@@ -5844,7 +5844,7 @@
           }).then(function (r) { if (!r.ok) throw new Error('falhou'); });
         }))
           .then(function () {
-            toast(alvos.length > 1 ? 'Post enviado para ' + alvos.length + ' pessoas! ✈️' : 'Post enviado no Direct! ✈️');
+            toast(alvos.length > 1 ? 'Post enviado para ' + alvos.length + ' pessoas' : 'Post enviado no Direct');
             fecharShare();
           })
           .catch(function () {

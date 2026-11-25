@@ -3093,13 +3093,39 @@
       var badge = conv.querySelector('.conv-badge');
       aplicarBadge(conv, (badge ? parseInt(badge.textContent, 10) || 0 : 0) + 1);
     }
-    function setPrevia(conv, texto, minha) {
+    function setPrevia(conv, texto, minha, em) {
       var s = conv && conv.querySelector('.conv-sub');
       if (!s || texto == null) return;
       s.textContent = (minha ? 'Você: ' : '') + texto;
       s.removeAttribute('data-digitando');
       s.classList.remove('digitando');
+      setHora(conv, em || new Date().toISOString());
     }
+    // "· 3 min" ao lado da prévia (fica fora da .conv-sub, que é reescrita ao vivo)
+    function horaCurta(iso) {
+      var seg = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+      if (!(seg >= 0)) seg = 0;
+      if (seg < 60) return 'agora';
+      if (seg < 3600) return Math.floor(seg / 60) + ' min';
+      if (seg < 86400) return Math.floor(seg / 3600) + ' h';
+      if (seg < 604800) return Math.floor(seg / 86400) + ' d';
+      return Math.floor(seg / 604800) + ' sem';
+    }
+    function setHora(conv, iso) {
+      if (!conv || !iso) return;
+      var h = conv.querySelector('.conv-hora');
+      if (!h) {
+        var linha = conv.querySelector('.conv-linha2'); if (!linha) return;
+        h = document.createElement('span'); h.className = 'conv-hora'; linha.appendChild(h);
+      }
+      h.setAttribute('data-conv-hora', iso);
+      h.textContent = '· ' + horaCurta(iso);
+    }
+    // a hora "anda" sozinha (agora → 1 min → …)
+    setInterval(function () {
+      if (!lista || document.hidden) return;
+      lista.querySelectorAll('.conv-hora[data-conv-hora]').forEach(function (h) { h.textContent = '· ' + horaCurta(h.getAttribute('data-conv-hora')); });
+    }, 60000);
     function subir(conv) { // conversa com mensagem nova vai pro topo da seção (como no Instagram)
       if (!conv || conv.classList.contains('fixado')) return;
       var primeiro = lista.querySelector('.conv:not(.fixado)');
@@ -3282,13 +3308,13 @@
             aplicarBadge(conv, d.porContato[id]);
             var prev = d.previas && d.previas[id];
             var s = conv.querySelector('.conv-sub');
-            if (prev && s && !s.hasAttribute('data-digitando')) s.textContent = (prev.minha ? 'Você: ' : '') + prev.texto;
+            if (prev && s && !s.hasAttribute('data-digitando')) { s.textContent = (prev.minha ? 'Você: ' : '') + prev.texto; if (prev.em) setHora(conv, prev.em); }
           });
           if (d.grupos) lista.querySelectorAll('.conv[data-conv-g]').forEach(function (conv) {
             var g = d.grupos[conv.getAttribute('data-conv-g')]; if (!g) return;
             aplicarBadge(conv, g.n);
             var s = conv.querySelector('.conv-sub');
-            if (g.previa && s && !s.hasAttribute('data-digitando')) s.textContent = g.previa;
+            if (g.previa && s && !s.hasAttribute('data-digitando')) { s.textContent = g.previa; if (g.em) setHora(conv, g.em); }
           });
           if (d.online) {
             var on = {}; d.online.forEach(function (id) { on[id] = true; });

@@ -3,7 +3,7 @@
   <span class="conv-av grupo-av">{{#if this.foto}}<img src="{{this.foto}}" alt="">{{else}}{{#each this.amostra}}<span class="grupo-av-m">{{#if this.foto}}<img src="{{this.foto}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</span>{{else}}<span class="grupo-av-m">👥</span>{{/each}}{{/if}}</span>
   <div class="conv-txt">
     <div class="conv-nome"><span class="conv-nome-txt">{{this.nome}}</span><span class="tag-grupo">grupo</span></div>
-    <div class="conv-sub">{{#if this.ultima}}{{this.ultima.texto}}{{else}}{{this.membrosN}} participantes{{/if}}</div>
+    <div class="conv-linha2"><span class="conv-sub">{{#if this.ultima}}{{this.ultima.texto}}{{else}}{{this.membrosN}} participantes{{/if}}</span>{{#if this.ultima}}<span class="conv-hora" data-conv-hora="{{isoData this.ultima.criado_em}}">· {{tempoCurto this.ultima.criado_em}}</span>{{/if}}</div>
   </div>
   {{#if this.naoLidas}}<span class="conv-badge">{{this.naoLidas}}</span>{{/if}}
 </a>

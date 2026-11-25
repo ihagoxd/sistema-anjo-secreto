@@ -77,7 +77,7 @@
           <i class="online-dot" data-online-de="{{this.id_usuario}}"{{#unless this.online}} hidden{{/unless}} title="Ativo agora"></i>
           <div class="conv-txt">
             <div class="conv-nome">{{this.nome}}{{#if this.souProtegido}} <span class="tag-tirei">você tirou 🎁</span>{{/if}}</div>
-            <div class="conv-sub">{{#if this.ultima}}{{#if this.ultima.minha}}Você: {{/if}}{{this.ultima.texto}}{{else}}@{{this.usuario}}{{/if}}</div>
+            <div class="conv-linha2"><span class="conv-sub">{{#if this.ultima}}{{#if this.ultima.minha}}Você: {{/if}}{{this.ultima.texto}}{{else}}@{{this.usuario}}{{/if}}</span>{{#if this.ultima}}<span class="conv-hora" data-conv-hora="{{isoData this.ultima.criado_em}}">· {{tempoCurto this.ultima.criado_em}}</span>{{/if}}</div>
           </div>
           {{#if this.naoLidas}}<span class="conv-badge">{{this.naoLidas}}</span>{{/if}}
         </a>

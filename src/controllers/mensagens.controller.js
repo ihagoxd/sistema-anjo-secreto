@@ -505,10 +505,10 @@ async function getEstado(req, res, next) {
     const previas = {};
     Object.keys(resumo.ultima || {}).forEach((id) => {
       const u = resumo.ultima[id];
-      previas[id] = { minha: !!u.minha, texto: u.texto || '📎 mídia' };
+      previas[id] = { minha: !!u.minha, texto: u.texto || '📎 mídia', em: u.criado_em };
     });
     const grupos = {};
-    (await grupoService.listarDoUsuario(me)).forEach((g) => { grupos[g.id_grupo] = { n: g.naoLidas, previa: g.ultima ? g.ultima.texto : null }; });
+    (await grupoService.listarDoUsuario(me)).forEach((g) => { grupos[g.id_grupo] = { n: g.naoLidas, previa: g.ultima ? g.ultima.texto : null, em: g.ultima ? g.ultima.criado_em : null }; });
     res.json({ anjo: unread.anjo, protegido: unread.protegido, porContato: resumo.naoLidas || {}, previas, grupos, online: tempoReal.listarOnline() });
   } catch (err) {
     next(err);

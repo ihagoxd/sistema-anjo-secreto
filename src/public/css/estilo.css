@@ -4723,3 +4723,9 @@ html.mini .tema-banner { animation: none !important; }
 .dest-acoes .confirmando { background: color-mix(in srgb, var(--st-vermelho) 12%, transparent); }
 /* a folha de destaques abre por cima do visualizador de stories */
 .modal.dest-folha { z-index: 700; }
+
+/* DIRECT: prévia + hora da última mensagem na mesma linha ("Você: oi · 3 min") */
+.conv-linha2 { display: flex; align-items: baseline; gap: 4px; min-width: 0; }
+.conv-linha2 .conv-sub { flex: 0 1 auto; min-width: 0; }
+.conv-hora { flex-shrink: 0; font-size: 12.5px; color: var(--text-faint); white-space: nowrap; }
+.conv.tem-novas .conv-hora { color: var(--text-soft); }

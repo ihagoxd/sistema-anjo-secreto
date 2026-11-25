@@ -161,6 +161,21 @@ const helpers = {
   },
 
   // Tempo relativo ("agora", "há 5 min", "há 2 h", "há 3 d")
+  // Hora curta da lista do Direct (Instagram): agora · 3 min · 2 h · 4 d · 2 sem
+  tempoCurto(data) {
+    if (!data) return '';
+    const seg = Math.floor((Date.now() - new Date(data).getTime()) / 1000);
+    if (seg < 60) return 'agora';
+    if (seg < 3600) return `${Math.floor(seg / 60)} min`;
+    if (seg < 86400) return `${Math.floor(seg / 3600)} h`;
+    if (seg < 604800) return `${Math.floor(seg / 86400)} d`;
+    return `${Math.floor(seg / 604800)} sem`;
+  },
+  isoData(data) {
+    const d = data ? new Date(data) : null;
+    return d && !Number.isNaN(d.getTime()) ? d.toISOString() : '';
+  },
+
   tempoRel(data) {
     if (!data) return '';
     const d = new Date(data);

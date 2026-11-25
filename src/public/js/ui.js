@@ -4167,7 +4167,6 @@
           // nome novo aparece na hora onde ele está na página (menu lateral)
           document.querySelectorAll('[data-meu-nome]').forEach(function (el) { el.textContent = d.nome; });
           if (window.toast) window.toast('Perfil atualizado');
-          if (destino) { var ir = destino; destino = null; location.href = ir; }
         })
         .catch(function () { if (window.toast) window.toast('Sem conexão. Tente de novo.'); })
         .finally(function () { salvando = false; botoes.forEach(function (b) { b.classList.remove('salvando'); }); atualizar(); });

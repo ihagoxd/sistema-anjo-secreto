@@ -48,6 +48,7 @@ const receberFotoComentario = (req, res, next) => {
 router.post('/feed/:id_post/comentar', guard, receberFotoComentario, conferirAssinaturas, verifyCsrfAposUpload, ctrl.postComentar);
 router.post('/feed/:id_post/remover', guard, ctrl.postRemover);
 router.post('/feed/comentarios/:id_comentario/remover', guard, ctrl.postRemoverComentario);
+router.post('/feed/comentarios/:id_comentario/curtir', guard, ctrl.postCurtirComentario); // coração do comentário
 
 // Stories (estilo Instagram): publicar, listar para o visualizador, marcar visto, apagar
 const receberStory = (req, res, next) => {

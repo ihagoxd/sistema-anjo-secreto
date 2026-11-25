@@ -62,6 +62,11 @@ const TIPOS = {
     titulo: nomes,
     texto: (r, n) => (n > 1 ? 'comentaram no seu post' : 'comentou no seu post'),
   },
+  CURTIDA_COMENTARIO: {
+    emoji: '❤️', categoria: 'social', temAtor: true, agrupaPor: 'ref',
+    titulo: nomes,
+    texto: (r, n) => (n > 1 ? 'curtiram seu comentário' : 'curtiu seu comentário'),
+  },
   RESPOSTA: {
     emoji: '↩️', categoria: 'social', temAtor: true, agrupaPor: 'ref',
     titulo: nomes,
@@ -167,6 +172,7 @@ const ICONES_TIPO = {
   GRUPO: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/></svg>',
   GRUPO_ADD: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>',
   CURTIDA: '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg>',
+  CURTIDA_COMENTARIO: '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg>',
   COMENTARIO: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
   RESPOSTA: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>',
   REPOST: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>',
@@ -396,6 +402,14 @@ function notificarCurtida(idDono, idAtor, idPost, imagemPost = null) {
   }));
 }
 
+// Curtiram meu comentário (agrupa por comentário: "fulano e outras 2 pessoas curtiram")
+function notificarCurtidaComentario(idDono, idAtor, idPost, idComentario) {
+  if (idDono === idAtor) return Promise.resolve();
+  return seguro(() => criar({
+    idUsuario: idDono, tipo: 'CURTIDA_COMENTARIO', idAtor, link: '/p/' + idPost, ref: idComentario,
+  }));
+}
+
 function notificarComentario(idDono, idAtor, idPost, texto = null, imagemPost = null) {
   if (idDono === idAtor) return Promise.resolve();
   return seguro(() => criar({
@@ -500,6 +514,7 @@ module.exports = {
   notificarMensagemJogo,
   notificarCurtida,
   notificarComentario,
+  notificarCurtidaComentario,
   notificarResposta,
   notificarRepost,
   notificarMencao,

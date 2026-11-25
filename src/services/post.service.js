@@ -295,6 +295,20 @@ function montarFios(lista) {
   return raizes;
 }
 
+// Curtir/descurtir um comentário (alterna). Avisa o autor só ao curtir.
+async function alternarCurtidaComentario(idComentario, idUsuario) {
+  const c = await postModel.buscarComentario(idComentario);
+  if (!c) return { ok: false };
+  let curtiu;
+  if (await postModel.jaCurtiuComentario(idComentario, idUsuario)) {
+    await postModel.descurtirComentario(idComentario, idUsuario); curtiu = false;
+  } else {
+    await postModel.curtirComentario(idComentario, idUsuario); curtiu = true;
+    await notificacaoService.notificarCurtidaComentario(c.id_usuario, idUsuario, c.id_post, idComentario);
+  }
+  return { ok: true, curtiu, total: await postModel.contarCurtidasComentario(idComentario) };
+}
+
 async function comentar(idPost, idUsuario, texto, imagemPath = null, respondeA = null) {
   const falha = (motivo) => { if (imagemPath) apagarUpload(imagemPath); return { ok: false, motivo }; };
   const post = await postModel.buscarPorId(idPost);
@@ -363,6 +377,6 @@ module.exports = {
   criarPost, editarPost, listarFeed, listarNovos, buscarPost, perfilPublico,
   alternarCurtida, listarCurtidores, alternarRepost, listarRepostados, comentar, listarComentarios,
   alternarSalvo, listarSalvos, locaisSugeridos, REACOES,
-  removerPost, removerComentario,
+  removerPost, removerComentario, alternarCurtidaComentario,
   anexarEnquetes, buscarEnquete, votar, montarEnquete, editarPergunta,
 };

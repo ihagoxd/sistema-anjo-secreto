@@ -315,6 +315,17 @@ async function postRemover(req, res, next) {
   }
 }
 
+// Coração do comentário (AJAX → JSON { curtiu, total })
+async function postCurtirComentario(req, res, next) {
+  try {
+    const r = await postService.alternarCurtidaComentario(Number(req.params.id_comentario), req.session.usuario.id_usuario);
+    if (!r.ok) return res.status(404).json({ ok: false });
+    res.json(r);
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function postRemoverComentario(req, res, next) {
   try {
     const r = await postService.removerComentario(req.params.id_comentario, req.session.usuario.id_usuario, ehAdmin(req));
@@ -492,4 +503,5 @@ async function getMencoes(req, res, next) {
 }
 
 module.exports = {
+  postCurtirComentario,
   getBuscaLugares, getFeed, getMais, getNovos, getPost, postSalvar, getLocais, getLocalReverso, getPerfilSalvos, postCriar, postEditarTexto, postCurtir, getCurtidas, postRepost, postVotar, getEnquete, postEnquetePergunta, postComentar, postRemover, postRemoverComentario, getPerfil, getPerfilReposts, getPerfilGostos, getMencoes, getBusca, getBuscaPosts, getNovidades };

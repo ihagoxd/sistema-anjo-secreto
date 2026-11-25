@@ -24,7 +24,7 @@
             <span class="quando">{{formatarData this.criado_em}}</span>
           </div>
         {{else}}
-          <div class="chat-vazio">Nenhuma mensagem ainda. Mande um oi anônimo. 🎁</div>
+          <div class="chat-vazio">Nenhuma mensagem ainda. Mande um oi anônimo.</div>
         {{/each}}
       </div>
       <form class="chat-form" action="/participante/mensagens/protegido" method="POST" novalidate>
@@ -39,7 +39,7 @@
     <!-- Conversa com o anjo (anônimo) -->
     <div class="card">
       <h3>Conversa com seu anjo</h3>
-      <p class="texto-suave" style="margin-top:0;">Você não sabe quem é — e tudo bem. 😇</p>
+      <p class="texto-suave" style="margin-top:0;">Você não sabe quem é, e tudo bem.</p>
       <div class="chat">
         {{#each comAnjo}}
           <div class="msg {{#if this.minha}}minha{{else}}deles{{/if}}">
@@ -48,7 +48,7 @@
             <span class="quando">{{formatarData this.criado_em}}</span>
           </div>
         {{else}}
-          <div class="chat-vazio">Nenhuma mensagem ainda. Seu anjo está por aí. 👀</div>
+          <div class="chat-vazio">Nenhuma mensagem ainda. Seu anjo está por aí.</div>
         {{/each}}
       </div>
       <form class="chat-form" action="/participante/mensagens/anjo" method="POST" novalidate>

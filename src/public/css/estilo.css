@@ -5092,3 +5092,11 @@ form.treme { animation: auth-treme 0.42s ease; }
 .stview-som { display: grid; place-items: center; }
 .colab-ic { vertical-align: -2px; }
 .stcomp-marcar { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Rótulos com ícone no lugar do emoji: perfil, notificações, aniversário */
+.lbl-ic svg { vertical-align: -3px; color: var(--accent-strong); }
+.pf-secao-ic { display: inline-grid; place-items: center; color: var(--accent-strong); vertical-align: -3px; }
+.prefs-titulo { display: flex; align-items: center; gap: 7px; }
+.prefs-titulo svg { color: var(--accent-strong); flex-shrink: 0; }
+.aniv-gostos-tit { display: flex; align-items: center; gap: 7px; }
+.aniversario-modal .btn svg { vertical-align: -3px; margin-right: 4px; }

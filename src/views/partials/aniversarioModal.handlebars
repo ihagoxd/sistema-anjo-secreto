@@ -18,18 +18,18 @@
         </div>
 
         {{#if this.souEu}}
-          <h2 class="aniv-titulo">Feliz aniversário, {{this.nome}}! 🎉</h2>
-          <p class="aniv-sub">O escritório inteiro está sabendo. Tenha um dia incrível! 🥳</p>
+          <h2 class="aniv-titulo">Feliz aniversário, {{this.nome}}!</h2>
+          <p class="aniv-sub">O escritório inteiro está sabendo. Tenha um dia incrível!</p>
         {{else}}
-          <h2 class="aniv-titulo">Hoje é aniversário de<br>{{this.nome}}! 🎂</h2>
+          <h2 class="aniv-titulo">Hoje é aniversário de<br>{{this.nome}}!</h2>
           <p class="aniv-sub">Que tal alegrar o dia dele(a)?</p>
           <div class="aniv-acoes">
-            <a class="btn btn-primario" href="/mensagens/u/{{this.id_usuario}}?texto={{this.msgParabens}}">🎉 Mandar parabéns</a>
-            {{#if this.gostos.length}}<button type="button" class="btn btn-secundario" data-toggle-gostos>🎁 Presentear</button>{{/if}}
+            <a class="btn btn-primario" href="/mensagens/u/{{this.id_usuario}}?texto={{this.msgParabens}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Mandar parabéns</a>
+            {{#if this.gostos.length}}<button type="button" class="btn btn-secundario" data-toggle-gostos><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg> Presentear</button>{{/if}}
           </div>
           {{#if this.gostos.length}}
             <div class="aniv-gostos" hidden>
-              <div class="aniv-gostos-tit">🎁 Ideias de presente — o que {{this.nome}} gosta:</div>
+              <div class="aniv-gostos-tit"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg> Ideias de presente: o que {{this.nome}} gosta</div>
               {{#each this.gostos}}
                 <div class="aniv-gosto">
                   <span class="aniv-gosto-emoji">{{this.emoji}}</span>

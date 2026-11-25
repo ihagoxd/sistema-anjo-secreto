@@ -4486,7 +4486,7 @@
       });
       es.addEventListener('contagem', function (ev) { try { setContagem(JSON.parse(ev.data).count); } catch (e) {} });
       // Barramento: outros módulos (Direct, feed) escutam os eventos como 'sse:<nome>' no document
-      ['dm', 'dm-lida', 'dm-tema', 'digitando', 'presenca', 'post-novo', 'post-video', 'grupo'].forEach(function (nome) {
+      ['dm', 'dm-lida', 'dm-tema', 'digitando', 'presenca', 'post-novo', 'post-video', 'grupo', 'adm-cadastro'].forEach(function (nome) {
         es.addEventListener(nome, function (ev) {
           var d = null; try { d = JSON.parse(ev.data); } catch (e) {}
           document.dispatchEvent(new CustomEvent('sse:' + nome, { detail: d }));
@@ -8431,6 +8431,40 @@
       if (d.aviso) setTimeout(function () { avisar(d.aviso, d.link); }, 250);
     }
     window.__admAplicar = aplicarResposta;
+
+    // O admin não tem o sino (a central de notificações não liga para ele): o painel abre a sua
+    // própria conexão de tempo real só para os eventos do admin (reconecta sozinha)
+    if (window.EventSource && !document.querySelector('[data-abrir-notif]')) {
+      try {
+        var esAdm = new EventSource('/notificacoes/stream');
+        esAdm.addEventListener('adm-cadastro', function (ev) {
+          var dd = null; try { dd = JSON.parse(ev.data); } catch (x) {}
+          document.dispatchEvent(new CustomEvent('sse:adm-cadastro', { detail: dd }));
+        });
+        window.addEventListener('pagehide', function () { try { esAdm.close(); } catch (x) {} });
+      } catch (x) { /* sem tempo real: os números atualizam na próxima tela */ }
+    }
+
+    // Cadastro novo chegando ao vivo (SSE): contadores sobem e a pessoa entra no topo da lista
+    // de Aprovações/Usuários, já com os botões funcionando (token desta sessão nos formulários)
+    document.addEventListener('sse:adm-cadastro', function (e) {
+      var d = e.detail || {};
+      atualizarContagens(d.resumo);
+      var lista = document.querySelector('[data-adm-lista]');
+      var naTela = lista && (lista.closest('[data-adm-sai]') || lista.closest('[data-adm-usuarios]'));
+      if (naTela && d.html && !lista.querySelector('[data-adm-pessoa="' + d.id_usuario + '"]')) {
+        lista.insertAdjacentHTML('afterbegin', d.html.trim());
+        var nova = lista.firstElementChild;
+        if (nova) {
+          nova.querySelectorAll('input[name="_csrf"]').forEach(function (i) { i.value = csrf(); });
+          nova.classList.add('trocou');
+        }
+        var vz = naTela.querySelector('[data-adm-vazio]');
+        if (vz) vz.hidden = true;
+        aplicarFiltro();
+      }
+      if (d.nome) toast('Novo cadastro: ' + d.nome);
+    });
 
     // Número de cadastros pendentes no ícone de Aprovações (barra de baixo e menu lateral)
     document.addEventListener('adm:resumo', function (e) {

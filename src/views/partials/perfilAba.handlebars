@@ -7,7 +7,7 @@
         <div class="tw-gostos-intro">O que faz {{alvo.nome}} feliz</div>
         {{#each gostos}}
           <div class="tw-gosto">
-            <span class="tw-gosto-emoji">{{this.emoji}}</span>
+            {{#if this.icone}}<span class="tw-gosto-ic" aria-hidden="true">{{{this.icone}}}</span>{{else}}<span class="tw-gosto-emoji">{{this.emoji}}</span>{{/if}}
             <div class="tw-gosto-txt">
               <div class="tw-gosto-rotulo">{{this.rotulo}}</div>
               <div class="tw-gosto-valor">{{this.valor}}</div>

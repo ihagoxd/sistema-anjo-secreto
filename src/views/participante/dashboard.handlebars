@@ -1,81 +1,142 @@
-<div class="pagina-cabecalho">
-  <div>
-    <h1>Olá, {{usuario.nome}}!</h1>
-    <p class="subtitulo">Bem-vindo ao Anjo Secreto.</p>
+{{! Painel do anjo numa tela só: quem você tirou, o que ele(a) gosta logo abaixo e os atalhos. }}
+<div class="pn">
+  <div class="pn-ola">
+    <span class="pn-ola-av" aria-hidden="true">{{#if usuario.foto_perfil}}<img src="{{usuario.foto_perfil}}" alt="">{{else}}{{inicial usuario.nome}}{{/if}}</span>
+    <div class="pn-ola-txt"><small>Olá,</small><strong>{{primeiroNome}}</strong></div>
   </div>
-</div>
 
 {{#if campanhaAtiva}}
   {{#if protegido}}
-    <div class="painel-hero">
-      <div class="painel-hero-rot">Campanha · {{campanhaAtiva.nome}}</div>
-      <div class="painel-hero-av">{{#if protegido.foto_perfil}}<img src="{{protegido.foto_perfil}}" alt="">{{else}}{{inicial protegido.nome}}{{/if}}</div>
-      <p class="painel-hero-sub">Você é o anjo de</p>
-      <h2 class="painel-hero-nome">{{protegido.nome}}</h2>
-      <p class="painel-hero-dica">Cuide dele(a) em segredo até o fim do mês.</p>
-      <a href="/participante/protegido" class="btn btn-primario">Ver o que {{protegido.nome}} gosta</a>
+  <section class="pn-hero">
+    <div class="pn-hero-rot">{{campanhaAtiva.nome}}</div>
+    <a class="pn-hero-av" href="/u/{{protegido.usuario}}" aria-label="Ver o perfil de {{protegido.nome}}">{{#if protegido.foto_perfil}}<img src="{{protegido.foto_perfil}}" alt="">{{else}}{{inicial protegido.nome}}{{/if}}</a>
+    <p class="pn-hero-sub">Você é o anjo de</p>
+    <h1 class="pn-hero-nome">{{protegido.nome}}</h1>
+    <div class="pn-hero-prazo"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> {{#if (eq diasRestantes 0)}}Último dia do mês{{else}}{{#if (eq diasRestantes 1)}}Falta 1 dia{{else}}Faltam {{diasRestantes}} dias{{/if}} para o fim do mês{{/if}}</div>
+    <div class="pn-hero-botoes">
+      <a href="/mensagens/protegido" class="pn-btn pn-btn-pri"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.8-.9L3 21l1.9-5.2A8.4 8.4 0 1 1 21 11.5z"/></svg> Mensagem</a>
+      <a href="#gostos" class="pn-btn" data-pn-rolar><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg> O que gosta</a>
     </div>
+  </section>
 
-    <div class="acoes-rapidas">
-      <button type="button" class="acao-card acao-card-btn" data-instalar-app hidden>
-        <span class="acao-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
-        <div><strong>Instalar o app</strong><small>Ícone na tela inicial, abre em tela cheia</small></div>
+  <section class="pn-sec" id="gostos">
+    <div class="pn-sec-tit">O que {{primeiroNomeProtegido}} gosta</div>
+    {{> gostosTema nome=protegido.nome}}
+    {{#if gostos.length}}
+      <div class="pn-card">
+        {{#each gostos}}
+          <div class="tw-gosto">
+            {{#if this.icone}}<span class="tw-gosto-ic" aria-hidden="true">{{{this.icone}}}</span>{{else}}<span class="tw-gosto-emoji">{{this.emoji}}</span>{{/if}}
+            <div class="tw-gosto-txt">
+              <div class="tw-gosto-rotulo">{{this.rotulo}}</div>
+              <div class="tw-gosto-valor">{{this.valor}}</div>
+            </div>
+          </div>
+        {{/each}}
+      </div>
+    {{/if}}
+    {{#if fotos.length}}
+      <div class="pn-sub-tit">Fotos de ideias</div>
+      {{> galeriaGosta}}
+    {{/if}}
+    {{#unless (ou gostos.length (ou fotos.length gostosTema.length))}}
+      <div class="pn-vazio">
+        <span class="pn-vazio-ic"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg></span>
+        <strong>{{primeiroNomeProtegido}} ainda não contou o que gosta</strong>
+        <p>Puxe papo no anônimo para descobrir o que agrada.</p>
+        <a href="/mensagens/protegido" class="pn-btn pn-btn-pri"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.8-.9L3 21l1.9-5.2A8.4 8.4 0 1 1 21 11.5z"/></svg> Puxar papo</a>
+      </div>
+    {{/unless}}
+  </section>
+  <section class="pn-sec">
+    <div class="pn-sec-tit">Atalhos</div>
+    <div class="pn-lista">
+      <button type="button" class="pn-linha" data-instalar-app hidden>
+        <span class="pn-linha-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
+        <span class="pn-linha-txt"><strong>Instalar o app</strong><small>Ícone na tela inicial, abre em tela cheia</small></span>
+        <span class="pn-linha-seta"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
       </button>
+      <a class="pn-linha" href="/mensagens">
+        <span class="pn-linha-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.8-.9L3 21l1.9-5.2A8.4 8.4 0 1 1 21 11.5z"/></svg></span>
+        <span class="pn-linha-txt"><strong>Mensagens anônimas</strong><small>Fale com o seu anjo e com o seu protegido</small></span>
+        {{#if naoLidas}}<span class="pn-badge">{{naoLidas}}</span>{{/if}}<span class="pn-linha-seta"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+      </a>
+      <a class="pn-linha" href="/participante/preferencias">
+        <span class="pn-linha-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></span>
+        <span class="pn-linha-txt"><strong>Minhas preferências</strong><small>{{prefsPreenchidas}} de {{prefsTotal}} preenchidas · ajuda o seu anjo a acertar</small></span>
+        <span class="pn-mini-barra" aria-hidden="true"><i style="width: {{prefsPct}}%"></i></span><span class="pn-linha-seta"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+      </a>
       {{#if tema.temPrefs}}
-      <a class="acao-card acao-card-tema" href="/participante/preferencias/tema">
-        <span class="acao-ic acao-ic-emoji">{{tema.emoji}}</span>
-        <div><strong>{{tema.prefs.titulo}}</strong><small>{{#if temaPrefsPreenchido}}{{#if tema.prefs.cardPreenchido}}{{tema.prefs.cardPreenchido}}{{else}}Ver ou editar minha lista de presentes{{/if}}{{else}}{{#if tema.prefs.cardTexto}}{{tema.prefs.cardTexto}}{{else}}Conte o que você quer ganhar{{/if}}{{/if}}</small></div>
+      <a class="pn-linha" href="/participante/preferencias/tema">
+        <span class="pn-linha-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 3v4"/><path d="M21 5h-4"/></svg></span>
+        <span class="pn-linha-txt"><strong>{{tema.prefs.titulo}}</strong><small>{{#if temaPrefsPreenchido}}{{#if tema.prefs.cardPreenchido}}{{tema.prefs.cardPreenchido}}{{else}}Ver ou editar a minha lista{{/if}}{{else}}{{#if tema.prefs.cardTexto}}{{tema.prefs.cardTexto}}{{else}}Conte o que você quer ganhar{{/if}}{{/if}}</small></span>
+        {{#unless temaPrefsPreenchido}}<span class="pn-novo">novo</span>{{/unless}}<span class="pn-linha-seta"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
       </a>
       {{/if}}
-      <a class="acao-card" href="/mensagens" >
-        <span class="acao-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></span>
-        <div><strong>Mensagens {{#if naoLidas}}<span class="badge andamento">{{naoLidas}}</span>{{/if}}</strong><small>Fale com seu anjo e protegido</small></div>
-      </a>
-      <a class="acao-card" href="/participante/preferencias">
-        <span class="acao-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></span>
-        <div><strong>Meu perfil</strong><small>{{#if temPreferencias}}Editar preferências{{else}}Preencha para o anjo acertar{{/if}}</small></div>
-      </a>
-      <a class="acao-card" href="/feed">
-        <span class="acao-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5.5v-6.5h-5V21H4a1 1 0 0 1-1-1z"/></svg></span>
-        <div><strong>Feed</strong><small>Novidades da equipe</small></div>
-      </a>
     </div>
+  </section>
   {{else}}
-    <div class="card">
-      <p style="margin:0;">A campanha <strong>{{campanhaAtiva.nome}}</strong> está em andamento,
-      mas você não está participando dela. Fale com o administrador se isso estiver errado.</p>
+  <section class="pn-hero pn-hero-fora">
+    <span class="pn-hero-ic"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="4" rx="5" ry="1.6"/><circle cx="12" cy="11" r="3.2"/><path d="M6.5 21a5.5 5.5 0 0 1 11 0"/><path d="M8.5 11.5C5 10 3 12 2 15c2.5 0 4.5-.5 6.2-1.8"/><path d="M15.5 11.5c3.5-1.5 5.5.5 6.5 3.5-2.5 0-4.5-.5-6.2-1.8"/></svg></span>
+    <p class="pn-hero-sub">{{campanhaAtiva.nome}}</p>
+    <h1 class="pn-hero-nome">Você não está nesta rodada</h1>
+    <p class="pn-hero-dica">Se isso estiver errado, fale com o administrador.</p>
+  </section>
+  <section class="pn-sec">
+    <div class="pn-sec-tit">Atalhos</div>
+    <div class="pn-lista">
+      <button type="button" class="pn-linha" data-instalar-app hidden>
+        <span class="pn-linha-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
+        <span class="pn-linha-txt"><strong>Instalar o app</strong><small>Ícone na tela inicial, abre em tela cheia</small></span>
+        <span class="pn-linha-seta"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+      </button>
+      <a class="pn-linha" href="/participante/preferencias">
+        <span class="pn-linha-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></span>
+        <span class="pn-linha-txt"><strong>Minhas preferências</strong><small>{{prefsPreenchidas}} de {{prefsTotal}} preenchidas · ajuda o seu anjo a acertar</small></span>
+        <span class="pn-mini-barra" aria-hidden="true"><i style="width: {{prefsPct}}%"></i></span><span class="pn-linha-seta"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+      </a>
+      {{#if tema.temPrefs}}
+      <a class="pn-linha" href="/participante/preferencias/tema">
+        <span class="pn-linha-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 3v4"/><path d="M21 5h-4"/></svg></span>
+        <span class="pn-linha-txt"><strong>{{tema.prefs.titulo}}</strong><small>{{#if temaPrefsPreenchido}}{{#if tema.prefs.cardPreenchido}}{{tema.prefs.cardPreenchido}}{{else}}Ver ou editar a minha lista{{/if}}{{else}}{{#if tema.prefs.cardTexto}}{{tema.prefs.cardTexto}}{{else}}Conte o que você quer ganhar{{/if}}{{/if}}</small></span>
+        {{#unless temaPrefsPreenchido}}<span class="pn-novo">novo</span>{{/unless}}<span class="pn-linha-seta"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+      </a>
+      {{/if}}
     </div>
+  </section>
   {{/if}}
 {{else}}
-  <div class="painel-hero">
-    <div class="painel-hero-av">✨</div>
-    <p class="painel-hero-sub">Nenhuma campanha em andamento</p>
-    <h2 class="painel-hero-nome">Aguarde o sorteio</h2>
-    <p class="painel-hero-dica">Assim que o sorteio acontecer, seu protegido aparece aqui. Enquanto isso, capriche no seu perfil!</p>
-    <a href="/participante/preferencias" class="btn btn-primario">Preencher meu perfil</a>
-  </div>
-
-  <div class="acoes-rapidas">
-    <button type="button" class="acao-card acao-card-btn" data-instalar-app hidden>
-      <span class="acao-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
-      <div><strong>Instalar o app</strong><small>Ícone na tela inicial, abre em tela cheia</small></div>
-    </button>
-    {{#if tema.temPrefs}}
-    <a class="acao-card acao-card-tema" href="/participante/preferencias/tema">
-      <span class="acao-ic acao-ic-emoji">{{tema.emoji}}</span>
-      <div><strong>{{tema.prefs.titulo}}</strong><small>{{#if temaPrefsPreenchido}}{{#if tema.prefs.cardPreenchido}}{{tema.prefs.cardPreenchido}}{{else}}Ver ou editar minha lista de presentes{{/if}}{{else}}{{#if tema.prefs.cardTexto}}{{tema.prefs.cardTexto}}{{else}}Conte o que você quer ganhar{{/if}}{{/if}}</small></div>
-    </a>
-    {{/if}}
-    <a class="acao-card" href="/participante/preferencias">
-      <span class="acao-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></span>
-      <div><strong>Meu perfil</strong><small>{{#if temPreferencias}}Editar preferências{{else}}Preencher preferências{{/if}}</small></div>
-    </a>
-    <a class="acao-card" href="/feed">
-      <span class="acao-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5.5v-6.5h-5V21H4a1 1 0 0 1-1-1z"/></svg></span>
-      <div><strong>Feed</strong><small>Novidades da equipe</small></div>
-    </a>
-  </div>
+  <section class="pn-hero pn-hero-fora">
+    <span class="pn-hero-ic"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="4" rx="5" ry="1.6"/><circle cx="12" cy="11" r="3.2"/><path d="M6.5 21a5.5 5.5 0 0 1 11 0"/><path d="M8.5 11.5C5 10 3 12 2 15c2.5 0 4.5-.5 6.2-1.8"/><path d="M15.5 11.5c3.5-1.5 5.5.5 6.5 3.5-2.5 0-4.5-.5-6.2-1.8"/></svg></span>
+    <p class="pn-hero-sub">Nenhuma campanha em andamento</p>
+    <h1 class="pn-hero-nome">Aguarde o sorteio</h1>
+    <p class="pn-hero-dica">Assim que o sorteio acontecer, quem você tirou aparece aqui. Enquanto isso, capriche nas suas preferências.</p>
+    <div class="pn-hero-botoes"><a href="/participante/preferencias" class="pn-btn pn-btn-pri"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg> Minhas preferências</a></div>
+  </section>
+  <section class="pn-sec">
+    <div class="pn-sec-tit">Atalhos</div>
+    <div class="pn-lista">
+      <button type="button" class="pn-linha" data-instalar-app hidden>
+        <span class="pn-linha-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
+        <span class="pn-linha-txt"><strong>Instalar o app</strong><small>Ícone na tela inicial, abre em tela cheia</small></span>
+        <span class="pn-linha-seta"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+      </button>
+      <a class="pn-linha" href="/participante/preferencias">
+        <span class="pn-linha-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></span>
+        <span class="pn-linha-txt"><strong>Minhas preferências</strong><small>{{prefsPreenchidas}} de {{prefsTotal}} preenchidas · ajuda o seu anjo a acertar</small></span>
+        <span class="pn-mini-barra" aria-hidden="true"><i style="width: {{prefsPct}}%"></i></span><span class="pn-linha-seta"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+      </a>
+      {{#if tema.temPrefs}}
+      <a class="pn-linha" href="/participante/preferencias/tema">
+        <span class="pn-linha-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 3v4"/><path d="M21 5h-4"/></svg></span>
+        <span class="pn-linha-txt"><strong>{{tema.prefs.titulo}}</strong><small>{{#if temaPrefsPreenchido}}{{#if tema.prefs.cardPreenchido}}{{tema.prefs.cardPreenchido}}{{else}}Ver ou editar a minha lista{{/if}}{{else}}{{#if tema.prefs.cardTexto}}{{tema.prefs.cardTexto}}{{else}}Conte o que você quer ganhar{{/if}}{{/if}}</small></span>
+        {{#unless temaPrefsPreenchido}}<span class="pn-novo">novo</span>{{/unless}}<span class="pn-linha-seta"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+      </a>
+      {{/if}}
+    </div>
+  </section>
 {{/if}}
+</div>
 
 {{#if mostrarModalPerfil}}
   <div class="modal" id="modal-perfil">

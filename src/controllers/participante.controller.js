@@ -20,14 +20,19 @@ async function getDashboard(req, res, next) {
   try {
     const idUsuario = req.session.usuario.id_usuario;
     const campanhaAtiva = await campanhaService.buscarCampanhaAtiva();
-    const protegido = campanhaAtiva
-      ? await sorteioService.buscarProtegidoDoAnjo(campanhaAtiva.id_campanha, idUsuario)
+    // Quem eu tirou + o que a pessoa gosta, já no painel (sem abrir outra página)
+    const dadosProt = campanhaAtiva
+      ? await preferenciaService.buscarPreferenciasDoProtegido(campanhaAtiva.id_campanha, idUsuario)
       : null;
-    if (protegido) {
-      const pf = await usuarioModel.buscarPorId(protegido.id_usuario);
-      if (pf) protegido.foto_perfil = pf.foto_perfil;
-    }
+    const protegido = dadosProt && dadosProt.protegido ? dadosProt.protegido : null;
+    const gostosTema = protegido ? await temaService.gostosDe(protegido.id_usuario, res.locals.tema) : [];
     const minhas = await preferenciaService.buscarPreferenciasPorUsuario(idUsuario);
+    const camposGostos = require('../config/gostos').CAMPOS;
+    const prefsPreenchidas = minhas ? camposGostos.filter((k) => minhas[k.campo] && String(minhas[k.campo]).trim()).length : 0;
+    const hoje = new Date();
+    const fimDoMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+    const diasRestantes = Math.max(0, fimDoMes.getDate() - hoje.getDate());
+    const primeiro = (n) => String(n || '').trim().split(/\s+/)[0] || '';
     const naoLidas = (campanhaAtiva && protegido)
       ? await mensagemService.contarNaoLidas(campanhaAtiva.id_campanha, idUsuario)
       : 0;
@@ -44,8 +49,18 @@ async function getDashboard(req, res, next) {
 
     res.render('participante/dashboard', {
       titulo: 'Meu painel',
+      pagina: 'painel',
       campanhaAtiva,
       protegido,
+      gostos: protegido ? montarGostos(dadosProt.preferencias) : [],
+      fotos: protegido ? dadosProt.fotos : [],
+      gostosTema,
+      diasRestantes,
+      primeiroNome: primeiro(req.session.usuario.nome),
+      primeiroNomeProtegido: protegido ? primeiro(protegido.nome) : '',
+      prefsPreenchidas,
+      prefsTotal: camposGostos.length,
+      prefsPct: Math.round(prefsPreenchidas / camposGostos.length * 100),
       temPreferencias: !!minhas,
       naoLidas,
       mostrarModalPerfil,
@@ -62,6 +77,8 @@ async function getDashboard(req, res, next) {
 
 async function getProtegido(req, res, next) {
   try {
+    // Tudo sobre quem você tirou fica no painel agora (uma tela só)
+    if (!req.query.pagina) return res.redirect('/participante#gostos');
     const campanhaAtiva = await campanhaService.buscarCampanhaAtiva();
     if (!campanhaAtiva) {
       req.session.flash = { erro: 'Nenhuma campanha em andamento no momento.' };

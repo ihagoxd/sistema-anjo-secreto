@@ -4119,6 +4119,16 @@
     });
   })();
 
+  /* ---------- Painel do anjo: "O que gosta" rola suave até a seção (sem pular) ---------- */
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest('[data-pn-rolar]');
+    if (!a) return;
+    var alvo = document.querySelector(a.getAttribute('href'));
+    if (!alvo) return;
+    e.preventDefault();
+    alvo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
   /* ---------- Formulário fluido ([data-fluido]): grava por fetch sem recarregar ----------
      "Salvar" ([data-fluido-salvar], dentro do form ou no topo com form="id") só acende quando
      algo mudou; voltar ([data-fluido-voltar]) com alteração pergunta antes de descartar.

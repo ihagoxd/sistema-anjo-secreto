@@ -4435,3 +4435,64 @@ body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
 .ed-campo.com-ic > :not(.ed-ic) { grid-column: 2; }
 .ed-ic { width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-strong); transition: background 0.15s, color 0.15s; }
 .ed-campo:focus-within .ed-ic { background: var(--accent); color: var(--on-accent, #fff); }
+
+/* ============================================================
+   PAINEL DO ANJO NUMA TELA SÓ (cara de app)
+   ============================================================ */
+.pn { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 6px; }
+.pn-ola { display: flex; align-items: center; gap: 12px; padding: 4px 2px 10px; }
+.pn-ola-av { width: 44px; height: 44px; border-radius: 50%; overflow: hidden; flex-shrink: 0; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-strong); font-weight: 700; font-size: 17px; }
+.pn-ola-av img { width: 100%; height: 100%; object-fit: cover; }
+.pn-ola-txt { display: flex; flex-direction: column; line-height: 1.15; }
+.pn-ola-txt small { font-size: 13px; color: var(--text-faint); }
+.pn-ola-txt strong { font-size: 20px; font-weight: 800; }
+
+.pn-hero { position: relative; overflow: hidden; text-align: center; padding: 22px 18px 18px; border-radius: 22px; border: 1px solid var(--line); background: radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, var(--accent) 20%, var(--surface)), var(--surface) 70%); }
+.pn-hero-rot { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-faint); }
+.pn-hero-av { width: 92px; height: 92px; margin: 14px auto 0; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-strong); font-weight: 800; font-size: 34px; box-shadow: 0 0 0 3px var(--surface), 0 0 0 6px var(--accent); transition: transform 0.15s; }
+.pn-hero-av:hover { text-decoration: none; transform: scale(1.03); }
+.pn-hero-av img { width: 100%; height: 100%; object-fit: cover; }
+.pn-hero-ic { width: 72px; height: 72px; margin: 4px auto 0; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-strong); }
+.pn-hero-sub { margin: 12px 0 2px; font-size: 14px; color: var(--text-soft); }
+.pn-hero-nome { margin: 0; font-size: 26px; font-weight: 800; line-height: 1.15; }
+.pn-hero-dica { margin: 8px 0 0; font-size: 13.5px; color: var(--text-soft); }
+.pn-hero-prazo { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; padding: 5px 12px; border-radius: 999px; background: var(--surface-2); font-size: 12.5px; font-weight: 600; color: var(--text-soft); }
+.pn-hero-botoes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
+.pn-hero-fora .pn-hero-botoes { grid-template-columns: 1fr; max-width: 280px; margin-inline: auto; }
+.pn-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 42px; padding: 0 14px; border-radius: 12px; border: none; background: var(--surface-2); color: var(--text); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; transition: filter 0.12s, transform 0.12s; }
+.pn-btn:hover { text-decoration: none; color: var(--text); filter: brightness(1.08); }
+.pn-btn:active { transform: scale(0.97); }
+.pn-btn-pri { background: var(--accent); color: var(--on-accent, #fff); }
+.pn-btn-pri:hover { color: var(--on-accent, #fff); }
+
+.pn-sec { padding-top: 16px; scroll-margin-top: 70px; }
+.pn-sec-tit { padding: 0 4px 10px; font-size: 13px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; color: var(--text-faint); }
+.pn-sub-tit { padding: 16px 4px 10px; font-size: 13px; font-weight: 700; color: var(--text-soft); }
+.pn-card { border: 1px solid var(--line); border-radius: 18px; background: var(--surface); overflow: hidden; }
+.pn-sec .gt-card { margin-bottom: 12px; }
+.tw-gosto-ic { width: 38px; height: 38px; flex-shrink: 0; border-radius: 12px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-strong); }
+.pn-vazio { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; padding: 22px 18px; border: 1px dashed var(--line-strong); border-radius: 18px; }
+.pn-vazio-ic { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-strong); margin-bottom: 4px; }
+.pn-vazio p { margin: 0 0 8px; font-size: 13.5px; color: var(--text-soft); }
+
+.pn-lista { border: 1px solid var(--line); border-radius: 18px; background: var(--surface); overflow: hidden; }
+.pn-linha { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; border: none; border-bottom: 1px solid var(--line); background: none; color: var(--text); font: inherit; text-align: left; cursor: pointer; transition: background 0.12s; }
+.pn-linha:last-child { border-bottom: none; }
+.pn-linha[hidden] { display: none; }
+.pn-linha:hover { background: var(--hover); text-decoration: none; color: var(--text); }
+.pn-linha:active { background: var(--hover); }
+.pn-linha-ic { width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-strong); }
+.pn-linha-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+.pn-linha-txt strong { font-size: 15px; }
+.pn-linha-txt small { font-size: 12.5px; color: var(--text-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pn-linha-seta { color: var(--text-faint); flex-shrink: 0; }
+.pn-badge { min-width: 22px; height: 22px; padding: 0 7px; border-radius: 999px; display: grid; place-items: center; background: var(--st-vermelho); color: #fff; font-size: 12px; font-weight: 800; flex-shrink: 0; }
+.pn-novo { padding: 2px 8px; border-radius: 999px; background: var(--st-vermelho); color: #fff; font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; flex-shrink: 0; }
+.pn-mini-barra { width: 42px; height: 5px; border-radius: 999px; background: var(--surface-2); overflow: hidden; flex-shrink: 0; }
+.pn-mini-barra i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--accent), var(--ouro)); }
+
+@media (max-width: 899px) {
+  body.pg-painel .container { padding-top: 12px; }
+  .pn-hero { border-radius: 20px; }
+}
+.pn-btn { white-space: nowrap; }

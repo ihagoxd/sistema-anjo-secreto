@@ -21,6 +21,7 @@ const sorteioService = require('../services/sorteio.service');
 const mensagemService = require('../services/mensagem.service');
 const dmService = require('../services/mensagemDireta.service');
 const grupoService = require('../services/grupo.service');
+const conversaAjusteModel = require('../models/conversaAjuste.model');
 const render = require('../services/render.service');
 const { apagarUpload } = require('../config/upload');
 const conversaService = require('../services/conversa.service');
@@ -92,6 +93,16 @@ async function montarContexto(me) {
   equipe.sort(ordem);
   // Grupos entram na mesma lista das pessoas, ordenados pela última mensagem (como no Instagram).
   const grupos = await grupoService.listarDoUsuario(me);
+  // Ajustes por conversa: silenciada (ícone) e apagada só para mim (some a prévia antiga)
+  const ajustes = await conversaAjusteModel.daPessoa(me);
+  const aplicar = (item, chave) => {
+    const aj = ajustes[chave];
+    if (!aj) return;
+    item.silenciada = !!aj.silenciada;
+    if (aj.limpa_em && item.ultima && new Date(item.ultima.criado_em) <= new Date(aj.limpa_em)) item.ultima = null;
+  };
+  equipe.forEach((u) => aplicar(u, 'u:' + u.id_usuario));
+  grupos.forEach((g) => aplicar(g, 'g:' + g.id_grupo));
   const lista = equipe.concat(grupos).sort(ordem);
 
   return { campanha, protegido, participaJogo, unread, equipe, lista };
@@ -502,17 +513,53 @@ async function getEstado(req, res, next) {
       if (p) unread = await mensagemService.contarNaoLidasPorTipo(campanha.id_campanha, me);
     }
     const resumo = await dmService.resumoConversas(me);
+    const ajEstado = await conversaAjusteModel.daPessoa(me);
+    const apagadaAntes = (chave, em) => { const a = ajEstado[chave]; return !!(a && a.limpa_em && em && new Date(em) <= new Date(a.limpa_em)); };
     const previas = {};
     Object.keys(resumo.ultima || {}).forEach((id) => {
       const u = resumo.ultima[id];
+      if (apagadaAntes('u:' + id, u.criado_em)) return;
       previas[id] = { minha: !!u.minha, texto: u.texto || '📎 mídia', em: u.criado_em };
     });
     const grupos = {};
-    (await grupoService.listarDoUsuario(me)).forEach((g) => { grupos[g.id_grupo] = { n: g.naoLidas, previa: g.ultima ? g.ultima.texto : null, em: g.ultima ? g.ultima.criado_em : null }; });
+    (await grupoService.listarDoUsuario(me)).forEach((g) => {
+      const vale = g.ultima && !apagadaAntes('g:' + g.id_grupo, g.ultima.criado_em);
+      grupos[g.id_grupo] = { n: g.naoLidas, previa: vale ? g.ultima.texto : null, em: vale ? g.ultima.criado_em : null };
+    });
     res.json({ anjo: unread.anjo, protegido: unread.protegido, porContato: resumo.naoLidas || {}, previas, grupos, online: tempoReal.listarOnline() });
   } catch (err) {
     next(err);
   }
+}
+
+// ---------- Silenciar / apagar conversa só para mim (AJAX → JSON) ----------
+async function alvoValido(me, canal, id) {
+  if (canal === 'u') { const u = await usuarioModel.buscarPorId(id); return !!(u && u.id_usuario !== me && u.status === 'APROVADO'); }
+  if (canal === 'g') return !!(await grupoService.abrir(me, id));
+  return false;
+}
+async function postSilenciar(req, res, next) {
+  try {
+    const me = req.session.usuario.id_usuario;
+    const canal = req.params.canal, id = Number(req.params.id);
+    if (!(await alvoValido(me, canal, id))) return res.status(404).json({ ok: false });
+    const atual = await conversaAjusteModel.estaSilenciada(me, canal, id);
+    await conversaAjusteModel.definirSilencio(me, canal, id, !atual);
+    res.json({ ok: true, silenciada: !atual });
+  } catch (err) { next(err); }
+}
+async function postLimpar(req, res, next) {
+  try {
+    const me = req.session.usuario.id_usuario;
+    const canal = req.params.canal, id = Number(req.params.id);
+    if (!(await alvoValido(me, canal, id))) return res.status(404).json({ ok: false });
+    await conversaAjusteModel.limpar(me, canal, id);
+    // o que estava sem ler também sai (badge, sino)
+    if (canal === 'u') await dmService.marcarLidas(me, id);
+    else await grupoService.marcarLidas(me, id);
+    await notificacaoService.lerConversa(me, canal, id).catch(() => {});
+    res.json({ ok: true });
+  } catch (err) { next(err); }
 }
 
 // ---------- Edição (AJAX → JSON) ----------
@@ -546,6 +593,7 @@ async function postApagar(req, res, next) {
 }
 
 module.exports = {
+  postSilenciar, postLimpar,
   getInbox, getAnjo, getProtegido, getDireta, postAnjo, postProtegido, postDireta, postEditar, postApagar, getEstado, postDigitando, postLidas, postTema,
   getGrupo, postGrupo, postCriarGrupo, postGrupoMembros, postGrupoSair, postGrupoNome, getGrupoItem,
   postGrupoFoto, postGrupoFotoRemover, postGrupoRemoverMembro,

@@ -52,6 +52,9 @@ router.post('/:canal(anjo|protegido)/lidas', ctrl.postLidas);
 router.post('/:canal(u|g)/:id([0-9]+)/lidas', ctrl.postLidas);
 // Tema da conversa (só DM do escritório) — JSON { tema }
 router.post('/u/:id([0-9]+)/tema', ctrl.postTema);
+// Silenciar (sem notificação) e apagar conversa só para mim
+router.post('/:canal(u|g)/:id([0-9]+)/silenciar', ctrl.postSilenciar);
+router.post('/:canal(u|g)/:id([0-9]+)/limpar', ctrl.postLimpar);
 
 // Envio (com imagem opcional)
 router.post('/anjo', midiaMsg, ctrl.postAnjo);

@@ -542,3 +542,14 @@ CREATE TABLE IF NOT EXISTS destaque_stories (
   PRIMARY KEY (id_destaque, id_story)
 );
 CREATE INDEX IF NOT EXISTS idx_destaque_stories_story ON destaque_stories(id_story);
+
+-- Ajustes de cada pessoa por conversa do Direct: silenciada (sem notificação) e limpa_em
+-- (apagou a conversa só para si: mensagens até essa hora somem para ela)
+CREATE TABLE IF NOT EXISTS conversa_ajustes (
+  id_usuario  INTEGER NOT NULL REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
+  canal       CHAR(1) NOT NULL CHECK (canal IN ('u', 'g')),
+  id_alvo     INTEGER NOT NULL,
+  silenciada  BOOLEAN NOT NULL DEFAULT FALSE,
+  limpa_em    TIMESTAMPTZ,
+  PRIMARY KEY (id_usuario, canal, id_alvo)
+);

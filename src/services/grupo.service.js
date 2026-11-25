@@ -6,6 +6,7 @@
  * adiciona gente, renomeia e sai. Mensagens "de sistema" (criou, adicionou,
  * saiu, renomeou) aparecem no meio da conversa. Nada aqui toca o canal do Anjo.
  */
+const conversaAjusteModel = require('../models/conversaAjuste.model');
 const grupoModel = require('../models/grupo.model');
 const usuarioModel = require('../models/usuario.model');
 const notificacaoService = require('./notificacao.service');
@@ -83,7 +84,9 @@ async function enviar(me, idGrupo, texto, imagem = null, audio = null, video = n
 }
 
 async function listarConversa(idGrupo, me) {
-  const rows = await grupoModel.listarMensagens(idGrupo);
+  const aj = await conversaAjusteModel.buscar(me, 'g', Number(idGrupo));
+  const desde = aj && aj.limpa_em ? new Date(aj.limpa_em).getTime() : 0;
+  const rows = (await grupoModel.listarMensagens(idGrupo)).filter((r) => new Date(r.criado_em).getTime() > desde);
   return rows.map((r) => conversaService.itemGrupo(r, me));
 }
 

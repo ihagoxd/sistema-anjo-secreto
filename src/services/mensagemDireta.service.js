@@ -4,6 +4,7 @@
  * Direct do escritório: conversa 1:1 com nome (não anônima) entre usuários aprovados.
  * Separado do canal anônimo anjo/protegido (mensagem.service.js).
  */
+const conversaAjusteModel = require('../models/conversaAjuste.model');
 const dmModel = require('../models/mensagemDireta.model');
 const usuarioModel = require('../models/usuario.model');
 const notificacaoService = require('./notificacao.service');
@@ -47,7 +48,9 @@ async function enviar(idRemetente, idDestinatario, texto, imagem = null, audio =
 
 // Lista as mensagens entre mim e o outro, com flag "minha".
 async function listarConversaCom(idUsuario, idOutro) {
-  const rows = await dmModel.listarConversa(idUsuario, idOutro);
+  const aj = await conversaAjusteModel.buscar(idUsuario, 'u', idOutro);
+  const desde = aj && aj.limpa_em ? new Date(aj.limpa_em).getTime() : 0;
+  const rows = (await dmModel.listarConversa(idUsuario, idOutro)).filter((r) => new Date(r.criado_em).getTime() > desde);
   return rows.map((r) => ({
     id_mensagem: r.id_mensagem,
     minha: r.id_remetente === idUsuario,

@@ -19,6 +19,7 @@
  * texto genérico ("Seu anjo" / "Seu protegido"), nunca revelando quem é o anjo.
  */
 const notificacaoModel = require('../models/notificacao.model');
+const conversaAjusteModel = require('../models/conversaAjuste.model');
 const tempoReal = require('./tempoReal.service');
 const push = require('./push.service');
 
@@ -372,7 +373,9 @@ async function seguro(fn) {
 }
 
 // conteudo: { texto, imagem, audio, video, story } da mensagem enviada (para a prévia)
-function notificarMensagemDireta(idDestino, idRemetente, conteudo) {
+async function notificarMensagemDireta(idDestino, idRemetente, conteudo) {
+  // conversa silenciada por quem recebe: a mensagem chega, mas sem notificação
+  if (await conversaAjusteModel.estaSilenciada(idDestino, 'u', idRemetente).catch(() => false)) return null;
   return seguro(() => criar({
     idUsuario: idDestino, tipo: 'MENSAGEM', idAtor: idRemetente,
     link: '/mensagens/u/' + idRemetente, ref: idRemetente, detalhe: previaMensagem(conteudo),
@@ -380,7 +383,8 @@ function notificarMensagemDireta(idDestino, idRemetente, conteudo) {
 }
 
 // Grupo: "Fulano mandou uma mensagem no grupo" (detalhe = nome do grupo · prévia)
-function notificarGrupo(idDestino, idRemetente, idGrupo, nomeGrupo, conteudo) {
+async function notificarGrupo(idDestino, idRemetente, idGrupo, nomeGrupo, conteudo) {
+  if (await conversaAjusteModel.estaSilenciada(idDestino, 'g', idGrupo).catch(() => false)) return null;
   return seguro(() => criar({
     idUsuario: idDestino, tipo: 'GRUPO', idAtor: idRemetente,
     link: '/mensagens/g/' + idGrupo, ref: idGrupo, detalhe: `${nomeGrupo} · ${previaMensagem(conteudo) || ''}`,

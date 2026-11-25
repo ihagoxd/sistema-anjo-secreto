@@ -333,11 +333,17 @@ async function getPost(req, res, next) {
   try {
     const post = await postService.buscarPost(req.params.id_post, req.session.usuario.id_usuario);
     if (!post) {
+      if ((req.get('x-requested-with') || '') === 'fetch') return res.status(404).json({ ok: false });
       req.session.flash = { erro: 'Publicação não encontrada.' };
       return res.redirect('/feed');
     }
     anotarStories([post], await storyService.resumoAneis(req.session.usuario.id_usuario));
     await postService.anexarEnquetes([post], req.session.usuario.id_usuario);
+    // Aberta por cima da pesquisa (fetch): só o card pronto, sem a página em volta
+    if ((req.get('x-requested-with') || '') === 'fetch') {
+      const html = await render.partial('postUnico', Object.assign({}, res.locals, { posts: [post], detalhe: true }));
+      return res.json({ ok: true, html });
+    }
     res.render('feed/post', { titulo: 'Publicação', posts: [post], detalhe: true });
   } catch (err) {
     next(err);

@@ -1,0 +1,3 @@
+{{! Um card de publicação para abrir por cima de outra tela (pesquisa): @root = contexto da
+    página (usuário logado), this = a publicação. Uso: render.partial('postUnico', { posts: [p], detalhe }) }}
+{{#each posts}}{{> postCard}}{{/each}}

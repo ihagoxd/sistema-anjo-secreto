@@ -202,7 +202,7 @@ async function getRevelar(req, res, next) {
       return res.redirect('/admin/campanhas');
     }
     const realizado = await sorteioService.verificarSorteioRealizado(campanha.id_campanha);
-    res.render('admin/revelarConfirma', { titulo: 'Revelar sorteio', campanha, realizado });
+    res.render('admin/revelarConfirma', { titulo: 'Revelar sorteio', pagina: 'adm-cp', campanha, realizado });
   } catch (err) {
     next(err);
   }
@@ -267,7 +267,7 @@ async function postRevelar(req, res, next) {
       idReferencia: campanha.id_campanha,
       ip: req.ip,
     });
-    res.render('admin/revelar', { titulo: 'Sorteio revelado', campanha, pares });
+    res.render('admin/revelar', { titulo: 'Sorteio revelado', pagina: 'adm-cp', campanha, pares });
   } catch (err) {
     next(err);
   }

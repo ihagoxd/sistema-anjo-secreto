@@ -8547,6 +8547,14 @@
       if (tela) executar(b.getAttribute('data-adm-ed-op'), tela);
     });
     // Salvou nome/login: o topo da tela acompanha
+    // Campanha salva: nome e descrição do topo acompanham
+    var formCp = document.querySelector('[data-adm-cp] form[data-fluido]');
+    if (formCp) formCp.addEventListener('fluido:salvo', function (e) {
+      var d = e.detail || {}, tela = formCp.closest('[data-adm-cp]');
+      var n = tela.querySelector('[data-adm-cp-nome]'), ds = tela.querySelector('[data-adm-cp-desc]');
+      if (n && d.nome) n.textContent = d.nome;
+      if (ds && d.descricao != null) { ds.textContent = d.descricao; ds.hidden = !d.descricao; }
+    });
     var formEd = document.querySelector('[data-adm-ed] form[data-fluido]');
     if (formEd) formEd.addEventListener('fluido:salvo', function (e) {
       var tela = formEd.closest('[data-adm-ed]');

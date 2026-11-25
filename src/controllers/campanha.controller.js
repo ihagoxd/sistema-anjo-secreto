@@ -118,6 +118,7 @@ async function getDetalhe(req, res, next) {
     const temas = await temaService.listarParaAdmin();
     res.render('admin/campanha', {
       titulo: campanha.nome,
+      pagina: 'adm-cp',
       campanha,
       temas,
       participantes,

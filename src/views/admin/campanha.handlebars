@@ -1,170 +1,170 @@
-<div class="pagina-cabecalho">
-  <div>
-    <h1>{{campanha.nome}}</h1>
-    <p class="subtitulo">
-      {{#if (eq campanha.status "RASCUNHO")}}<span class="badge rascunho">Rascunho — sorteio ainda não feito</span>{{/if}}
-      {{#if (eq campanha.status "EM_ANDAMENTO")}}<span class="badge andamento">Em andamento</span>{{/if}}
-      {{#if (eq campanha.status "ENCERRADA")}}<span class="badge encerrada">Encerrada em {{formatarData campanha.encerrado_em}}</span>{{/if}}
-      {{#if campanha.temaInfo}} · <span class="badge badge-tema">{{campanha.temaInfo.emoji}} {{campanha.temaInfo.nome}}</span>{{/if}}
-      {{#if campanha.descricao}} · {{campanha.descricao}}{{/if}}
-    </p>
-  </div>
-  <a href="/admin/campanhas" class="btn btn-secundario btn-sm">Voltar</a>
-</div>
+{{! Uma campanha como tela de app: topo com voltar, números da rodada, o sorteio em linhas com ícone,
+    quem participa (o "Ver par" abre o card na hora, com log) e os dados da campanha, que salvam sem
+    recarregar (trocar o tema recarrega para a rede já aparecer com ele). }}
+<div class="adm-cp" data-adm-cp>
+  <header class="ed-topo">
+    <a href="/admin/campanhas" class="ed-topo-btn" data-fluido-voltar aria-label="Voltar para as campanhas"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></a>
+    <h1 class="ed-titulo">Campanha</h1>
+    <span></span>
+  </header>
 
-{{#if revelacao}}
-  <div class="card rev-inline">
-    <h3 style="margin-top:0;">🔓 Par de {{revelacao.pessoa.nome}}</h3>
-    <p class="texto-suave" style="margin-top:0;">Esta consulta ficou registrada em log. Use com responsabilidade.</p>
-    <div class="rev-bloco"><div class="rev-par">
-      {{#if revelacao.anjo}}<div class="rev-pessoa"><span class="rev-papel">Anjo</span><span class="av-md">{{#if revelacao.anjo.foto_perfil}}<img src="{{revelacao.anjo.foto_perfil}}" alt="">{{else}}{{inicial revelacao.anjo.nome}}{{/if}}</span><strong>{{revelacao.anjo.nome}}</strong><small>@{{revelacao.anjo.usuario}}</small></div>{{else}}<div class="rev-pessoa"><span class="rev-papel">Anjo</span><span class="rev-sem">ninguém (sem par)</span></div>{{/if}}
-      <span class="rev-seta-grande" aria-hidden="true">→</span>
-      <div class="rev-pessoa"><span class="rev-papel">Pessoa</span><span class="av-md">{{#if revelacao.pessoa.foto_perfil}}<img src="{{revelacao.pessoa.foto_perfil}}" alt="">{{else}}{{inicial revelacao.pessoa.nome}}{{/if}}</span><strong>{{revelacao.pessoa.nome}}</strong><small>@{{revelacao.pessoa.usuario}}</small></div>
-      <span class="rev-seta-grande" aria-hidden="true">→</span>
-      {{#if revelacao.protegido}}<div class="rev-pessoa"><span class="rev-papel">Protegido</span><span class="av-md">{{#if revelacao.protegido.foto_perfil}}<img src="{{revelacao.protegido.foto_perfil}}" alt="">{{else}}{{inicial revelacao.protegido.nome}}{{/if}}</span><strong>{{revelacao.protegido.nome}}</strong><small>@{{revelacao.protegido.usuario}}</small></div>{{else}}<div class="rev-pessoa"><span class="rev-papel">Protegido</span><span class="rev-sem">ninguém (sem par)</span></div>{{/if}}
-    </div></div>
-  </div>
-{{/if}}
+  <div class="adm-cp-corpo">
+    <div class="adm-camp-topo adm-cp-quem">
+      <span class="adm-camp-ic" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span>
+      <div class="adm-camp-txt">
+        <strong data-adm-cp-nome>{{campanha.nome}}</strong>
+        <small>
+          {{#if (eq campanha.status "RASCUNHO")}}<i class="adm-ponto adm-ponto-pendente"></i>Rascunho: sorteio ainda não feito{{/if}}
+          {{#if (eq campanha.status "EM_ANDAMENTO")}}<i class="adm-ponto adm-ponto-ativo"></i>Em andamento{{/if}}
+          {{#if (eq campanha.status "ENCERRADA")}}<i class="adm-ponto"></i>Encerrada em {{formatarData campanha.encerrado_em}}{{/if}}
+          {{#if campanha.temaInfo}} · tema {{campanha.temaInfo.nome}}{{/if}}
+        </small>
+      </div>
+    </div>
+    <p class="adm-cp-desc" data-adm-cp-desc{{#unless campanha.descricao}} hidden{{/unless}}>{{campanha.descricao}}</p>
 
-{{#if (eq campanha.status "RASCUNHO")}}
-  <div class="card sortear-card">
-    <div class="sortear-ic">🎲</div>
-    <h2 class="sortear-tit">Fazer o sorteio</h2>
-    <p class="sortear-sub">Todos os participantes aprovados e ativos entram automaticamente. Quem estiver inativo fica de fora.</p>
-    <div class="sortear-num"><strong>{{totalNoSorteio}}</strong> pessoa{{#unless (eq totalNoSorteio 1)}}s{{/unless}} {{#if (eq totalNoSorteio 1)}}vai{{else}}vão{{/if}} participar</div>
-    {{#if podeSortear}}
-      <form action="/admin/campanhas/{{campanha.id_campanha}}/sorteio/iniciar" method="POST"
-        data-confirmar="Fazer o sorteio com {{totalNoSorteio}} participantes? Cada um vai descobrir quem tirou.">
-        <input type="hidden" name="_csrf" value="{{csrfToken}}">
-        <button type="submit" class="btn btn-primario btn-grande">🎲 Sortear agora</button>
-      </form>
-      <p class="sortear-nota">Depois do sorteio, cada pessoa vê a roleta revelando quem tirou. Os pares são secretos.</p>
-    {{else}}
-      <p class="sortear-aviso">Faltam participantes — é preciso ter no mínimo <strong>3 pessoas aprovadas e ativas</strong> (faltam {{faltam}}). Aprove mais cadastros para liberar o sorteio.</p>
-      <a href="/admin/aprovacoes" class="btn btn-secundario">Ver aprovações</a>
+    {{#if revelacao}}
+      <div class="card rev-inline">
+        <h3 style="margin-top:0;">Par de {{revelacao.pessoa.nome}}</h3>
+        <p class="texto-suave" style="margin-top:0;">Esta consulta ficou registrada em log. Use com responsabilidade.</p>
+        <div class="rev-bloco"><div class="rev-par">
+          {{#if revelacao.anjo}}<div class="rev-pessoa"><span class="rev-papel">Anjo</span><span class="av-md">{{#if revelacao.anjo.foto_perfil}}<img src="{{revelacao.anjo.foto_perfil}}" alt="">{{else}}{{inicial revelacao.anjo.nome}}{{/if}}</span><strong>{{revelacao.anjo.nome}}</strong><small>@{{revelacao.anjo.usuario}}</small></div>{{else}}<div class="rev-pessoa"><span class="rev-papel">Anjo</span><span class="rev-sem">ninguém (sem par)</span></div>{{/if}}
+          <span class="rev-seta-grande" aria-hidden="true">→</span>
+          <div class="rev-pessoa"><span class="rev-papel">Pessoa</span><span class="av-md">{{#if revelacao.pessoa.foto_perfil}}<img src="{{revelacao.pessoa.foto_perfil}}" alt="">{{else}}{{inicial revelacao.pessoa.nome}}{{/if}}</span><strong>{{revelacao.pessoa.nome}}</strong><small>@{{revelacao.pessoa.usuario}}</small></div>
+          <span class="rev-seta-grande" aria-hidden="true">→</span>
+          {{#if revelacao.protegido}}<div class="rev-pessoa"><span class="rev-papel">Protegido</span><span class="av-md">{{#if revelacao.protegido.foto_perfil}}<img src="{{revelacao.protegido.foto_perfil}}" alt="">{{else}}{{inicial revelacao.protegido.nome}}{{/if}}</span><strong>{{revelacao.protegido.nome}}</strong><small>@{{revelacao.protegido.usuario}}</small></div>{{else}}<div class="rev-pessoa"><span class="rev-papel">Protegido</span><span class="rev-sem">ninguém (sem par)</span></div>{{/if}}
+        </div></div>
+      </div>
     {{/if}}
-  </div>
-{{else}}
-  <div class="camp-stats">
-    <div class="camp-stat"><div class="numero">{{totalAtivos}}</div><div class="stat-lbl">participante{{#unless (eq totalAtivos 1)}}s{{/unless}} ativo{{#unless (eq totalAtivos 1)}}s{{/unless}}</div></div>
-    <div class="camp-stat"><div class="numero">{{mensagens.total}}</div><div class="stat-lbl">mensagens do jogo</div></div>
-    <div class="camp-stat"><div class="numero">{{mensagens.pessoas}}</div><div class="stat-lbl">pessoa{{#unless (eq mensagens.pessoas 1)}}s{{/unless}} já escreveram</div></div>
-    <div class="camp-stat"><div class="numero" style="font-size:18px;">{{#if mensagens.ultima}}{{tempoRel mensagens.ultima}}{{else}}—{{/if}}</div><div class="stat-lbl">última mensagem</div></div>
-  </div>
 
-  {{#if inativosComPar.length}}
-    <div class="card camp-alerta">
-      <h3>⚠️ {{inativosComPar.length}} pessoa{{#unless (eq inativosComPar.length 1)}}s{{/unless}} do sorteio {{#if (eq inativosComPar.length 1)}}está inativa{{else}}estão inativas{{/if}}</h3>
-      <p class="texto-suave" style="margin:0;">Quem foi inativado continua como protegido de alguém: o anjo dele(a) ficou sem ninguém para cuidar. Se a saída é definitiva, <strong>refaça o sorteio</strong> — os inativos ficam de fora e os pares são redistribuídos (as mensagens antigas são arquivadas).</p>
-      <ul>{{#each inativosComPar}}<li><strong>{{this.nome}}</strong> <span class="texto-suave">@{{this.usuario}}</span></li>{{/each}}</ul>
-      {{#if (eq campanha.status "EM_ANDAMENTO")}}
-        <form action="/admin/campanhas/{{campanha.id_campanha}}/sorteio/refazer" method="POST"
-          data-confirmar="Refazer o sorteio sem os inativos? Os pares atuais serão substituídos e as mensagens trocadas serão arquivadas.">
-          <input type="hidden" name="_csrf" value="{{csrfToken}}">
-          <button type="submit" class="btn btn-primario">Refazer sorteio sem os inativos</button>
-        </form>
+    {{#if (eq campanha.status "RASCUNHO")}}
+      <div class="adm-camp adm-sortear">
+        <span class="adm-sortear-ic" aria-hidden="true"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.2"/><circle cx="15.5" cy="15.5" r="1.2"/><circle cx="15.5" cy="8.5" r="1.2"/><circle cx="8.5" cy="15.5" r="1.2"/><circle cx="12" cy="12" r="1.2"/></svg></span>
+        <strong class="adm-sortear-tit">Fazer o sorteio</strong>
+        <p class="adm-sortear-sub">Todos os participantes aprovados e ativos entram automaticamente. Quem estiver inativo fica de fora.</p>
+        <div class="adm-sortear-num"><strong>{{totalNoSorteio}}</strong> pessoa{{#unless (eq totalNoSorteio 1)}}s{{/unless}} {{#if (eq totalNoSorteio 1)}}vai{{else}}vão{{/if}} participar</div>
+        {{#if podeSortear}}
+          <form action="/admin/campanhas/{{campanha.id_campanha}}/sorteio/iniciar" method="POST"
+            data-confirmar="Fazer o sorteio com {{totalNoSorteio}} participantes?" data-confirmar-sub="Cada pessoa descobre quem tirou numa roleta. Os pares são secretos." data-confirmar-ok="Sortear">
+            <input type="hidden" name="_csrf" value="{{csrfToken}}">
+            <button type="submit" class="btn btn-primario adm-camp-btn">Sortear agora</button>
+          </form>
+        {{else}}
+          <p class="adm-sortear-aviso">É preciso ter no mínimo <strong>3 pessoas aprovadas e ativas</strong> (faltam {{faltam}}).</p>
+          <a href="/admin/aprovacoes" class="btn btn-secundario adm-camp-btn">Ver aprovações</a>
+        {{/if}}
+      </div>
+    {{else}}
+      <div class="adm-stats adm-cp-stats">
+        <div class="adm-stat"><span class="adm-stat-ic" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><strong>{{totalAtivos}}</strong><small>participante{{#unless (eq totalAtivos 1)}}s{{/unless}} ativo{{#unless (eq totalAtivos 1)}}s{{/unless}}</small></div>
+        <div class="adm-stat"><span class="adm-stat-ic" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.8-.9L3 21l1.9-5.2A8.4 8.4 0 1 1 21 11.5z"/></svg></span><strong>{{mensagens.total}}</strong><small>mensage{{#if (eq mensagens.total 1)}}m{{else}}ns{{/if}} do jogo</small></div>
+        <div class="adm-stat"><span class="adm-stat-ic" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></span><strong>{{mensagens.pessoas}}</strong><small>já escreve{{#if (eq mensagens.pessoas 1)}}u{{else}}ram{{/if}}</small></div>
+        <div class="adm-stat"><span class="adm-stat-ic" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span><strong class="adm-stat-txt">{{#if mensagens.ultima}}{{tempoRel mensagens.ultima}}{{else}}—{{/if}}</strong><small>última mensagem</small></div>
+      </div>
+
+      {{#if inativosComPar.length}}
+        <div class="adm-at alerta adm-cp-alerta">
+          <span class="adm-at-ic" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+          <span class="adm-at-txt"><strong>{{#each inativosComPar}}{{this.nome}}{{#unless @last}}, {{/unless}}{{/each}}</strong> {{#if (eq inativosComPar.length 1)}}está inativa{{else}}estão inativas{{/if}}: o anjo ficou sem protegido. Se a saída é definitiva, refaça o sorteio (os inativos ficam de fora e as mensagens antigas são arquivadas).</span>
+        </div>
       {{/if}}
-    </div>
-  {{/if}}
 
-  <div class="card" style="margin-bottom:18px;">
-    <h3>Sorteio</h3>
-    {{#if (eq campanha.status "EM_ANDAMENTO")}}
-      <p class="texto-suave" style="margin-top:0;">
-        <span class="badge andamento">✅ Sorteio feito</span> — cada anjo já vê seu protegido; os pares são secretos. Para ver o par de uma pessoa específica, use <strong>Ver par</strong> na lista abaixo (fica registrado em log).
-      </p>
-      <div style="display:flex; gap:10px; flex-wrap:wrap;">
-        <a href="/admin/campanhas/{{campanha.id_campanha}}/revelar" class="btn btn-secundario">Revelar todos os pares</a>
-        <form action="/admin/campanhas/{{campanha.id_campanha}}/sorteio/refazer" method="POST"
-          data-confirmar="Refazer o sorteio? Os pares atuais serão substituídos e as mensagens trocadas serão arquivadas.">
+      <div class="pn-sec">
+        <div class="pn-sec-tit">Sorteio</div>
+        <div class="pn-lista">
+          <a class="pn-linha" href="/admin/campanhas/{{campanha.id_campanha}}/revelar">
+            <span class="pn-linha-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
+            <span class="pn-linha-txt"><strong>Revelar todos os pares</strong><small>Fica registrado em log, como o Ver par</small></span>
+            <span class="pn-linha-seta"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </a>
+          {{#if (eq campanha.status "EM_ANDAMENTO")}}
+            <form action="/admin/campanhas/{{campanha.id_campanha}}/sorteio/refazer" method="POST"
+              data-confirmar="Refazer o sorteio{{#if inativosComPar.length}} sem os inativos{{/if}}?" data-confirmar-sub="Os pares atuais são substituídos e as mensagens trocadas até agora são arquivadas." data-confirmar-ok="Refazer">
+              <input type="hidden" name="_csrf" value="{{csrfToken}}">
+              <button type="submit" class="pn-linha">
+                <span class="pn-linha-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg></span>
+                <span class="pn-linha-txt"><strong>Refazer sorteio{{#if inativosComPar.length}} sem os inativos{{/if}}</strong><small>Sorteia pares novos com quem está ativo</small></span>
+              </button>
+            </form>
+          {{/if}}
+        </div>
+      </div>
+    {{/if}}
+
+    {{#if participantes.length}}
+      <div class="pn-sec">
+        <div class="pn-sec-tit">Quem participa · {{totalAtivos}}{{#unless (eq totalAtivos totalParticipantes)}} de {{totalParticipantes}}{{/unless}}</div>
+        <div class="adm-lista">
+          {{#each participantes}}
+            <div class="adm-pessoa{{#unless (ou this.ativo this.usuario_ativo)}} inativa{{/unless}}">
+              <a class="adm-pessoa-link" href="/u/{{this.usuario}}">
+                <span class="adm-av" aria-hidden="true">{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="" loading="lazy">{{else}}{{inicial this.nome}}{{/if}}</span>
+                <span class="adm-pessoa-txt">
+                  <strong>{{this.nome}}</strong>
+                  <small>{{#if this.usuario_ativo}}{{#if this.ativo}}<i class="adm-ponto adm-ponto-ativo"></i>{{else}}<i class="adm-ponto"></i>Fora desta rodada · {{/if}}{{else}}<i class="adm-ponto adm-ponto-recusado"></i>Inativo · {{/if}}{{#if ../sorteada}}{{#if this.tem_par}}{{this.msgs_enviadas}} enviada{{#unless (eq this.msgs_enviadas 1)}}s{{/unless}} · {{this.msgs_recebidas}} recebida{{#unless (eq this.msgs_recebidas 1)}}s{{/unless}}{{else}}sem par (entrou depois){{/if}}{{else}}@{{this.usuario}}{{/if}}</small>
+                </span>
+              </a>
+              {{#if ../sorteada}}{{#if this.tem_par}}
+                <form action="/admin/campanhas/{{@root.campanha.id_campanha}}/revelar/{{this.id_usuario}}" method="POST" data-revelar-pessoa
+                  data-confirmar="Ver o par de {{this.nome}}?" data-confirmar-sub="Mostra quem é o anjo e de quem {{this.nome}} é anjo. A consulta fica registrada em log." data-confirmar-ok="Ver par">
+                  <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
+                  <button type="submit" class="adm-btn adm-btn-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>Ver par</button>
+                </form>
+              {{/if}}{{/if}}
+            </div>
+          {{/each}}
+        </div>
+      </div>
+    {{/if}}
+
+    {{#unless (eq campanha.status "ENCERRADA")}}
+      <div class="pn-sec">
+        <div class="pn-sec-tit">Dados da campanha</div>
+        <form class="ed-form adm-cp-form" action="/admin/campanhas/{{campanha.id_campanha}}/editar" method="POST" novalidate data-fluido>
           <input type="hidden" name="_csrf" value="{{csrfToken}}">
-          <button type="submit" class="btn btn-perigo">Refazer sorteio</button>
+          <div class="ed-campos adm-cp-campos">
+            <label class="ed-campo com-ic">
+              <span class="ed-ic" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></span>
+              <span class="ed-rot">Nome</span>
+              <input type="text" name="nome" value="{{campanha.nome}}" required autocomplete="off">
+            </label>
+            <label class="ed-campo com-ic">
+              <span class="ed-ic" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg></span>
+              <span class="ed-rot">Descrição</span>
+              <textarea name="descricao" rows="1" data-cresce placeholder="Opcional: um recado sobre a rodada">{{campanha.descricao}}</textarea>
+            </label>
+            <label class="ed-campo com-ic">
+              <span class="ed-ic" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a10 10 0 1 1 0-20c5.5 0 10 3.6 10 8 0 2.2-1.8 4-4 4h-2.2a1.8 1.8 0 0 0-1.3 3c.4.5.5 1 .3 1.6A2.2 2.2 0 0 1 12 22z"/><circle cx="7.5" cy="10.5" r="1.3"/><circle cx="12" cy="7.5" r="1.3"/><circle cx="16.5" cy="10.5" r="1.3"/></svg></span>
+              <span class="ed-rot">Tema da rede durante a campanha</span>
+              <select name="tema" class="adm-cp-select">
+                {{#each temas}}<option value="{{this.chave}}"{{#if (eq this.chave ../campanha.temaSel)}} selected{{/if}}>{{this.nome}}</option>{{/each}}
+              </select>
+              <small class="ed-ajuda">Ao salvar, o tema passa a valer para todo mundo. Quando a campanha encerra, a rede volta ao padrão.</small>
+            </label>
+          </div>
+          <button type="submit" class="btn btn-primario adm-camp-btn adm-cp-salvar" data-fluido-salvar disabled>Salvar alterações</button>
         </form>
       </div>
+
+      <div class="pn-sec">
+        <div class="pn-lista">
+          <form action="/admin/campanhas/{{campanha.id_campanha}}/encerrar" method="POST"
+            data-confirmar="Encerrar a campanha &quot;{{campanha.nome}}&quot;?" data-confirmar-sub="Vira somente leitura, sem novas mensagens. Isso não pode ser desfeito." data-confirmar-ok="Encerrar">
+            <input type="hidden" name="_csrf" value="{{csrfToken}}">
+            <button type="submit" class="pn-linha adm-ed-perigo">
+              <span class="pn-linha-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><rect x="9" y="9" width="6" height="6"/></svg></span>
+              <span class="pn-linha-txt"><strong>Encerrar campanha</strong><small>Só depois dá para criar a do mês seguinte</small></span>
+            </button>
+          </form>
+        </div>
+      </div>
     {{else}}
-      <p class="texto-suave" style="margin-top:0;">Campanha encerrada: somente leitura. Os pares continuam disponíveis para consulta (com log).</p>
-      <a href="/admin/campanhas/{{campanha.id_campanha}}/revelar" class="btn btn-secundario">Revelar todos os pares</a>
-    {{/if}}
-  </div>
-{{/if}}
-
-{{#if participantes.length}}
-  <div class="card" style="margin-bottom:18px;">
-    <h3>Quem está participando <span class="texto-suave">({{totalAtivos}}{{#unless (eq totalAtivos totalParticipantes)}} ativos de {{totalParticipantes}}{{/unless}})</span></h3>
-    <div class="tabela-wrap">
-      <table class="tabela">
-        <thead><tr><th>Pessoa</th><th>Situação</th>{{#if sorteada}}<th>Mensagens</th><th>Par</th>{{/if}}</tr></thead>
-        <tbody>
-          {{#each participantes}}
-            <tr class="{{#unless (ou this.ativo this.usuario_ativo)}}linha-inativa{{/unless}}">
-              <td data-label="Pessoa">
-                <div class="pessoa-cel">
-                  <span class="av-sm">{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</span>
-                  <div class="pessoa-txt"><strong>{{this.nome}}</strong><small>@{{this.usuario}}</small></div>
-                </div>
-              </td>
-              <td data-label="Situação">
-                {{#if this.usuario_ativo}}{{#if this.ativo}}<span class="badge aprovado">Ativo</span>{{else}}<span class="badge inativo">Fora desta rodada</span>{{/if}}{{else}}<span class="badge inativo">Inativo</span>{{/if}}
-                {{#if ../sorteada}}{{#unless this.tem_par}}<small class="sit-sub">sem par (entrou depois do sorteio)</small>{{/unless}}{{/if}}
-              </td>
-              {{#if ../sorteada}}
-                <td data-label="Mensagens"><span class="msg-contagem"><span title="enviadas">↑ {{this.msgs_enviadas}}</span><span title="recebidas">↓ {{this.msgs_recebidas}}</span></span></td>
-                <td data-label="Par" class="td-acoes">
-                  {{#if this.tem_par}}
-                    <form action="/admin/campanhas/{{../campanha.id_campanha}}/revelar/{{this.id_usuario}}" method="POST" data-revelar-pessoa
-                      data-confirmar="Ver quem é o anjo de {{this.nome}} e de quem {{this.nome}} é anjo? A consulta fica registrada em log.">
-                      <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
-                      <button type="submit" class="btn btn-secundario btn-sm">🔓 Ver par</button>
-                    </form>
-                  {{else}}
-                    <span class="texto-suave">—</span>
-                  {{/if}}
-                </td>
-              {{/if}}
-            </tr>
-          {{/each}}
-        </tbody>
-      </table>
-    </div>
-  </div>
-{{/if}}
-
-{{#unless (eq campanha.status "ENCERRADA")}}
-  <div class="card" style="margin-bottom:18px;">
-    <h3>Editar campanha</h3>
-    <form class="form" action="/admin/campanhas/{{campanha.id_campanha}}/editar" method="POST" novalidate>
-      <input type="hidden" name="_csrf" value="{{csrfToken}}">
-      <div class="campo">
-        <label for="nome">Nome</label>
-        <input type="text" id="nome" name="nome" value="{{campanha.nome}}" required>
+      <div class="pn-sec">
+        <div class="pn-lista">
+          <div class="pn-linha adm-cp-info"><span class="pn-linha-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><span class="pn-linha-txt"><strong>Criada em</strong><small>{{formatarData campanha.criado_em}}</small></span></div>
+          <div class="pn-linha adm-cp-info"><span class="pn-linha-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><rect x="9" y="9" width="6" height="6"/></svg></span><span class="pn-linha-txt"><strong>Encerrada em</strong><small>{{formatarData campanha.encerrado_em}}</small></span></div>
+        </div>
       </div>
-      <div class="campo">
-        <label for="descricao">Descrição</label>
-        <textarea id="descricao" name="descricao" rows="2">{{campanha.descricao}}</textarea>
-      </div>
-      <div class="campo">
-        <label for="tema">Tema da rede durante a campanha</label>
-        <select id="tema" name="tema">
-          {{#each temas}}<option value="{{this.chave}}"{{#if (eq this.chave ../campanha.temaSel)}} selected{{/if}}>{{this.emoji}} {{this.nome}}</option>{{/each}}
-        </select>
-        <small class="texto-suave">Ao salvar, o tema escolhido passa a valer para todo mundo. Quando a campanha encerra, a rede volta ao padrão.</small>
-      </div>
-      <button type="submit" class="btn btn-primario">Salvar</button>
-    </form>
+    {{/unless}}
   </div>
-
-  <div class="card">
-    <h3>Encerrar campanha</h3>
-    <p class="texto-suave">Ao encerrar, a campanha vira somente leitura: sem novas mensagens. Só depois dá para criar a campanha do mês seguinte.</p>
-    <form action="/admin/campanhas/{{campanha.id_campanha}}/encerrar" method="POST"
-      data-confirmar="Encerrar a campanha &quot;{{campanha.nome}}&quot;? Isso não pode ser desfeito.">
-      <input type="hidden" name="_csrf" value="{{csrfToken}}">
-      <button type="submit" class="btn btn-perigo">Encerrar campanha</button>
-    </form>
-  </div>
-{{else}}
-  <div class="painel">
-    <div class="bloco"><div class="rotulo-campo">Criada em</div><div>{{formatarData campanha.criado_em}}</div></div>
-    <div class="bloco"><div class="rotulo-campo">Encerrada em</div><div>{{formatarData campanha.encerrado_em}}</div></div>
-  </div>
-{{/unless}}
+</div>

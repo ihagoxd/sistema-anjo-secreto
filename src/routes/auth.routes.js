@@ -12,6 +12,7 @@ router.get('/login', somenteVisitante, ctrl.getLogin);
 router.post('/login', somenteVisitante, limiteLogin(), ctrl.postLogin);
 
 router.get('/registrar', somenteVisitante, ctrl.getRegistrar);
+router.get('/registrar/usuario-livre', somenteVisitante, ctrl.getUsuarioLivre);
 router.post('/registrar', somenteVisitante, limiteRegistro(), regrasRegistro, validarRegistro, ctrl.postRegistrar);
 
 router.get('/trocar-senha', exigeAutenticacao, ctrl.getTrocarSenha);

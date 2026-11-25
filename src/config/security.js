@@ -86,7 +86,9 @@ function limiteLogin() {
     legacyHeaders: false,
     skipSuccessfulRequests: true,
     handler: (req, res) => {
-      req.session.flash = { erro: 'Muitas tentativas de login vindas da sua rede. Aguarde 10 minutos e tente de novo.' };
+      const erro = 'Muitas tentativas de login vindas da sua rede. Aguarde 10 minutos e tente de novo.';
+      if ((req.get('x-requested-with') || '') === 'fetch') return res.status(429).json({ ok: false, erro });
+      req.session.flash = { erro };
       res.status(429).redirect('/login');
     },
   });
@@ -100,7 +102,9 @@ function limiteRegistro() {
     standardHeaders: 'draft-7',
     legacyHeaders: false,
     handler: (req, res) => {
-      req.session.flash = { erro: 'Muitos cadastros a partir deste local. Tente novamente mais tarde.' };
+      const erro = 'Muitos cadastros a partir deste local. Tente novamente mais tarde.';
+      if ((req.get('x-requested-with') || '') === 'fetch') return res.status(429).json({ ok: false, erro });
+      req.session.flash = { erro };
       res.status(429).redirect('/registrar');
     },
   });

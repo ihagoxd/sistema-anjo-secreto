@@ -22,6 +22,10 @@ const regrasRegistro = [
 function validarRegistro(req, res, next) {
   const erros = validationResult(req);
   if (erros.isEmpty()) return next();
+  if ((req.get('x-requested-with') || '') === 'fetch') {
+    const e = erros.array()[0];
+    return res.status(400).json({ ok: false, erro: e.msg, campo: e.path || e.param || null });
+  }
   return res.status(400).render('auth/registrar', {
     layout: 'auth',
     titulo: 'Criar conta',

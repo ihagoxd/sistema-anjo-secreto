@@ -82,4 +82,14 @@ async function testarConexao() {
   return res.rows[0].ok === 1;
 }
 
-module.exports = { query, getClient, testarConexao, aquecer, pool, medicao };
+// Comparação sem acento e sem maiúscula (café = cafe, João = joao), sem depender de extensão do Postgres
+const DE = 'áàâãäéèêëíìîïóòôõöúùûüçñ';
+const PARA = 'aaaaaeeeeiiiiooooouuuucn';
+function semAcentoSql(coluna) { return `translate(lower(${coluna}), '${DE}', '${PARA}')`; }
+function semAcentoJs(texto) {
+  let s = String(texto || '').toLowerCase();
+  for (let i = 0; i < DE.length; i++) s = s.split(DE[i]).join(PARA[i]);
+  return s;
+}
+
+module.exports = Object.assign({ query, getClient, testarConexao, aquecer, pool, medicao }, { semAcentoSql, semAcentoJs });

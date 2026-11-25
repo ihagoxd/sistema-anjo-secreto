@@ -223,10 +223,10 @@ async function buscarUsuarios(termo, limite = 20) {
   const res = await db.query(
     `SELECT id_usuario, usuario, nome, foto_perfil, tipo_usuario FROM usuarios
       WHERE status = 'APROVADO' AND ativo = TRUE AND usuario IS NOT NULL
-        AND (usuario ILIKE $1 OR nome ILIKE $1)
-      ORDER BY (usuario ILIKE $2 OR nome ILIKE $2) DESC, lower(nome) ASC
+        AND (${db.semAcentoSql('usuario')} LIKE $1 OR ${db.semAcentoSql('nome')} LIKE $1)
+      ORDER BY (${db.semAcentoSql('usuario')} LIKE $2 OR ${db.semAcentoSql('nome')} LIKE $2) DESC, lower(nome) ASC
       LIMIT $3`,
-    [`%${t}%`, `${t}%`, limite]
+    [`%${db.semAcentoJs(t)}%`, `${db.semAcentoJs(t)}%`, limite]
   );
   return res.rows;
 }

@@ -223,10 +223,11 @@ async function contarNovosDesde(idPost) {
 async function buscarPosts(idUsuarioAtual, termo, limite = 12) {
   const t = String(termo || '').trim();
   if (!t) return [];
+  const S = db.semAcentoSql;
   const res = await db.query(
-    `${SELECT_POST} WHERE (p.texto ILIKE $3 OR p.local ILIKE $3 OR u.usuario ILIKE $3 OR u.nome ILIKE $3)
+    `${SELECT_POST} WHERE (${S('p.texto')} LIKE $3 OR ${S('p.local')} LIKE $3 OR ${S('u.usuario')} LIKE $3 OR ${S('u.nome')} LIKE $3)
      ORDER BY p.id_post DESC LIMIT $2`,
-    [idUsuarioAtual, limite, `%${t}%`]
+    [idUsuarioAtual, limite, `%${db.semAcentoJs(t)}%`]
   );
   return res.rows;
 }

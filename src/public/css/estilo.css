@@ -5104,9 +5104,10 @@ form.treme { animation: auth-treme 0.42s ease; }
 .grupo-av-ic { display: grid; place-items: center; color: var(--text-soft); }
 
 /* Admin → Tema da rede: prévia do Natal (fica aqui porque a folha do tema só carrega quando ele está ativo) */
-.tc-natal { --tp-fundo: linear-gradient(160deg, #0f3a26, #071510); --tp-bg: #071510; --tp-surface: #0e231a; --tp-linha: #21432f; --tp-texto: #f3f7f2; --tp-accent: #e5383b; --tp-accent2: #1f9d55; }
-.tc-natal .tp-stories i:nth-child(odd) { border-color: #e5383b; }
-.tc-natal .tp-stories i:nth-child(even) { border-color: #1f9d55; }
+@font-face { font-family: 'Mountains of Christmas'; src: url('/fonts/MountainsOfChristmas-700.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+.tc-natal { --tp-fundo: radial-gradient(circle at 84% 14%, rgba(255, 236, 180, 0.35), transparent 26%), linear-gradient(170deg, #1b3577, #0a1530); --tp-bg: #0a1530; --tp-surface: #111f40; --tp-linha: #233a6b; --tp-texto: #f2f6ff; --tp-accent: #e63946; --tp-accent2: #f6c453; }
+.tc-natal .tp-stories i:nth-child(odd) { border-color: #e63946; }
+.tc-natal .tp-stories i:nth-child(even) { border-color: #f2f6ff; }
 .tp-luzes { position: absolute; left: 0; right: 0; top: 0; height: 10px; z-index: 3; pointer-events: none;
   background:
     radial-gradient(circle at 50% 60%, #ff4d4d 0 2px, transparent 3px) 0 0 / 24px 10px repeat-x,
@@ -5116,5 +5117,5 @@ form.treme { animation: auth-treme 0.42s ease; }
 @keyframes tp-luzes { to { background-position: 24px 0, 32px 0, 40px 0; } }
 .tp-floco { position: absolute; top: -6px; width: 4px; height: 4px; border-radius: 50%; background: #fff; opacity: 0.9; z-index: 3; animation: tp-floco var(--d, 5s) linear infinite; }
 @keyframes tp-floco { to { transform: translate3d(-6px, 240px, 0); } }
-.tema-card.tc-natal .tema-card-tit h2 { color: #e5383b; }
+.tema-card.tc-natal .tema-card-tit h2 { font-family: 'Mountains of Christmas', inherit; font-weight: 700; font-size: 28px; color: #e63946; }
 @media (prefers-reduced-motion: reduce) { .tp-luzes, .tp-floco { animation: none !important; } }

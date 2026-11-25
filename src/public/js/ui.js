@@ -7550,14 +7550,15 @@
   (function () {
     if (!document.body.classList.contains('tema-natal')) return;
     var reduz = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var NEVE = ['❄', '🎁', '❄', '⭐', '❄', '🎄', '❄', '🎁'];
+    var NEVE = ['*', '🎁', '*', '⭐', '*', '🎄', '*', '🎁']; // "*" = floco de cristal (desenho do CSS)
     function chuva(n, lista) {
       if (reduz) return;
       var itens = lista || NEVE;
       var caixa = document.createElement('div'); caixa.className = 'nt-chuva'; caixa.setAttribute('aria-hidden', 'true');
       for (var i = 0; i < n; i++) {
         var p = document.createElement('i');
-        p.textContent = itens[i % itens.length];
+        var item = itens[i % itens.length];
+        if (item === '*') p.className = 'floco'; else p.textContent = item;
         p.style.left = (Math.random() * 100) + '%';
         p.style.setProperty('--t', (Math.random() * 14 + 18).toFixed(0) + 'px');
         p.style.setProperty('--x', (Math.random() * 140 - 70).toFixed(0) + 'px');
@@ -7575,8 +7576,20 @@
       var a = e.target.closest('[data-arvore]'); if (!a) return;
       a.classList.remove('pula'); void a.offsetWidth; a.classList.add('pula');
       try { if (navigator.vibrate) navigator.vibrate(15); } catch (x) {}
-      chuva(18, ['❄', '❄', '⭐', '❄']);
+      chuva(18, ['*', '*', '⭐', '*']);
     });
+    // Trenó do Papai Noel: além da volta fixa do CSS, de tempos em tempos passa outro (altura e velocidade variam)
+    var camada = document.querySelector('.nt-deco');
+    function treno() {
+      if (reduz || document.hidden || !camada) return;
+      var t = document.createElement('span');
+      t.className = 'nt-treno solto';
+      t.style.setProperty('--y', (10 + Math.random() * 26).toFixed(0) + '%');
+      t.style.setProperty('--d', (9 + Math.random() * 5).toFixed(1) + 's');
+      t.addEventListener('animationend', function () { t.remove(); });
+      camada.appendChild(t);
+    }
+    if (camada) setInterval(treno, 70000 + Math.random() * 30000);
   })();
 
   /* ---------- Tema da conversa (Direct do escritório, como no Instagram) ----------

@@ -4496,3 +4496,64 @@ body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
   .pn-hero { border-radius: 20px; }
 }
 .pn-btn { white-space: nowrap; }
+
+/* ============================================================
+   NOTIFICAÇÕES FLUIDAS (cara de app)
+   ============================================================ */
+/* Ícone do tipo, colorido pela categoria */
+.cat-mensagens { --cat: #3a86ff; }
+.cat-social { --cat: #ff3b5c; }
+.cat-aniversario { --cat: #ff9f1c; }
+.cat-sistema { --cat: var(--accent); }
+.notif-emoji.notif-tipo { width: 22px; height: 22px; background: var(--cat, var(--accent)); color: #fff; border: 2px solid var(--surface); }
+.notif-emoji.notif-tipo svg { width: 11px; height: 11px; }
+.notif-av.so-emoji { background: none; }
+.notif-tipo-grande { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--cat, var(--accent)); color: #fff; }
+.notif-tipo-grande svg { width: 21px; height: 21px; }
+.notif-vazio { font-size: 14px; }
+.notif-vazio svg { display: block; margin: 0 auto 10px; color: var(--text-faint); }
+
+/* Filtros em pílulas (painel) */
+.notif-chips { display: flex; gap: 6px; padding: 10px 14px; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--line); flex-shrink: 0; }
+.notif-chips::-webkit-scrollbar { display: none; }
+.notif-chip { flex-shrink: 0; height: 32px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface-2); color: var(--text-soft); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s; }
+.notif-chip:hover { color: var(--text); }
+.notif-chip.ativo { background: var(--text); border-color: var(--text); color: var(--bg); }
+.notif-lista.carregando { opacity: 0.55; transition: opacity 0.15s; }
+.notif-pane[hidden] { display: none; }
+.notif-pane .notif-secao-titulo { margin: 14px 18px 4px; }
+.notif-voltar { display: none; }
+.notif-pagina.trocando { opacity: 0.5; pointer-events: none; transition: opacity 0.15s; }
+
+/* Arrastar para remover: o fundo vermelho com a lixeira aparece por trás */
+.notif-item { position: relative; overflow: hidden; touch-action: pan-y; }
+.notif-item::before { content: ''; position: absolute; inset: 0; background: var(--st-vermelho) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='3 6 5 6 21 6'/%3E%3Cpath d='M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6'/%3E%3C/svg%3E") no-repeat right 22px center; opacity: 0; transition: opacity 0.15s; }
+.notif-item.arrastando::before { opacity: 0.55; }
+.notif-item.vai-remover::before { opacity: 1; }
+.notif-item.arrastando .notif-corpo { position: relative; z-index: 1; background: var(--surface); }
+@media (hover: none) { .notif-x { display: none; } }
+
+/* Página: barra própria */
+.notif-pg-topo { margin: 0 0 12px; }
+.notif-pg-topo-acoes { display: flex; gap: 2px; justify-self: end; }
+.notif-pg-topo-acoes .ed-topo-btn { border: none; background: none; cursor: pointer; }
+.notif-pg-topo-acoes .confirmando { color: var(--st-vermelho); background: color-mix(in srgb, var(--st-vermelho) 14%, transparent); }
+
+@media (max-width: 899px) {
+  /* Coração abre a tela cheia (como a aba de atividade do Instagram) */
+  #painelNotif.notif-modal { padding: 0; align-items: stretch; justify-content: stretch; background: var(--bg); }
+  #painelNotif .notif-card { max-width: none; width: 100%; height: 100%; max-height: none; margin: 0; border: none; border-radius: 0; display: flex; flex-direction: column; animation: notif-tela-entra 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) both; background: var(--bg); box-shadow: none; }
+  #painelNotif .notif-cab { padding: calc(6px + env(safe-area-inset-top, 0px)) 8px 6px 4px; gap: 4px; justify-content: flex-start; }
+  #painelNotif .notif-cab h2 { flex: 1; font-size: 18px; }
+  #painelNotif .notif-voltar { display: grid; }
+  #painelNotif .notif-fechar { display: none; }
+  #painelNotif .notif-lista { flex: 1; max-height: none; overscroll-behavior: contain; padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)); }
+  body.pg-notificacoes .topo-mobile { display: none; }
+  body.pg-notificacoes .container { padding-top: 0; }
+  .notif-pg-topo { margin: 0 -16px 10px; }
+}
+@keyframes notif-tela-entra { from { opacity: 0; transform: translateX(26px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { #painelNotif .notif-card { animation: none; } }
+@media (max-width: 899px) {
+  #painelNotif.notif-modal { place-items: stretch; overflow: hidden; backdrop-filter: none; -webkit-backdrop-filter: none; animation: none; }
+}

@@ -3452,12 +3452,13 @@
 
     /* ---- HTML de um item (espelho do partial notifItem) ---- */
     function htmlAvatar(n) {
-      if (!n.temAtor) return '<span class="notif-av so-emoji">' + n.emoji + '</span>';
+      var ic = n.icSvg || '';
+      if (!n.temAtor) return '<span class="notif-av so-emoji"><span class="notif-tipo-grande cat-' + esc(n.categoria) + '">' + ic + '</span></span>';
       var av1 = n.ator_foto ? '<img src="' + esc(n.ator_foto) + '" alt="">' : esc(inicial(n.ator_nome));
       var dupla = !!n.ator2_nome;
       var h = '<span class="notif-av' + (dupla ? ' dupla' : '') + '">';
       if (dupla) h += '<span class="notif-av2">' + (n.ator2_foto ? '<img src="' + esc(n.ator2_foto) + '" alt="">' : esc(inicial(n.ator2_nome))) + '</span>';
-      h += '<span class="notif-av1">' + av1 + '</span><span class="notif-emoji">' + n.emoji + '</span></span>';
+      h += '<span class="notif-av1">' + av1 + '</span><span class="notif-emoji notif-tipo cat-' + esc(n.categoria) + '">' + ic + '</span></span>';
       return h;
     }
     function hrefDe(n) {
@@ -3487,10 +3488,13 @@
     }
     // Nova notificação entra no topo do painel do sino e da seção "Hoje" da página.
     function prependPainel(n) {
-      var lista = document.querySelector('#painelNotif .notif-lista');
+      var lista = document.querySelector('#painelNotif [data-notif-painel]');
       if (!lista) return;
-      var vazio = lista.querySelector('.notif-vazio'); if (vazio) vazio.remove();
-      lista.insertAdjacentHTML('afterbegin', htmlItem(n, 'agora'));
+      lista.querySelectorAll('.notif-pane').forEach(function (pane) {
+        var f = pane.getAttribute('data-filtro');
+        if (f !== 'todas' && f !== 'nao-lidas' && f !== n.categoria) return;
+        inserirHoje(pane, n);
+      });
     }
     function inserirNaPagina(n) {
       if (!pagina) return;
@@ -3712,8 +3716,10 @@
         if (vazio) vazio.hidden = !!pagina.querySelector('.notif-item');
         if (!pagina.querySelector('.notif-item')) { var lim = document.querySelector('[data-notif-limpar]'); if (lim) lim.remove(); }
       }
-      var lista = document.querySelector('#painelNotif .notif-lista');
-      if (lista && !lista.querySelector('.notif-item') && !lista.querySelector('.notif-vazio')) lista.innerHTML = '<div class="notif-vazio">🔔<div>Nenhuma notificação ainda.</div></div>';
+      document.querySelectorAll('#painelNotif .notif-pane').forEach(function (pane) {
+        pane.querySelectorAll('.notif-secao').forEach(function (s) { if (!s.querySelector('.notif-item')) s.remove(); });
+        if (!pane.querySelector('.notif-item') && !pane.querySelector('.notif-vazio')) pane.innerHTML = htmlVazio(pane.getAttribute('data-filtro'));
+      });
     }
     function carregarMais(btn) {
       btn.disabled = true; btn.textContent = 'Carregando…';
@@ -3744,6 +3750,12 @@
       }
       var lim = e.target.closest('[data-notif-limpar]');
       if (lim) {
+        if (lim.getAttribute('data-confirma') !== '1' && lim.hasAttribute('data-confirma-icone')) {
+          lim.setAttribute('data-confirma', '1'); lim.classList.add('confirmando');
+          toast('Toque de novo para limpar tudo');
+          setTimeout(function () { lim.removeAttribute('data-confirma'); lim.classList.remove('confirmando'); }, 4000);
+          return;
+        }
         if (lim.getAttribute('data-confirma') !== '1') {
           lim.setAttribute('data-confirma', '1');
           lim.setAttribute('data-txt', lim.textContent);
@@ -3766,6 +3778,179 @@
       var eng = e.target.closest('#painelNotif [data-abrir-modal="notifPrefs"]');
       if (eng && painel) { painel.setAttribute('hidden', ''); painel.setAttribute('aria-hidden', 'true'); }
     });
+
+    /* ---- Seções por dia (espelho do servidor), vazio com ícone, inserir no "Hoje" ---- */
+    var SVG_SINO = '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>';
+    function diaJs(d) { return d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate(); }
+    function secionarJs(itens) {
+      var agora = new Date(), hoje = diaJs(agora), ontem = diaJs(new Date(agora.getTime() - 86400000)), semana = agora.getTime() - 7 * 86400000;
+      var g = { 'Hoje': [], 'Ontem': [], 'Esta semana': [], 'Anteriores': [] };
+      (itens || []).forEach(function (n) {
+        var d = new Date(n.criado_em), dia = diaJs(d);
+        if (dia === hoje) g['Hoje'].push(n); else if (dia === ontem) g['Ontem'].push(n);
+        else if (d.getTime() > semana) g['Esta semana'].push(n); else g['Anteriores'].push(n);
+      });
+      return Object.keys(g).filter(function (k) { return g[k].length; }).map(function (k) { return { rotulo: k, itens: g[k] }; });
+    }
+    function htmlSecao(rotulo, itens) {
+      return '<section class="notif-secao" data-secao="' + rotulo + '"><h3 class="notif-secao-titulo">' + rotulo + '</h3>'
+        + itens.map(function (n) { return htmlItem(n, tempoRelJs(n.criado_em)); }).join('') + '</section>';
+    }
+    function htmlSecoes(itens) { return secionarJs(itens).map(function (s) { return htmlSecao(s.rotulo, s.itens); }).join(''); }
+    function textoVazio(filtro) {
+      if (filtro === 'nao-lidas') return 'Você está em dia!<br>Nenhuma notificação não lida.';
+      if (filtro === 'todas') return 'Nenhuma notificação por enquanto.<br>Quando alguém curtir, comentar ou te mandar mensagem, aparece aqui.';
+      return 'Nada por aqui ainda.';
+    }
+    function htmlVazio(filtro) { return '<div class="notif-vazio">' + SVG_SINO + '<div>' + textoVazio(filtro) + '</div></div>'; }
+    function anexarItens(pane, itens) {
+      secionarJs(itens).forEach(function (s) {
+        var sec = pane.querySelector('.notif-secao[data-secao="' + s.rotulo + '"]');
+        if (!sec) { pane.insertAdjacentHTML('beforeend', htmlSecao(s.rotulo, [])); sec = pane.lastElementChild; }
+        sec.insertAdjacentHTML('beforeend', s.itens.map(function (n) { return htmlItem(n, tempoRelJs(n.criado_em)); }).join(''));
+      });
+    }
+    function inserirHoje(pane, n) {
+      if (pane.querySelector('.notif-item[data-notif-id="' + n.id + '"]')) return;
+      var vazio = pane.querySelector('.notif-vazio'); if (vazio) vazio.remove();
+      var sec = pane.querySelector('.notif-secao[data-secao="Hoje"]');
+      if (!sec) { pane.insertAdjacentHTML('afterbegin', htmlSecao('Hoje', [])); sec = pane.firstElementChild; }
+      sec.querySelector('.notif-secao-titulo').insertAdjacentHTML('afterend', htmlItem(n, 'agora'));
+    }
+
+    /* ---- Painel do coração: tela cheia no celular, filtros sem recarregar, rolagem infinita,
+       o voltar do celular fecha ---- */
+    var painelLista = painel ? painel.querySelector('[data-notif-painel]') : null;
+    var chips = painel ? painel.querySelector('[data-notif-chips]') : null;
+    if (painel && painelLista && chips) {
+      var panes = {}, novasAoAbrir = {};
+      var p0 = painelLista.querySelector('.notif-pane'); if (p0) panes.todas = p0;
+      var paneDe = function (filtro) {
+        if (!panes[filtro]) {
+          var p = document.createElement('div'); p.className = 'notif-pane'; p.setAttribute('data-filtro', filtro); p.hidden = true;
+          painelLista.appendChild(p); panes[filtro] = p;
+        }
+        return panes[filtro];
+      };
+      var carregarPane = function (filtro, mais) {
+        var pane = paneDe(filtro);
+        if (pane.__carregando || (mais && !pane.__temMais)) return;
+        pane.__carregando = true;
+        if (!mais && !pane.__pronto) painelLista.classList.add('carregando');
+        var url = '/notificacoes/lista?filtro=' + encodeURIComponent(filtro) + (mais ? '&antes=' + encodeURIComponent(pane.__ultima || 0) : '');
+        getJson(url).then(function (d) {
+          var itens = d.itens || [];
+          if (!mais) { pane.innerHTML = itens.length ? htmlSecoes(itens) : htmlVazio(filtro); pane.__pronto = true; }
+          else anexarItens(pane, itens);
+          // o que era novo quando o painel abriu continua destacado até fechar
+          Object.keys(novasAoAbrir).forEach(function (id) { var el = pane.querySelector('.notif-item[data-notif-id="' + id + '"]'); if (el) el.classList.add('nova'); });
+          pane.__ultima = d.ultimaId; pane.__temMais = !!d.temMais;
+        }).catch(function () {}).then(function () { pane.__carregando = false; painelLista.classList.remove('carregando'); });
+      };
+      var mostrarPane = function (filtro) {
+        Object.keys(panes).forEach(function (k) { panes[k].hidden = k !== filtro; });
+        var p = paneDe(filtro); p.hidden = false;
+        chips.querySelectorAll('.notif-chip').forEach(function (c) { c.classList.toggle('ativo', c.getAttribute('data-filtro') === filtro); });
+        painelLista.scrollTop = 0;
+        if (!p.__pronto) carregarPane(filtro, false);
+      };
+      chips.addEventListener('click', function (e) { var c = e.target.closest('.notif-chip'); if (c) mostrarPane(c.getAttribute('data-filtro')); });
+      painelLista.addEventListener('scroll', function () {
+        if (painelLista.scrollTop + painelLista.clientHeight < painelLista.scrollHeight - 300) return;
+        var at = chips.querySelector('.notif-chip.ativo');
+        carregarPane(at ? at.getAttribute('data-filtro') : 'todas', true);
+      }, { passive: true });
+      var mobilePn = window.matchMedia('(max-width: 899px)');
+      new MutationObserver(function () {
+        if (!painel.hidden) {
+          novasAoAbrir = {};
+          painel.querySelectorAll('.notif-item.nova').forEach(function (el) { novasAoAbrir[el.getAttribute('data-notif-id')] = 1; });
+          if (!panes.todas.__pronto) carregarPane('todas', false);
+          if (mobilePn.matches && !(history.state && history.state.notifPainel)) { try { history.pushState({ notifPainel: 1 }, ''); } catch (x) {} }
+        } else if (history.state && history.state.notifPainel) {
+          try { history.back(); } catch (x) {}
+        }
+      }).observe(painel, { attributes: true, attributeFilter: ['hidden'] });
+      window.addEventListener('popstate', function (e) {
+        if (!painel.hidden && !(e.state && e.state.notifPainel)) { painel.setAttribute('hidden', ''); painel.setAttribute('aria-hidden', 'true'); }
+      });
+    }
+
+    /* ---- Página: filtros sem recarregar + "carregar mais" sozinho ao chegar no fim ---- */
+    if (pagina) {
+      var ioMais = ('IntersectionObserver' in window) ? new IntersectionObserver(function (ents) {
+        ents.forEach(function (en) { if (en.isIntersecting && !en.target.disabled && document.body.contains(en.target)) carregarMais(en.target); });
+      }, { rootMargin: '300px 0px' }) : null;
+      var observarMais = function () { var b = pagina.querySelector('[data-notif-mais]'); if (b && ioMais) ioMais.observe(b); };
+      observarMais();
+      document.addEventListener('click', function (e) {
+        var a = e.target.closest('.notif-tabs a.notif-tab');
+        if (!a || e.metaKey || e.ctrlKey) return;
+        e.preventDefault();
+        if (a.classList.contains('ativo')) return;
+        var filtro = new URL(a.href, location.origin).searchParams.get('filtro') || 'todas';
+        document.querySelectorAll('.notif-tabs .notif-tab').forEach(function (t) { t.classList.toggle('ativo', t === a); });
+        pagina.classList.add('trocando');
+        getJson('/notificacoes/lista?filtro=' + encodeURIComponent(filtro)).then(function (d) {
+          var itens = d.itens || [];
+          pagina.innerHTML = htmlSecoes(itens)
+            + '<div class="notif-vazio" data-notif-vazio' + (itens.length ? ' hidden' : '') + '>' + SVG_SINO + '<div>' + textoVazio(filtro) + '</div></div>'
+            + '<div class="notif-secao notif-secao-mais" hidden data-notif-mais-lista><h3 class="notif-secao-titulo">Mais antigas</h3></div>'
+            + (d.temMais ? '<button type="button" class="notif-mais" data-notif-mais>Carregar mais</button>' : '');
+          pagina.setAttribute('data-filtro', filtro);
+          pagina.setAttribute('data-ultima', d.ultimaId || 0);
+          try { history.replaceState(history.state, '', '/notificacoes' + (filtro === 'todas' ? '' : '?filtro=' + filtro)); } catch (x) {}
+          observarMais();
+        }).catch(function () { location.href = a.href; }).then(function () { pagina.classList.remove('trocando'); });
+      });
+    }
+    // Voltar da página: para onde a pessoa estava (se veio de dentro do app)
+    document.addEventListener('click', function (e) {
+      var v = e.target.closest('[data-notif-voltar]');
+      if (!v || e.metaKey || e.ctrlKey) return;
+      if (history.length > 1 && document.referrer.indexOf(location.origin) === 0) { e.preventDefault(); history.back(); }
+    });
+
+    /* ---- Arrastar para a esquerda remove (toque), como nos apps ---- */
+    var sw = null;
+    document.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'mouse') return;
+      var item = e.target.closest('.notif-item');
+      if (!item || e.target.closest('.notif-x')) return;
+      sw = { it: item, x0: e.clientX, y0: e.clientY, dx: 0, decidido: false, corpo: item.querySelector('.notif-corpo') };
+    }, { passive: true });
+    document.addEventListener('pointermove', function (e) {
+      if (!sw) return;
+      var dx = e.clientX - sw.x0, dy = e.clientY - sw.y0;
+      if (!sw.decidido) {
+        if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+        sw.decidido = true;
+        if (!(Math.abs(dx) > Math.abs(dy) * 1.3 && dx < 0)) { sw = null; return; }
+        sw.it.classList.add('arrastando');
+      }
+      sw.dx = Math.min(0, dx);
+      sw.corpo.style.transform = 'translateX(' + sw.dx + 'px)';
+      sw.it.classList.toggle('vai-remover', sw.dx < -90);
+    }, { passive: true });
+    function soltarSw() {
+      if (!sw) return;
+      var s = sw; sw = null;
+      if (!s.decidido) return;
+      s.it.__arrastou = true; setTimeout(function () { s.it.__arrastou = false; }, 400);
+      if (s.dx < -90) {
+        s.corpo.style.transition = 'transform 0.18s ease'; s.corpo.style.transform = 'translateX(-100%)';
+        var x = s.it.querySelector('[data-notif-excluir]'); if (x) setTimeout(function () { x.click(); }, 120);
+      } else {
+        s.corpo.style.transition = 'transform 0.2s ease'; s.corpo.style.transform = '';
+        setTimeout(function () { s.corpo.style.transition = ''; s.it.classList.remove('arrastando', 'vai-remover'); }, 220);
+      }
+    }
+    document.addEventListener('pointerup', soltarSw);
+    document.addEventListener('pointercancel', function () { if (sw && sw.decidido) { sw.dx = 0; } soltarSw(); });
+    document.addEventListener('click', function (e) {
+      var item = e.target.closest('.notif-item');
+      if (item && item.__arrastou && !e.target.closest('[data-notif-excluir]')) { e.preventDefault(); e.stopPropagation(); }
+    }, true);
 
     /* ---- Preferências (modal) + push (service worker) ---- */
     var prefsModal = document.querySelector('[data-notif-prefs]');

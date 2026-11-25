@@ -5,8 +5,8 @@
       {{#if temAtor}}
         {{#if ator2_nome}}<span class="notif-av2">{{#if ator2_foto}}<img src="{{ator2_foto}}" alt="">{{else}}{{inicial ator2_nome}}{{/if}}</span>{{/if}}
         <span class="notif-av1">{{#if ator_foto}}<img src="{{ator_foto}}" alt="">{{else}}{{inicial ator_nome}}{{/if}}</span>
-        <span class="notif-emoji">{{emoji}}</span>
-      {{else}}{{emoji}}{{/if}}
+        <span class="notif-emoji notif-tipo cat-{{categoria}}">{{{icSvg}}}</span>
+      {{else}}<span class="notif-tipo-grande cat-{{categoria}}">{{{icSvg}}}</span>{{/if}}
     </span>
     <div class="notif-txt">
       <span class="notif-linha"><strong>{{titulo}}</strong> {{texto}}</span>

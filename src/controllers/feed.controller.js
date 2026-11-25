@@ -422,8 +422,12 @@ async function getNovidades(req, res, next) {
 async function getBusca(req, res, next) {
   try {
     const q = String(req.query.q || '').trim();
-    const lista = await usuarioModel.buscarUsuarios(q, q ? 20 : 31);
-    res.json(lista.filter((u) => u.usuario !== req.session.usuario.usuario).slice(0, q ? 20 : 30));
+    const lista = await usuarioModel.buscarUsuarios(q, q ? 20 : 32);
+    // Sem termo (sugestões): fora eu e o Administrador. Com termo, todo mundo entra.
+    res.json(lista
+      .filter((u) => u.usuario !== req.session.usuario.usuario && (q || u.tipo_usuario !== 'ADMINISTRADOR'))
+      .slice(0, q ? 20 : 30)
+      .map((u) => ({ id_usuario: u.id_usuario, usuario: u.usuario, nome: u.nome, foto_perfil: u.foto_perfil })));
   } catch (err) {
     next(err);
   }

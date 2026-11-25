@@ -450,88 +450,186 @@
     });
   })();
 
-  /* ---------- Pesquisa de usuários (tela estilo Instagram) ----------
-     Lupa abre uma tela cheia com campo de busca; resultados ao vivo (debounce),
-     "Recentes" no localStorage (com X por item e "Limpar tudo"), clique entra
-     no perfil. ---------- */
+  /* ---------- Pesquisa (tela estilo Instagram) ----------
+     Lupa abre a tela já com o teclado. As sugestões ficam pré-carregadas; a lista de
+     pessoas filtra NA HORA a cada tecla (com o que já está no aparelho) e o servidor
+     completa logo atrás (pessoas fora do cache + publicações). As linhas são
+     reaproveitadas no DOM (foto não pisca ao redigitar). "Recentes" no localStorage.
+     Botão voltar do celular fecha a tela (history), rolar a lista esconde o teclado. ---------- */
   (function () {
     var tela = document.getElementById('buscaTela');
     if (!tela) return;
     var inp = tela.querySelector('#buscaInput');
     var lista = tela.querySelector('.busca-lista');
+    var corpo = tela.querySelector('.busca-corpo');
     var cabRec = tela.querySelector('.busca-recentes-cab');
     var btnLimparCampo = tela.querySelector('[data-busca-limpar-campo]');
-    var timer = null, seq = 0, porUser = {};
+    var H = { headers: { 'Accept': 'application/json' } };
+    var timer = null, seq = 0, porUser = {}, sugCache = null, aberta = false, fechando = null;
+    var mobile = function () { return window.matchMedia('(max-width: 899px)').matches; };
 
     function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+    function norm(s) { s = String(s || '').toLowerCase(); try { s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); } catch (e) {} return s; }
     function lerRecentes() { try { return JSON.parse(localStorage.getItem('buscaRecentes') || '[]'); } catch (e) { return []; } }
     function salvarRecentes(l) { try { localStorage.setItem('buscaRecentes', JSON.stringify(l.slice(0, 8))); } catch (e) {} }
 
-    function itemHtml(p, comRemover) {
+    // Sugestões pré-carregadas num momento ocioso: a tela abre com a lista pronta
+    function carregarSugestoes() {
+      return fetch('/buscar?q=', H).then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+        .then(function (p) { sugCache = p; return p; }).catch(function () { return sugCache || []; });
+    }
+    (window.requestIdleCallback || function (f) { setTimeout(f, 1500); })(function () { carregarSugestoes(); });
+
+    // ----- Nós reaproveitados: mesma pessoa/publicação = mesmo elemento -----
+    var nos = {};
+    function noPessoa(p, comRemover) {
       porUser[p.usuario] = p;
-      var av = p.foto_perfil ? '<img src="' + esc(p.foto_perfil) + '" alt="">' : esc((p.nome || '?').trim().charAt(0).toUpperCase());
-      return '<a class="share-item busca-item" href="/u/' + encodeURIComponent(p.usuario) + '" data-busca-user="' + esc(p.usuario) + '">'
-        + '<span class="share-av">' + av + '</span>'
-        + '<span class="share-txt"><span class="share-nome">' + esc(p.nome) + '</span><span class="share-user">@' + esc(p.usuario) + '</span></span>'
-        + (comRemover ? '<button type="button" class="busca-remover" data-busca-remover="' + esc(p.usuario) + '" aria-label="Remover dos recentes">&times;</button>' : '')
-        + '</a>';
+      var k = 'u:' + p.usuario, el = nos[k];
+      if (!el) {
+        el = document.createElement('a');
+        el.className = 'share-item busca-item';
+        el.href = '/u/' + encodeURIComponent(p.usuario);
+        el.setAttribute('data-busca-user', p.usuario);
+        var av = p.foto_perfil ? '<img src="' + esc(p.foto_perfil) + '" alt="">' : esc((p.nome || '?').trim().charAt(0).toUpperCase());
+        el.innerHTML = '<span class="share-av">' + av + '</span>'
+          + '<span class="share-txt"><span class="share-nome">' + esc(p.nome) + '</span><span class="share-user">@' + esc(p.usuario) + '</span></span>'
+          + '<button type="button" class="busca-remover" data-busca-remover="' + esc(p.usuario) + '" aria-label="Remover dos recentes" hidden>&times;</button>';
+        nos[k] = el;
+      }
+      el.querySelector('.busca-remover').hidden = !comRemover;
+      return el;
     }
-    function postHtml(p) {
+    function noPost(p) {
+      var k = 'p:' + p.id_post, el = nos[k];
+      if (el) return el;
       var thumb = p.imagem ? '<img src="' + esc(p.imagem) + '" alt="">'
-        : p.video ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>'
+        : p.video ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>'
         : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
-      return '<a class="busca-post" href="/p/' + p.id_post + '">'
-        + '<span class="busca-post-thumb' + (p.imagem ? '' : ' sem-img') + '">' + thumb + '</span>'
+      el = document.createElement('a');
+      el.className = 'busca-post';
+      el.href = '/p/' + p.id_post;
+      el.innerHTML = '<span class="busca-post-thumb' + (p.imagem ? '' : ' sem-img') + '">' + thumb + '</span>'
         + '<span class="busca-post-txt"><span class="busca-post-texto">' + (p.texto ? esc(p.texto) : '<i>Sem legenda</i>') + '</span>'
-        + '<span class="busca-post-meta">@' + esc(p.usuario) + ' · ' + esc(p.quando) + (p.local ? ' · ' + esc(p.local) : '') + '</span></span>'
-        + '</a>';
+        + '<span class="busca-post-meta">@' + esc(p.usuario) + ' · ' + esc(p.quando) + (p.local ? ' · ' + esc(p.local) : '') + '</span></span>';
+      nos[k] = el;
+      return el;
     }
-    // Estado inicial da tela: "Recentes" (localStorage) + "Sugestões" com os usuários cadastrados.
-    // As sugestões ficam em cache: a tela abre instantânea (sem a lista "pular" depois).
-    var sugCache = null;
+    function noTitulo(txt) {
+      var k = 't:' + txt;
+      if (!nos[k]) { var d = document.createElement('div'); d.className = 'busca-subtitulo'; d.textContent = txt; nos[k] = d; }
+      return nos[k];
+    }
+    function noAviso(txt) {
+      if (!nos.aviso) { var d = document.createElement('div'); d.className = 'texto-suave busca-vazio'; nos.aviso = d; }
+      nos.aviso.textContent = txt;
+      return nos.aviso;
+    }
+    // Coloca os nós nessa ordem: appendChild/insertBefore MOVE os que já estão lá
+    // (foto não recarrega, nada pisca); o que sobrou sai.
+    function montar(itens) {
+      var atual = lista.firstChild;
+      itens.forEach(function (el) {
+        if (el === atual) { atual = atual.nextSibling; return; }
+        lista.insertBefore(el, atual);
+      });
+      while (atual) { var prox = atual.nextSibling; lista.removeChild(atual); atual = prox; }
+    }
+
+    // ----- Estado inicial: Recentes + Sugestões -----
     function mostrarInicio() {
       var rec = lerRecentes();
       cabRec.hidden = !rec.length;
-      var htmlRec = rec.map(function (p) { return itemHtml(p, true); }).join('');
-      function render(pessoas) {
-        var jaTem = {};
-        rec.forEach(function (p) { jaTem[p.usuario] = true; });
-        var sug = (pessoas || []).filter(function (p) { return !jaTem[p.usuario]; });
-        if (sug.length) {
-          lista.innerHTML = htmlRec + '<div class="busca-subtitulo">Sugestões</div>'
-            + sug.map(function (p) { return itemHtml(p, false); }).join('');
-        } else if (rec.length) {
-          lista.innerHTML = htmlRec;
-        } else {
-          lista.innerHTML = '<div class="texto-suave busca-vazio">Pesquise os colegas pelo nome ou @usuário.</div>';
-        }
+      var itens = rec.map(function (p) { return noPessoa(p, true); });
+      var jaTem = {};
+      rec.forEach(function (p) { jaTem[p.usuario] = true; });
+      var sug = (sugCache || []).filter(function (p) { return !jaTem[p.usuario]; });
+      if (sug.length) {
+        itens.push(noTitulo('Sugestões'));
+        sug.forEach(function (p) { itens.push(noPessoa(p, false)); });
+      } else if (!rec.length && sugCache) {
+        itens.push(noAviso('Pesquise os colegas pelo nome ou @usuário.'));
       }
-      render(sugCache);
-      fetch('/buscar?q=', { headers: { 'Accept': 'application/json' } })
-        .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
-        .then(function (pessoas) {
-          sugCache = pessoas;
-          if (tela.hidden || inp.value.trim()) return; // já fechou ou já começou a digitar
-          render(pessoas);
-        })
-        .catch(function () {});
+      montar(itens);
+      if (!sugCache) carregarSugestoes().then(function () { if (aberta && !inp.value.trim()) mostrarInicio(); });
     }
-    function abrir() {
+
+    // ----- Resultados: filtro local instantâneo + servidor completa -----
+    function comeca(p, nq) {
+      return norm(p.usuario).indexOf(nq) === 0 || norm(p.nome).split(/\s+/).some(function (w) { return w.indexOf(nq) === 0; });
+    }
+    function filtrarLocal(q) {
+      var nq = norm(q);
+      var r = (sugCache || []).filter(function (p) { return norm(p.usuario).indexOf(nq) >= 0 || norm(p.nome).indexOf(nq) >= 0; });
+      var pri = r.filter(function (p) { return comeca(p, nq); }), resto = r.filter(function (p) { return !comeca(p, nq); });
+      return pri.concat(resto);
+    }
+    function mostrarResultados(q, pessoas, posts, esperando) {
+      cabRec.hidden = true;
+      var itens = [];
+      if (pessoas.length) { itens.push(noTitulo('Pessoas')); pessoas.forEach(function (p) { itens.push(noPessoa(p, false)); }); }
+      if (posts.length) { itens.push(noTitulo('Publicações')); posts.forEach(function (p) { itens.push(noPost(p)); }); }
+      if (!itens.length && !esperando) itens.push(noAviso('Nada encontrado para \u201c' + q + '\u201d.'));
+      montar(itens);
+    }
+    inp.addEventListener('input', function () {
+      var q = inp.value.trim();
+      btnLimparCampo.hidden = !inp.value;
+      clearTimeout(timer);
+      if (!q) { seq++; mostrarInicio(); return; }
+      var locais = filtrarLocal(q);
+      mostrarResultados(q, locais, [], true); // na hora, com o que já está aqui
+      var minha = ++seq;
+      timer = setTimeout(function () {
+        Promise.all([
+          fetch('/buscar?q=' + encodeURIComponent(q), H).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; }),
+          fetch('/buscar/posts?q=' + encodeURIComponent(q), H).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; }),
+        ]).then(function (res) {
+          if (minha !== seq || inp.value.trim() !== q) return; // resposta atrasada: ignora
+          var vistos = {};
+          locais.forEach(function (p) { vistos[p.usuario] = true; });
+          var extras = (res[0] || []).filter(function (p) { return !vistos[p.usuario]; }); // quem o cache não tinha entra no fim (a lista não pula)
+          mostrarResultados(q, locais.concat(extras), res[1] || [], false);
+        });
+      }, 150);
+    });
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); inp.blur(); } });
+    // Arrastar a lista esconde o teclado (como no Instagram)
+    corpo.addEventListener('touchmove', function () { if (document.activeElement === inp) inp.blur(); }, { passive: true });
+
+    // ----- Abrir / fechar (com o histórico: o voltar do celular fecha a tela) -----
+    function abrir(viaHistorico) {
+      if (aberta) return;
+      aberta = true;
+      if (fechando) { clearTimeout(fechando); fechando = null; }
+      tela.classList.remove('saindo');
       tela.hidden = false;
-      var mobile = window.matchMedia('(max-width: 899px)').matches;
-      // Só o mobile trava o scroll do fundo; no desktop a página continua visível ao lado
-      if (mobile) document.body.classList.add('sem-scroll');
+      if (mobile()) document.body.classList.add('sem-scroll');
       inp.value = ''; btnLimparCampo.hidden = true;
       mostrarInicio();
-      // No celular NÃO foca sozinho: o teclado subindo na abertura causava a "engasgada"
-      // (igual ao Instagram: o teclado só abre quando a pessoa toca no campo)
-      if (!mobile) window.setTimeout(function () { inp.focus(); }, 60);
+      // Foco no mesmo toque (dentro do gesto): o teclado sobe junto com a tela
+      try { inp.focus({ preventScroll: true }); } catch (e) { inp.focus(); }
+      if (!viaHistorico && window.history && history.pushState) { try { history.pushState({ busca: 1 }, ''); } catch (e) {} }
     }
-    function fechar() { tela.hidden = true; document.body.classList.remove('sem-scroll'); }
+    function fechar(viaHistorico) {
+      if (!aberta) return;
+      aberta = false;
+      inp.blur();
+      document.body.classList.remove('sem-scroll');
+      tela.classList.add('saindo');
+      fechando = setTimeout(function () { tela.hidden = true; tela.classList.remove('saindo'); fechando = null; }, 160);
+      if (!viaHistorico && history.state && history.state.busca) { try { history.back(); } catch (e) {} }
+    }
+    window.addEventListener('popstate', function (e) {
+      var temBusca = !!(e.state && e.state.busca);
+      if (aberta && !temBusca) fechar(true);
+      else if (!aberta && temBusca) abrir(true);
+    });
+    // Voltou de um perfil para a página com a busca aberta no histórico: reabre
+    if (history.state && history.state.busca) abrir(true);
 
     document.addEventListener('click', function (e) {
-      if (e.target.closest('[data-busca-abrir]')) { abrir(); return; }
-      if (e.target.closest('[data-busca-fechar]')) { fechar(); return; }
+      if (e.target.closest('[data-busca-abrir]')) { e.preventDefault(); abrir(false); return; }
+      if (e.target.closest('[data-busca-fechar]')) { fechar(false); return; }
       var rem = e.target.closest('[data-busca-remover]');
       if (rem) {
         e.preventDefault(); e.stopPropagation();
@@ -540,7 +638,7 @@
         return;
       }
       if (e.target.closest('[data-busca-limpar-recentes]')) { salvarRecentes([]); mostrarInicio(); return; }
-      if (e.target.closest('[data-busca-limpar-campo]')) { inp.value = ''; btnLimparCampo.hidden = true; mostrarInicio(); inp.focus(); return; }
+      if (e.target.closest('[data-busca-limpar-campo]')) { inp.value = ''; btnLimparCampo.hidden = true; seq++; mostrarInicio(); inp.focus(); return; }
       var it = e.target.closest('.busca-item');
       if (it) {
         // guarda nos recentes e deixa o link navegar normalmente para o perfil
@@ -552,38 +650,12 @@
         }
       }
     });
-
-    inp.addEventListener('input', function () {
-      var q = inp.value.trim();
-      btnLimparCampo.hidden = !inp.value;
-      clearTimeout(timer);
-      if (!q) { mostrarInicio(); return; }
-      timer = setTimeout(function () {
-        var minha = ++seq;
-        var H = { headers: { 'Accept': 'application/json' } };
-        // Pessoas e publicações em paralelo (como no Instagram: contas em cima, posts embaixo)
-        Promise.all([
-          fetch('/buscar?q=' + encodeURIComponent(q), H).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; }),
-          fetch('/buscar/posts?q=' + encodeURIComponent(q), H).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; }),
-        ]).then(function (res) {
-          var pessoas = res[0] || [], posts = res[1] || [];
-          if (minha !== seq || inp.value.trim() !== q) return; // resposta atrasada: ignora
-          cabRec.hidden = true;
-          var html = '';
-          if (pessoas.length) html += '<div class="busca-subtitulo">Pessoas</div>' + pessoas.map(function (p) { return itemHtml(p, false); }).join('');
-          if (posts.length) html += '<div class="busca-subtitulo">Publicações</div>' + posts.map(postHtml).join('');
-          lista.innerHTML = html || '<div class="texto-suave busca-vazio">Nada encontrado para “' + esc(q) + '”.</div>';
-        });
-      }, 220);
-    });
-
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !tela.hidden) fechar(); });
-
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && aberta) fechar(false); });
     // Clicar fora do painel fecha a busca (no desktop o resto da página fica visível ao lado)
     document.addEventListener('click', function (e) {
-      if (tela.hidden) return;
+      if (!aberta) return;
       if (e.target.closest('.busca-tela') || e.target.closest('[data-busca-abrir]')) return;
-      fechar();
+      fechar(false);
     });
   })();
 

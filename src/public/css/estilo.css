@@ -1324,9 +1324,15 @@ button.ig-av { border: none; cursor: pointer; padding: 0; font: inherit; }
      rola por baixo dela, com o mesmo respiro do .container para o último item aparecer */
   .busca-corpo { padding-bottom: calc(94px + env(safe-area-inset-bottom, 0px)); }
   /* Entrada suave (só opacity/transform: nada de reflow, nada de tranco) */
-  .busca-tela { animation: busca-surge 0.2s ease both; }
+  .busca-tela { animation: busca-surge 0.16s ease both; }
 }
-@keyframes busca-surge { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes busca-surge { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+/* Saída: some em fade (fica no DOM 160ms) */
+.busca-tela.saindo { animation: busca-some 0.16s ease both !important; pointer-events: none; }
+@keyframes busca-some { from { opacity: 1; } to { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .busca-tela, .busca-tela.saindo { animation: none !important; } }
+/* type=search: sem o "x" e a lupa nativos do navegador (os nossos já estão no campo) */
+.busca-campo input::-webkit-search-cancel-button, .busca-campo input::-webkit-search-decoration, .busca-campo input::-webkit-search-results-button { -webkit-appearance: none; appearance: none; display: none; }
 @media (min-width: 900px) {
   .busca-tela {
     inset: 0 auto 0 248px; width: 400px; max-width: calc(100vw - 248px);

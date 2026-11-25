@@ -1531,6 +1531,7 @@
         + '  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>'
         + '</button>'
         + '<button type="button" class="stview-marcar" hidden title="Marcar pessoa neste story" aria-label="Marcar pessoa">@</button>'
+        + '<button type="button" class="stview-destacar" hidden title="Adicionar a um destaque do perfil" aria-label="Destacar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15.6 9.3a2.3 2.3 0 0 0-3.3 0l-.3.3-.3-.3a2.3 2.3 0 0 0-3.3 3.3l3.6 3.4 3.6-3.4a2.3 2.3 0 0 0 0-3.3z"/></svg><span>Destaque</span></button>'
         + '<div class="stview-reacoes" aria-hidden="true">' + ['❤️', '🙌', '🔥', '👏', '😢', '😍', '😮', '😂'].map(function (e) { return '<button type="button" class="stview-reacao" data-reacao="' + e + '">' + e + '</button>'; }).join('') + '</div>'
         + '<div class="stview-rodape" hidden>'
         + '  <input class="stview-resp" type="text" placeholder="Responder…" maxlength="500" autocomplete="off">'
@@ -1570,6 +1571,14 @@
       somBtn = view.querySelector('.stview-som');
 
       view.querySelector('.stview-x').addEventListener('click', fecharView);
+      // "Destaque": pausa e pede para a folha de destaques (módulo Destaques) abrir com este story
+      view.querySelector('.stview-destacar').addEventListener('click', function (e) {
+        e.stopPropagation();
+        var it = grupos[gi] && grupos[gi].itens[ii];
+        if (!it) return;
+        pausar(true);
+        document.dispatchEvent(new CustomEvent('story:destacar', { detail: { id_story: it.id_story } }));
+      });
       // Clique no autor: navegação normal do link, sem disparar pausa/troca de story
       var autorEl = view.querySelector('.stview-autor');
       ['pointerdown', 'pointerup', 'touchstart', 'touchend'].forEach(function (ev) {
@@ -1756,6 +1765,25 @@
             var item = grupos[gi] && grupos[gi].itens[ii];
             if (!item) return;
             var btnOk = e.target.closest('.stdel-confirma'); btnOk.disabled = true;
+            var gD = grupos[gi];
+            if (gD && gD.destaque) {
+              fetch('/destaques/' + gD.destaque.id + '/stories/' + item.id_story + '/remover', { method: 'POST', headers: { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch', 'Accept': 'application/json' } })
+                .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+                .then(function (d) {
+                  delModal.hidden = true; delModal.setAttribute('aria-hidden', 'true');
+                  var pos = gD.itens.indexOf(item); if (pos >= 0) gD.itens.splice(pos, 1);
+                  toast('Tirado do destaque');
+                  if (d.vazio || !gD.itens.length) {
+                    var bola = document.querySelector('[data-destaque="' + gD.destaque.id + '"]'); if (bola) bola.remove();
+                    fecharView(); return;
+                  }
+                  if (ii >= gD.itens.length) ii = gD.itens.length - 1;
+                  pausado = false; mostrar();
+                })
+                .catch(function () { toast('Não foi possível tirar do destaque.'); })
+                .then(function () { btnOk.disabled = false; });
+              return;
+            }
             fetch('/stories/' + item.id_story + '/remover', { method: 'POST', headers: { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch' } })
               .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
               .then(function () {
@@ -1766,6 +1794,10 @@
               .then(function () { btnOk.disabled = false; });
           });
         }
+        var noDestaque = !!(grupos[gi] && grupos[gi].destaque);
+        delModal.querySelector('h3').textContent = noDestaque ? 'Tirar do destaque?' : 'Apagar este story?';
+        delModal.querySelector('p').textContent = noDestaque ? 'O story sai deste destaque. Se for o último, o destaque some do perfil.' : 'Ele some para todo mundo agora.';
+        delModal.querySelector('.stdel-confirma').textContent = noDestaque ? 'Tirar' : 'Apagar';
         delModal.hidden = false;
         delModal.setAttribute('aria-hidden', 'false');
       });
@@ -1936,12 +1968,14 @@
       for (var i = 0; i < ii; i++) setBarra(i, 1);
 
       avEl.innerHTML = g.foto_perfil ? '<img src="' + escSt(g.foto_perfil) + '" alt="">' : escSt((g.nome || '?').trim().charAt(0).toUpperCase());
-      nomeEl.textContent = g.usuario;
+      nomeEl.textContent = g.destaque ? g.destaque.titulo : g.usuario; // destaque: o nome dele no lugar do @
       // Nome/foto do autor levam ao perfil dele (como no Instagram)
       view.querySelector('.stview-autor').setAttribute('href', '/u/' + encodeURIComponent(g.usuario));
       tempoEl.textContent = tempoRelJs(item.criado_em);
       delBtn.hidden = !g.eu;
-      view.querySelector('.stview-marcar').hidden = !g.eu;
+      delBtn.title = g.destaque ? 'Tirar do destaque' : 'Apagar story'; delBtn.setAttribute('aria-label', delBtn.title);
+      view.querySelector('.stview-marcar').hidden = !g.eu || !!g.destaque;
+      view.querySelector('.stview-destacar').hidden = !g.eu || !!g.destaque;
       vistosEl.hidden = !g.eu;
       if (g.eu) {
         // "Atividade" com o ícone de pessoas, como no Instagram (detalhes na folha)
@@ -2046,6 +2080,7 @@
 
     function atualizarAneis() {
       grupos.forEach(function (g) {
+        if (g.destaque) return; // destaque não é story do dia: não mexe nos anéis
         var tudo = g.itens.every(function (it) { return it.visto || g.eu; });
         var anel = document.querySelector('[data-ver-stories="' + g.id_usuario + '"] .story-ring, .story-ring[data-ver-stories="' + g.id_usuario + '"]');
         if (anel && tudo && !g.eu) { anel.classList.remove('tem'); anel.classList.add('visto'); } // dourado apagado: postou e você já viu
@@ -2122,6 +2157,28 @@
         setTimeout(fim, 200);
       }
     }
+
+    // Abre um grupo avulso (um destaque do perfil) no visualizador, do primeiro story.
+    function abrirGrupoAvulso(grupo, origemEl) {
+      montarView();
+      if (fechando || !grupo || !grupo.itens || !grupo.itens.length) return;
+      grupos = [grupo]; gi = 0; ii = 0;
+      document.body.classList.add('sem-scroll');
+      var ox = '50%', oy = '50%';
+      if (origemEl && origemEl.getBoundingClientRect) {
+        var r = origemEl.getBoundingClientRect();
+        ox = Math.round(r.left + r.width / 2) + 'px'; oy = Math.round(r.top + r.height / 2) + 'px';
+      }
+      view.style.setProperty('--st-ox', ox); view.style.setProperty('--st-oy', oy);
+      view.classList.remove('fechando');
+      view.classList.add('abrindo');
+      view.hidden = false;
+      if (!(history.state && history.state.storyAberto)) { try { history.pushState({ storyAberto: 1 }, ''); } catch (x) {} }
+      setTimeout(function () { view.classList.remove('abrindo'); }, 340);
+      mostrar();
+    }
+    window.__abrirGrupoStory = abrirGrupoAvulso;
+    window.__retomarStory = function () { if (view && !view.hidden) pausar(false); };
 
     // Abre o visualizador num usuário (idAlvo); com idStory, cai NAQUELE story exato.
     // origemEl: o avatar tocado — o visualizador "nasce" dali (zoom), como no Instagram.

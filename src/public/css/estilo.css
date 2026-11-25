@@ -4693,3 +4693,9 @@ html.mini .tema-banner { animation: none !important; }
 .pf-dest-novo .pf-dest-av { color: var(--text); }
 .pf-dest-tit { max-width: 68px; font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @media (min-width: 900px) { .pf-destaques { margin-left: 0; margin-right: 0; padding-left: 0; gap: 22px; } .pf-dest { width: 84px; } .pf-dest-av { width: 80px; height: 80px; } }
+
+/* Visualizador: botão "Destaque" nos meus stories (adiciona a um destaque do perfil) */
+.stview-destacar { position: absolute; bottom: 12px; right: 114px; z-index: 4; height: 42px; display: inline-flex; align-items: center; gap: 6px; padding: 0 13px 0 11px; background: rgba(255, 255, 255, 0.14); border: none; border-radius: 999px; color: #fff; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.stview-destacar:hover { background: rgba(255, 255, 255, 0.26); }
+.stview-destacar[hidden] { display: none; }
+@media (max-width: 380px) { .stview-destacar span { display: none; } .stview-destacar { width: 42px; padding: 0; justify-content: center; } }

@@ -43,9 +43,14 @@ const TIPOS = {
     texto: (r, n) => (n > 1 ? `te mandou ${n} mensagens` : 'te mandou uma mensagem'),
   },
   GRUPO: {
-    emoji: '👥', categoria: 'mensagens', temAtor: true,
-    titulo: (r) => r.ator_nome || 'Alguém',
-    texto: (r, n) => (n > 1 ? `mandou ${n} mensagens no grupo` : 'mandou uma mensagem no grupo'),
+    // empilha por grupo (ref = id do grupo), como as DMs: uma linha só por conversa
+    emoji: '👥', categoria: 'mensagens', temAtor: true, agrupaPor: 'ref',
+    titulo: nomes,
+    texto: (r, n) => {
+      const varios = r.atores && r.atores.length > 1;
+      if (n <= 1) return 'mandou uma mensagem no grupo';
+      return `${varios ? 'mandaram' : 'mandou'} ${n} mensagens no grupo`;
+    },
   },
   GRUPO_ADD: {
     emoji: '👥', categoria: 'mensagens', temAtor: true,

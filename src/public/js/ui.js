@@ -8847,4 +8847,219 @@
     }
   })();
 
+
+  /* ---------- Entrar / Criar conta / Criar senha: digitar sem estranhar ----------
+     Olho para ver a senha (sem perder o cursor), aviso de Caps Lock, Enter vai para o próximo
+     campo vazio (ou envia), login ajeitado enquanto digita (no cadastro, sugerido do nome e
+     conferido na hora), regras da senha marcando ao vivo, teclado do celular que não abre
+     sozinho e envio sem recarregar: o erro aparece no cartão e o cadastro vira "enviado". */
+  (function () {
+    var tela = document.querySelector('.auth-tela');
+    var form = tela && tela.querySelector('form[data-auth-form]');
+    if (!form) return;
+    var tipo = form.getAttribute('data-auth-form');
+    function semAc(v) { return String(v || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+    function loginLimpo(v) { return semAc(v).replace(/\s+/g, '.').replace(/[^a-z0-9._-]/g, '').replace(/\.{2,}/g, '.').slice(0, 80); }
+    function loginDoNome(n) {
+      var p = semAc(n).trim().split(/\s+/).filter(function (x) { return x && !/^(da|de|do|das|dos|e)$/.test(x); });
+      return p.length ? loginLimpo(p.length > 1 ? p[0] + '.' + p[p.length - 1] : p[0]) : '';
+    }
+    // Troca o valor mantendo o cursor no lugar certo (o texto antes dele passa pela mesma limpeza)
+    function ajeitar(inp, fn) {
+      var v = fn(inp.value);
+      if (v === inp.value) return;
+      var pos = fn(inp.value.slice(0, inp.selectionStart || 0)).length;
+      inp.value = v;
+      try { inp.setSelectionRange(pos, pos); } catch (x) {}
+    }
+    function dica(el, estado, txt) {
+      if (!el) return;
+      el.classList.toggle('ok', estado === 'ok');
+      el.classList.toggle('ruim', estado === 'ruim');
+      if (txt != null) el.querySelector('.auth-dica-txt').textContent = txt;
+    }
+    function campos() {
+      return Array.prototype.filter.call(form.querySelectorAll('input:not([type="hidden"])'), function (c) { return c.offsetParent !== null; });
+    }
+
+    // Olho: mostra/esconde a senha; o toque não tira o foco do campo nem move o cursor
+    form.addEventListener('mousedown', function (e) { if (e.target.closest('[data-auth-olho]')) e.preventDefault(); });
+    form.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-auth-olho]');
+      if (!b) return;
+      e.preventDefault();
+      var inp = b.parentNode.querySelector('input');
+      if (!inp) return;
+      var ini = inp.selectionStart, fim = inp.selectionEnd, ver = inp.type === 'password';
+      inp.type = ver ? 'text' : 'password';
+      b.classList.toggle('vendo', ver);
+      b.setAttribute('aria-label', ver ? 'Esconder senha' : 'Mostrar senha');
+      inp.focus();
+      try { if (ini != null) inp.setSelectionRange(ini, fim); } catch (x) {}
+    });
+
+    // Caps Lock ligado no campo de senha
+    function caps(e) {
+      var t = e.target;
+      if (!t.matches || !t.matches('[data-auth-senha]') || !e.getModifierState) return;
+      var a = t.closest('.campo').querySelector('[data-auth-caps]');
+      if (a) a.hidden = !e.getModifierState('CapsLock');
+    }
+    form.addEventListener('keydown', caps);
+    form.addEventListener('keyup', caps);
+    form.addEventListener('focusout', function (e) {
+      var c = e.target.closest && e.target.closest('.campo');
+      var a = c && c.querySelector('[data-auth-caps]');
+      if (a) a.hidden = true;
+    });
+
+    // Cadastro: login conferido na hora (livre / em uso)
+    var nomeIn = form.querySelector('[data-auth-nome]'), loginNovo = form.querySelector('[data-auth-login-novo]');
+    var livre = form.querySelector('[data-auth-livre]');
+    var livreTxt = livre ? livre.querySelector('.auth-dica-txt').textContent : '';
+    var livreTimer = null, livreSeq = 0, livreOk = null;
+    function conferirLogin() {
+      if (!loginNovo || !livre) return;
+      var v = loginNovo.value;
+      clearTimeout(livreTimer);
+      livreSeq++;
+      livreOk = null;
+      if (!v) { dica(livre, '', livreTxt); return; }
+      if (v.length < 3) { dica(livre, '', 'Mínimo de 3 caracteres'); return; }
+      dica(livre, '', 'Conferindo @' + v + '…');
+      var meu = livreSeq;
+      livreTimer = setTimeout(function () {
+        fetch('/registrar/usuario-livre?u=' + encodeURIComponent(v), { headers: { 'X-Requested-With': 'fetch', 'Accept': 'application/json' } })
+          .then(function (r) { return r.json(); })
+          .then(function (d) {
+            if (meu !== livreSeq) return;
+            livreOk = !!(d.valido && d.livre);
+            if (!d.valido) dica(livre, 'ruim', 'Use só letras, números, ponto, hífen ou _');
+            else if (d.livre) dica(livre, 'ok', '@' + v + ' está livre');
+            else dica(livre, 'ruim', '@' + v + ' já está em uso. Tente outro');
+          })
+          .catch(function () { if (meu === livreSeq) dica(livre, '', livreTxt); });
+      }, 350);
+    }
+
+    // Senha: regra do tamanho e "as senhas conferem" marcando enquanto digita
+    var s1 = form.querySelector('input[name="senha"]'), s2 = form.querySelector('input[name="confirmarSenha"]');
+    var regra = form.querySelector('[data-auth-regra]'), confere = form.querySelector('[data-auth-confere]');
+    function regras() {
+      if (regra && s1) dica(regra, s1.value.length >= 6 ? 'ok' : '');
+      if (confere && s1 && s2) {
+        confere.hidden = !s2.value;
+        if (s2.value) dica(confere, s2.value === s1.value ? 'ok' : 'ruim', s2.value === s1.value ? 'As senhas conferem' : 'As senhas ainda não conferem');
+      }
+    }
+
+    form.addEventListener('input', function (e) {
+      var t = e.target;
+      t.classList.remove('invalido');
+      if (t.matches('[data-auth-login]')) ajeitar(t, function (v) { return v.toLowerCase().replace(/\s+/g, ''); });
+      if (t === loginNovo) { ajeitar(t, loginLimpo); t.dataset.mexido = t.value ? '1' : ''; conferirLogin(); }
+      if (t === nomeIn && loginNovo && !loginNovo.dataset.mexido) {
+        var sug = loginDoNome(t.value);
+        if (sug !== loginNovo.value) { loginNovo.value = sug; loginNovo.classList.remove('invalido'); conferirLogin(); }
+      }
+      if (t.matches('[data-auth-senha]')) regras();
+    });
+
+    // Enter: vai para o próximo campo ainda vazio; se não houver, envia
+    form.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' || e.isComposing) return;
+      var t = e.target;
+      if (!t.matches || !t.matches('input')) return;
+      var lista = campos(), i = lista.indexOf(t);
+      var prox = lista.slice(i + 1).filter(function (c) { return !c.value; })[0];
+      if (prox) { e.preventDefault(); prox.focus(); }
+    });
+
+    // No computador o cursor já vem no primeiro campo vazio; no celular o teclado só abre no toque
+    if (window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      var vazio = campos().filter(function (c) { return !c.value; })[0];
+      if (vazio) try { vazio.focus({ preventScroll: true }); } catch (x) { vazio.focus(); }
+    }
+    // Teclado do celular abriu: o campo e o botão ficam à vista
+    form.addEventListener('focusin', function (e) {
+      var campo = e.target.closest && e.target.closest('.campo');
+      if (!campo || !window.visualViewport) return;
+      setTimeout(function () {
+        if (window.innerHeight - window.visualViewport.height > 120) campo.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      }, 320);
+    });
+
+    // Envio sem recarregar
+    var erroBox = tela.querySelector('[data-auth-erro]');
+    var btn = form.querySelector('[data-auth-enviar]');
+    var rotuloBtn = btn ? btn.textContent : '';
+    var enviando = false;
+    function mostrarErro(msg, campo) {
+      tela.querySelectorAll('.auth-form-wrap > .alerta:not([data-auth-erro])').forEach(function (a) { a.remove(); });
+      if (erroBox) { erroBox.querySelector('[data-auth-erro-txt]').textContent = msg; erroBox.hidden = false; }
+      form.classList.remove('treme'); void form.offsetWidth; form.classList.add('treme');
+      if (navigator.vibrate) try { navigator.vibrate(30); } catch (x) {}
+      var inp = campo && form.querySelector('[name="' + campo + '"]');
+      if (inp) { inp.classList.add('invalido'); inp.focus(); }
+    }
+    function carregando(sim) {
+      if (!btn) return;
+      btn.classList.toggle('carregando', sim);
+      btn.textContent = sim ? (btn.getAttribute('data-carregando') || rotuloBtn) : rotuloBtn;
+    }
+    function enviado(d) {
+      var cab = tela.querySelector('[data-auth-cab]'), ok = tela.querySelector('[data-auth-ok]');
+      if (!ok) { location.href = '/login'; return; }
+      if (cab) cab.hidden = true;
+      if (erroBox) erroBox.hidden = true;
+      form.hidden = true;
+      ok.querySelector('[data-auth-ok-login]').textContent = '@' + d.usuario;
+      ok.querySelector('[data-auth-ok-link]').setAttribute('href', '/login?u=' + encodeURIComponent(d.usuario));
+      ok.hidden = false;
+      ok.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (enviando) return;
+      var vazio = Array.prototype.filter.call(form.querySelectorAll('input[required]'), function (c) { return !c.value.trim(); })[0];
+      if (vazio) {
+        var rot = form.querySelector('label[for="' + vazio.id + '"]');
+        mostrarErro('Preencha ' + (rot ? rot.textContent.trim().replace(/\s*\(.*\)$/, '').toLowerCase() : 'todos os campos') + '.', vazio.name);
+        return;
+      }
+      if (tipo !== 'login' && s1 && s1.value.length < 6) { mostrarErro('A senha precisa ter pelo menos 6 caracteres.', 'senha'); return; }
+      if (s2 && s1 && s2.value !== s1.value) { mostrarErro('As senhas não conferem.', 'confirmarSenha'); return; }
+      if (tipo === 'registrar' && livreOk === false) { mostrarErro('Esse usuário não está disponível. Escolha outro.', 'usuario'); return; }
+      enviando = true;
+      carregando(true);
+      var tok = form.querySelector('input[name="_csrf"]');
+      fetch(form.action, {
+        method: 'POST',
+        body: new URLSearchParams(new FormData(form)),
+        headers: { 'X-Requested-With': 'fetch', 'Accept': 'application/json', 'X-CSRF-Token': tok ? tok.value : '' },
+      })
+        .then(function (r) {
+          // Resposta que não é JSON (ex.: sessão expirada): segue pelo envio normal da página
+          if ((r.headers.get('content-type') || '').indexOf('json') < 0) throw new Error('semjson');
+          return r.json();
+        })
+        .then(function (d) {
+          if (d && d.ok && d.redirect) { location.href = d.redirect; return; } // continua "carregando" até a próxima tela
+          enviando = false;
+          carregando(false);
+          if (d && d.ok) { enviado(d); return; }
+          if (tipo === 'login' && d && d.campo === 'senha' && s1) s1.value = '';
+          mostrarErro((d && d.erro) || 'Não foi possível continuar. Tente de novo.', d && d.campo);
+        })
+        .catch(function (err) {
+          if (err && err.message === 'semjson') { form.submit(); return; }
+          enviando = false;
+          carregando(false);
+          mostrarErro('Sem conexão. Confira a internet e tente de novo.');
+        });
+    });
+    regras();
+    if (loginNovo && loginNovo.value) { loginNovo.dataset.mexido = '1'; conferirLogin(); }
+  })();
+
 })();

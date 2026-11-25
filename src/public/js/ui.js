@@ -8253,4 +8253,293 @@
     setTimeout(function () { comecar(0); }, espera);
   })();
 
+
+  /* ---------- Painel do admin fluido: ações sem recarregar ([data-adm-form] e a folha ⋯),
+     busca e filtros de usuários na hora, novo usuário numa folha. O servidor devolve
+     { ok, msg, erro, aviso, html, resumo }: a linha da pessoa já pronta e as contagens. ---------- */
+  (function () {
+    if (!document.querySelector('.barra-inferior a[href="/admin"]')) return; // só no admin
+    function csrf() { var m = document.querySelector('meta[name="csrf-token"]'); return m ? m.getAttribute('content') : ''; }
+    function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+    function semAcento(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+    function postar(url, corpo) {
+      if (!corpo) corpo = new URLSearchParams({ _csrf: csrf() });
+      return fetch(url, { method: 'POST', body: corpo, headers: { 'X-Requested-With': 'fetch', 'Accept': 'application/json', 'X-CSRF-Token': csrf() } })
+        .then(function (r) { return r.json().catch(function () { return { ok: false }; }); });
+    }
+    window.__admPostar = postar;
+
+    // Aviso importante depois de uma ação (ex.: a pessoa inativada estava no sorteio): card com "Entendi"
+    var avisoModal = null;
+    function avisar(texto, link) {
+      if (!avisoModal) {
+        avisoModal = document.createElement('div');
+        avisoModal.className = 'modal'; avisoModal.hidden = true; avisoModal.setAttribute('aria-hidden', 'true');
+        avisoModal.innerHTML = '<div class="modal-card conf-card"><h3 class="conf-titulo">Atenção</h3><p class="texto-suave conf-sub"></p>'
+          + '<div class="modal-acoes"><a class="btn btn-secundario btn-sm" data-adm-aviso-link hidden>Ver campanha</a>'
+          + '<button type="button" class="btn btn-primario btn-sm" data-fechar-modal>Entendi</button></div></div>';
+        document.body.appendChild(avisoModal);
+      }
+      avisoModal.querySelector('.conf-sub').textContent = texto;
+      var a = avisoModal.querySelector('[data-adm-aviso-link]');
+      a.hidden = !link; if (link) a.href = link;
+      abrirModal(avisoModal);
+    }
+    window.__admAvisar = avisar;
+
+    // Senha provisória recém-gerada: aparece uma vez, com "Copiar" (o copiar é o handler geral)
+    var senhaModal = null;
+    function mostrarSenha(nome, senha) {
+      if (!senhaModal) {
+        senhaModal = document.createElement('div');
+        senhaModal.className = 'modal'; senhaModal.hidden = true; senhaModal.setAttribute('aria-hidden', 'true');
+        senhaModal.innerHTML = '<div class="modal-card conf-card adm-senha-card">'
+          + '<span class="adm-senha-ic" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>'
+          + '<h3 class="conf-titulo"></h3><code class="adm-senha"></code>'
+          + '<p class="texto-suave conf-sub">Passe essa senha para a pessoa. Ela só aparece agora: no próximo login o app pede a senha definitiva.</p>'
+          + '<div class="modal-acoes"><button type="button" class="btn btn-secundario btn-sm" data-fechar-modal>Pronto</button>'
+          + '<button type="button" class="btn btn-primario btn-sm" data-copiar-aviso="Senha copiada">Copiar senha</button></div></div>';
+        document.body.appendChild(senhaModal);
+      }
+      senhaModal.querySelector('.conf-titulo').textContent = 'Senha provisória de ' + nome;
+      senhaModal.querySelector('.adm-senha').textContent = senha;
+      senhaModal.querySelector('[data-copiar-aviso]').setAttribute('data-copiar-texto', senha);
+      abrirModal(senhaModal);
+    }
+    window.__admMostrarSenha = mostrarSenha;
+
+    /* --- Lista de usuários: busca e filtros sem recarregar --- */
+    var tela = document.querySelector('[data-adm-usuarios]');
+    var buscaIn = tela && tela.querySelector('[data-adm-busca]');
+    var chipAtivo = tela && tela.querySelector('[data-adm-filtro].ativo');
+    var filtroAtual = chipAtivo ? chipAtivo.getAttribute('data-adm-filtro') : 'todos';
+    var termo = buscaIn ? semAcento(buscaIn.value.trim()).replace(/^@/, '') : '';
+    function casaFiltro(el) {
+      var sit = el.getAttribute('data-sit');
+      if (filtroAtual === 'pendentes') return sit === 'pendente';
+      if (filtroAtual === 'aprovados') return sit === 'ativo';
+      if (filtroAtual === 'inativos') return el.hasAttribute('data-inativo');
+      if (filtroAtual === 'recusados') return sit === 'recusado';
+      if (filtroAtual === 'admins') return el.hasAttribute('data-admin');
+      return true;
+    }
+    function aplicarFiltro() {
+      if (!tela) return;
+      var n = 0;
+      tela.querySelectorAll('[data-adm-pessoa]').forEach(function (el) {
+        var ok = casaFiltro(el) && (!termo || semAcento(el.getAttribute('data-nome') + ' ' + el.getAttribute('data-login')).indexOf(termo) >= 0);
+        el.hidden = !ok;
+        if (ok) n++;
+      });
+      var vazio = tela.querySelector('[data-adm-vazio]');
+      if (vazio) vazio.hidden = n > 0;
+    }
+    function lembrarUrl() {
+      var p = new URLSearchParams();
+      if (filtroAtual !== 'todos') p.set('f', filtroAtual);
+      if (buscaIn && buscaIn.value.trim()) p.set('q', buscaIn.value.trim());
+      var q = p.toString();
+      history.replaceState(history.state, '', location.pathname + (q ? '?' + q : ''));
+    }
+    if (tela) {
+      tela.addEventListener('click', function (e) {
+        var c = e.target.closest('[data-adm-filtro]');
+        if (!c || e.metaKey || e.ctrlKey) return;
+        e.preventDefault();
+        filtroAtual = c.getAttribute('data-adm-filtro');
+        tela.querySelectorAll('[data-adm-filtro]').forEach(function (x) { x.classList.toggle('ativo', x === c); });
+        c.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+        aplicarFiltro(); lembrarUrl();
+      });
+      if (buscaIn) {
+        var xBusca = tela.querySelector('[data-adm-busca-x]');
+        buscaIn.addEventListener('input', function () {
+          termo = semAcento(buscaIn.value.trim()).replace(/^@/, '');
+          if (xBusca) xBusca.hidden = !buscaIn.value;
+          aplicarFiltro(); lembrarUrl();
+        });
+        buscaIn.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); buscaIn.blur(); } });
+        if (xBusca) xBusca.addEventListener('click', function () { buscaIn.value = ''; buscaIn.dispatchEvent(new Event('input')); buscaIn.focus(); });
+      }
+    }
+
+    function atualizarContagens(resumo) {
+      if (!resumo) return;
+      document.querySelectorAll('[data-adm-n]').forEach(function (s) {
+        var k = s.getAttribute('data-adm-n');
+        if (resumo[k] != null) s.textContent = resumo[k];
+      });
+      var pend = document.querySelector('[data-adm-filtro="pendentes"]');
+      if (pend) pend.classList.toggle('alerta', resumo.pendentes > 0);
+      var r = document.querySelector('[data-adm-resumo]');
+      if (r) r.textContent = resumo.aprovados + (resumo.aprovados === 1 ? ' ativo' : ' ativos')
+        + (resumo.pendentes ? ' · ' + resumo.pendentes + ' aguardando' : '')
+        + (resumo.inativos ? ' · ' + resumo.inativos + (resumo.inativos === 1 ? ' inativo' : ' inativos') : '');
+      document.dispatchEvent(new CustomEvent('adm:resumo', { detail: resumo }));
+    }
+
+    function trocarLinha(linha, html) {
+      var t = document.createElement('div');
+      t.innerHTML = html.trim();
+      var nova = t.firstElementChild;
+      if (!nova) return null;
+      linha.replaceWith(nova);
+      nova.classList.add('trocou');
+      return nova;
+    }
+    function tirarLinha(linha) {
+      if (!linha) return;
+      linha.classList.add('saindo');
+      setTimeout(function () {
+        var lista = linha.parentNode;
+        linha.remove();
+        aplicarFiltro();
+        if (lista && lista.closest) {
+          var sai = lista.closest('[data-adm-sai]');
+          var vazio = sai && sai.querySelector('[data-adm-vazio]');
+          if (vazio && !sai.querySelector('[data-adm-pessoa]')) vazio.hidden = false;
+        }
+      }, 220);
+    }
+
+    // Resultado de qualquer ação: troca/tira a linha, contagens, toast e aviso
+    function aplicarResposta(d, linha, form) {
+      if (form && form.hasAttribute('data-adm-novo')) {
+        var lista = document.querySelector('[data-adm-lista]');
+        if (lista && d.html) {
+          lista.insertAdjacentHTML('afterbegin', d.html.trim());
+          var nova = lista.firstElementChild;
+          if (nova) nova.classList.add('trocou');
+        }
+        form.reset();
+        fecharModal(form.closest('.modal'));
+      } else if (linha) {
+        if (linha.closest('[data-adm-sai]') || !d.html) tirarLinha(linha);
+        else trocarLinha(linha, d.html);
+      }
+      atualizarContagens(d.resumo);
+      aplicarFiltro();
+      if (d.msg) toast(d.msg);
+      if (d.aviso) setTimeout(function () { avisar(d.aviso, d.link); }, 250);
+    }
+    window.__admAplicar = aplicarResposta;
+
+    function validar(form) {
+      var campos = form.querySelectorAll('input[required], input[minlength]');
+      for (var i = 0; i < campos.length; i++) {
+        var c = campos[i], v = c.value.trim();
+        var rot = (c.closest('label') && c.closest('label').querySelector('.ed-rot')) || null;
+        var nome = rot ? rot.textContent.trim() : 'o campo';
+        if (c.required && !v) { toast('Preencha ' + nome.toLowerCase()); c.focus(); return false; }
+        var min = parseInt(c.getAttribute('minlength'), 10);
+        if (min && v.length < min) { toast(nome + ': mínimo de ' + min + ' caracteres'); c.focus(); return false; }
+      }
+      return true;
+    }
+
+    // Formulários do painel: o card de confirmação (se houver) roda antes e cancela o envio;
+    // depois do "sim" o envio volta sem defaultPrevented e segue por fetch.
+    document.addEventListener('submit', function (e) {
+      var form = e.target.closest('form[data-adm-form]');
+      if (!form || e.defaultPrevented) return;
+      e.preventDefault();
+      if (form.dataset.enviando) return;
+      if (form.hasAttribute('data-adm-novo') && !validar(form)) return;
+      form.dataset.enviando = '1';
+      var botoes = form.querySelectorAll('button[type="submit"]');
+      botoes.forEach(function (b) { b.classList.add('enviando'); });
+      postar(form.action, new URLSearchParams(new FormData(form)))
+        .then(function (d) {
+          if (!d || !d.ok) { toast((d && d.erro) || 'Não foi possível concluir.'); return; }
+          aplicarResposta(d, form.closest('[data-adm-pessoa]'), form);
+        })
+        .catch(function () { toast('Sem conexão. Tente de novo.'); })
+        .finally(function () { delete form.dataset.enviando; botoes.forEach(function (b) { b.classList.remove('enviando'); }); });
+    });
+
+    /* --- Folha de ações de uma pessoa (⋯), como o menu de opções do Instagram --- */
+    var IC = {
+      editar: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+      senha: '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+      aprovar: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/>',
+      inativar: '<circle cx="12" cy="12" r="10"/><line x1="4.9" y1="4.9" x2="19.1" y2="19.1"/>',
+      ativar: '<polyline points="20 6 9 17 4 12"/>',
+      excluir: '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>',
+    };
+    function op(acao, titulo, sub, perigo, href) {
+      var ic = '<span class="comp-mais-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + IC[acao] + '</svg></span>';
+      var txt = '<span class="comp-mais-txt"><strong>' + esc(titulo) + '</strong><small>' + esc(sub) + '</small></span>';
+      var cls = 'comp-mais-op' + (perigo ? ' adm-op-perigo' : '');
+      return href ? '<a class="' + cls + '" href="' + href + '">' + ic + txt + '</a>'
+        : '<button type="button" class="' + cls + '" data-adm-op="' + acao + '">' + ic + txt + '</button>';
+    }
+    var folha = null, alvo = null;
+    function abrirFolha(linha) {
+      alvo = linha;
+      if (!folha) {
+        folha = document.createElement('div');
+        folha.className = 'modal sheet-share'; folha.hidden = true; folha.setAttribute('aria-hidden', 'true');
+        folha.innerHTML = '<div class="modal-card share-card comp-mais-card adm-folha">'
+          + '<div class="sheet-cab sempre"><span class="sheet-grab" aria-hidden="true"></span><span class="sheet-titulo">Opções</span>'
+          + '<button type="button" class="sheet-x" data-fechar-modal aria-label="Fechar">&times;</button></div>'
+          + '<div class="adm-op-quem"></div><div class="comp-mais-lista"></div></div>';
+        document.body.appendChild(folha);
+        folha.addEventListener('click', function (e) {
+          var b = e.target.closest('[data-adm-op]');
+          if (b) { fecharModal(folha); executar(b.getAttribute('data-adm-op'), alvo); }
+        });
+      }
+      var id = linha.getAttribute('data-adm-pessoa'), sit = linha.getAttribute('data-sit');
+      var eu = linha.hasAttribute('data-eu'), inativo = linha.hasAttribute('data-inativo');
+      var av = linha.querySelector('.adm-av'), sub = linha.querySelector('.adm-pessoa-txt small');
+      folha.querySelector('.adm-op-quem').innerHTML = '<span class="adm-av">' + (av ? av.innerHTML : '') + '</span><div><strong>'
+        + esc(linha.getAttribute('data-nome')) + '</strong><small>' + esc(sub ? sub.textContent.trim() : '') + '</small></div>';
+      var h = op('editar', 'Editar dados', 'Nome, login e tipo de acesso', false, '/admin/usuarios/' + id + '/editar');
+      if (!eu) {
+        if (sit === 'recusado') h += op('aprovar', 'Aprovar mesmo assim', 'O cadastro tinha sido recusado');
+        if (sit === 'ativo') h += op('senha', 'Redefinir senha', 'Gera uma senha provisória para você passar');
+        if (sit !== 'pendente') h += inativo ? op('ativar', 'Reativar acesso', 'A pessoa volta a conseguir entrar') : op('inativar', 'Inativar acesso', 'Desconecta e bloqueia a entrada');
+        h += op('excluir', 'Excluir conta', 'Apaga a pessoa e tudo o que ela postou', true);
+      }
+      folha.querySelector('.comp-mais-lista').innerHTML = h;
+      abrirModal(folha);
+    }
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-adm-mais]');
+      if (!b) return;
+      var linha = b.closest('[data-adm-pessoa]');
+      if (linha) abrirFolha(linha);
+    });
+
+    function executar(acao, linha) {
+      if (!linha) return;
+      var id = linha.getAttribute('data-adm-pessoa'), nome = linha.getAttribute('data-nome');
+      var confirmar = window.__confirmar || function () { return Promise.resolve(true); };
+      var passo;
+      if (acao === 'senha') passo = confirmar('Redefinir a senha de ' + nome + '?', { sub: 'A senha atual deixa de valer na hora. O app cria uma senha provisória curta para você passar.', ok: 'Redefinir', perigo: false });
+      else if (acao === 'inativar') passo = confirmar('Inativar ' + nome + '?', { sub: 'A pessoa é desconectada na hora e não consegue mais entrar. Dá para reativar depois.', ok: 'Inativar' });
+      else if (acao === 'excluir') passo = confirmar('Excluir ' + nome + ' para sempre?', { sub: 'Apaga posts, fotos, mensagens e todos os dados da pessoa. Não dá para desfazer.', ok: 'Excluir' });
+      else passo = Promise.resolve(true);
+      passo.then(function (sim) {
+        if (!sim) return;
+        var url = {
+          aprovar: '/admin/aprovacoes/' + id + '/aprovar',
+          senha: '/admin/usuarios/' + id + '/resetar-senha',
+          inativar: '/admin/usuarios/' + id + '/inativar',
+          ativar: '/admin/usuarios/' + id + '/ativar',
+          excluir: '/admin/usuarios/' + id + '/excluir',
+        }[acao];
+        if (!url) return;
+        linha.classList.add('enviando');
+        postar(url).then(function (d) {
+          if (!d || !d.ok) { toast((d && d.erro) || 'Não foi possível concluir.'); return; }
+          if (acao === 'excluir') d.html = '';
+          aplicarResposta(d, linha);
+          if (acao === 'senha' && d.senha) mostrarSenha(d.nome || nome, d.senha);
+        }).catch(function () { toast('Sem conexão. Tente de novo.'); })
+          .finally(function () { linha.classList.remove('enviando'); });
+      });
+    }
+  })();
+
 })();

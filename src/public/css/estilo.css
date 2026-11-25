@@ -3644,6 +3644,8 @@ body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
 .ptr.pronto .feed-spinner { border-top-color: var(--ouro); }
 .ptr.girando .feed-spinner { animation-play-state: running; border-top-color: var(--ouro); }
 @media (min-width: 900px) { .ptr { display: none; } }
+/* No celular, só o feed tem o puxar próprio: o do navegador (que recarrega a página) sai de cena */
+@media (max-width: 899px) { html:has(.ptr), body:has(.ptr) { overscroll-behavior-y: contain; } }
 
 /* ============================================================
    EDITOR DE STORIES (estilo Instagram) + sobreposições no visualizador

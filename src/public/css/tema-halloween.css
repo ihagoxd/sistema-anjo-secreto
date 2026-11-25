@@ -213,7 +213,8 @@ body.tema-halloween .side-rodape { border-top: 1px dashed var(--line-strong); }
 body.tema-halloween .topo-mobile { border-bottom: none; }
 body.tema-halloween .topo-ig .topo-marca .marca-emblema { filter: drop-shadow(0 0 8px rgba(255, 122, 26, 0.6)); }
 body.tema-halloween .barra-inferior { background: var(--surface); border-top: none; backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.35); }
-body.tema-halloween .barra-inferior::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--hw-faixa); background-size: 200% 100%; animation: hw-faixa-anda 6s linear infinite; }
+/* Faixa só no topo, seguindo o arredondamento da pílula (anel de 3px via máscara) */
+body.tema-halloween .barra-inferior::before { content: ''; position: absolute; inset: 0; border-radius: inherit; padding-top: 3px; pointer-events: none; background: var(--hw-faixa); background-size: 200% 100%; animation: hw-faixa-anda 6s linear infinite; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
 body.tema-halloween .bi-item.ativo { color: var(--hw-laranja); }
 body.tema-halloween .bi-item.ativo svg { animation: hw-pula 0.5s var(--ease-spring); filter: drop-shadow(0 0 6px rgba(255, 122, 26, 0.6)); }
 @keyframes hw-pula { 0% { transform: scale(0.8); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }

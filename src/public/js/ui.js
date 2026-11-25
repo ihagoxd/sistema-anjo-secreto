@@ -2130,6 +2130,20 @@
     var feed = document.querySelector('.feed');
     if (!stories || !feed) return; // só na página do mural
     var sentinela = document.querySelector('[data-feed-mais]');
+    // Quem rola: no modo app (PWA) é o .conteudo; no navegador comum é a página.
+    function rolador() {
+      var c = document.querySelector('.conteudo');
+      if (c && c.scrollHeight > c.clientHeight) {
+        var ov = getComputedStyle(c).overflowY;
+        if (ov === 'auto' || ov === 'scroll') return c;
+      }
+      return null;
+    }
+    function topoAtual() { var r = rolador(); return r ? r.scrollTop : (window.scrollY || document.documentElement.scrollTop || 0); }
+    function irAoTopo(suave) {
+      var r = rolador() || window;
+      try { r.scrollTo({ top: 0, behavior: suave ? 'smooth' : 'auto' }); } catch (e) { if (r === window) window.scrollTo(0, 0); else r.scrollTop = 0; }
+    }
     var maiorId = 0;
     document.querySelectorAll('.tw-post[data-id]').forEach(function (p) {
       maiorId = Math.max(maiorId, parseInt(p.getAttribute('data-id'), 10) || 0);
@@ -2174,12 +2188,12 @@
         .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
         .then(function (d) {
           if (!d.ids || !d.ids.length) { esconderAviso(); return; }
-          var noTopo = window.scrollY < 260;
+          var noTopo = topoAtual() < 260;
           if (forcar || noTopo) {
             inserirHtml(d.html);
             maiorId = Math.max(maiorId, d.maiorId | 0);
             esconderAviso();
-            if (forcar) window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (forcar) irAoTopo(true);
           } else {
             mostrarAviso(d.ids.length);
           }
@@ -2259,21 +2273,50 @@
       }, { rootMargin: '600px 0px' }).observe(sentinela);
     }
 
-    /* ---- Puxar para atualizar (toque, no topo da página) ---- */
+    /* ---- Puxar para atualizar (toque) e toque na casinha ----
+       Só começa com o feed no topo de verdade (scrollTop 0 de quem rola) e a partir de um
+       dedo parado: rolar o feed nunca mostra o indicador. Casinha/logo com o feed rolado:
+       sobe ao topo; já no topo: atualiza — igual ao Instagram. ---- */
     var ptr = document.querySelector('[data-ptr]');
+    var LIMITE = 72, atualizando = false;
+    function atualizarFeed() {
+      if (atualizando) return Promise.resolve();
+      atualizando = true;
+      if (ptr) { ptr.classList.add('girando', 'pronto'); ptr.style.opacity = '1'; ptr.style.transform = 'translateY(' + LIMITE + 'px)'; }
+      try { if (navigator.vibrate) navigator.vibrate(12); } catch (x) {}
+      var t0 = Date.now();
+      return Promise.all([
+        puxarNovos(true),
+        fetch('/feed/novidades?depois=' + maiorId, { headers: { 'Accept': 'application/json' } }).then(function (r) { return r.json(); }).then(aplicarAneis).catch(function () {}),
+      ]).finally(function () {
+        // o giro fica visível pelo menos meio segundo, senão parece que nada aconteceu
+        setTimeout(function () {
+          if (ptr) { ptr.classList.remove('girando', 'pronto'); ptr.style.transform = ''; ptr.style.opacity = ''; }
+          atualizando = false;
+        }, Math.max(250, 600 - (Date.now() - t0)));
+      });
+    }
+    window.__atualizarFeed = atualizarFeed;
+
     if (ptr && window.matchMedia('(pointer: coarse)').matches) {
       var y0 = -1, puxando = false, dist = 0;
-      var LIMITE = 72;
+      function travado() { return document.body.classList.contains('sem-scroll') || document.body.classList.contains('travado'); }
       document.addEventListener('touchstart', function (e) {
-        if (window.scrollY > 0 || document.body.classList.contains('sem-scroll')) { y0 = -1; return; }
+        y0 = -1;
+        if (atualizando || travado() || e.touches.length !== 1 || topoAtual() > 0) return;
         y0 = e.touches[0].clientY; dist = 0; puxando = false;
       }, { passive: true });
       document.addEventListener('touchmove', function (e) {
         if (y0 < 0) return;
+        if (topoAtual() > 0) { // o feed rolou: não é um puxão, é rolagem
+          y0 = -1;
+          if (puxando) { puxando = false; ptr.style.transform = ''; ptr.style.opacity = ''; ptr.classList.remove('pronto'); }
+          return;
+        }
         dist = e.touches[0].clientY - y0;
-        if (dist > 10 && window.scrollY === 0) {
+        if (dist > 14) {
           puxando = true;
-          var d = Math.min(LIMITE * 1.4, dist * 0.55);
+          var d = Math.min(LIMITE * 1.4, (dist - 14) * 0.55);
           ptr.style.transform = 'translateY(' + d + 'px)';
           ptr.style.opacity = String(Math.min(1, d / LIMITE));
           ptr.classList.toggle('pronto', d >= LIMITE);
@@ -2284,17 +2327,21 @@
         var pronto = ptr.classList.contains('pronto');
         puxando = false; y0 = -1;
         if (!pronto) { ptr.style.transform = ''; ptr.style.opacity = ''; ptr.classList.remove('pronto'); return; }
-        ptr.classList.add('girando');
-        ptr.style.transform = 'translateY(' + LIMITE + 'px)';
-        try { if (navigator.vibrate) navigator.vibrate(12); } catch (x) {}
-        Promise.all([puxarNovos(true), fetch('/feed/novidades?depois=' + maiorId, { headers: { 'Accept': 'application/json' } }).then(function (r) { return r.json(); }).then(aplicarAneis).catch(function () {})])
-          .finally(function () {
-            setTimeout(function () { ptr.classList.remove('girando', 'pronto'); ptr.style.transform = ''; ptr.style.opacity = ''; }, 250);
-          });
+        atualizarFeed();
       }
       document.addEventListener('touchend', soltar, { passive: true });
       document.addEventListener('touchcancel', soltar, { passive: true });
     }
+
+    // Casinha (barra inferior), logo (topo do celular) e "Início" (menu lateral), já no feed
+    document.querySelectorAll('.barra-inferior a[href="/feed"], .topo-marca[href="/feed"], .side-link[href="/feed"]').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
+        if (location.pathname !== '/feed') return;
+        e.preventDefault();
+        if (topoAtual() > 4) irAoTopo(true); else atualizarFeed();
+      });
+    });
   })();
 
   /* ---------- Direct ao vivo (SSE) ----------

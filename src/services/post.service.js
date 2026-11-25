@@ -152,11 +152,15 @@ async function criarPost(idUsuario, texto, imagemPath, videoPath = null, colabor
 }
 
 // Primeira página / próximas páginas (rolagem infinita). Pede um a mais para saber se há "mais".
-const FEED_PAGINA = 15;
+// Primeira página do feed menor (abre mais rápido, ao tocar na casinha); as seguintes
+// entram sozinhas na rolagem infinita, bem antes de chegar no fim.
+const FEED_PRIMEIRA = 8;
+const FEED_PAGINA = 12;
 async function listarFeed(idUsuarioAtual, antesDe = null) {
-  const rows = await postModel.listarFeed(idUsuarioAtual, FEED_PAGINA + 1, antesDe);
-  const temMais = rows.length > FEED_PAGINA;
-  return { posts: rows.slice(0, FEED_PAGINA), temMais };
+  const lim = antesDe ? FEED_PAGINA : FEED_PRIMEIRA;
+  const rows = await postModel.listarFeed(idUsuarioAtual, lim + 1, antesDe);
+  const temMais = rows.length > lim;
+  return { posts: rows.slice(0, lim), temMais };
 }
 
 function listarNovos(idUsuarioAtual, depois) {

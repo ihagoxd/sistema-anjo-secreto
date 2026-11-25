@@ -4017,14 +4017,33 @@
   });
   // Confirmação bonita (substitui o confirm nativo do navegador): um cardzinho com
   // Cancelar/Confirmar. Ações destrutivas (apagar/remover/…) ganham botão vermelho.
+  // No form: data-confirmar (título), data-confirmar-sub (linha de baixo), data-confirmar-ok
+  // (texto do botão). Por código: window.__confirmar(titulo, { sub, ok, perigo }) → Promise<boolean>.
   (function () {
-    var confModal = null, confForm = null;
+    var confModal = null, confAcao = null;
     document.addEventListener('submit', function (e) {
       var f = e.target.closest('[data-confirmar]');
       if (!f) return;
       if (f.dataset.confirmado === '1') { f.dataset.confirmado = ''; return; } // já passou pelo card
       e.preventDefault();
-      confForm = f;
+      mostrar(f.getAttribute('data-confirmar') || 'Confirmar?', {
+        sub: f.getAttribute('data-confirmar-sub'),
+        ok: f.getAttribute('data-confirmar-ok'),
+      }, function () {
+        f.dataset.confirmado = '1';
+        if (f.requestSubmit) f.requestSubmit(); else f.submit();
+      });
+    });
+    window.__confirmar = function (titulo, op) {
+      return new Promise(function (resolve) {
+        mostrar(titulo, op || {}, function () { resolve(true); }, function () { resolve(false); });
+      });
+    };
+    var confCancelar = null;
+    function mostrar(msg, op, aoConfirmar, aoCancelar) {
+      if (confCancelar) { var c = confCancelar; confCancelar = null; c(); }
+      confAcao = aoConfirmar;
+      confCancelar = aoCancelar || null;
       if (!confModal) {
         confModal = document.createElement('div');
         confModal.className = 'modal';
@@ -4039,25 +4058,26 @@
           + '</div></div>';
         document.body.appendChild(confModal);
         confModal.addEventListener('click', function (ev) {
-          if (!ev.target.closest('.conf-ok')) return;
+          var sim = ev.target.closest('.conf-ok');
+          // Cancelar = botão Cancelar ou toque fora do card (o fechamento em si é do handler geral)
+          if (!sim && !ev.target.closest('[data-fechar-modal]') && ev.target !== confModal) return;
           confModal.setAttribute('hidden', '');
           confModal.setAttribute('aria-hidden', 'true');
-          if (confForm) {
-            confForm.dataset.confirmado = '1';
-            if (confForm.requestSubmit) confForm.requestSubmit(); else confForm.submit();
-          }
+          var acao = confAcao, cancelar = confCancelar;
+          confAcao = null; confCancelar = null;
+          if (sim) { if (acao) acao(); } else if (cancelar) cancelar();
         });
       }
-      var msg = f.getAttribute('data-confirmar') || 'Confirmar?';
       confModal.querySelector('.conf-titulo').textContent = msg;
+      var sub = confModal.querySelector('.conf-sub');
+      sub.textContent = op.sub || 'Essa ação não pode ser desfeita.';
       var ok = confModal.querySelector('.conf-ok');
-      var destrutivo = /apagar|remover|excluir|recusar|inativar|encerrar/i.test(msg);
+      var destrutivo = op.perigo != null ? !!op.perigo : /apagar|remover|excluir|recusar|inativar|encerrar/i.test(msg);
       ok.classList.toggle('conf-perigo', destrutivo);
-      ok.textContent = destrutivo ? 'Sim, remover' : 'Confirmar';
-      if (/encerrar/i.test(msg)) ok.textContent = 'Sim, encerrar';
+      ok.textContent = op.ok || (/encerrar/i.test(msg) ? 'Sim, encerrar' : destrutivo ? 'Sim, remover' : 'Confirmar');
       confModal.hidden = false;
       confModal.setAttribute('aria-hidden', 'false');
-    });
+    }
   })();
 
   /* ---------- Copiar texto (ex.: senha provisória na tela de usuário) ---------- */

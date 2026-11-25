@@ -2,6 +2,9 @@
 
 const authService = require('../services/auth.service');
 const { registrarLog } = require('../services/log.service');
+const usuarioModel = require('../models/usuario.model');
+const tempoReal = require('../services/tempoReal.service');
+const { renderizar } = require('../utils/responder');
 
 const MSG_LOGIN = {
   CREDENCIAIS: 'Usuário ou senha inválidos.',
@@ -77,6 +80,14 @@ async function postRegistrar(req, res, next) {
       });
     }
     await registrarLog({ idUsuario: r.usuario.id_usuario, acao: 'CADASTRO_SOLICITADO', descricao: `usuario: ${r.usuario.usuario}`, ip: req.ip });
+    // Painel dos admins conectados: o número de Aprovações sobe e a pessoa entra na lista na hora
+    try {
+      const [admins, resumo] = await Promise.all([usuarioModel.idsAdminsAtivos(), usuarioModel.contarResumo()]);
+      if (admins.length) {
+        const html = await renderizar(res, 'partials/admUsuario', { ...r.usuario, sit: 'pendente', sitRotulo: 'Aguardando aprovação', csrfToken: '' });
+        admins.forEach((id) => tempoReal.publicar(id, 'adm-cadastro', { nome: r.usuario.nome, id_usuario: r.usuario.id_usuario, html, resumo }));
+      }
+    } catch (e) { /* o aviso ao vivo é um extra: o cadastro já foi feito */ }
     req.session.flash = { sucesso: 'Cadastro enviado! Aguarde a aprovação do administrador para entrar.' };
     return res.redirect('/login');
   } catch (err) {

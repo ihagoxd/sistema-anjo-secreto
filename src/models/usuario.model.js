@@ -289,6 +289,14 @@ async function contarParticipantesAptos() {
   return res.rows[0].n;
 }
 
+// Ids dos administradores ativos (para avisar o painel deles em tempo real).
+async function idsAdminsAtivos() {
+  const res = await db.query(
+    `SELECT id_usuario FROM usuarios WHERE tipo_usuario = 'ADMINISTRADOR' AND ativo = TRUE AND status = 'APROVADO'`
+  );
+  return res.rows.map((r) => r.id_usuario);
+}
+
 // Quantos administradores ativos e aprovados existem (guarda anti-lockout).
 async function contarAdminsAtivos() {
   const res = await db.query(
@@ -404,6 +412,7 @@ module.exports = {
   atualizarStatus,
   listarPorStatus,
   contarPorStatus,
+  idsAdminsAtivos,
   contarTotal,
   contarParticipantesAptos,
   contarAdminsAtivos,

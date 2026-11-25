@@ -4067,10 +4067,13 @@
     return { abrir: abrir };
   })();
 
-  /* ---------- Foto de perfil: recorte circular ---------- */
+  /* ---------- Foto de perfil: recorte circular ----------
+     Na tela Editar perfil ([data-ed-form]) a foto recortada já é enviada na hora e todas as
+     fotos minhas na página trocam juntas. Nas outras telas, vai junto com o formulário. */
   (function () {
     var inpFoto = document.getElementById('foto_perfil');
     if (!inpFoto) return;
+    var edForm = inpFoto.closest('[data-ed-form]');
 
     function preview(blobOuFile) {
       var alvo = document.getElementById(inpFoto.getAttribute('data-preview'));
@@ -4080,13 +4083,32 @@
       img.src = URL.createObjectURL(blobOuFile);
       alvo.appendChild(img);
     }
+    function enviarNaHora(blob) {
+      var csrf = edForm.querySelector('input[name="_csrf"]');
+      var fd = new FormData();
+      fd.append('_csrf', csrf ? csrf.value : '');
+      fd.append('so_foto', '1');
+      fd.append('foto_perfil', new File([blob], 'foto.jpg', { type: 'image/jpeg' }));
+      var av = edForm.querySelector('.ed-av');
+      if (av) av.classList.add('enviando');
+      fetch('/conta', { method: 'POST', body: fd, headers: { 'X-Requested-With': 'fetch', 'Accept': 'application/json' } })
+        .then(function (r) { return r.json().catch(function () { return { ok: false }; }); })
+        .then(function (d) {
+          if (!d || !d.ok) { if (window.toast) window.toast((d && d.erro) || 'Não foi possível trocar a foto.'); return; }
+          if (window.__trocarMinhaFoto) window.__trocarMinhaFoto(d.foto_perfil);
+          if (window.toast) window.toast('Foto de perfil atualizada');
+        })
+        .catch(function () { if (window.toast) window.toast('Sem conexão. Tente de novo.'); })
+        .finally(function () { if (av) av.classList.remove('enviando'); inpFoto.value = ''; });
+    }
 
     inpFoto.addEventListener('change', function () {
       var f = this.files && this.files[0];
       if (!f) return;
-      if (!Cropper) { preview(f); return; } // sem cropper: preview direto
+      if (!Cropper) { if (edForm) enviarNaHora(f); else preview(f); return; } // sem cropper
       Cropper.abrir(f, { formato: 'circulo', titulo: 'Ajuste sua foto' }, function (blob) {
         if (!blob) { inpFoto.value = ''; return; }
+        if (edForm) { preview(blob); enviarNaHora(blob); return; }
         try {
           var dt = new DataTransfer();
           dt.items.add(new File([blob], 'foto.jpg', { type: 'image/jpeg' }));
@@ -4095,6 +4117,100 @@
         preview(blob);
       });
     });
+  })();
+
+  /* ---------- Editar perfil: salvar sem recarregar, Salvar só quando mudou, sair sem perder ---------- */
+  (function () {
+    var form = document.querySelector('[data-ed-form]');
+    if (!form) return;
+    var botoes = document.querySelectorAll('[data-ed-salvar]');
+    var nome = form.querySelector('[data-ed-nome]');
+    var bio = form.querySelector('[data-ed-bio]');
+    var cont = form.querySelector('[data-ed-cont]');
+    var erroNome = form.querySelector('[data-ed-erro-nome]');
+    var dn = form.querySelector('#data_nascimento');
+    var inpFoto = form.querySelector('#foto_perfil');
+    var modalFoto = document.getElementById('modal-ed-foto');
+    var modalDesc = document.getElementById('modal-ed-descartar');
+    var CSRF = (form.querySelector('input[name="_csrf"]') || {}).value || '';
+    var salvando = false, destino = null;
+
+    function estado() { return [nome.value.trim(), bio.value.trim(), dn ? dn.value : ''].join('\u0001'); }
+    var salvo = estado();
+    function sujo() { return estado() !== salvo; }
+    function nomeOk() { return nome.value.trim().length >= 2; }
+    function atualizar() {
+      var ok = sujo() && nomeOk() && !salvando;
+      botoes.forEach(function (b) { b.disabled = !ok; });
+      if (erroNome) erroNome.hidden = nomeOk();
+      nome.classList.toggle('invalido', !nomeOk());
+    }
+    function crescer() { bio.style.height = 'auto'; bio.style.height = Math.min(bio.scrollHeight, 160) + 'px'; }
+    function contar() { if (cont) cont.textContent = bio.value.length + '/150'; }
+    form.addEventListener('input', function () { atualizar(); });
+    form.addEventListener('change', function () { setTimeout(atualizar, 0); }); // selects do aniversário
+    bio.addEventListener('input', function () { crescer(); contar(); });
+    crescer(); contar(); atualizar();
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (!sujo() || !nomeOk() || salvando) return;
+      salvando = true; atualizar();
+      botoes.forEach(function (b) { b.classList.add('salvando'); });
+      var fd = new FormData(form);
+      fd.delete('foto_perfil');
+      fetch('/conta', { method: 'POST', body: fd, headers: { 'X-Requested-With': 'fetch', 'Accept': 'application/json' } })
+        .then(function (r) { return r.json().catch(function () { return { ok: false }; }); })
+        .then(function (d) {
+          if (!d || !d.ok) { if (window.toast) window.toast((d && d.erro) || 'Não foi possível salvar.'); return; }
+          salvo = estado();
+          // nome novo aparece na hora onde ele está na página (menu lateral)
+          document.querySelectorAll('[data-meu-nome]').forEach(function (el) { el.textContent = d.nome; });
+          if (window.toast) window.toast('Perfil atualizado');
+          if (destino) { var ir = destino; destino = null; location.href = ir; }
+        })
+        .catch(function () { if (window.toast) window.toast('Sem conexão. Tente de novo.'); })
+        .finally(function () { salvando = false; botoes.forEach(function (b) { b.classList.remove('salvando'); }); atualizar(); });
+    });
+    nome.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); nome.blur(); if (form.requestSubmit) form.requestSubmit(); } });
+
+    // ----- Foto: folha (nova / remover) quando já tem foto; sem foto abre direto a galeria -----
+    function temFoto() { return inpFoto && inpFoto.getAttribute('data-tem-foto') === '1'; }
+    document.addEventListener('click', function (e) {
+      if (e.target.closest('[data-ed-foto]')) {
+        if (temFoto() && modalFoto) abrirModal(modalFoto); else if (inpFoto) inpFoto.click();
+        return;
+      }
+      if (e.target.closest('[data-ed-foto-nova]')) { fecharModal(modalFoto); if (inpFoto) inpFoto.click(); return; }
+      if (e.target.closest('[data-ed-foto-remover]')) {
+        fecharModal(modalFoto);
+        var av = form.querySelector('.ed-av'); if (av) av.classList.add('enviando');
+        fetch('/conta/foto/remover', { method: 'POST', headers: { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch', 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' }, body: '_csrf=' + encodeURIComponent(CSRF) })
+          .then(function (r) { return r.json().catch(function () { return { ok: false }; }); })
+          .then(function (d) {
+            if (!d || !d.ok) { if (window.toast) window.toast('Não foi possível remover a foto.'); return; }
+            if (window.__trocarMinhaFoto) window.__trocarMinhaFoto(null);
+            if (window.toast) window.toast('Foto removida');
+          })
+          .finally(function () { if (av) av.classList.remove('enviando'); });
+        return;
+      }
+      var volta = e.target.closest('[data-ed-voltar]');
+      if (volta && sujo()) { e.preventDefault(); destino = volta.getAttribute('href'); abrirModal(modalDesc); return; }
+      if (e.target.closest('[data-ed-descartar]')) { var ir = destino || '/feed'; salvo = estado(); location.href = ir; }
+    });
+
+    // Todas as fotos minhas na página trocam juntas (prévia, barra inferior, menu lateral)
+    window.__trocarMinhaFoto = function (url) {
+      var inicial = (nome.value.trim() || '?').charAt(0).toUpperCase();
+      document.querySelectorAll('#avatarPreview, .bi-perfil-av, [data-meu-avatar]').forEach(function (el) {
+        el.innerHTML = '';
+        if (url) { var img = document.createElement('img'); img.src = url; img.alt = ''; el.appendChild(img); }
+        else el.textContent = inicial;
+      });
+      if (inpFoto) inpFoto.setAttribute('data-tem-foto', url ? '1' : '');
+      document.querySelectorAll('.ed-foto-link').forEach(function (b) { b.textContent = url ? 'Editar foto' : 'Adicionar foto'; });
+    };
   })();
 
   /* ---------- Mural: curtir (AJAX) + preview da foto do post ---------- */

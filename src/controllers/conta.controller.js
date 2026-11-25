@@ -3,11 +3,14 @@
 const usuarioModel = require('../models/usuario.model');
 const { apagarUpload } = require('../config/upload');
 
+const ehFetch = (req) => (req.get('x-requested-with') || '') === 'fetch';
+
 async function getConta(req, res, next) {
   try {
     const u = await usuarioModel.buscarPorId(req.session.usuario.id_usuario);
     res.render('conta/editar', {
       titulo: 'Editar perfil',
+      pagina: 'conta',
       u,
       maxData: new Date().toISOString().slice(0, 10),
       ehParticipante: req.session.usuario.tipo_usuario === 'PARTICIPANTE',
@@ -20,7 +23,20 @@ async function getConta(req, res, next) {
 async function postConta(req, res, next) {
   try {
     const id = req.session.usuario.id_usuario;
+
+    // Só a foto (a tela troca a foto na hora, sem mexer nos outros campos)
+    if (req.body.so_foto === '1') {
+      if (!req.file) return res.status(400).json({ ok: false, erro: 'Escolha uma imagem.' });
+      const caminho = '/uploads/' + req.file.filename;
+      const atual = await usuarioModel.buscarPorId(id);
+      if (atual && atual.foto_perfil) apagarUpload(atual.foto_perfil);
+      await usuarioModel.atualizarFoto(id, caminho);
+      req.session.usuario.foto_perfil = caminho;
+      return res.json({ ok: true, foto_perfil: caminho });
+    }
+
     const nome = String(req.body.nome || '').trim();
+    if (nome.length < 2 && ehFetch(req)) return res.status(400).json({ ok: false, erro: 'O nome precisa ter pelo menos 2 letras.' });
     const bio = String(req.body.bio || '').trim().slice(0, 150) || null;
 
     if (nome.length >= 2) {
@@ -47,6 +63,7 @@ async function postConta(req, res, next) {
       req.session.usuario.foto_perfil = caminho;
     }
 
+    if (ehFetch(req)) return res.json({ ok: true, nome: req.session.usuario.nome, bio, data_nascimento: nascimento });
     req.session.flash = { sucesso: 'Perfil atualizado.' };
     res.redirect('/conta');
   } catch (err) {
@@ -61,6 +78,7 @@ async function postRemoverFoto(req, res, next) {
     if (atual && atual.foto_perfil) apagarUpload(atual.foto_perfil);
     await usuarioModel.atualizarFoto(id, null);
     req.session.usuario.foto_perfil = null;
+    if (ehFetch(req)) return res.json({ ok: true });
     req.session.flash = { sucesso: 'Foto de perfil removida.' };
     res.redirect('/conta');
   } catch (err) {

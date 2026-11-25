@@ -11,7 +11,11 @@ const guard = [exigeAutenticacao, exigeSenhaDefinitiva, bloquearAdmin];
 
 const receberFoto = (req, res, next) => {
   upload.single('foto_perfil')(req, res, function (err) {
-    if (err) { req.session.flash = { erro: err.message || 'Falha no envio da imagem.' }; return res.redirect('/conta'); }
+    if (err) {
+      const erro = err.message || 'Falha no envio da imagem.';
+      if ((req.get('x-requested-with') || '') === 'fetch') return res.status(400).json({ ok: false, erro });
+      req.session.flash = { erro }; return res.redirect('/conta');
+    }
     next();
   });
 };

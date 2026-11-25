@@ -103,9 +103,9 @@
       </div>
       {{else}}
       <a class="side-user-info" href="/u/{{usuario.usuario}}" title="Ver meu perfil">
-        <span class="avatar">{{#if usuario.foto_perfil}}<img src="{{usuario.foto_perfil}}" alt="">{{else}}{{inicial usuario.nome}}{{/if}}</span>
+        <span class="avatar" data-meu-avatar>{{#if usuario.foto_perfil}}<img src="{{usuario.foto_perfil}}" alt="">{{else}}{{inicial usuario.nome}}{{/if}}</span>
         <div class="usuario-info">
-          <strong>{{usuario.nome}}</strong>
+          <strong data-meu-nome>{{usuario.nome}}</strong>
           <small>Participante</small>
         </div>
       </a>

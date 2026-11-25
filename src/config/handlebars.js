@@ -95,13 +95,22 @@ const helpers = {
   },
 
   // Linha de curtidas estilo Instagram: "Curtido por fulano e outras pessoas"
-  linhaCurtidas(curtidor, total) {
+  // "Curtido por" no padrão do Instagram: até 3 fotinhas empilhadas + "fulano e outras N pessoas"
+  // (2 curtidas: os dois nomes). Aceita a lista [{usuario, nome, foto}] ou só o @ (formato antigo).
+  linhaCurtidas(curtidores, total) {
     const n = parseInt(total, 10) || 0;
     if (!n) return '';
-    if (!curtidor) return new Handlebars.SafeString(`<strong>${n}</strong> curtida${n === 1 ? '' : 's'}`);
-    let txt = `Curtido por <strong>${Handlebars.escapeExpression(curtidor)}</strong>`;
-    if (n > 1) txt += ' e <strong>outras pessoas</strong>';
-    return new Handlebars.SafeString(txt);
+    const e = Handlebars.escapeExpression;
+    const lista = Array.isArray(curtidores) ? curtidores.filter(Boolean)
+      : (curtidores && typeof curtidores === 'string' ? [{ usuario: curtidores }] : []);
+    if (!lista.length) return new Handlebars.SafeString(`<strong>${n}</strong> curtida${n === 1 ? '' : 's'}`);
+    const avs = lista.slice(0, 3).map((c) => `<span class="ig-curt-av">${c.foto ? `<img src="${e(c.foto)}" alt="" loading="lazy">` : e((String(c.nome || c.usuario || '?').trim()[0] || '?').toUpperCase())}</span>`).join('');
+    const a = `<strong>${e(lista[0].usuario)}</strong>`;
+    let txt;
+    if (n === 1) txt = `Curtido por ${a}`;
+    else if (n === 2 && lista[1]) txt = `Curtido por ${a} e <strong>${e(lista[1].usuario)}</strong>`;
+    else txt = `Curtido por ${a} e <strong>${n - 1 === 1 ? 'outra pessoa' : `outras ${n - 1} pessoas`}</strong>`;
+    return new Handlebars.SafeString(`<span class="ig-curt-avs" aria-hidden="true">${avs}</span><span class="ig-curt-txt">${txt}</span>`);
   },
 
   // Inicial do nome (avatar)

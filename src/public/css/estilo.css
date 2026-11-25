@@ -4650,3 +4650,12 @@ body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
 .tw-post .tw-reply button[type="submit"].btn { background: none; border: none; box-shadow: none; color: var(--accent-strong); font-weight: 800; font-size: 14.5px; padding: 0 2px 0 4px; min-height: 0; height: 42px; }
 .tw-post .tw-reply button[type="submit"].btn:hover { background: none; color: var(--accent); }
 .tw-post .tw-reply:not(.tem-foto):has(input[name="texto"]:placeholder-shown) button[type="submit"].btn { display: none; }
+
+/* "Curtido por" (Instagram): fotinhas empilhadas antes do texto */
+.ig-curtidas [data-linha-curtidas] { display: inline-flex; align-items: center; gap: 7px; flex-wrap: nowrap; }
+.ig-curt-avs { display: inline-flex; flex-shrink: 0; }
+.ig-curt-av { width: 20px; height: 20px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; margin-left: -7px; border: 2px solid var(--surface); background: var(--accent-soft); color: var(--accent-strong); font-size: 9px; font-weight: 800; box-sizing: content-box; }
+.ig-curt-av:first-child { margin-left: 0; }
+.ig-curt-av img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ig-curt-txt { min-width: 0; }
+@media (max-width: 899px) { .feed .ig-curt-av { border-color: var(--bg); } }

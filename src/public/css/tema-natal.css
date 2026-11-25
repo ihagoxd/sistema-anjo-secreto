@@ -340,7 +340,16 @@ body.tema-natal .post-compositor {
   animation: nt-borda-anda 8s linear infinite;
 }
 @keyframes nt-borda-anda { to { background-position: 0 0, 300% 0; } }
-body.tema-natal .compositor-topo textarea::placeholder { color: var(--accent); opacity: 0.85; }
+/* Texto dos posts e o compositor na Fredoka redondinha (como o Halloween faz com a Mystery Quest):
+   a pessoa já vê o texto com cara de Natal enquanto escreve. O @usuário da legenda segue na fonte normal. */
+body.tema-natal { --font-post: 'Fredoka', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+body.tema-natal .tw-post-texto.ig-texto { font-family: var(--font-post); font-weight: 400; font-size: 18px; line-height: 1.5; color: var(--text); }
+body.tema-natal .tw-post-texto.ig-legenda { font-family: var(--font-post); font-weight: 400; font-size: 16px; line-height: 1.45; }
+body.tema-natal .tw-post-texto .ig-user { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; }
+body.tema-natal .tw-post-texto .mencao { font-family: inherit; }
+body.tema-natal .tw-post-texto .post-edit-box textarea { font-family: var(--font-post); font-size: 17px; }
+body.tema-natal .compositor-topo textarea { font-family: var(--font-post); font-weight: 400; font-size: 17px; line-height: 1.45; }
+body.tema-natal .compositor-topo textarea::placeholder { font-family: var(--font-post); font-weight: 500; color: color-mix(in srgb, var(--nt-azul) 55%, var(--text-faint)); opacity: 1; }
 body.tema-natal .comp-acao { color: var(--accent); }
 body.tema-natal .comp-acao:hover { background: color-mix(in srgb, var(--nt-rosa) 16%, transparent); transform: scale(1.1); }
 body.tema-natal .comp-op-ic { background: color-mix(in srgb, var(--nt-azul) 24%, var(--surface-2)); color: var(--accent-strong); }

@@ -3,6 +3,27 @@
 (function () {
   'use strict';
 
+  /* ---------- Barra de baixo (abas do app): resposta na hora e troca sem efeito de transição ----------
+     O ícone tocado acende no mesmo instante (enquanto a página nova carrega) e a troca entre
+     abas não usa o crossfade das outras navegações — como trocar de aba no Instagram. */
+  var trocaAbaBarra = false;
+  document.addEventListener('pointerdown', function (e) {
+    var a = e.target.closest('.barra-inferior a.bi-item, .barra-inferior a.bi-perfil');
+    if (!a || a.classList.contains('ativo') || location.pathname === a.getAttribute('href')) return;
+    document.querySelectorAll('.barra-inferior .ativo').forEach(function (x) { x.classList.remove('ativo'); });
+    a.classList.add('ativo');
+  }, { passive: true });
+  document.addEventListener('click', function (e) {
+    if (e.defaultPrevented) return;
+    var aba = e.target.closest('.barra-inferior a, .sidebar a.side-link');
+    // tocar na aba em que já está (ex.: casinha no feed) não navega: não marca
+    if (aba && aba.getAttribute('href') !== location.pathname) trocaAbaBarra = true;
+  });
+  window.addEventListener('pageswap', function (e) {
+    if (trocaAbaBarra && e.viewTransition) e.viewTransition.skipTransition();
+    trocaAbaBarra = false;
+  });
+
   /* ---------- Tutorial em andamento? ----------
      Os cards automáticos (aviso da administração, roleta do sorteio, aniversário)
      esperam o passo a passo terminar — nada abre por cima do holofote. */

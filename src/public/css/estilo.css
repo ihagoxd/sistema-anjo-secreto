@@ -4217,3 +4217,98 @@ body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
 .direct-conversa[data-tema]:not([data-tema="padrao"]) .dm-respondendo-txt { color: rgba(255, 255, 255, 0.75); }
 .direct-conversa[data-tema]:not([data-tema="padrao"]) .dm-respondendo-txt strong { color: #fff; }
 .direct-conversa[data-tema]:not([data-tema="padrao"]) .dm-resp-x { color: rgba(255, 255, 255, 0.8); }
+
+/* ============================================================
+   PERFIL NO PADRÃO DO INSTAGRAM
+   topo com @usuário; foto + números ao lado; bio; dois botões; abas com ícones e
+   indicador deslizante; grade 3 colunas; lista com os cards em tela cheia.
+   ============================================================ */
+.pf.tw-perfil { max-width: 760px; }
+.pf .pf-topbar { gap: 4px; padding: 6px 8px 6px 14px; min-height: 54px; }
+.pf .pf-topbar-user { flex: 1; min-width: 0; font-weight: 800; font-size: 19px; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pf .tw-back + .pf-topbar-user { padding-left: 4px; }
+.pf .pf-topbar-btn { width: 42px; height: 42px; display: grid; place-items: center; color: var(--text); border-radius: 50%; flex-shrink: 0; }
+.pf .pf-topbar-btn:hover { background: var(--hover); text-decoration: none; }
+.pf .tw-back.pf-topbar-btn { margin-left: -8px; }
+
+.pf-head { padding: 14px 16px 12px; }
+.pf-linha { display: flex; align-items: center; gap: 18px; }
+.pf-av-wrap { position: relative; flex-shrink: 0; }
+.pf .pf-avatar { width: 86px; height: 86px; font-size: 32px; border: none; margin: 0; }
+.pf .pf-avatar.st-tem, .pf .pf-avatar.st-visto { margin: 4px; width: 78px; height: 78px; }
+.pf-nota {
+  position: absolute; left: 50%; bottom: calc(100% - 14px); transform: translateX(-50%); z-index: 2;
+  max-width: 120px; padding: 6px 10px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--line);
+  font-size: 11.5px; line-height: 1.25; color: var(--text); text-align: center; white-space: normal; word-break: break-word;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+}
+.pf-head:has(.pf-nota) { padding-top: 40px; }
+.pf-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.pf-nome { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pf-stats { display: flex; justify-content: space-between; gap: 8px; max-width: 280px; }
+.pf-stat { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2; color: var(--text); }
+.pf-stat:hover { text-decoration: none; }
+.pf-stat strong { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.pf-stat span { font-size: 13px; color: var(--text-soft); }
+.pf-bio { margin-top: 12px; font-size: 14px; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
+.pf-meta { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; font-size: 12.5px; color: var(--text-faint); }
+.pf-meta svg { width: 14px; height: 14px; }
+.pf-botoes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+.pf-btn {
+  display: grid; place-items: center; height: 34px; padding: 0 12px; border-radius: 9px; border: none;
+  background: var(--surface-2); color: var(--text); font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer;
+  white-space: nowrap; transition: filter 0.12s, transform 0.12s;
+}
+.pf-btn:hover { text-decoration: none; color: var(--text); filter: brightness(1.08); }
+.pf-btn:active { transform: scale(0.97); }
+.pf-btn-pri { background: var(--accent); color: var(--on-accent, #fff); }
+.pf-btn-pri:hover { color: var(--on-accent, #fff); }
+
+/* Abas com ícones + indicador que desliza */
+.pf .pf-tabs { position: relative; border-bottom: 1px solid var(--line); }
+.pf .pf-tabs .tw-tab { display: grid; place-items: center; padding: 13px 0; font-size: 14px; font-weight: 700; color: var(--text-faint); }
+.pf .pf-tabs .tw-tab:hover { background: transparent; color: var(--text); }
+.pf .pf-tabs .tw-tab.ativo { color: var(--text); }
+.pf .pf-tabs .tw-tab.ativo::after { display: none; }
+.pf-tabs-ind {
+  position: absolute; left: 0; bottom: 0; height: 3px; width: calc(100% / var(--n, 3));
+  transform: translateX(calc(var(--i, 0) * 100%)); transition: transform 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+  pointer-events: none;
+}
+.pf-tabs-ind::before { content: ''; position: absolute; inset: 0 18%; border-radius: 3px; background: var(--ouro); }
+
+/* Painéis das abas: entram deslizando do lado certo */
+.pf .tw-aba-conteudo { min-height: 50vh; overflow-x: clip; }
+.pf-painel[hidden] { display: none; }
+.pf-painel.entra-dir { animation: pf-entra-dir 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.pf-painel.entra-esq { animation: pf-entra-esq 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes pf-entra-dir { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+@keyframes pf-entra-esq { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
+
+/* Vazio com ícone em círculo (Instagram) */
+.pf-vazio-ic { width: 72px; height: 72px; margin: 0 auto 14px; border-radius: 50%; border: 2px solid var(--text); color: var(--text); display: grid; place-items: center; }
+
+@media (max-width: 899px) {
+  body.pg-perfil .pf.tw-perfil { background: var(--bg); min-height: 100dvh; }
+  body.pg-perfil .pf .pf-topbar { background: color-mix(in srgb, var(--bg) 94%, transparent); border-bottom: none; }
+  body.pg-perfil .pf .pf-tabs { top: 54px; background: color-mix(in srgb, var(--bg) 94%, transparent); }
+}
+@media (min-width: 900px) {
+  .pf .pf-head { padding: 28px 40px 18px; }
+  .pf .pf-linha { gap: 56px; }
+  .pf .pf-avatar { width: 150px; height: 150px; font-size: 54px; }
+  .pf .pf-avatar.st-tem, .pf .pf-avatar.st-visto { width: 142px; height: 142px; }
+  .pf-nome { font-size: 20px; font-weight: 600; }
+  .pf-stats { justify-content: flex-start; gap: 36px; max-width: none; }
+  .pf-stat { flex-direction: row; align-items: baseline; gap: 5px; }
+  .pf-stat strong { font-size: 16px; }
+  .pf-stat span { font-size: 15px; color: var(--text); }
+  .pf-botoes { max-width: 420px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pf-painel.entra-dir, .pf-painel.entra-esq { animation: none; }
+  .pf-tabs-ind { transition: none; }
+}
+.pf .pf-avatar:not(.st-anel) { box-shadow: none; }
+

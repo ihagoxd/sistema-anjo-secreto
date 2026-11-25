@@ -182,6 +182,12 @@ async function listarRepostadosPor(idAutor, idUsuarioAtual) {
   return res.rows;
 }
 
+// Quantas publicações a pessoa repostou (número do perfil)
+async function contarRepostadosPor(idUsuario) {
+  const res = await db.query('SELECT count(*)::int AS n FROM reposts WHERE id_usuario = $1', [idUsuario]);
+  return res.rows[0] ? res.rows[0].n : 0;
+}
+
 async function buscarPorId(idPost) {
   const res = await db.query(`SELECT id_post, id_usuario, texto, imagem, video, enquete_pergunta FROM posts WHERE id_post = $1`, [idPost]);
   return res.rows[0] || null;
@@ -343,7 +349,7 @@ async function removerComentario(idComentario) {
 module.exports = {
   atualizarVideo,
   buscarPosts,
-  criar, listarFeed, listarNovosDesde, listarPorUsuario, listarRepostadosPor, buscarPorId, buscarFeedUm, remover, contarNovosDesde, adicionarColaboradores, atualizarTexto,
+  criar, listarFeed, listarNovosDesde, listarPorUsuario, listarRepostadosPor, contarRepostadosPor, buscarPorId, buscarFeedUm, remover, contarNovosDesde, adicionarColaboradores, atualizarTexto,
   curtir, descurtir, jaCurtiu, contarCurtidas, listarCurtidores, reacaoDe, reacoesTop,
   adicionarMidias, listarMidias, locaisSugeridos, salvar, dessalvar, jaSalvou, listarSalvosPor,
   repostar, desfazerRepost, jaRepostou, contarReposts,

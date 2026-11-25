@@ -386,6 +386,9 @@ async function renderPerfil(req, res, aba) {
   const ctx = {
     titulo: dados.alvo.nome, alvo: dados.alvo, posts, aba, gostos, fotosGosta, gostosTema,
     numPublicacoes: dados.posts.length, pagina: 'perfil',
+    // Números do cabeçalho (como no Instagram): curtidas recebidas nas publicações e reposts feitos
+    numCurtidas: dados.posts.reduce((s, p) => s + (Number(p.curtidas) || 0), 0),
+    numReposts: await postModel.contarRepostadosPor(dados.alvo.id_usuario),
   };
   // Troca de aba sem recarregar: só o conteúdo da aba, pronto em HTML
   if ((req.get('x-requested-with') || '') === 'fetch') {

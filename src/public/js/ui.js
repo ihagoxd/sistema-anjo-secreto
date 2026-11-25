@@ -2881,50 +2881,127 @@
     }
   })();
 
-  /* ---------- Abas do perfil sem recarregar (Publicações / Reposts / Gostos / Salvos):
-     busca só o conteúdo da aba por fetch, troca na hora e atualiza a URL (voltar funciona). ---------- */
+  /* ---------- Perfil (padrão Instagram) ----------
+     Abas: cada aba vira um "painel" guardado no DOM — voltar a uma aba é instantâneo e
+     mantém curtidas/comentários feitos nela. As outras abas são pré-carregadas em segundo
+     plano. Arrastar o conteúdo para o lado troca de aba; o indicador desliza junto.
+     ---------- */
   (function () {
     var cont = document.querySelector('[data-aba-conteudo]');
-    var tabs = document.querySelector('.tw-tabs');
-    if (!cont || !tabs || !window.fetch || !window.history.pushState) return;
-    var atual = null;
-    function ativar(href) {
-      tabs.querySelectorAll('.tw-tab').forEach(function (t) { t.classList.toggle('ativo', t.getAttribute('href') === href); });
+    var tabs = document.querySelector('.pf-tabs');
+    if (!cont || !tabs) return;
+    var abas = Array.prototype.slice.call(tabs.querySelectorAll('a.tw-tab'));
+    var hrefs = abas.map(function (t) { return t.getAttribute('href'); });
+    var paineis = {}, buscando = {}, atual = null;
+    var H = { headers: { 'X-Requested-With': 'fetch', 'Accept': 'application/json' } };
+
+    // painel inicial: vale pela aba ativa (a URL pode vir com maiúsculas diferentes)
+    var ativa = tabs.querySelector('a.tw-tab.ativo') || abas[0];
+    var p0 = cont.querySelector('[data-pf-painel]');
+    atual = ativa.getAttribute('href');
+    if (p0) { p0.setAttribute('data-pf-painel', atual); paineis[atual] = p0; }
+
+    function indice(href) { var i = hrefs.indexOf(href); return i < 0 ? 0 : i; }
+    function marcar(href) {
+      abas.forEach(function (t) { t.classList.toggle('ativo', t.getAttribute('href') === href); });
+      tabs.style.setProperty('--i', indice(href));
     }
-    function carregar(href, empurrar) {
-      if (atual) atual.abort();
-      var ctrl = window.AbortController ? new AbortController() : null;
-      atual = ctrl;
-      cont.classList.add('trocando');
-      ativar(href);
-      fetch(href, { headers: { 'X-Requested-With': 'fetch', 'Accept': 'application/json' }, signal: ctrl ? ctrl.signal : undefined })
+    function buscar(href) {
+      if (paineis[href]) return Promise.resolve(paineis[href]);
+      if (buscando[href]) return buscando[href];
+      buscando[href] = fetch(href, H)
         .then(function (r) { return r.ok ? r.json() : Promise.reject(new Error('http')); })
         .then(function (d) {
-          if (!d || !d.html) throw new Error('vazio');
-          cont.innerHTML = d.html;
-          cont.classList.remove('trocando');
-          if (empurrar) history.pushState({ abaPerfil: href }, '', href);
-          var r = tabs.getBoundingClientRect();
-          if (r.top < 0) tabs.scrollIntoView({ block: 'start', behavior: 'smooth' });
+          if (!d || typeof d.html !== 'string') throw new Error('vazio');
+          var p = document.createElement('div');
+          p.className = 'pf-painel'; p.hidden = true;
+          p.setAttribute('data-pf-painel', href);
+          p.innerHTML = d.html;
+          cont.appendChild(p);
+          paineis[href] = p;
+          return p;
         })
-        .catch(function (e) {
-          if (e && e.name === 'AbortError') return;
-          location.href = href; // qualquer problema: navega normal
-        });
+        .finally(function () { delete buscando[href]; });
+      return buscando[href];
     }
+    function mostrar(href, empurrar) {
+      if (href === atual && paineis[href] && !paineis[href].hidden) return;
+      var dir = indice(href) > indice(atual) ? 1 : -1;
+      marcar(href);
+      var temCache = !!paineis[href];
+      if (!temCache) cont.classList.add('trocando');
+      buscar(href).then(function (p) {
+        if (tabs.querySelector('a.tw-tab.ativo').getAttribute('href') !== href) return; // trocou de novo no meio
+        Object.keys(paineis).forEach(function (k) { paineis[k].hidden = k !== href; });
+        p.classList.remove('entra-dir', 'entra-esq'); void p.offsetWidth;
+        p.classList.add(dir > 0 ? 'entra-dir' : 'entra-esq');
+        cont.classList.remove('trocando');
+        atual = href;
+        if (empurrar) { try { history.pushState({ abaPerfil: href }, '', href); } catch (e) {} }
+        var r = tabs.getBoundingClientRect();
+        var topo = parseFloat(getComputedStyle(tabs).top) || 0;
+        if (r.top < topo - 1) tabs.scrollIntoView({ block: 'start' });
+      }).catch(function () { location.href = href; }); // qualquer problema: navega normal
+    }
+
     tabs.addEventListener('click', function (e) {
-      var a = e.target.closest('a.tw-tab');
-      if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button === 1) return;
+      var t = e.target.closest('a.tw-tab');
+      if (!t || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button) return;
       e.preventDefault();
-      if (a.classList.contains('ativo')) return;
-      carregar(a.getAttribute('href'), true);
+      mostrar(t.getAttribute('href'), true);
     });
-    history.replaceState({ abaPerfil: location.pathname }, '', location.href);
+    // Números do cabeçalho: "publicações" e "reposts" levam à aba
+    document.addEventListener('click', function (e) {
+      var s = e.target.closest('[data-pf-aba]');
+      if (!s || e.metaKey || e.ctrlKey) return;
+      var href = s.getAttribute('href');
+      if (hrefs.indexOf(href) < 0) return;
+      e.preventDefault();
+      mostrar(href, true);
+      tabs.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    });
+    // Pré-carga das outras abas quando o aparelho estiver livre
+    (window.requestIdleCallback || function (f) { setTimeout(f, 1200); })(function () {
+      hrefs.forEach(function (h, i) { setTimeout(function () { buscar(h).catch(function () {}); }, i * 250); });
+    });
+
+    // Arrastar para o lado troca de aba (fora da lista aberta e dos carrosséis)
+    var x0 = null, y0 = 0, t0 = 0;
+    cont.addEventListener('touchstart', function (e) {
+      x0 = null;
+      if (e.touches.length !== 1 || e.target.closest('.ig-carrossel, .ig-video, input, textarea, .galeria, .enquete')) return;
+      x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; t0 = Date.now();
+    }, { passive: true });
+    cont.addEventListener('touchend', function (e) {
+      if (x0 === null) return;
+      var dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+      x0 = null;
+      if (Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 2 || Date.now() - t0 > 700) return;
+      var i = indice(atual) + (dx < 0 ? 1 : -1);
+      if (i >= 0 && i < hrefs.length) mostrar(hrefs[i], true);
+    }, { passive: true });
+
+    try { history.replaceState({ abaPerfil: atual }, '', location.href); } catch (e) {}
     window.addEventListener('popstate', function (e) {
-      var href = e.state && e.state.abaPerfil;
-      if (href && tabs.querySelector('.tw-tab[href="' + href + '"]')) carregar(href, false);
+      var st = e.state || {};
+      if (st.abaPerfil && hrefs.indexOf(st.abaPerfil) >= 0 && st.abaPerfil !== atual) mostrar(st.abaPerfil, false);
     });
   })();
+
+  /* ---------- Perfil: compartilhar (folha do sistema no celular; senão copia o link) ---------- */
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-pf-compartilhar]');
+    if (!b) return;
+    var url = location.origin + b.getAttribute('data-url');
+    var nome = b.getAttribute('data-nome') || '';
+    if (navigator.share) {
+      navigator.share({ title: nome + ' no Anjo Secreto', url: url }).catch(function () {});
+      return;
+    }
+    var feito = function () { if (window.toast) window.toast('Link do perfil copiado'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(feito, feito);
+    else { var i = document.createElement('input'); i.value = url; document.body.appendChild(i); i.select(); try { document.execCommand('copy'); } catch (x) {} i.remove(); feito(); }
+  });
 
   /* ---------- Avatar do perfil: TOQUE abre o story (se houver) ou amplia a foto;
      SEGURAR "espia" a foto de perfil ampliada (solta, fecha) — como no Instagram ---------- */

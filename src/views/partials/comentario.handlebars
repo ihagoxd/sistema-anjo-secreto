@@ -19,7 +19,10 @@
     </div>
     {{#if texto}}<div class="tw-coment-texto">{{comMencoes texto}}</div>{{/if}}
     {{#if imagem}}<div class="tw-coment-img" data-img="{{imagem}}" role="button" tabindex="0" aria-label="Ampliar imagem"><img src="{{imagem}}" alt="Imagem do comentário" loading="lazy" draggable="false"></div>{{/if}}
-    <button type="button" class="tw-coment-resp" data-coment-responder="{{usuario}}" data-coment-pai="{{#if responde_a}}{{responde_a}}{{else}}{{id_comentario}}{{/if}}">Responder</button>
+    <div class="tw-coment-acoes">
+      <span class="tw-coment-curtidas" data-coment-curtidas{{#unless curtidas}} hidden{{/unless}}>{{curtidas}} curtida{{#unless (eq curtidas 1)}}s{{/unless}}</span>
+      <button type="button" class="tw-coment-resp" data-coment-responder="{{usuario}}" data-coment-pai="{{#if responde_a}}{{responde_a}}{{else}}{{id_comentario}}{{/if}}">Responder</button>
+    </div>
     {{#unless resposta}}
     {{! Fio de respostas: fechado por padrão ("Ver N respostas"), como no Instagram }}
     <div class="tw-fio" data-fio="{{id_comentario}}"{{#unless respostas.length}} hidden{{/unless}}>
@@ -30,4 +33,6 @@
     </div>
     {{/unless}}
   </div>
+  {{! Coração do comentário (como no Instagram): toque curte; toque duplo no comentário também }}
+  <button type="button" class="tw-coment-like{{#if curti}} ativo{{/if}}" data-coment-curtir="{{id_comentario}}" aria-pressed="{{#if curti}}true{{else}}false{{/if}}" aria-label="Curtir comentário"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg></button>
 </div>

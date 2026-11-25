@@ -4668,3 +4668,17 @@ html.pinca-ativa, html.pinca-ativa body, html.pinca-ativa .conteudo { overflow: 
 /* Navegando dentro do app (html.mini): a faixa do tema já está no lugar, sem a animação de
    entrada de 0,6 s a cada vez que se volta ao feed (só a primeira página da sessão anima) */
 html.mini .tema-banner { animation: none !important; }
+
+/* Curtir comentário (Instagram): coração à direita; "N curtidas · Responder" embaixo do texto */
+.tw-coment-acoes { display: flex; align-items: center; gap: 14px; padding-top: 3px; }
+.tw-coment-acoes .tw-coment-resp { padding-top: 0; }
+.tw-coment-curtidas { font-size: 12px; font-weight: 700; color: var(--text-faint); }
+.tw-coment-curtidas[hidden] { display: none; }
+.tw-coment-like { flex-shrink: 0; align-self: flex-start; width: 32px; height: 32px; margin: 2px -6px 0 0; border: none; background: none; border-radius: 50%; display: grid; place-items: center; color: var(--text-faint); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.tw-coment-like:hover { color: var(--text-soft); }
+.tw-coment-like.ativo { color: #ff3b5c; }
+.tw-coment-like.ativo svg { fill: currentColor; }
+.tw-coment-like.pop svg { animation: coment-pop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes coment-pop { 0% { transform: scale(1); } 35% { transform: scale(1.38); } 100% { transform: scale(1); } }
+.tw-coment.resposta .tw-coment-like { width: 28px; height: 28px; }
+@media (prefers-reduced-motion: reduce) { .tw-coment-like.pop svg { animation: none; } }

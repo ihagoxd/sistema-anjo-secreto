@@ -451,11 +451,12 @@
   })();
 
   /* ---------- Pesquisa (tela estilo Instagram) ----------
-     Lupa abre a tela já com o teclado. As sugestões ficam pré-carregadas; a lista de
-     pessoas filtra NA HORA a cada tecla (com o que já está no aparelho) e o servidor
-     completa logo atrás (pessoas fora do cache + publicações). As linhas são
-     reaproveitadas no DOM (foto não pisca ao redigitar). "Recentes" no localStorage.
-     Botão voltar do celular fecha a tela (history), rolar a lista esconde o teclado. ---------- */
+     Lupa abre a tela já com o teclado. Pessoas filtram NA HORA com o que já está no aparelho
+     e o servidor completa logo atrás (pessoas, publicações e lugares, sem diferenciar acento).
+     Filtros: Tudo / Pessoas / Publicações / Lugares (Publicações carrega mais ao rolar; um lugar
+     mostra as publicações dele). O termo aparece destacado. Tocar numa publicação abre o card
+     por cima da busca; voltar retorna aos mesmos resultados. "Recentes" guarda pessoas e
+     termos pesquisados. Voltar do celular fecha a tela; rolar esconde o teclado. ---------- */
   (function () {
     var tela = document.getElementById('buscaTela');
     if (!tela) return;
@@ -463,15 +464,43 @@
     var lista = tela.querySelector('.busca-lista');
     var corpo = tela.querySelector('.busca-corpo');
     var cabRec = tela.querySelector('.busca-recentes-cab');
+    var chips = tela.querySelector('[data-busca-chips]');
+    var postView = tela.querySelector('[data-busca-post]');
+    var postCorpo = tela.querySelector('[data-busca-post-corpo]');
     var btnLimparCampo = tela.querySelector('[data-busca-limpar-campo]');
-    var H = { headers: { 'Accept': 'application/json' } };
+    var H = { headers: { 'Accept': 'application/json', 'X-Requested-With': 'fetch' } };
     var timer = null, seq = 0, porUser = {}, sugCache = null, aberta = false, fechando = null;
+    var modo = 'tudo', res = null, lugar = null, carregandoMais = false;
     var mobile = function () { return window.matchMedia('(max-width: 899px)').matches; };
+    var SVG = {
+      pin: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+      lupa: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+      balao: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+      play: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>',
+      seta: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
+      voltar: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>',
+    };
 
     function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
     function norm(s) { s = String(s || '').toLowerCase(); try { s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); } catch (e) {} return s; }
+    // Destaca o termo no texto, sem diferenciar acento (mantém as letras originais)
+    function marcar(texto, q) {
+      texto = String(texto || ''); var nq = norm(q).trim();
+      if (!nq) return esc(texto);
+      var base = '';
+      for (var i = 0; i < texto.length; i++) base += norm(texto[i]).charAt(0) || ' ';
+      var out = '', i0 = 0, k;
+      while ((k = base.indexOf(nq, i0)) >= 0) { out += esc(texto.slice(i0, k)) + '<mark>' + esc(texto.slice(k, k + nq.length)) + '</mark>'; i0 = k + nq.length; }
+      return out + esc(texto.slice(i0));
+    }
     function lerRecentes() { try { return JSON.parse(localStorage.getItem('buscaRecentes') || '[]'); } catch (e) { return []; } }
-    function salvarRecentes(l) { try { localStorage.setItem('buscaRecentes', JSON.stringify(l.slice(0, 8))); } catch (e) {} }
+    function salvarRecentes(l) { try { localStorage.setItem('buscaRecentes', JSON.stringify(l.slice(0, 10))); } catch (e) {} }
+    function chaveRec(r) { return r.termo ? 'termo:' + r.termo : r.usuario; }
+    function guardarTermo(q) {
+      q = String(q || '').trim(); if (q.length < 2) return;
+      var rec = lerRecentes().filter(function (r) { return !(r.termo && norm(r.termo) === norm(q)); });
+      rec.unshift({ termo: q }); salvarRecentes(rec);
+    }
 
     // Sugestões pré-carregadas num momento ocioso: a tela abre com a lista pronta
     function carregarSugestoes() {
@@ -480,7 +509,7 @@
     }
     (window.requestIdleCallback || function (f) { setTimeout(f, 1500); })(function () { carregarSugestoes(); });
 
-    // ----- Nós reaproveitados: mesma pessoa/publicação = mesmo elemento -----
+    // ----- Linhas (pessoas são reaproveitadas: a foto não pisca ao redigitar) -----
     var nos = {};
     function noPessoa(p, comRemover) {
       porUser[p.usuario] = p;
@@ -499,33 +528,42 @@
       el.querySelector('.busca-remover').hidden = !comRemover;
       return el;
     }
-    function noPost(p) {
-      var k = 'p:' + p.id_post, el = nos[k];
-      if (el) return el;
-      var thumb = p.imagem ? '<img src="' + esc(p.imagem) + '" alt="">'
-        : p.video ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>'
-        : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
-      el = document.createElement('a');
-      el.className = 'busca-post';
-      el.href = '/p/' + p.id_post;
-      el.innerHTML = '<span class="busca-post-thumb' + (p.imagem ? '' : ' sem-img') + '">' + thumb + '</span>'
-        + '<span class="busca-post-txt"><span class="busca-post-texto">' + (p.texto ? esc(p.texto) : '<i>Sem legenda</i>') + '</span>'
-        + '<span class="busca-post-meta">@' + esc(p.usuario) + ' · ' + esc(p.quando) + (p.local ? ' · ' + esc(p.local) : '') + '</span></span>';
-      nos[k] = el;
+    function noTermo(t) {
+      var el = document.createElement('div');
+      el.className = 'busca-termo'; el.setAttribute('role', 'button'); el.tabIndex = 0;
+      el.setAttribute('data-busca-termo', t.termo);
+      el.innerHTML = '<span class="busca-ic">' + SVG.lupa + '</span><span class="busca-termo-txt"><strong>' + esc(t.termo) + '</strong><small>Pesquisa recente</small></span>'
+        + '<button type="button" class="busca-remover" data-busca-remover="' + esc('termo:' + t.termo) + '" aria-label="Remover dos recentes">&times;</button>';
       return el;
     }
-    function noTitulo(txt) {
-      var k = 't:' + txt;
-      if (!nos[k]) { var d = document.createElement('div'); d.className = 'busca-subtitulo'; d.textContent = txt; nos[k] = d; }
-      return nos[k];
+    function noPost(p, q) {
+      var el = document.createElement('a');
+      el.className = 'busca-post'; el.href = '/p/' + p.id_post; el.setAttribute('data-busca-post-id', p.id_post);
+      var thumb = p.imagem ? '<img src="' + esc(p.imagem) + '" alt="" loading="lazy">' + SVG.balao
+        : p.video ? SVG.play : SVG.balao;
+      el.innerHTML = '<span class="busca-post-thumb' + (p.imagem ? '' : ' sem-img') + '">' + thumb + '</span>'
+        + '<span class="busca-post-txt"><span class="busca-post-texto">' + (p.texto ? marcar(p.texto, q) : '<i>Sem legenda</i>') + '</span>'
+        + '<span class="busca-post-meta">@' + marcar(p.usuario, q) + ' · ' + esc(p.quando) + (p.local ? ' · ' + marcar(p.local, q) : '') + '</span></span>';
+      var im = el.querySelector('img');
+      if (im) im.addEventListener('error', function () { el.querySelector('.busca-post-thumb').classList.add('falhou', 'sem-img'); });
+      return el;
     }
-    function noAviso(txt) {
-      if (!nos.aviso) { var d = document.createElement('div'); d.className = 'texto-suave busca-vazio'; nos.aviso = d; }
-      nos.aviso.textContent = txt;
-      return nos.aviso;
+    function noLugar(l, q) {
+      var el = document.createElement('button');
+      el.type = 'button'; el.className = 'busca-lugar'; el.setAttribute('data-busca-lugar', l.local);
+      el.setAttribute('data-total', l.total);
+      el.innerHTML = '<span class="busca-ic">' + SVG.pin + '</span><span class="busca-lugar-txt"><strong>' + marcar(l.local, q) + '</strong><small>'
+        + l.total + (l.total === 1 ? ' publicação' : ' publicações') + '</small></span><span class="busca-ic-seta">' + SVG.seta + '</span>';
+      return el;
     }
-    // Coloca os nós nessa ordem: appendChild/insertBefore MOVE os que já estão lá
-    // (foto não recarrega, nada pisca); o que sobrou sai.
+    function noTitulo(txt) { var d = document.createElement('div'); d.className = 'busca-subtitulo'; d.textContent = txt; return d; }
+    function noAviso(txt) { var d = document.createElement('div'); d.className = 'texto-suave busca-vazio'; d.textContent = txt; return d; }
+    function noVerMais(txt, alvo) {
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'busca-ver-mais'; b.setAttribute('data-ir-modo', alvo);
+      b.innerHTML = '<span>' + esc(txt) + '</span>' + SVG.seta; return b;
+    }
+    function noCarregando() { var d = document.createElement('div'); d.className = 'busca-carregando'; d.innerHTML = '<span class="feed-spinner"></span>'; return d; }
+    // Coloca os nós nessa ordem: os que já estão lá são movidos (nada pisca); o resto sai.
     function montar(itens) {
       var atual = lista.firstChild;
       itens.forEach(function (el) {
@@ -535,66 +573,167 @@
       while (atual) { var prox = atual.nextSibling; lista.removeChild(atual); atual = prox; }
     }
 
-    // ----- Estado inicial: Recentes + Sugestões -----
+    // ----- Estado inicial: Recentes (pessoas e termos) + Sugestões -----
     function mostrarInicio() {
+      chips.hidden = true; lugar = null; res = null;
       var rec = lerRecentes();
       cabRec.hidden = !rec.length;
-      var itens = rec.map(function (p) { return noPessoa(p, true); });
+      var itens = rec.map(function (r) { return r.termo ? noTermo(r) : noPessoa(r, true); });
       var jaTem = {};
-      rec.forEach(function (p) { jaTem[p.usuario] = true; });
+      rec.forEach(function (p) { if (p.usuario) jaTem[p.usuario] = true; });
       var sug = (sugCache || []).filter(function (p) { return !jaTem[p.usuario]; });
       if (sug.length) {
         itens.push(noTitulo('Sugestões'));
         sug.forEach(function (p) { itens.push(noPessoa(p, false)); });
       } else if (!rec.length && sugCache) {
-        itens.push(noAviso('Pesquise os colegas pelo nome ou @usuário.'));
+        itens.push(noAviso('Pesquise pessoas, publicações e lugares.'));
       }
       montar(itens);
       if (!sugCache) carregarSugestoes().then(function () { if (aberta && !inp.value.trim()) mostrarInicio(); });
     }
 
-    // ----- Resultados: filtro local instantâneo + servidor completa -----
+    // ----- Resultados -----
     function comeca(p, nq) {
       return norm(p.usuario).indexOf(nq) === 0 || norm(p.nome).split(/\s+/).some(function (w) { return w.indexOf(nq) === 0; });
     }
     function filtrarLocal(q) {
       var nq = norm(q);
       var r = (sugCache || []).filter(function (p) { return norm(p.usuario).indexOf(nq) >= 0 || norm(p.nome).indexOf(nq) >= 0; });
-      var pri = r.filter(function (p) { return comeca(p, nq); }), resto = r.filter(function (p) { return !comeca(p, nq); });
-      return pri.concat(resto);
+      return r.filter(function (p) { return comeca(p, nq); }).concat(r.filter(function (p) { return !comeca(p, nq); }));
     }
-    function mostrarResultados(q, pessoas, posts, esperando) {
-      cabRec.hidden = true;
-      var itens = [];
-      if (pessoas.length) { itens.push(noTitulo('Pessoas')); pessoas.forEach(function (p) { itens.push(noPessoa(p, false)); }); }
-      if (posts.length) { itens.push(noTitulo('Publicações')); posts.forEach(function (p) { itens.push(noPost(p)); }); }
-      if (!itens.length && !esperando) itens.push(noAviso('Nada encontrado para \u201c' + q + '\u201d.'));
+    function marcarChip() {
+      chips.querySelectorAll('.busca-chip').forEach(function (c) { c.classList.toggle('ativo', c.getAttribute('data-modo') === modo); });
+    }
+    function render() {
+      if (!res) return;
+      var q = res.q, itens = [];
+      cabRec.hidden = true; chips.hidden = false; marcarChip();
+      if (lugar) {
+        var cab = document.createElement('div'); cab.className = 'busca-lugar-cab';
+        cab.innerHTML = '<button type="button" class="btn-icone" data-busca-lugar-voltar aria-label="Voltar">' + SVG.voltar + '</button>'
+          + '<span class="busca-ic">' + SVG.pin + '</span><span class="busca-lugar-txt"><strong>' + esc(lugar.local) + '</strong><small>'
+          + lugar.total + (lugar.total === 1 ? ' publicação' : ' publicações') + '</small></span>';
+        itens.push(cab);
+        (lugar.posts || []).forEach(function (p) { itens.push(noPost(p, '')); });
+        if (!lugar.posts) itens.push(noCarregando());
+        montar(itens); return;
+      }
+      var pessoas = res.pessoas || [], posts = res.posts || [], lugares = res.lugares || [];
+      if (modo === 'tudo') {
+        if (pessoas.length) {
+          itens.push(noTitulo('Pessoas'));
+          pessoas.slice(0, 4).forEach(function (p) { itens.push(noPessoa(p, false)); });
+          if (pessoas.length > 4) itens.push(noVerMais('Ver todas as pessoas', 'pessoas'));
+        }
+        if (posts.length) {
+          itens.push(noTitulo('Publicações'));
+          posts.slice(0, 6).forEach(function (p) { itens.push(noPost(p, q)); });
+          if (posts.length > 6 || res.maisPosts) itens.push(noVerMais('Ver mais publicações', 'posts'));
+        }
+        if (lugares.length) {
+          itens.push(noTitulo('Lugares'));
+          lugares.slice(0, 3).forEach(function (l) { itens.push(noLugar(l, q)); });
+          if (lugares.length > 3) itens.push(noVerMais('Ver todos os lugares', 'lugares'));
+        }
+      } else if (modo === 'pessoas') {
+        pessoas.forEach(function (p) { itens.push(noPessoa(p, false)); });
+      } else if (modo === 'posts') {
+        posts.forEach(function (p) { itens.push(noPost(p, q)); });
+        if (res.maisPosts) itens.push(noCarregando());
+      } else if (modo === 'lugares') {
+        lugares.forEach(function (l) { itens.push(noLugar(l, q)); });
+      }
+      if (!itens.length) {
+        if (res.esperando) itens.push(noCarregando());
+        else itens.push(noAviso(modo === 'tudo' ? 'Nada encontrado para \u201c' + q + '\u201d.' : 'Nada nesta aba para \u201c' + q + '\u201d.'));
+      }
       montar(itens);
     }
+    function buscar(q) {
+      lugar = null;
+      var locais = filtrarLocal(q);
+      res = { q: q, pessoas: locais, posts: [], lugares: [], esperando: true, maisPosts: false };
+      render(); // pessoas na hora, com o que já está aqui
+      var minha = ++seq;
+      clearTimeout(timer);
+      timer = setTimeout(function () {
+        var u = encodeURIComponent(q);
+        Promise.all([
+          fetch('/buscar?q=' + u, H).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; }),
+          fetch('/buscar/posts?q=' + u, H).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; }),
+          fetch('/buscar/lugares?q=' + u, H).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; }),
+        ]).then(function (rs) {
+          if (minha !== seq || inp.value.trim() !== q) return; // resposta atrasada: ignora
+          var vistos = {};
+          locais.forEach(function (p) { vistos[p.usuario] = true; });
+          var extras = (rs[0] || []).filter(function (p) { return !vistos[p.usuario]; });
+          res = { q: q, pessoas: locais.concat(extras), posts: rs[1] || [], lugares: rs[2] || [], esperando: false, maisPosts: (rs[1] || []).length >= 12 };
+          render();
+        });
+      }, 150);
+    }
+    // Mais publicações (aba Publicações ou um lugar) ao chegar no fim
+    function carregarMais() {
+      if (carregandoMais || !res) return;
+      var alvo = lugar || (modo === 'posts' ? res : null);
+      if (!alvo || (lugar ? !lugar.mais : !res.maisPosts)) return;
+      var arr = lugar ? lugar.posts : res.posts;
+      if (!arr || !arr.length) return;
+      carregandoMais = true;
+      var url = '/buscar/posts?antes=' + arr[arr.length - 1].id_post + (lugar ? '&local=' + encodeURIComponent(lugar.local) : '&q=' + encodeURIComponent(res.q));
+      var minha = seq;
+      fetch(url, H).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; }).then(function (novos) {
+        carregandoMais = false;
+        if (minha !== seq) return;
+        novos = novos || [];
+        if (lugar) { lugar.posts = lugar.posts.concat(novos); lugar.mais = novos.length >= 12; }
+        else { res.posts = res.posts.concat(novos); res.maisPosts = novos.length >= 12; }
+        render();
+      });
+    }
+    function abrirLugar(local, total) {
+      lugar = { local: local, total: total, posts: null, mais: false };
+      render(); corpo.scrollTop = 0;
+      var minha = seq;
+      fetch('/buscar/posts?local=' + encodeURIComponent(local), H).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; })
+        .then(function (ps) { if (minha !== seq || !lugar || lugar.local !== local) return; lugar.posts = ps || []; lugar.mais = lugar.posts.length >= 12; render(); });
+    }
+
     inp.addEventListener('input', function () {
       var q = inp.value.trim();
       btnLimparCampo.hidden = !inp.value;
       clearTimeout(timer);
       if (!q) { seq++; mostrarInicio(); return; }
-      var locais = filtrarLocal(q);
-      mostrarResultados(q, locais, [], true); // na hora, com o que já está aqui
-      var minha = ++seq;
-      timer = setTimeout(function () {
-        Promise.all([
-          fetch('/buscar?q=' + encodeURIComponent(q), H).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; }),
-          fetch('/buscar/posts?q=' + encodeURIComponent(q), H).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; }),
-        ]).then(function (res) {
-          if (minha !== seq || inp.value.trim() !== q) return; // resposta atrasada: ignora
-          var vistos = {};
-          locais.forEach(function (p) { vistos[p.usuario] = true; });
-          var extras = (res[0] || []).filter(function (p) { return !vistos[p.usuario]; }); // quem o cache não tinha entra no fim (a lista não pula)
-          mostrarResultados(q, locais.concat(extras), res[1] || [], false);
-        });
-      }, 150);
+      buscar(q);
     });
-    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); inp.blur(); } });
-    // Arrastar a lista esconde o teclado (como no Instagram)
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); guardarTermo(inp.value); inp.blur(); } });
+    // Arrastar a lista esconde o teclado; perto do fim carrega mais
     corpo.addEventListener('touchmove', function () { if (document.activeElement === inp) inp.blur(); }, { passive: true });
+    corpo.addEventListener('scroll', function () {
+      if (corpo.scrollTop + corpo.clientHeight > corpo.scrollHeight - 400) carregarMais();
+    }, { passive: true });
+    chips.addEventListener('click', function (e) {
+      var c = e.target.closest('.busca-chip'); if (!c) return;
+      modo = c.getAttribute('data-modo'); lugar = null; corpo.scrollTop = 0; render();
+    });
+
+    // ----- Publicação por cima da busca -----
+    function abrirPost(id) {
+      guardarTermo(inp.value);
+      postCorpo.innerHTML = '<div class="busca-carregando"><span class="feed-spinner"></span></div>';
+      postView.hidden = false;
+      if (document.activeElement === inp) inp.blur();
+      try { history.pushState({ busca: 1, buscaPost: id }, ''); } catch (e) {}
+      fetch('/p/' + id, H).then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+        .then(function (d) { if (postView.hidden) return; postCorpo.innerHTML = '<div class="feed feed-unico">' + d.html + '</div>'; })
+        .catch(function () { fecharPost(true); location.href = '/p/' + id; });
+    }
+    function fecharPost(viaHistorico) {
+      if (postView.hidden) return;
+      postView.hidden = true;
+      postCorpo.innerHTML = '';
+      if (!viaHistorico && history.state && history.state.buscaPost) { try { history.back(); } catch (e) {} }
+    }
 
     // ----- Abrir / fechar (com o histórico: o voltar do celular fecha a tela) -----
     function abrir(viaHistorico) {
@@ -604,7 +743,7 @@
       tela.classList.remove('saindo');
       tela.hidden = false;
       if (mobile()) document.body.classList.add('sem-scroll');
-      inp.value = ''; btnLimparCampo.hidden = true;
+      inp.value = ''; btnLimparCampo.hidden = true; modo = 'tudo';
       mostrarInicio();
       // Foco no mesmo toque (dentro do gesto): o teclado sobe junto com a tela
       try { inp.focus({ preventScroll: true }); } catch (e) { inp.focus(); }
@@ -613,6 +752,7 @@
     function fechar(viaHistorico) {
       if (!aberta) return;
       aberta = false;
+      postView.hidden = true; postCorpo.innerHTML = '';
       inp.blur();
       document.body.classList.remove('sem-scroll');
       tela.classList.add('saindo');
@@ -620,9 +760,10 @@
       if (!viaHistorico && history.state && history.state.busca) { try { history.back(); } catch (e) {} }
     }
     window.addEventListener('popstate', function (e) {
-      var temBusca = !!(e.state && e.state.busca);
-      if (aberta && !temBusca) fechar(true);
-      else if (!aberta && temBusca) abrir(true);
+      var st = e.state || {};
+      if (!postView.hidden && !st.buscaPost) fecharPost(true);
+      if (aberta && !st.busca) fechar(true);
+      else if (!aberta && st.busca) abrir(true);
     });
     // Voltou de um perfil para a página com a busca aberta no histórico: reabre
     if (history.state && history.state.busca) abrir(true);
@@ -630,15 +771,27 @@
     document.addEventListener('click', function (e) {
       if (e.target.closest('[data-busca-abrir]')) { e.preventDefault(); abrir(false); return; }
       if (e.target.closest('[data-busca-fechar]')) { fechar(false); return; }
+      if (!aberta) return;
+      if (e.target.closest('[data-busca-post-voltar]')) { fecharPost(false); return; }
       var rem = e.target.closest('[data-busca-remover]');
       if (rem) {
         e.preventDefault(); e.stopPropagation();
-        salvarRecentes(lerRecentes().filter(function (p) { return p.usuario !== rem.getAttribute('data-busca-remover'); }));
+        var chave = rem.getAttribute('data-busca-remover');
+        salvarRecentes(lerRecentes().filter(function (r) { return chaveRec(r) !== chave; }));
         mostrarInicio();
         return;
       }
       if (e.target.closest('[data-busca-limpar-recentes]')) { salvarRecentes([]); mostrarInicio(); return; }
       if (e.target.closest('[data-busca-limpar-campo]')) { inp.value = ''; btnLimparCampo.hidden = true; seq++; mostrarInicio(); inp.focus(); return; }
+      var termo = e.target.closest('[data-busca-termo]');
+      if (termo) { inp.value = termo.getAttribute('data-busca-termo'); btnLimparCampo.hidden = false; modo = 'tudo'; buscar(inp.value.trim()); return; }
+      var vm = e.target.closest('[data-ir-modo]');
+      if (vm) { modo = vm.getAttribute('data-ir-modo'); lugar = null; corpo.scrollTop = 0; render(); return; }
+      if (e.target.closest('[data-busca-lugar-voltar]')) { lugar = null; render(); return; }
+      var lg = e.target.closest('[data-busca-lugar]');
+      if (lg) { abrirLugar(lg.getAttribute('data-busca-lugar'), parseInt(lg.getAttribute('data-total'), 10) || 0); return; }
+      var po = e.target.closest('[data-busca-post-id]');
+      if (po && !e.metaKey && !e.ctrlKey && !e.shiftKey) { e.preventDefault(); abrirPost(po.getAttribute('data-busca-post-id')); return; }
       var it = e.target.closest('.busca-item');
       if (it) {
         // guarda nos recentes e deixa o link navegar normalmente para o perfil
@@ -650,11 +803,19 @@
         }
       }
     });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && aberta) fechar(false); });
+    tela.addEventListener('keydown', function (e) {
+      var t = e.target.closest('[data-busca-termo]');
+      if (t && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); t.click(); }
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape' || !aberta) return;
+      if (!postView.hidden) { fecharPost(false); return; }
+      fechar(false);
+    });
     // Clicar fora do painel fecha a busca (no desktop o resto da página fica visível ao lado)
     document.addEventListener('click', function (e) {
       if (!aberta) return;
-      if (e.target.closest('.busca-tela') || e.target.closest('[data-busca-abrir]')) return;
+      if (e.target.closest('.busca-tela') || e.target.closest('[data-busca-abrir]') || e.target.closest('.modal, .lightbox, .stview')) return;
       fechar(false);
     });
   })();

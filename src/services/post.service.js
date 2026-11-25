@@ -189,7 +189,7 @@ async function editarPost(idPost, idUsuario, texto) {
 async function buscarPost(idPost, idUsuarioAtual) {
   const post = await postModel.buscarFeedUm(idPost, idUsuarioAtual);
   if (!post) return null;
-  post.comentariosLista = montarFios(await postModel.listarComentarios(idPost));
+  post.comentariosLista = montarFios(await postModel.listarComentarios(idPost, idUsuarioAtual));
   return post;
 }
 
@@ -338,8 +338,8 @@ async function comentar(idPost, idUsuario, texto, imagemPath = null, respondeA =
   return { ok: true, idComentario: novo.id_comentario, texto: t || null, imagem: imagemPath, responde_a: pai ? pai.id_comentario : null };
 }
 
-function listarComentarios(idPost) {
-  return postModel.listarComentarios(idPost);
+function listarComentarios(idPost, eu = null) {
+  return postModel.listarComentarios(idPost, eu);
 }
 
 // Remover post (dono ou admin). Apaga a imagem do disco.

@@ -33,7 +33,7 @@ function anotarStories(posts, aneis) {
 // Tudo que um card precisa para renderizar: comentários, enquetes e anéis de story.
 async function prepararPosts(posts, me) {
   if (!posts.length) return;
-  const comentarios = await postModel.listarComentariosDeVarios(posts.map((p) => p.id_post));
+  const comentarios = await postModel.listarComentariosDeVarios(posts.map((p) => p.id_post), me);
   anexarComentarios(posts, comentarios);
   await postService.anexarEnquetes(posts, me);
   anotarStories(posts, await storyService.resumoAneis(me));
@@ -392,7 +392,7 @@ async function renderPerfil(req, res, aba) {
     posts = await postService.listarSalvos(me);
   }
   // Comentários (para expandir inline nos cards do perfil, igual ao mural).
-  const comentarios = await postModel.listarComentariosDeVarios(posts.map((p) => p.id_post));
+  const comentarios = await postModel.listarComentariosDeVarios(posts.map((p) => p.id_post), me);
   anexarComentarios(posts, comentarios);
   await postService.anexarEnquetes(posts, me);
   const aneis = await storyService.resumoAneis(me);

@@ -339,22 +339,27 @@ async function adicionarComentario(idPost, idUsuario, texto, imagem = null, resp
 const VOTOU = `(SELECT string_agg(o.texto, ', ' ORDER BY o.ordem)
                   FROM enquete_votos v JOIN enquete_opcoes o ON o.id_opcao = v.id_opcao
                  WHERE v.id_post = m.id_post AND v.id_usuario = m.id_usuario) AS votou`;
-async function listarComentarios(idPost) {
+// eu = quem está vendo (para o coração do comentário vir marcado)
+async function listarComentarios(idPost, eu = null) {
   const res = await db.query(
-    `SELECT m.id_comentario, m.texto, m.imagem, m.criado_em, m.id_usuario, m.responde_a, u.nome, u.usuario, u.foto_perfil, ${VOTOU}
+    `SELECT m.id_comentario, m.texto, m.imagem, m.criado_em, m.id_usuario, m.responde_a, u.nome, u.usuario, u.foto_perfil, ${VOTOU},
+            (SELECT COUNT(*) FROM comentario_curtidas cc WHERE cc.id_comentario = m.id_comentario)::int AS curtidas,
+            EXISTS(SELECT 1 FROM comentario_curtidas cc2 WHERE cc2.id_comentario = m.id_comentario AND cc2.id_usuario = $2) AS curti
        FROM post_comentarios m JOIN usuarios u ON u.id_usuario = m.id_usuario
       WHERE m.id_post = $1 ORDER BY m.criado_em ASC`,
-    [idPost]
+    [idPost, eu]
   );
   return res.rows;
 }
-async function listarComentariosDeVarios(ids) {
+async function listarComentariosDeVarios(ids, eu = null) {
   if (!ids || !ids.length) return [];
   const res = await db.query(
-    `SELECT m.id_comentario, m.id_post, m.texto, m.imagem, m.criado_em, m.id_usuario, m.responde_a, u.nome, u.usuario, u.foto_perfil, ${VOTOU}
+    `SELECT m.id_comentario, m.id_post, m.texto, m.imagem, m.criado_em, m.id_usuario, m.responde_a, u.nome, u.usuario, u.foto_perfil, ${VOTOU},
+            (SELECT COUNT(*) FROM comentario_curtidas cc WHERE cc.id_comentario = m.id_comentario)::int AS curtidas,
+            EXISTS(SELECT 1 FROM comentario_curtidas cc2 WHERE cc2.id_comentario = m.id_comentario AND cc2.id_usuario = $2) AS curti
        FROM post_comentarios m JOIN usuarios u ON u.id_usuario = m.id_usuario
       WHERE m.id_post = ANY($1) ORDER BY m.criado_em ASC`,
-    [ids]
+    [ids, eu]
   );
   return res.rows;
 }

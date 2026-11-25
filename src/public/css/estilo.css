@@ -4615,3 +4615,11 @@ body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
   .post-compositor:not(.aberto) .compositor-rodape { display: none; }
   .post-compositor:not(.aberto) .comp-foto-rapida { display: grid; }
 }
+
+/* FEED: faixa do tema compacta para quem já preencheu a lista (uma linha: título + botão) */
+.tema-banner.tb-compacta { padding-top: 12px; padding-bottom: 12px; min-height: 0; }
+.tema-banner.tb-compacta .tb-sub, .tema-banner.tb-compacta .tb-arte { display: none; }
+.tema-banner.tb-compacta .tb-txt { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding-right: 28px; }
+.tema-banner.tb-compacta .tb-kicker { flex-basis: 100%; margin: 0; }
+.tema-banner.tb-compacta .tb-tit { font-size: 18px; margin: 0; flex: 1; min-width: 0; }
+.tema-banner.tb-compacta .tb-btn { margin: 0; padding: 6px 12px; font-size: 13px; min-height: 0; }

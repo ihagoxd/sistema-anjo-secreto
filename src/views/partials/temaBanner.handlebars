@@ -1,7 +1,8 @@
 {{! Faixa do tema no topo do feed (só quando o tema tem banner). A pessoa pode esconder
     no X (fica guardado no aparelho; volta se o tema trocar). }}
 {{#if tema.banner}}
-<section class="tema-banner tb-{{tema.chave}}" data-tema-banner="{{tema.chave}}">
+{{! Quem já preencheu a lista do tema vê a faixa compacta (uma linha), para o feed aparecer antes }}
+<section class="tema-banner tb-{{tema.chave}}{{#if temaPrefsPreenchido}} tb-compacta{{/if}}" data-tema-banner="{{tema.chave}}">
   <div class="tb-deco" aria-hidden="true">
     {{#if (eq tema.chave "halloween")}}
     <i class="tb-bat" style="top:16%;--d:11s"><b></b></i>

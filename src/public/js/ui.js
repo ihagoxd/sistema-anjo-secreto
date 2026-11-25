@@ -815,7 +815,11 @@
     // Clicar fora do painel fecha a busca (no desktop o resto da página fica visível ao lado)
     document.addEventListener('click', function (e) {
       if (!aberta) return;
-      if (e.target.closest('.busca-tela') || e.target.closest('[data-busca-abrir]') || e.target.closest('.modal, .lightbox, .stview')) return;
+      // o caminho do clique é medido na hora do toque: um item redesenhado no meio do clique
+      // (lista que troca ao tocar num lugar) continua contando como dentro da busca
+      var caminho = e.composedPath ? e.composedPath() : [];
+      if (caminho.indexOf(tela) >= 0 || !document.body.contains(e.target)) return;
+      if (e.target.closest('[data-busca-abrir]') || e.target.closest('.modal, .lightbox, .stview')) return;
       fechar(false);
     });
   })();

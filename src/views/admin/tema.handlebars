@@ -1,10 +1,9 @@
-<div class="pagina-cabecalho">
-  <div>
-    <h1>Tema da rede social</h1>
-    <p class="subtitulo">Escolha a cara do app para todo mundo: feed, Direct, painel, admin e até a tela de login mudam na hora.</p>
+<header class="adm-cab adm-cab-largo">
+  <div class="adm-cab-txt">
+    <h1>Tema da rede</h1>
+    <small>A cara do app para todo mundo: feed, Direct, painel e até a tela de login mudam na hora</small>
   </div>
-  <a href="/admin" class="btn btn-secundario btn-sm">Voltar</a>
-</div>
+</header>
 
 <div class="card tema-atual">
   <div class="tema-atual-ic" aria-hidden="true">{{atual.emoji}}</div>
@@ -60,13 +59,13 @@
           {{#each mudancas}}<li>{{this}}</li>{{/each}}
         </ul>
         {{#if ativo}}
-          <button type="button" class="btn btn-secundario btn-bloco" disabled>✓ Este é o tema atual</button>
+          <button type="button" class="btn btn-secundario btn-bloco adm-tema-atual" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Este é o tema atual</button>
         {{else}}
           <form method="POST" action="/admin/tema" class="tema-form" data-confirmar="Ativar o tema “{{nome}}” para todo mundo agora?">
             <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
             <input type="hidden" name="tema" value="{{chave}}">
             <label class="check-linha"><input type="checkbox" name="avisar" value="1" checked> Avisar todo mundo com uma notificação</label>
-            <button type="submit" class="btn btn-primario btn-bloco">Ativar {{nome}} {{emoji}}</button>
+            <button type="submit" class="btn btn-primario btn-bloco">Ativar {{nome}}</button>
           </form>
         {{/if}}
       </div>

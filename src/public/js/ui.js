@@ -1500,7 +1500,10 @@
       var seg = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
       if (seg < 60) return 'agora';
       if (seg < 3600) return Math.floor(seg / 60) + ' min';
-      return Math.floor(seg / 3600) + ' h';
+      if (seg < 86400) return Math.floor(seg / 3600) + ' h';
+      // destaques guardam stories antigos: dias, depois semanas
+      if (seg < 604800) return Math.floor(seg / 86400) + ' d';
+      return Math.floor(seg / 604800) + ' sem';
     }
     function escSt(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
 

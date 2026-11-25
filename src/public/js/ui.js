@@ -8005,11 +8005,34 @@
     function fecharBusca() { var t = document.getElementById('buscaTela'); if (t && !t.hasAttribute('hidden')) { var x = t.querySelector('[data-busca-fechar], .busca-voltar, .btn-icone'); if (x) x.click(); else t.setAttribute('hidden', ''); } }
     // Sem campanha em andamento a seção secreta não existe: monta um EXEMPLO igual ao real
     // (some ao sair da página / terminar o tour) só para explicar como vai funcionar.
+    // Ícone de cada passo do tutorial (SVG no lugar do emoji)
+    var TOUR_IC = {
+      '🎁': '<polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>',
+      '📸': '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="5"/>',
+      '✍️': '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+      '📎': '<path d="M21.4 11.1l-9.2 9.2a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/>',
+      '❤️': '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/>',
+      '💬': '<path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.8-.9L3 21l1.9-5.2A8.4 8.4 0 1 1 21 11.5z"/>',
+      '📷': '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>',
+      '🔔': '<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>',
+      '🔍': '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+      '💌': '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>',
+      '🎭': '<path d="M3 6.5c3 1 6 1 9 0s6-1 9 0c0 6-2 10.5-5 10.5-2 0-2.5-2-4-2s-2 2-4 2c-3 0-5-4.5-5-10.5z"/><circle cx="8.5" cy="10.5" r="1.4"/><circle cx="15.5" cy="10.5" r="1.4"/>',
+      '😇': '<ellipse cx="12" cy="4.5" rx="5" ry="1.8"/><circle cx="12" cy="14" r="7"/><path d="M9.5 15.5c1.4 1.3 3.6 1.3 5 0"/>',
+      '🤫': '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+      '📝': '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/>',
+      '💛': '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/>',
+      '🎯': '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+    };
+    function tourIcone(e) {
+      var p = TOUR_IC[e] || TOUR_IC['🎁'];
+      return '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>';
+    }
     function montarDemoSecreta() {
       if (document.querySelector('.secao-secreta')) return;
       var scroll = document.querySelector('.direct-scroll'); if (!scroll) return;
       var box = document.createElement('div'); box.className = 'tour-demo';
-      box.innerHTML = '<div class="direct-secao secao-secreta"><span>🎭 Anjo Secreto</span><span class="secao-hint">exemplo · aparece quando a campanha começar</span></div>'
+      box.innerHTML = '<div class="direct-secao secao-secreta"><span>Anjo Secreto</span><span class="secao-hint">exemplo · aparece quando a campanha começar</span></div>'
         + '<a class="conv fixado conv-secreto tour-demo-anjo" href="#" tabindex="-1"><span class="conv-av anjo-av">😇</span><div class="conv-txt"><div class="conv-nome">Seu anjo <span class="tag-secreto">anônimo</span></div><div class="conv-sub">você não sabe quem é</div></div></a>'
         + '<a class="conv fixado conv-secreto sigilo tour-demo-protegido" href="#" tabindex="-1"><span class="conv-av"><span class="sig-emoji" aria-hidden="true">👀</span><span class="conv-mascara">🎭</span></span><div class="conv-txt"><div class="conv-nome"><span class="sig-generico">Seu protegido</span></div><div class="conv-sub">você é o anjo secreto dele(a)</div></div></a>';
       scroll.insertBefore(box, scroll.firstChild);
@@ -8129,7 +8152,7 @@
       var automatico = !ultimo && i > 0 && !manual; // o 1º e o último esperam a pessoa; no ritmo dela, nenhum avança sozinho
       var segs = PASSOS.map(function (_, k) { return '<span class="tour-seg' + (k < i ? ' feita' : k === i && automatico ? ' atual' : '') + '"><i></i></span>'; }).join('');
       var podeVoltar = i > 0 && aqui(PASSOS[i - 1]) && !ultimo;
-      var icone = p.logo ? '<img class="tour-logo" src="/img/logo.png" alt="Mendes Anjo">' : '<span class="tour-emoji" aria-hidden="true">' + p.emoji + '</span>';
+      var icone = p.logo ? '<img class="tour-logo" src="/img/logo.png" alt="Mendes Anjo">' : '<span class="tour-emoji tour-ic" aria-hidden="true">' + tourIcone(p.emoji) + '</span>';
       card.innerHTML = '<div class="tour-prog" style="--dur:' + DUR + 'ms">' + segs + '</div>'
         + '<div class="tour-corpo">' + icone
         + '<h3 class="tour-titulo">' + esc(p.titulo.replace('{nome}', NOME)) + '</h3>'
@@ -8137,7 +8160,7 @@
         + '<div class="tour-acoes"><span class="tour-passo">' + (i + 1) + ' / ' + PASSOS.length + '</span>'
         + (podeVoltar ? '<button type="button" class="btn btn-secundario btn-sm tour-voltar" data-tour-voltar>Voltar</button>' : '')
         + (ultimo ? '' : '<button type="button" class="tour-pular" data-tour-pular>' + (i === 0 ? 'Agora não' : 'Pular') + '</button>')
-        + '<button type="button" class="btn btn-primario btn-sm tour-prox" data-tour-prox>' + (ultimo ? 'Entendi ✨' : i === 0 ? 'Vamos lá <span class="seta">➜</span>' : 'Próximo <span class="seta">➜</span>') + '</button></div>'
+        + '<button type="button" class="btn btn-primario btn-sm tour-prox" data-tour-prox>' + (ultimo ? 'Entendi' : i === 0 ? 'Vamos lá <span class="seta">➜</span>' : 'Próximo <span class="seta">➜</span>') + '</button></div>'
         + (i === 0 ? '<div class="tour-dica">Avança sozinho, como um vídeo — ou toque em Próximo para ir no seu ritmo.</div>' : '')
         + '<div class="tour-rodape">Desenvolvido por <strong>Ihago Martins</strong></div>'
         + '</div>';

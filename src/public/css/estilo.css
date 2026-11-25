@@ -5100,3 +5100,5 @@ form.treme { animation: auth-treme 0.42s ease; }
 .prefs-titulo svg { color: var(--accent-strong); flex-shrink: 0; }
 .aniv-gostos-tit { display: flex; align-items: center; gap: 7px; }
 .aniversario-modal .btn svg { vertical-align: -3px; margin-right: 4px; }
+/* Tutorial: ícone SVG em quadradinho no lugar do emoji de cada passo */
+.tour-ic { width: 60px; height: 60px; border-radius: 18px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-strong); font-size: 0; filter: none; box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25); }

@@ -22,16 +22,10 @@
   ['gesturestart', 'gesturechange', 'gestureend'].forEach(function (ev) {
     document.addEventListener(ev, function (e) { e.preventDefault(); }, { passive: false });
   });
-  // Pinça com 2 dedos fora das áreas com zoom próprio: bloqueia o zoom DA PÁGINA
-  // (Chrome/Android e iOS que ignoram user-scalable=no no viewport). O bloqueio vale
-  // já no touchstart — alguns iOS só respeitam se o gesto for barrado no INÍCIO.
-  function bloquearPinca(e) {
-    if (e.touches.length < 2) return;
-    if (e.target.closest('.lightbox, .cam-modal, .stview, .stcomp, .tw-post-midia, .cropper, #cropper')) return;
-    e.preventDefault();
-  }
-  document.addEventListener('touchstart', bloquearPinca, { passive: false });
-  document.addEventListener('touchmove', bloquearPinca, { passive: false });
+  // O zoom DA PÁGINA com dois dedos já é barrado pelo CSS (html { touch-action: pan-x pan-y })
+  // e, no iOS, pelos eventos gesture* acima. Não há mais ouvinte de toque "que trava" no documento
+  // inteiro: com ele o navegador esperava o script a cada toque/movimento antes de rolar, e a
+  // rolagem e as pinças engasgavam.
 
   /* "Curtido por" (Instagram): fotinhas + "fulano e outras N pessoas" — espelho do helper do servidor */
   function linhaCurtidasHtml(curtidores, curtidor, n) {

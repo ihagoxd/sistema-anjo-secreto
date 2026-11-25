@@ -2,6 +2,7 @@
 
 const avisoService = require('../services/aviso.service');
 const { registrarLog } = require('../services/log.service');
+const { responder, renderizar } = require('../utils/responder');
 
 function flash(req, tipo, msg) {
   req.session.flash = { [tipo]: msg };
@@ -59,13 +60,18 @@ async function postSalvar(req, res, next) {
 
 async function postAlternar(req, res, next) {
   try {
-    const r = await avisoService.alternarAtivo(Number(req.params.id));
-    if (!r) flash(req, 'erro', 'Aviso não encontrado.');
-    else {
-      await registrarLog({ idUsuario: req.session.usuario.id_usuario, acao: r.ativo ? 'AVISO_PUBLICADO' : 'AVISO_DESATIVADO', descricao: r.titulo || null, entidade: 'aviso', idReferencia: Number(req.params.id), ip: req.ip });
-      flash(req, 'sucesso', r.ativo ? 'Aviso publicado de novo — volta a aparecer para todos.' : 'Aviso desativado — some da tela de todos.');
-    }
-    res.redirect('/admin/avisos');
+    const id = Number(req.params.id);
+    const r = await avisoService.alternarAtivo(id);
+    if (!r) return responder(req, res, { ok: false, erro: 'Aviso não encontrado.', destino: '/admin/avisos' });
+    await registrarLog({ idUsuario: req.session.usuario.id_usuario, acao: r.ativo ? 'AVISO_PUBLICADO' : 'AVISO_DESATIVADO', descricao: r.titulo || null, entidade: 'aviso', idReferencia: id, ip: req.ip });
+    // Linha atualizada (com vistos/destinatários) para a lista trocar na hora
+    const item = (await avisoService.listar()).find((a) => Number(a.id_aviso) === id);
+    responder(req, res, {
+      msg: r.ativo ? 'Aviso publicado de novo' : 'Aviso desativado',
+      flash: r.ativo ? 'Aviso publicado de novo — volta a aparecer para todos.' : 'Aviso desativado — some da tela de todos.',
+      destino: '/admin/avisos',
+      dados: { html: item ? await renderizar(res, 'partials/admAvisoItem', item) : '' },
+    });
   } catch (err) {
     next(err);
   }
@@ -76,11 +82,9 @@ async function postExcluir(req, res, next) {
     const id = Number(req.params.id);
     const aviso = await avisoService.buscarPorId(id);
     const n = await avisoService.excluir(id);
-    if (n) {
-      await registrarLog({ idUsuario: req.session.usuario.id_usuario, acao: 'AVISO_EXCLUIDO', descricao: aviso ? aviso.titulo : null, entidade: 'aviso', idReferencia: id, ip: req.ip });
-      flash(req, 'sucesso', 'Aviso excluído.');
-    } else flash(req, 'erro', 'Aviso não encontrado.');
-    res.redirect('/admin/avisos');
+    if (!n) return responder(req, res, { ok: false, erro: 'Aviso não encontrado.', destino: '/admin/avisos' });
+    await registrarLog({ idUsuario: req.session.usuario.id_usuario, acao: 'AVISO_EXCLUIDO', descricao: aviso ? aviso.titulo : null, entidade: 'aviso', idReferencia: id, ip: req.ip });
+    responder(req, res, { msg: 'Aviso excluído', destino: '/admin/avisos' });
   } catch (err) {
     next(err);
   }

@@ -1,0 +1,12 @@
+{{! Um aviso na lista do admin, como linha de app: ícone do aviso, título, recado em uma linha e
+    quantos já viram. O ⋯ abre a folha (editar, desativar/publicar, excluir) e a linha troca sem recarregar. }}
+<div class="adm-pessoa adm-aviso{{#unless ativo}} inativa{{/unless}}{{#if expirado}} inativa{{/if}}" data-adm-linha="{{id_aviso}}" data-titulo="{{titulo}}" data-emoji="{{emoji}}"{{#if ativo}} data-ativo="1"{{/if}}>
+  <a class="adm-pessoa-link" href="/admin/avisos?editar={{id_aviso}}">
+    <span class="adm-av adm-aviso-ic tema-{{tema}}" aria-hidden="true">{{emoji}}</span>
+    <span class="adm-pessoa-txt">
+      <strong>{{titulo}}</strong>
+      <small>{{#if expirado}}<i class="adm-ponto"></i>Expirado{{else if ativo}}<i class="adm-ponto adm-ponto-ativo"></i>Publicado{{else}}<i class="adm-ponto adm-ponto-pendente"></i>Rascunho{{/if}} · {{vistos}}/{{destinatarios}} viram · {{#if (eq frequencia "diario")}}todo dia{{else}}uma vez{{/if}}{{#if expira_em}} · até {{formatarData expira_em}}{{/if}}</small>
+    </span>
+  </a>
+  <button type="button" class="adm-mais" data-adm-aviso-mais aria-label="Opções do aviso {{titulo}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button>
+</div>

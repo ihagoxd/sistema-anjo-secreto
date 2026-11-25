@@ -4948,3 +4948,6 @@ div.adm-stat:active { transform: none; }
 .adm-carregar[hidden] { display: none; }
 .adm-carregar.carregando { opacity: 0.6; pointer-events: none; }
 .log-lista.trocando { opacity: 0.5; transition: opacity 0.15s; }
+/* Avisos (admin): lista em linhas */
+.adm-avisos-tit { margin-top: 22px; }
+.adm-aviso-ic { border-radius: 14px; font-size: 22px; background: linear-gradient(135deg, var(--av-a, var(--accent-soft)), var(--av-b, var(--accent-soft))); }

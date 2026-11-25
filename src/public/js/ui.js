@@ -8398,6 +8398,10 @@
         var lista = linha.parentNode;
         linha.remove();
         aplicarFiltro();
+        if (lista && lista.querySelector && !lista.querySelector('[data-adm-pessoa], [data-adm-linha]')) {
+          var vz = lista.querySelector('[data-adm-vazio]');
+          if (vz) vz.hidden = false;
+        }
         if (lista && lista.closest) {
           var sai = lista.closest('[data-adm-sai]');
           var vazio = sai && sai.querySelector('[data-adm-vazio]');
@@ -8546,6 +8550,8 @@
       inativar: '<circle cx="12" cy="12" r="10"/><line x1="4.9" y1="4.9" x2="19.1" y2="19.1"/>',
       ativar: '<polyline points="20 6 9 17 4 12"/>',
       excluir: '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>',
+      publicar: '<path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>',
+      desativar: '<path d="M17.9 17.9A10 10 0 0 1 12 20c-7 0-11-8-11-8a18.4 18.4 0 0 1 5.1-5.9M9.9 4.2A9.1 9.1 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.2 3.2"/><line x1="1" y1="1" x2="23" y2="23"/>',
     };
     function op(acao, titulo, sub, perigo, href) {
       var ic = '<span class="comp-mais-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + IC[acao] + '</svg></span>';
@@ -8554,9 +8560,9 @@
       return href ? '<a class="' + cls + '" href="' + href + '">' + ic + txt + '</a>'
         : '<button type="button" class="' + cls + '" data-adm-op="' + acao + '">' + ic + txt + '</button>';
     }
-    var folha = null, alvo = null;
-    function abrirFolha(linha) {
-      alvo = linha;
+    // Folha de opções genérica: cabeçalho (quem/o quê) + linhas com ícone; cb recebe a ação escolhida
+    var folha = null, aoEscolher = null;
+    function abrirOpcoes(quemHtml, opsHtml, cb) {
       if (!folha) {
         folha = document.createElement('div');
         folha.className = 'modal sheet-share'; folha.hidden = true; folha.setAttribute('aria-hidden', 'true');
@@ -8567,13 +8573,21 @@
         document.body.appendChild(folha);
         folha.addEventListener('click', function (e) {
           var b = e.target.closest('[data-adm-op]');
-          if (b) { fecharModal(folha); executar(b.getAttribute('data-adm-op'), alvo); }
+          if (b) { fecharModal(folha); if (aoEscolher) aoEscolher(b.getAttribute('data-adm-op')); }
         });
       }
+      aoEscolher = cb;
+      var quem = folha.querySelector('.adm-op-quem');
+      quem.innerHTML = quemHtml || '';
+      quem.hidden = !quemHtml;
+      folha.querySelector('.comp-mais-lista').innerHTML = opsHtml;
+      abrirModal(folha);
+    }
+    function abrirFolha(linha) {
       var id = linha.getAttribute('data-adm-pessoa'), sit = linha.getAttribute('data-sit');
       var eu = linha.hasAttribute('data-eu'), inativo = linha.hasAttribute('data-inativo');
       var av = linha.querySelector('.adm-av'), sub = linha.querySelector('.adm-pessoa-txt small');
-      folha.querySelector('.adm-op-quem').innerHTML = '<span class="adm-av">' + (av ? av.innerHTML : '') + '</span><div><strong>'
+      var quemHtml = '<span class="adm-av">' + (av ? av.innerHTML : '') + '</span><div><strong>'
         + esc(linha.getAttribute('data-nome')) + '</strong><small>' + esc(sub ? sub.textContent.trim() : '') + '</small></div>';
       var h = op('editar', 'Editar dados', 'Nome, login e tipo de acesso', false, '/admin/usuarios/' + id + '/editar');
       if (!eu) {
@@ -8582,9 +8596,37 @@
         if (sit !== 'pendente') h += inativo ? op('ativar', 'Reativar acesso', 'A pessoa volta a conseguir entrar') : op('inativar', 'Inativar acesso', 'Desconecta e bloqueia a entrada');
         h += op('excluir', 'Excluir conta', 'Apaga a pessoa e tudo o que ela postou', true);
       }
-      folha.querySelector('.comp-mais-lista').innerHTML = h;
-      abrirModal(folha);
+      abrirOpcoes(quemHtml, h, function (acao) { executar(acao, linha); });
     }
+
+    // Avisos: ⋯ de cada aviso (editar, desativar/publicar de novo, excluir) sem recarregar
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-adm-aviso-mais]');
+      if (!b) return;
+      var item = b.closest('[data-adm-linha]');
+      if (!item) return;
+      var id = item.getAttribute('data-adm-linha'), titulo = item.getAttribute('data-titulo'), ativo = item.hasAttribute('data-ativo');
+      var ic = item.querySelector('.adm-aviso-ic'), sub = item.querySelector('.adm-pessoa-txt small');
+      var quemHtml = '<span class="adm-av adm-aviso-ic ' + (ic ? ic.className.replace(/adm-av|adm-aviso-ic/g, '') : '') + '">' + esc(item.getAttribute('data-emoji')) + '</span><div><strong>'
+        + esc(titulo) + '</strong><small>' + esc(sub ? sub.textContent.trim() : '') + '</small></div>';
+      var h = op('editar', 'Editar aviso', 'Texto, cores, link e validade', false, '/admin/avisos?editar=' + id)
+        + (ativo ? op('desativar', 'Desativar', 'Some da tela de todo mundo') : op('publicar', 'Publicar de novo', 'Volta a aparecer para todos'))
+        + op('excluir', 'Excluir aviso', 'Apaga o aviso de vez', true);
+      abrirOpcoes(quemHtml, h, function (acao) {
+        var confirmar = window.__confirmar || function () { return Promise.resolve(true); };
+        var passo = acao === 'excluir' ? confirmar('Excluir o aviso "' + titulo + '"?', { sub: 'Some da tela de todo mundo e da lista. Não dá para desfazer.', ok: 'Excluir' }) : Promise.resolve(true);
+        passo.then(function (sim) {
+          if (!sim) return;
+          item.classList.add('enviando');
+          postar('/admin/avisos/' + id + '/' + (acao === 'excluir' ? 'excluir' : 'alternar')).then(function (d) {
+            if (!d || !d.ok) { toast((d && d.erro) || 'Não foi possível concluir.'); return; }
+            if (acao === 'excluir') d.html = '';
+            aplicarResposta(d, item);
+          }).catch(function () { toast('Sem conexão. Tente de novo.'); })
+            .finally(function () { item.classList.remove('enviando'); });
+        });
+      });
+    });
     document.addEventListener('click', function (e) {
       var b = e.target.closest('[data-adm-mais]');
       if (!b) return;

@@ -113,29 +113,12 @@
   </aside>
 </div>
 
-<h2 class="avisos-lista-titulo">Avisos publicados</h2>
-<div class="avisos-lista">
-  {{#each avisos}}
-    <div class="card aviso-item {{#unless ativo}}inativo{{/unless}} {{#if expirado}}expirado{{/if}}">
-      <div class="aviso-item-emoji tema-{{tema}}">{{emoji}}</div>
-      <div class="aviso-item-txt">
-        <strong>{{titulo}}</strong>
-        <span class="aviso-item-msg">{{mensagem}}</span>
-        <span class="aviso-item-meta">
-          {{#if expirado}}<span class="badge encerrada">Expirado</span>{{else if ativo}}<span class="badge andamento">Publicado</span>{{else}}<span class="badge rascunho">Rascunho</span>{{/if}}
-          {{#if (eq frequencia "diario")}}· 🔁 todo dia{{else}}· uma vez{{/if}}
-          · {{formatarData criado_em}}{{#if autor_nome}} · por {{autor_nome}}{{/if}}
-          {{#if expira_em}} · válido até {{formatarData expira_em}}{{/if}}
-          · <strong>{{vistos}}</strong>/{{destinatarios}} viram
-        </span>
-      </div>
-      <div class="aviso-item-acoes">
-        <a class="btn btn-secundario btn-sm" href="/admin/avisos?editar={{id_aviso}}">Editar</a>
-        <form action="/admin/avisos/{{id_aviso}}/alternar" method="POST"><input type="hidden" name="_csrf" value="{{@root.csrfToken}}"><button type="submit" class="btn btn-secundario btn-sm">{{#if ativo}}Desativar{{else}}Publicar{{/if}}</button></form>
-        <form action="/admin/avisos/{{id_aviso}}/excluir" method="POST" data-confirmar="Excluir o aviso &quot;{{titulo}}&quot;?"><input type="hidden" name="_csrf" value="{{@root.csrfToken}}"><button type="submit" class="btn btn-secundario btn-sm btn-perigo">Excluir</button></form>
-      </div>
-    </div>
-  {{else}}
-    <div class="card texto-suave" style="text-align:center;padding:28px;">Nenhum aviso ainda. O primeiro que você publicar aparece aqui.</div>
-  {{/each}}
+<div class="pn-sec-tit adm-avisos-tit">Avisos publicados</div>
+<div class="adm-lista adm-avisos">
+  {{#each avisos}}{{> admAvisoItem}}{{/each}}
+  <div class="adm-vazio" data-adm-vazio{{#if avisos.length}} hidden{{/if}}>
+    <span class="adm-vazio-ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg></span>
+    <strong>Nenhum aviso ainda</strong>
+    <small>O primeiro que você publicar aparece aqui.</small>
+  </div>
 </div>

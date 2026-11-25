@@ -9,6 +9,7 @@ const temaService = require('../services/tema.service');
 const geoService = require('../services/geo.service');
 const tempoReal = require('../services/tempoReal.service');
 const render = require('../services/render.service');
+const destaqueService = require('../services/destaque.service');
 const { montarGostos } = require('../config/gostos');
 
 function ehAdmin(req) {
@@ -406,6 +407,8 @@ async function renderPerfil(req, res, aba) {
     // Números do cabeçalho (como no Instagram): curtidas recebidas nas publicações e reposts feitos
     numCurtidas: dados.posts.reduce((s, p) => s + (Number(p.curtidas) || 0), 0),
     numReposts: await postModel.contarRepostadosPor(dados.alvo.id_usuario),
+    // Destaques (bolinhas embaixo da bio, como no Instagram)
+    destaques: await destaqueService.listarDoUsuario(dados.alvo.id_usuario),
   };
   // Troca de aba sem recarregar: só o conteúdo da aba, pronto em HTML
   if ((req.get('x-requested-with') || '') === 'fetch') {

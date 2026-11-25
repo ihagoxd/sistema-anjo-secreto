@@ -49,6 +49,23 @@
         <button type="button" class="pf-btn" data-pf-compartilhar data-url="/u/{{alvo.usuario}}" data-nome="{{alvo.nome}}">Compartilhar perfil</button>
       {{/if}}
     </div>
+
+    {{! Destaques (como no Instagram): stories guardados em bolinhas; no meu perfil, "Novo" cria um }}
+    {{#if (ou destaques.length (eq alvo.id_usuario usuario.id_usuario))}}
+    <div class="pf-destaques" data-pf-destaques>
+      {{#if (eq alvo.id_usuario usuario.id_usuario)}}
+        <button type="button" class="pf-dest pf-dest-novo" data-destaque-novo aria-label="Novo destaque">
+          <span class="pf-dest-av"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span><span class="pf-dest-tit">Novo</span>
+        </button>
+      {{/if}}
+      {{#each destaques}}
+        <button type="button" class="pf-dest" data-destaque="{{this.id_destaque}}"{{#if (eq @root.alvo.id_usuario @root.usuario.id_usuario)}} data-dono="1"{{/if}} aria-label="Destaque {{this.titulo}}">
+          <span class="pf-dest-av">{{#if this.capa}}<img src="{{this.capa}}" alt="" loading="lazy" draggable="false">{{else if this.capa_video}}<video src="{{this.capa_video}}#t=0.1" muted playsinline preload="metadata" tabindex="-1"></video>{{/if}}</span>
+          <span class="pf-dest-tit">{{this.titulo}}</span>
+        </button>
+      {{/each}}
+    </div>
+    {{/if}}
   </div>
 
   <nav class="tw-tabs pf-tabs" style="--n: {{#if (eq alvo.id_usuario usuario.id_usuario)}}4{{else}}3{{/if}}; --i: {{#if (eq aba "reposts")}}1{{else if (eq aba "gostos")}}2{{else if (eq aba "salvos")}}3{{else}}0{{/if}}" aria-label="Abas do perfil">

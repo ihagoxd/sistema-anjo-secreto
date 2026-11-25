@@ -501,3 +501,9 @@ body.tema-criancas .auth-anjo { animation: kc-flutua 3.5s ease-in-out infinite; 
   body.tema-criancas .direct-placeholder-ic, body.tema-criancas .auth-anjo, body.tema-criancas .bi-item.ativo svg,
   body.tema-criancas .loader-ceu span, body.tema-criancas .auth-ceu span { animation: none !important; }
 }
+/* Direct: câmera e "Enviar" na cor do tema (azul; roxo nos canais secretos) */
+body.tema-criancas .dm-cam { background: var(--kc-grad-frio); color: #fff; box-shadow: 0 6px 16px rgba(58, 134, 255, 0.3); }
+body.tema-criancas .dm-secreto .dm-cam { background: var(--kc-grad-roxo); color: #fff; box-shadow: 0 6px 16px rgba(131, 56, 236, 0.3); }
+body.tema-criancas .dm-enviar-txt { color: var(--kc-azul-forte); }
+body.tema-criancas .dm-secreto .dm-enviar-txt, body.tema-criancas .dm-secreto .dm-acao-in { color: var(--kc-roxo); }
+body.tema-criancas .dm-secreto .dm-filtro-op.sel { background: var(--kc-roxo); color: #fff; }

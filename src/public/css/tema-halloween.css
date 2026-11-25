@@ -544,3 +544,8 @@ body.tema-halloween .tw-post-texto .post-edit-box textarea { font-family: var(--
 body.tema-halloween .compositor-topo textarea { font-family: var(--font-post); font-size: 18px; line-height: 1.45; }
 body.tema-halloween .compositor-topo textarea::placeholder { font-family: var(--font-post); }
 /* Página do post e comentários continuam na fonte normal (legibilidade nas conversas) */
+/* Direct: câmera e "Enviar" na cor do tema (abóbora; roxo nos canais secretos) */
+body.tema-halloween .dm-cam { background: var(--hw-grad); color: #1a0b00; box-shadow: 0 6px 16px rgba(255, 122, 26, 0.32); }
+body.tema-halloween .dm-secreto .dm-cam { background: var(--hw-grad-roxo); color: #fff; box-shadow: 0 6px 16px rgba(138, 63, 252, 0.32); }
+body.tema-halloween .dm-secreto .dm-filtro-op.sel { background: var(--hw-roxo); color: #fff; }
+body.tema-halloween .dm-secreto .dm-acao-in, body.tema-halloween .dm-secreto .dm-enviar-txt { color: #b98cff; }

@@ -42,53 +42,83 @@
   <span class="hw-abobora">🎃</span>
 </div>
 {{/if}}
-{{! Natal (noite de inverno): estrela de Belém, neve em camadas (pontinhos ao fundo, cristais girando e
-    balançando, alguns grandes e desfocados na frente), bolas penduradas balançando, o trenó do Papai Noel
-    cruzando o céu, pinheiros nevados e montes de neve, varal de luzinhas e a árvore no canto.
-    No celular o varal fica pendurado no topo (CSS) e há menos flocos e bolas. }}
+{{! Natal fofo (ilustrado): céu azul suave com a lua crescente sonolenta, estrelinhas piscando, nuvens
+    fofas, o trenó cruzando o céu e neve fofinha (bolinhas e alguns floquinhos gordinhos). No chão, uma cena
+    desenhada: boneco de neve acenando, casinhas com janela acesa e fumacinha, pinheirinhos e montes de neve.
+    O centro da cena (boneco, casinhas) é o que aparece no celular. }}
 {{#if (eq tema.chave "natal")}}
 <div class="nt-deco" aria-hidden="true">
-  <span class="nt-estrela"></span>
-  <span class="nt-neve-fina"></span><span class="nt-neve-fina b"></span>
-  <span class="nt-treno" style="--y:17%;--d:46s;--atraso:5s"></span>
-  <span class="nt-pinheiros longe"></span><span class="nt-pinheiros"></span><span class="nt-montes"></span>
-  <span class="nt-bola cel" style="--x:6%;--h:96px;--c:#e63946;--s:30px;--d:4.2s"><b></b></span>
-  <span class="nt-bola" style="--x:19%;--h:62px;--c:#f6c453;--s:24px;--d:3.6s"><b></b></span>
-  <span class="nt-bola" style="--x:33%;--h:120px;--c:#7cb7ff;--s:28px;--d:4.8s"><b></b></span>
-  <span class="nt-bola" style="--x:64%;--h:78px;--c:#e63946;--s:26px;--d:3.9s"><b></b></span>
-  <span class="nt-bola" style="--x:80%;--h:130px;--c:#dfe8ff;--s:32px;--d:5.2s"><b></b></span>
-  <span class="nt-bola cel" style="--x:93%;--h:70px;--c:#f6c453;--s:26px;--d:4.4s"><b></b></span>
-  <div class="nt-luzes"><i style="--x:76px;--c:#ff4d5e;--d:1.80s;animation-delay:-0.0s"></i><i style="--x:236px;--c:#f6c453;--d:2.15s;animation-delay:-0.7s"></i><i style="--x:396px;--c:#bfe3ff;--d:2.50s;animation-delay:-1.4s"></i><i style="--x:556px;--c:#ff4d5e;--d:2.85s;animation-delay:-0.1s"></i><i style="--x:716px;--c:#f6c453;--d:1.80s;animation-delay:-0.8s"></i><i style="--x:876px;--c:#bfe3ff;--d:2.15s;animation-delay:-1.5s"></i><i style="--x:1036px;--c:#ff4d5e;--d:2.50s;animation-delay:-0.2s"></i><i style="--x:1196px;--c:#f6c453;--d:2.85s;animation-delay:-0.9s"></i><i style="--x:1356px;--c:#bfe3ff;--d:1.80s;animation-delay:-1.6s"></i><i style="--x:1516px;--c:#ff4d5e;--d:2.15s;animation-delay:-0.3s"></i><i style="--x:1676px;--c:#f6c453;--d:2.50s;animation-delay:-1.0s"></i><i style="--x:1836px;--c:#bfe3ff;--d:2.85s;animation-delay:-1.7s"></i></div>
-  <i class="nt-floco" style="--x:2%;--t:8px;--d:10s;--g:4s;--vento:-30px;--o:0.55;animation-delay:0s"><b></b></i>
-  <i class="nt-floco" style="--x:8%;--t:15px;--d:15s;--g:7s;--vento:-13px;--o:0.68;animation-delay:-11s"><b></b></i>
-  <i class="nt-floco" style="--x:14%;--t:22px;--d:20s;--g:5s;--vento:4px;--o:0.81;animation-delay:0s"><b></b></i>
-  <i class="nt-floco" style="--x:20%;--t:14px;--d:14s;--g:8s;--vento:21px;--o:0.94;animation-delay:-11s"><b></b></i>
-  <i class="nt-floco" style="--x:26%;--t:21px;--d:19s;--g:6s;--vento:-22px;--o:0.67;animation-delay:0s"><b></b></i>
-  <i class="nt-floco" style="--x:31%;--t:13px;--d:13s;--g:4s;--vento:-5px;--o:0.80;animation-delay:-11s"><b></b></i>
-  <i class="nt-floco" style="--x:37%;--t:20px;--d:18s;--g:7s;--vento:12px;--o:0.93;animation-delay:0s"><b></b></i>
-  <i class="nt-floco" style="--x:43%;--t:12px;--d:12s;--g:5s;--vento:29px;--o:0.66;animation-delay:-11s"><b></b></i>
-  <i class="nt-floco" style="--x:49%;--t:19px;--d:17s;--g:8s;--vento:-14px;--o:0.79;animation-delay:0s"><b></b></i>
-  <i class="nt-floco" style="--x:55%;--t:11px;--d:11s;--g:6s;--vento:3px;--o:0.92;animation-delay:-11s"><b></b></i>
-  <i class="nt-floco" style="--x:61%;--t:18px;--d:16s;--g:4s;--vento:20px;--o:0.65;animation-delay:0s"><b></b></i>
-  <i class="nt-floco" style="--x:66%;--t:10px;--d:10s;--g:7s;--vento:-23px;--o:0.78;animation-delay:-11s"><b></b></i>
-  <i class="nt-floco" style="--x:72%;--t:17px;--d:15s;--g:5s;--vento:-6px;--o:0.91;animation-delay:0s"><b></b></i>
-  <i class="nt-floco" style="--x:78%;--t:9px;--d:20s;--g:8s;--vento:11px;--o:0.64;animation-delay:-11s"><b></b></i>
-  <i class="nt-floco" style="--x:84%;--t:16px;--d:14s;--g:6s;--vento:28px;--o:0.77;animation-delay:0s"><b></b></i>
-  <i class="nt-floco" style="--x:90%;--t:8px;--d:19s;--g:4s;--vento:-15px;--o:0.90;animation-delay:-11s"><b></b></i>
-  <i class="nt-floco" style="--x:96%;--t:15px;--d:13s;--g:7s;--vento:2px;--o:0.63;animation-delay:0s"><b></b></i>
-  <i class="nt-floco" style="--x:5%;--t:22px;--d:18s;--g:5s;--vento:19px;--o:0.76;animation-delay:-11s"><b></b></i>
-  <i class="nt-floco" style="--x:17%;--t:14px;--d:12s;--g:8s;--vento:-24px;--o:0.89;animation-delay:0s"><b></b></i>
-  <i class="nt-floco" style="--x:29%;--t:21px;--d:17s;--g:6s;--vento:-7px;--o:0.62;animation-delay:-11s"><b></b></i>
-  <i class="nt-floco" style="--x:41%;--t:13px;--d:11s;--g:4s;--vento:10px;--o:0.75;animation-delay:0s"><b></b></i>
-  <i class="nt-floco" style="--x:53%;--t:20px;--d:16s;--g:7s;--vento:27px;--o:0.88;animation-delay:-11s"><b></b></i>
-  <i class="nt-floco" style="--x:65%;--t:12px;--d:10s;--g:5s;--vento:-16px;--o:0.61;animation-delay:0s"><b></b></i>
-  <i class="nt-floco" style="--x:77%;--t:19px;--d:15s;--g:8s;--vento:1px;--o:0.74;animation-delay:-11s"><b></b></i>
-  <i class="nt-floco" style="--x:89%;--t:11px;--d:20s;--g:6s;--vento:18px;--o:0.87;animation-delay:0s"><b></b></i>
-  <i class="nt-floco" style="--x:35%;--t:18px;--d:14s;--g:4s;--vento:-25px;--o:0.60;animation-delay:-11s"><b></b></i>
-  <i class="nt-floco perto" style="--x:12%;--t:30px;--d:18s;--g:7s;--vento:-60px;--o:.45;animation-delay:-0s"><b></b></i>
-  <i class="nt-floco perto" style="--x:47%;--t:34px;--d:24s;--g:7s;--vento:-60px;--o:.45;animation-delay:-6s"><b></b></i>
-  <i class="nt-floco perto" style="--x:70%;--t:28px;--d:20s;--g:7s;--vento:-60px;--o:.45;animation-delay:-12s"><b></b></i>
-  <i class="nt-floco perto" style="--x:88%;--t:32px;--d:26s;--g:7s;--vento:-60px;--o:.45;animation-delay:-18s"><b></b></i>
-  <span class="nt-arvore">🎄</span>
+  <span class="nt-lua"></span>
+  <i class="nt-estrelinha" style="left:6%;top:9%;--t:12px;animation-delay:-0.0s"></i>
+  <i class="nt-estrelinha" style="left:18%;top:22%;--t:9px;animation-delay:-0.7s"></i>
+  <i class="nt-estrelinha" style="left:29%;top:7%;--t:14px;animation-delay:-1.4s"></i>
+  <i class="nt-estrelinha" style="left:41%;top:16%;--t:8px;animation-delay:-2.1s"></i>
+  <i class="nt-estrelinha" style="left:55%;top:6%;--t:11px;animation-delay:-2.8s"></i>
+  <i class="nt-estrelinha" style="left:63%;top:24%;--t:9px;animation-delay:-3.5s"></i>
+  <i class="nt-estrelinha" style="left:74%;top:12%;--t:13px;animation-delay:-4.2s"></i>
+  <i class="nt-estrelinha" style="left:90%;top:30%;--t:8px;animation-delay:-4.9s"></i>
+  <i class="nt-estrelinha" style="left:96%;top:8%;--t:10px;animation-delay:-5.6s"></i>
+  <i class="nt-estrelinha" style="left:47%;top:30%;--t:7px;animation-delay:-6.3s"></i>
+  <span class="nt-nuvem" style="top:13%;--d:90s;animation-delay:-20s"></span>
+  <span class="nt-nuvem b" style="top:27%;--d:120s;animation-delay:-70s"></span>
+  <span class="nt-treno" style="--y:11%;--d:48s;--atraso:6s"></span>
+  <div class="nt-luzes"><i style="--x:76px;--c:#ffd36e;--d:1.80s;animation-delay:-0.0s"></i><i style="--x:236px;--c:#ff8fab;--d:2.15s;animation-delay:-0.7s"></i><i style="--x:396px;--c:#ffd36e;--d:2.50s;animation-delay:-1.4s"></i><i style="--x:556px;--c:#ff8fab;--d:2.85s;animation-delay:-0.1s"></i><i style="--x:716px;--c:#ffd36e;--d:1.80s;animation-delay:-0.8s"></i><i style="--x:876px;--c:#ff8fab;--d:2.15s;animation-delay:-1.5s"></i><i style="--x:1036px;--c:#ffd36e;--d:2.50s;animation-delay:-0.2s"></i><i style="--x:1196px;--c:#ff8fab;--d:2.85s;animation-delay:-0.9s"></i><i style="--x:1356px;--c:#ffd36e;--d:1.80s;animation-delay:-1.6s"></i><i style="--x:1516px;--c:#ff8fab;--d:2.15s;animation-delay:-0.3s"></i><i style="--x:1676px;--c:#ffd36e;--d:2.50s;animation-delay:-1.0s"></i><i style="--x:1836px;--c:#ff8fab;--d:2.85s;animation-delay:-1.7s"></i></div>
+  <i class="nt-floco" style="--x:1%;--t:4px;--d:11s;--vento:-25px;animation-delay:0s"></i>
+  <i class="nt-floco perto" style="--x:42%;--t:11px;--d:16s;--vento:-8px;animation-delay:-13s"></i>
+  <i class="nt-floco" style="--x:83%;--t:9px;--d:11s;--vento:9px;animation-delay:-6s"></i>
+  <i class="nt-floco" style="--x:27%;--t:7px;--d:16s;--vento:-24px;animation-delay:-19s"></i>
+  <i class="nt-floco" style="--x:68%;--t:5px;--d:11s;--vento:-7px;animation-delay:-12s"></i>
+  <i class="nt-floco perto" style="--x:12%;--t:12px;--d:16s;--vento:10px;animation-delay:-5s"></i>
+  <i class="nt-floco" style="--x:53%;--t:10px;--d:11s;--vento:-23px;animation-delay:-18s"></i>
+  <i class="nt-floco" style="--x:94%;--t:8px;--d:16s;--vento:-6px;animation-delay:-11s"></i>
+  <i class="nt-floco" style="--x:38%;--t:6px;--d:11s;--vento:11px;animation-delay:-4s"></i>
+  <i class="nt-floco" style="--x:79%;--t:4px;--d:16s;--vento:-22px;animation-delay:-17s"></i>
+  <i class="nt-floco perto" style="--x:23%;--t:11px;--d:11s;--vento:-5px;animation-delay:-10s"></i>
+  <i class="nt-floco" style="--x:64%;--t:9px;--d:16s;--vento:12px;animation-delay:-3s"></i>
+  <i class="nt-floco" style="--x:8%;--t:7px;--d:11s;--vento:-21px;animation-delay:-16s"></i>
+  <i class="nt-floco" style="--x:49%;--t:5px;--d:16s;--vento:-4px;animation-delay:-9s"></i>
+  <i class="nt-floco perto" style="--x:90%;--t:12px;--d:11s;--vento:13px;animation-delay:-2s"></i>
+  <i class="nt-floco" style="--x:34%;--t:10px;--d:16s;--vento:-20px;animation-delay:-15s"></i>
+  <i class="nt-floco" style="--x:75%;--t:8px;--d:11s;--vento:-3px;animation-delay:-8s"></i>
+  <i class="nt-floco" style="--x:19%;--t:6px;--d:16s;--vento:14px;animation-delay:-1s"></i>
+  <i class="nt-floco" style="--x:60%;--t:4px;--d:11s;--vento:-19px;animation-delay:-14s"></i>
+  <i class="nt-floco perto" style="--x:4%;--t:11px;--d:16s;--vento:-2px;animation-delay:-7s"></i>
+  <i class="nt-floco" style="--x:45%;--t:9px;--d:11s;--vento:15px;animation-delay:0s"></i>
+  <i class="nt-floco" style="--x:86%;--t:7px;--d:16s;--vento:-18px;animation-delay:-13s"></i>
+  <i class="nt-floco cristal" style="--x:5%;--t:15px;--d:14s;--vento:-20px;--g:5s;animation-delay:0s"><b></b></i>
+  <i class="nt-floco cristal" style="--x:34%;--t:20px;--d:17s;--vento:3px;--g:6s;animation-delay:-7s"><b></b></i>
+  <i class="nt-floco cristal" style="--x:63%;--t:16px;--d:20s;--vento:-14px;--g:7s;animation-delay:-14s"><b></b></i>
+  <i class="nt-floco cristal" style="--x:92%;--t:21px;--d:15s;--vento:9px;--g:5s;animation-delay:-3s"><b></b></i>
+  <i class="nt-floco cristal" style="--x:31%;--t:17px;--d:18s;--vento:-8px;--g:6s;animation-delay:-10s"><b></b></i>
+  <i class="nt-floco cristal" style="--x:60%;--t:22px;--d:21s;--vento:15px;--g:7s;animation-delay:-17s"><b></b></i>
+  <i class="nt-floco cristal" style="--x:89%;--t:18px;--d:16s;--vento:-2px;--g:5s;animation-delay:-6s"><b></b></i>
+  <i class="nt-floco cristal" style="--x:28%;--t:23px;--d:19s;--vento:-19px;--g:6s;animation-delay:-13s"><b></b></i>
+  <svg class="nt-cena" viewBox="0 0 1200 240" preserveAspectRatio="xMidYMax slice">
+    <path class="nt-morro-tras" d="M0 150 Q150 108 300 136 T600 126 T900 136 T1200 122 V240 H0 Z"/>
+    {{> natalPinho x=20 y=96 s=0.5 cor="#a9c2ee"}}
+    {{> natalPinho x=210 y=96 s=0.5 cor="#a9c2ee"}}
+    {{> natalPinho x=360 y=96 s=0.5 cor="#a9c2ee"}}
+    {{> natalPinho x=600 y=96 s=0.5 cor="#a9c2ee"}}
+    {{> natalPinho x=780 y=96 s=0.5 cor="#a9c2ee"}}
+    {{> natalPinho x=1000 y=96 s=0.5 cor="#a9c2ee"}}
+    {{> natalPinho x=1180 y=96 s=0.5 cor="#a9c2ee"}}
+    {{> natalPinho x=40 y=130 s=0.75 cor="#5fc9a8"}}
+    {{> natalPinho x=92 y=146 s=0.58 cor="#4bb894"}}
+    {{> natalCasa x=150 y=118 s=0.8 telhado="#ffb38a"}}
+    {{> natalPinho x=270 y=128 s=0.78 cor="#5fc9a8"}}
+    {{> natalPinho x=325 y=145 s=0.6 cor="#4bb894"}}
+    {{> natalCasa x=395 y=108 s=0.85 telhado="#ff8fab"}}
+    {{> natalBoneco x=520 y=95 s=0.75 gid="ntNeveCena"}}
+    {{> natalPinho x=625 y=128 s=0.8 cor="#5fc9a8"}}
+    {{> natalPinho x=672 y=146 s=0.62 cor="#4bb894"}}
+    {{> natalCasa x=715 y=120 s=0.78 telhado="#8fb8ff"}}
+    {{> natalPinho x=830 y=126 s=0.8 cor="#5fc9a8"}}
+    {{> natalPinho x=882 y=144 s=0.6 cor="#4bb894"}}
+    {{> natalCasa x=930 y=116 s=0.82 telhado="#ff8fab"}}
+    {{> natalPinho x=1050 y=128 s=0.78 cor="#5fc9a8"}}
+    {{> natalPinho x=1105 y=146 s=0.6 cor="#4bb894"}}
+    {{> natalPinho x=1150 y=130 s=0.72 cor="#5fc9a8"}}
+    <path class="nt-morro" d="M0 206 Q200 184 400 202 T800 200 T1200 202 V240 H0 Z"/>
+  </svg>
 </div>
 {{/if}}

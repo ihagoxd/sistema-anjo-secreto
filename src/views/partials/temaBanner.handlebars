@@ -44,7 +44,7 @@
       <a class="btn btn-primario tb-btn" href="/participante/preferencias/tema">{{#if temaPrefsPreenchido}}{{tema.banner.botaoPreenchido}}{{else}}{{tema.banner.botao}}{{/if}} →</a>
     {{/unless}}{{/if}}
   </div>
-  <div class="tb-arte" aria-hidden="true">{{#if (eq tema.chave "halloween")}}<span data-abobora title="Toque!">🎃</span><span>👻</span><span>🦇</span>{{else if (eq tema.chave "natal")}}<span data-arvore title="Toque!">🎄</span><span>🎅</span><span>🎁</span>{{else}}<span>🎁</span><span>🧸</span><span>🎈</span>{{/if}}</div>
+  <div class="tb-arte" aria-hidden="true">{{#if (eq tema.chave "halloween")}}<span data-abobora title="Toque!">🎃</span><span>👻</span><span>🦇</span>{{else if (eq tema.chave "natal")}}<svg class="tb-boneco" viewBox="0 0 120 160" data-boneco>{{> natalBoneco x=0 y=0 s=1 gid="ntNeveFaixa"}}</svg>{{else}}<span>🎁</span><span>🧸</span><span>🎈</span>{{/if}}</div>
   <button type="button" class="tb-x" data-fechar-banner="{{tema.chave}}" aria-label="Esconder esta faixa" title="Esconder">&times;</button>
 </section>
 {{/if}}

@@ -9,6 +9,21 @@
     <i class="tb-bat" style="top:8%;--d:14s;animation-delay:-6s"><b></b></i>
     <i class="tb-bat" style="top:26%;--d:12s;animation-delay:-3s"><b></b></i>
     <span class="tb-neblina"></span>
+    {{else if (eq tema.chave "natal")}}
+    <i class="tb-floco" style="--x:3%;--d:5.0s;--t:3px;animation-delay:-0.0s"></i>
+    <i class="tb-floco" style="--x:10%;--d:6.3s;--t:4px;animation-delay:-1.7s"></i>
+    <i class="tb-floco" style="--x:17%;--d:7.6s;--t:5px;animation-delay:-3.4s"></i>
+    <i class="tb-floco" style="--x:24%;--d:8.9s;--t:3px;animation-delay:-5.1s"></i>
+    <i class="tb-floco" style="--x:31%;--d:5.0s;--t:4px;animation-delay:-0.8s"></i>
+    <i class="tb-floco" style="--x:38%;--d:6.3s;--t:5px;animation-delay:-2.5s"></i>
+    <i class="tb-floco" style="--x:45%;--d:7.6s;--t:3px;animation-delay:-4.2s"></i>
+    <i class="tb-floco" style="--x:52%;--d:8.9s;--t:4px;animation-delay:-5.9s"></i>
+    <i class="tb-floco" style="--x:58%;--d:5.0s;--t:5px;animation-delay:-1.6s"></i>
+    <i class="tb-floco" style="--x:65%;--d:6.3s;--t:3px;animation-delay:-3.3s"></i>
+    <i class="tb-floco" style="--x:72%;--d:7.6s;--t:4px;animation-delay:-5.0s"></i>
+    <i class="tb-floco" style="--x:79%;--d:8.9s;--t:5px;animation-delay:-0.7s"></i>
+    <i class="tb-floco" style="--x:86%;--d:5.0s;--t:3px;animation-delay:-2.4s"></i>
+    <i class="tb-floco" style="--x:93%;--d:6.3s;--t:4px;animation-delay:-4.1s"></i>
     {{else}}
     <span class="tb-balao" style="--c:#ff5a5f;left:3%;animation-delay:-2s"></span>
     <span class="tb-balao" style="--c:#4cc9f0;left:11%;animation-delay:-6s;transform:scale(.7)"></span>
@@ -29,7 +44,7 @@
       <a class="btn btn-primario tb-btn" href="/participante/preferencias/tema">{{#if temaPrefsPreenchido}}{{tema.banner.botaoPreenchido}}{{else}}{{tema.banner.botao}}{{/if}} →</a>
     {{/unless}}{{/if}}
   </div>
-  <div class="tb-arte" aria-hidden="true">{{#if (eq tema.chave "halloween")}}<span data-abobora title="Toque!">🎃</span><span>👻</span><span>🦇</span>{{else}}<span>🎁</span><span>🧸</span><span>🎈</span>{{/if}}</div>
+  <div class="tb-arte" aria-hidden="true">{{#if (eq tema.chave "halloween")}}<span data-abobora title="Toque!">🎃</span><span>👻</span><span>🦇</span>{{else if (eq tema.chave "natal")}}<span data-arvore title="Toque!">🎄</span><span>🎅</span><span>🎁</span>{{else}}<span>🎁</span><span>🧸</span><span>🎈</span>{{/if}}</div>
   <button type="button" class="tb-x" data-fechar-banner="{{tema.chave}}" aria-label="Esconder esta faixa" title="Esconder">&times;</button>
 </section>
 {{/if}}

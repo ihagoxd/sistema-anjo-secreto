@@ -3,7 +3,7 @@
     Aparece na página do protegido (para o anjo) e na aba Gostos do perfil. }}
 {{#if gostosTema.length}}
 <div class="card gt-card gt-{{tema.chave}}">
-  <div class="gt-deco" aria-hidden="true">{{#if (eq tema.chave "halloween")}}<span>🎃</span><span>🕸️</span><span>🍬</span>{{else}}<span>🎈</span><span>✨</span><span>🎁</span>{{/if}}</div>
+  <div class="gt-deco" aria-hidden="true">{{#if (eq tema.chave "halloween")}}<span>🎃</span><span>🕸️</span><span>🍬</span>{{else if (eq tema.chave "natal")}}<span>🎄</span><span>⭐</span><span>🎁</span>{{else}}<span>🎈</span><span>✨</span><span>🎁</span>{{/if}}</div>
   <div class="gt-cab">
     <span class="gt-emoji">{{{tema.icone}}}</span>
     <div>

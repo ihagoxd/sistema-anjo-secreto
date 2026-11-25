@@ -11,6 +11,8 @@
     <div class="pft-hero-deco tb-deco" aria-hidden="true">
       {{#if (eq tema.chave "halloween")}}
       <i class="tb-bat" style="top:14%;--d:10s"><b></b></i><i class="tb-bat" style="top:30%;--d:13s;animation-delay:-6s"><b></b></i><span class="tb-neblina"></span>
+      {{else if (eq tema.chave "natal")}}
+      <i class="tb-floco" style="--x:3%;--d:5.0s;--t:3px;animation-delay:-0.0s"></i><i class="tb-floco" style="--x:13%;--d:6.3s;--t:4px;animation-delay:-1.7s"></i><i class="tb-floco" style="--x:22%;--d:7.6s;--t:5px;animation-delay:-3.4s"></i><i class="tb-floco" style="--x:32%;--d:8.9s;--t:3px;animation-delay:-5.1s"></i><i class="tb-floco" style="--x:42%;--d:5.0s;--t:4px;animation-delay:-0.8s"></i><i class="tb-floco" style="--x:52%;--d:6.3s;--t:5px;animation-delay:-2.5s"></i><i class="tb-floco" style="--x:61%;--d:7.6s;--t:3px;animation-delay:-4.2s"></i><i class="tb-floco" style="--x:71%;--d:8.9s;--t:4px;animation-delay:-5.9s"></i><i class="tb-floco" style="--x:81%;--d:5.0s;--t:5px;animation-delay:-1.6s"></i><i class="tb-floco" style="--x:90%;--d:6.3s;--t:3px;animation-delay:-3.3s"></i>
       {{else}}
       <span class="tb-balao" style="--c:#ff5a5f;left:4%;animation-delay:-2s"></span>
       <span class="tb-balao" style="--c:#4cc9f0;left:92%;animation-delay:-6s;transform:scale(.8)"></span>
@@ -19,7 +21,7 @@
       <i class="tb-confete" style="--c:#8338ec;left:78%;animation-delay:-5s"></i>
       {{/if}}
     </div>
-    <div class="pft-hero-emojis" aria-hidden="true">{{#if (eq tema.chave "halloween")}}<span>🎃</span><span>🍬</span><span>👻</span>{{else}}<span>🧸</span><span>🎁</span><span>🍭</span>{{/if}}</div>
+    <div class="pft-hero-emojis" aria-hidden="true">{{#if (eq tema.chave "halloween")}}<span>🎃</span><span>🍬</span><span>👻</span>{{else if (eq tema.chave "natal")}}<span>🎅</span><span>🎄</span><span>🎁</span>{{else}}<span>🧸</span><span>🎁</span><span>🍭</span>{{/if}}</div>
     <h2 class="pft-hero-tit">{{tema.prefs.heroTitulo}}</h2>
     <p class="pft-hero-txt">{{tema.prefs.heroTexto}}</p>
   </div>

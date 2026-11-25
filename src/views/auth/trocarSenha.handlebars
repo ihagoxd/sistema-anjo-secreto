@@ -4,20 +4,13 @@
   <p>A senha que você usou é provisória. Escolha uma senha só sua para continuar.</p>
 </div>
 
-<form class="form" action="/trocar-senha" method="POST" novalidate>
+{{> authErro}}
+
+<form class="form" action="/trocar-senha" method="POST" novalidate data-auth-form="trocar">
   {{#if csrfToken}}<input type="hidden" name="_csrf" value="{{csrfToken}}">{{/if}}
 
-  <div class="campo">
-    <label for="senha">Nova senha</label>
-    <input type="password" id="senha" name="senha" autocomplete="new-password"
-      placeholder="••••••••" required autofocus>
-  </div>
+  {{> authSenha id="senha" rotulo="Nova senha" auto="new-password" regra=true}}
+  {{> authSenha id="confirmarSenha" rotulo="Confirmar senha" auto="new-password" tecla="done" confere=true}}
 
-  <div class="campo">
-    <label for="confirmarSenha">Confirmar senha</label>
-    <input type="password" id="confirmarSenha" name="confirmarSenha" autocomplete="new-password"
-      placeholder="••••••••" required>
-  </div>
-
-  <button type="submit" class="btn btn-primario btn-bloco">Salvar senha</button>
+  <button type="submit" class="btn btn-primario btn-bloco" data-auth-enviar data-carregando="Salvando">Salvar senha</button>
 </form>

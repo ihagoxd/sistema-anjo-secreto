@@ -1,0 +1,17 @@
+{{! Campo de senha das telas de entrada: cadeado à esquerda, olho para mostrar/esconder, aviso de
+    Caps Lock e, quando pedido, a regra do tamanho (regra) ou o "as senhas conferem" (confere). }}
+<div class="campo">
+  <label for="{{id}}">{{rotulo}}</label>
+  <div class="auth-input">
+    <svg class="auth-input-ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{{#if confere}}<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/>{{else}}<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>{{/if}}</svg>
+    <input type="password" id="{{id}}" name="{{id}}" autocomplete="{{auto}}" placeholder="••••••••" required
+      autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="{{#if tecla}}{{tecla}}{{else}}next{{/if}}" data-auth-senha>
+    <button type="button" class="auth-olho" data-auth-olho aria-label="Mostrar senha" tabindex="-1">
+      <svg class="ic-aberto" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      <svg class="ic-fechado" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.9 17.9A10 10 0 0 1 12 20c-7 0-11-8-11-8a18.4 18.4 0 0 1 5.1-5.9M9.9 4.2A9.1 9.1 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.2 3.2"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+    </button>
+  </div>
+  <p class="auth-dica auth-caps" data-auth-caps hidden><span class="auth-dica-ic"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></span><span class="auth-dica-txt">Caps Lock ligado</span></p>
+  {{#if regra}}<p class="auth-dica" data-auth-regra><span class="auth-dica-ic"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span class="auth-dica-txt">Pelo menos 6 caracteres</span></p>{{/if}}
+  {{#if confere}}<p class="auth-dica" data-auth-confere hidden><span class="auth-dica-ic"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span class="auth-dica-txt">As senhas conferem</span></p>{{/if}}
+</div>

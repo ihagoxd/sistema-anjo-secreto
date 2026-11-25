@@ -5015,3 +5015,47 @@ div.adm-stat:active { transform: none; }
 .adm-sel { position: relative; display: block; }
 .adm-sel .adm-cp-select { padding-right: 28px; cursor: pointer; }
 .adm-sel-seta { position: absolute; right: 0; top: 50%; transform: translateY(-50%); color: var(--text-faint); pointer-events: none; }
+
+/* =========================================================================
+   Telas de entrada (login, cadastro, criar senha): digitar sem estranhar.
+   Ícone dentro do campo, olho da senha, dicas que marcam ao vivo, botão
+   carregando, erro no próprio cartão (com um tremor) e "Cadastro enviado".
+   ========================================================================= */
+.auth-input { position: relative; display: block; }
+.auth-input-ic { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--text-faint); pointer-events: none; transition: color 0.15s; }
+.auth-tela .auth-input input { min-height: 46px; padding-left: 42px; border-radius: 12px; }
+.auth-tela .auth-input:has(.auth-olho) input { padding-right: 46px; }
+.auth-input:focus-within .auth-input-ic { color: var(--ouro); }
+.auth-olho { position: absolute; right: 3px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; display: grid; place-items: center; padding: 0; border: none; border-radius: 50%; background: none; color: var(--text-faint); cursor: pointer; transition: color 0.15s, background 0.15s; }
+.auth-olho:hover { color: var(--text); background: color-mix(in srgb, var(--text) 8%, transparent); }
+.auth-olho .ic-fechado { display: none; }
+.auth-olho.vendo .ic-aberto { display: none; }
+.auth-olho.vendo .ic-fechado { display: block; }
+.auth-olho.vendo { color: var(--ouro); }
+.auth-tela .campo input.invalido { border-color: var(--st-vermelho); box-shadow: 0 0 0 3px color-mix(in srgb, var(--st-vermelho) 24%, transparent); }
+.auth-input:has(input.invalido) .auth-input-ic { color: var(--st-vermelho); }
+.auth-dica { display: flex; align-items: center; gap: 7px; margin: 7px 2px 0; font-size: 12.5px; line-height: 1.3; color: var(--text-faint); transition: color 0.15s; }
+.auth-dica[hidden] { display: none; }
+.auth-dica-ic { width: 16px; height: 16px; flex-shrink: 0; border-radius: 50%; display: grid; place-items: center; border: 1.5px solid currentColor; opacity: 0.7; transition: background 0.18s, border-color 0.18s, opacity 0.18s; }
+.auth-dica-ic svg { opacity: 0; transform: scale(0.4); transition: opacity 0.15s, transform 0.2s cubic-bezier(0.34, 1.6, 0.64, 1); }
+.auth-dica.ok { color: var(--st-verde); }
+.auth-dica.ok .auth-dica-ic { background: var(--st-verde); border-color: var(--st-verde); color: #fff; opacity: 1; }
+.auth-dica.ok .auth-dica-ic svg { opacity: 1; transform: none; }
+.auth-dica.ruim { color: var(--st-vermelho); }
+.auth-dica.ruim .auth-dica-ic { opacity: 1; }
+.auth-caps { color: var(--st-amarelo); }
+.auth-caps .auth-dica-ic { opacity: 1; }
+.auth-caps .auth-dica-ic svg { opacity: 1; transform: none; }
+.auth-erro { margin-bottom: 14px; animation: auth-surge 0.3s cubic-bezier(0.34, 1.4, 0.64, 1) both; }
+.auth-erro[hidden] { display: none; }
+form.treme { animation: auth-treme 0.42s ease; }
+@keyframes auth-treme { 0%, 100% { transform: none; } 18% { transform: translateX(-8px); } 36% { transform: translateX(7px); } 54% { transform: translateX(-5px); } 72% { transform: translateX(3px); } }
+.auth-tela .btn[data-auth-enviar] { min-height: 46px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 9px; }
+.auth-tela .btn[data-auth-enviar].carregando { pointer-events: none; opacity: 0.85; }
+.auth-tela .btn[data-auth-enviar].carregando::before { content: ''; width: 16px; height: 16px; border-radius: 50%; border: 2.2px solid currentColor; border-right-color: transparent; animation: st-gira 0.7s linear infinite; }
+.auth-ok { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px 0 4px; text-align: center; animation: auth-surge 0.45s cubic-bezier(0.34, 1.4, 0.64, 1) both; }
+.auth-ok[hidden] { display: none; }
+.auth-ok-ic { width: 64px; height: 64px; margin-bottom: 6px; border-radius: 50%; display: grid; place-items: center; background: color-mix(in srgb, var(--st-verde) 18%, transparent); color: var(--st-verde); box-shadow: 0 0 0 8px color-mix(in srgb, var(--st-verde) 8%, transparent); }
+.auth-ok h2 { margin: 0; font-size: 21px; }
+.auth-ok p { margin: 0 0 12px; font-size: 14px; opacity: 0.85; }
+.auth-ok strong { color: var(--ouro); }

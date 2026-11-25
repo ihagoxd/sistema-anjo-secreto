@@ -4664,3 +4664,7 @@ body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
 .pinca-veu { will-change: opacity; }
 .pinca-img { backface-visibility: hidden; }
 html.pinca-ativa, html.pinca-ativa body, html.pinca-ativa .conteudo { overflow: hidden !important; touch-action: none; }
+
+/* Navegando dentro do app (html.mini): a faixa do tema já está no lugar, sem a animação de
+   entrada de 0,6 s a cada vez que se volta ao feed (só a primeira página da sessão anima) */
+html.mini .tema-banner { animation: none !important; }

@@ -4623,3 +4623,10 @@ body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
 .tema-banner.tb-compacta .tb-kicker { flex-basis: 100%; margin: 0; }
 .tema-banner.tb-compacta .tb-tit { font-size: 18px; margin: 0; flex: 1; min-width: 0; }
 .tema-banner.tb-compacta .tb-btn { margin: 0; padding: 6px 12px; font-size: 13px; min-height: 0; }
+
+/* COMENTÁRIOS: alça arrastável — pra cima a gaveta ocupa a tela, pra baixo fecha */
+@media (max-width: 899px) {
+  .tw-post:not(.tw-post-det) .tw-comentarios-bloco:not([hidden]) .sheet-cab { touch-action: none; cursor: grab; padding: 4px 0 2px; margin: -8px -16px 0; }
+  .tw-post:not(.tw-post-det) .tw-comentarios-bloco:not([hidden]) .sheet-grab { width: 44px; height: 5px; margin: 6px auto 10px; }
+  .tw-post:not(.tw-post-det) .tw-comentarios-bloco.cheia:not([hidden]) { min-height: 94dvh; max-height: 94dvh; }
+}

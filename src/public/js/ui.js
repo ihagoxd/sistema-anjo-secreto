@@ -151,6 +151,53 @@
       else fecharComentarios(bloco, btn);
     });
 
+    // Arrastar a alça da gaveta (como no Instagram): pra baixo a gaveta vai junto com o dedo e
+    // fecha se passar do ponto (ou num puxão rápido); pra cima ela ocupa a tela toda.
+    var arr = null;
+    document.addEventListener('pointerdown', function (e) {
+      var cab = e.target.closest('.tw-comentarios-bloco:not([hidden]) .sheet-cab');
+      if (!cab || e.target.closest('button')) return;
+      var bloco = cab.closest('.tw-comentarios-bloco');
+      if (!ehGaveta(bloco)) return;
+      arr = { bloco: bloco, y0: e.clientY, dy: 0, t: performance.now(), ultY: e.clientY, vel: 0, h0: bloco.getBoundingClientRect().height };
+      try { cab.setPointerCapture(e.pointerId); } catch (x) {}
+      bloco.style.transition = 'none';
+    });
+    document.addEventListener('pointermove', function (e) {
+      if (!arr) return;
+      var agora = performance.now();
+      if (agora - arr.t > 0) arr.vel = (e.clientY - arr.ultY) / (agora - arr.t);
+      arr.t = agora; arr.ultY = e.clientY;
+      arr.dy = e.clientY - arr.y0;
+      if (arr.dy >= 0) {
+        arr.bloco.style.transform = 'translateY(' + arr.dy + 'px)';
+      } else if (!arr.bloco.classList.contains('cheia')) {
+        // puxando pra cima: cresce junto com o dedo (até quase a tela toda)
+        var alvo = Math.min(window.innerHeight * 0.94, arr.h0 - arr.dy);
+        arr.bloco.style.maxHeight = alvo + 'px'; arr.bloco.style.minHeight = alvo + 'px';
+      }
+    });
+    function soltarGaveta() {
+      if (!arr) return;
+      var a = arr; arr = null;
+      var b = a.bloco;
+      b.style.transition = 'transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), min-height 0.22s, max-height 0.22s';
+      if (a.dy > 110 || (a.dy > 30 && a.vel > 0.6)) {
+        if (b.classList.contains('cheia') && a.dy < 260 && a.vel <= 0.6) { // da tela cheia volta ao tamanho normal
+          b.classList.remove('cheia'); b.style.transform = ''; b.style.maxHeight = ''; b.style.minHeight = '';
+          return;
+        }
+        b.style.transform = 'translateY(100%)';
+        setTimeout(function () { b.style.minHeight = ''; fecharComentarios(b); }, 200);
+        return;
+      }
+      if (a.dy < -50) b.classList.add('cheia');
+      b.style.transform = ''; b.style.maxHeight = ''; b.style.minHeight = '';
+      setTimeout(function () { b.style.transition = ''; }, 240);
+    }
+    document.addEventListener('pointerup', soltarGaveta);
+    document.addEventListener('pointercancel', soltarGaveta);
+
     // Emojis rápidos da folha de comentários: adiciona no campo de resposta
     document.addEventListener('click', function (e) {
       var b = e.target.closest('[data-emoji-rapido]');

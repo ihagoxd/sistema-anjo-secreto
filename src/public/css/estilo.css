@@ -4967,3 +4967,45 @@ div.adm-stat:active { transform: none; }
 .adm-cab-voltar { margin-left: -10px; }
 .adm-cab-largo { max-width: 1080px; }
 .adm-tema-atual { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+
+/* Editor de avisos no estilo do app: campos com ícone num cartão, emojis para tocar,
+   cores em bolinhas e escolhas em cartões (nada de caixas nem listas suspensas) */
+.adm-av-form { display: flex; flex-direction: column; }
+.adm-av-form .adm-ed-sec { padding: 20px 4px 8px; }
+.adm-av-form .adm-av-sec1 { padding-top: 0; }
+.adm-av-campos { margin: 0; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); overflow: hidden; }
+.adm-av-campos .ed-campo:last-child { border-bottom: none; }
+.adm-av-campos + .adm-ed-sec, .adm-av-tipos + .adm-av-campos { margin-top: 0; }
+.adm-av-tipos + .adm-av-campos { margin-top: 12px; }
+.adm-av-form .ed-campo textarea { max-height: 220px; }
+.adm-av-emoji { display: flex; align-items: stretch; gap: 10px; margin-bottom: 12px; }
+.adm-av-emoji-atual { width: 84px; flex-shrink: 0; border-radius: 20px; display: grid; place-items: center; background: var(--surface); border: 1px solid var(--line); cursor: text; transition: box-shadow 0.15s; }
+.adm-av-emoji-atual:focus-within { box-shadow: 0 0 0 2px var(--accent-ring); }
+.adm-av-emoji-atual input { width: 100%; height: 100%; min-height: 80px; border: none; background: none; text-align: center; font-size: 36px !important; outline: none; padding: 0; color: var(--text); caret-color: var(--accent); }
+.adm-av-emojis { flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 5px; }
+.adm-av-emojis button { aspect-ratio: 1; min-width: 0; border: none; border-radius: 11px; background: var(--surface-2); font-size: 19px; line-height: 1; padding: 0; cursor: pointer; transition: transform 0.15s var(--ease-spring), background 0.15s, box-shadow 0.15s; }
+.adm-av-emojis button:active { transform: scale(0.86); }
+.adm-av-emojis button.sel { background: var(--accent-soft); box-shadow: inset 0 0 0 2px var(--accent); }
+.adm-av-cores { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
+.adm-av-cor { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 4px 0; cursor: pointer; }
+.adm-av-cor input { position: absolute; opacity: 0; pointer-events: none; }
+.adm-av-cor-bola { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(135deg, var(--av-a), var(--av-b)); color: var(--av-on); transition: transform 0.18s var(--ease-spring), box-shadow 0.15s; }
+.adm-av-cor-bola svg { opacity: 0; transform: scale(0.5); transition: opacity 0.15s, transform 0.2s var(--ease-spring); }
+.adm-av-cor:has(input:checked) .adm-av-cor-bola { box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--av-a); }
+.adm-av-cor:has(input:checked) .adm-av-cor-bola svg { opacity: 1; transform: none; }
+.adm-av-cor:has(input:focus-visible) .adm-av-cor-bola { outline: 2px solid var(--accent-ring); outline-offset: 4px; }
+.adm-av-cor:active .adm-av-cor-bola { transform: scale(0.9); }
+.adm-av-cor-nome { font-size: 11.5px; color: var(--text-faint); }
+.adm-av-cor:has(input:checked) .adm-av-cor-nome { color: var(--text); font-weight: 700; }
+.adm-av-tipos { margin: 0; }
+.adm-av-limpar { border: none; background: none; padding: 0; font: inherit; font-size: 12.5px; font-weight: 700; color: var(--accent-strong); cursor: pointer; }
+.adm-av-limpar[hidden] { display: none; }
+.ed-campo input[type="date"] { width: 100%; min-height: 26px; border: none; outline: none; background: none; padding: 2px 0; margin: 0; box-shadow: none; font: inherit; font-size: 16px; color: var(--text); color-scheme: light dark; text-align: left; -webkit-appearance: none; appearance: none; }
+.ed-campo input[type="date"]:invalid, .ed-campo input[type="date"][value=""] { color: var(--text-faint); }
+.adm-av-reexibir { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1.5px solid var(--line); border-radius: 14px; cursor: pointer; }
+.adm-av-reexibir-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+.adm-av-reexibir-txt strong { font-size: 14.5px; }
+.adm-av-reexibir-txt small { font-size: 12.5px; color: var(--text-faint); }
+.adm-av-acoes { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 20px; }
+.adm-av-cancelar { font-size: 14px; font-weight: 600; color: var(--text-soft); }
+.adm-cab-voltar { align-self: flex-start; margin-top: -6px; }

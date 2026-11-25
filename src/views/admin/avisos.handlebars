@@ -7,89 +7,104 @@
 </header>
 
 <div class="avisos-editor" data-aviso-editor>
-  <form class="form card avisos-form" action="/admin/avisos" method="POST" novalidate>
+  {{! Formulário no estilo do app (como o Editar perfil): campos com ícone num cartão, emojis numa
+      fileira para tocar, cores em bolinhas e as escolhas em cartões, sem caixas nem listas suspensas. }}
+  <form class="ed-form adm-av-form" action="/admin/avisos" method="POST" novalidate data-adm-av-form>
     <input type="hidden" name="_csrf" value="{{csrfToken}}">
     {{#if editando}}<input type="hidden" name="id_aviso" value="{{editando.id_aviso}}">{{/if}}
-    <h2 class="avisos-form-titulo">{{#if editando}}Editar aviso{{else}}Novo aviso{{/if}}</h2>
 
-    <div class="linha-campos avisos-linha-emoji">
-      <div class="campo campo-emoji">
-        <label for="av-emoji">Emoji</label>
-        <input type="text" id="av-emoji" name="emoji" value="{{modelo.emoji}}" maxlength="{{limites.emoji}}" data-av-in="emoji" autocomplete="off">
-        <div class="emoji-atalhos" data-emoji-atalhos>
-          <button type="button">📢</button><button type="button">🎉</button><button type="button">✨</button><button type="button">🚀</button>
-          <button type="button">🎁</button><button type="button">📅</button><button type="button">⚠️</button><button type="button">💡</button>
-          <button type="button">🙏</button><button type="button">🎂</button><button type="button">🛠️</button><button type="button">❤️</button>
-        </div>
-      </div>
-      <div class="campo">
-        <label for="av-titulo">Título</label>
-        <input type="text" id="av-titulo" name="titulo" value="{{modelo.titulo}}" maxlength="{{limites.titulo}}" placeholder="Ex.: Chegou o Direct novo!" data-av-in="titulo" required>
+    <div class="adm-ed-sec adm-av-sec1">{{#if editando}}Editando o aviso{{else}}Novo aviso{{/if}}</div>
+    <div class="adm-av-emoji">
+      <label class="adm-av-emoji-atual" title="Toque para digitar outro emoji">
+        <input type="text" name="emoji" value="{{modelo.emoji}}" maxlength="{{limites.emoji}}" data-av-in="emoji" autocomplete="off" aria-label="Emoji do aviso" enterkeyhint="next">
+      </label>
+      <div class="adm-av-emojis" data-emoji-atalhos aria-label="Escolher um emoji">
+        <button type="button">📢</button><button type="button">🎉</button><button type="button">✨</button><button type="button">🚀</button>
+        <button type="button">🎁</button><button type="button">📅</button><button type="button">⚠️</button><button type="button">💡</button>
+        <button type="button">🙏</button><button type="button">🎂</button><button type="button">🛠️</button><button type="button">❤️</button>
       </div>
     </div>
 
-    <div class="campo">
-      <label for="av-msg">Mensagem</label>
-      <textarea id="av-msg" name="mensagem" maxlength="{{limites.mensagem}}" rows="5" placeholder="Escreva o recado. Quebras de linha são mantidas." data-av-in="mensagem" required>{{modelo.mensagem}}</textarea>
-      <p class="ajuda"><span data-av-contador>0</span>/{{limites.mensagem}}</p>
+    <div class="ed-campos adm-av-campos">
+      <label class="ed-campo com-ic">
+        <span class="ed-ic" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg></span>
+        <span class="ed-rot">Título <span class="ed-cont" data-av-cont="titulo" data-max="{{limites.titulo}}"></span></span>
+        <input type="text" name="titulo" value="{{modelo.titulo}}" maxlength="{{limites.titulo}}" placeholder="Ex.: Chegou o Direct novo!" data-av-in="titulo" autocomplete="off" enterkeyhint="next" required>
+      </label>
+      <label class="ed-campo com-ic">
+        <span class="ed-ic" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.8-.9L3 21l1.9-5.2A8.4 8.4 0 1 1 21 11.5z"/></svg></span>
+        <span class="ed-rot">Mensagem <span class="ed-cont"><span data-av-contador>0</span>/{{limites.mensagem}}</span></span>
+        <textarea name="mensagem" maxlength="{{limites.mensagem}}" rows="2" placeholder="Escreva o recado. Pode pular linha." data-av-in="mensagem" data-cresce required>{{modelo.mensagem}}</textarea>
+      </label>
+      <label class="ed-campo com-ic">
+        <span class="ed-ic" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg></span>
+        <span class="ed-rot">Link (opcional)</span>
+        <input type="text" name="link" value="{{modelo.link}}" maxlength="{{limites.link}}" placeholder="https://… ou /mensagens" data-av-in="link" autocomplete="off" autocapitalize="none" spellcheck="false" inputmode="url" enterkeyhint="next">
+      </label>
+      <label class="ed-campo com-ic" data-av-botao>
+        <span class="ed-ic" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="8" rx="4"/><line x1="8" y1="12" x2="16" y2="12"/></svg></span>
+        <span class="ed-rot">Texto do botão</span>
+        <input type="text" name="link_texto" value="{{modelo.link_texto}}" maxlength="{{limites.linkTexto}}" placeholder="Saiba mais" data-av-in="link_texto" autocomplete="off" enterkeyhint="done">
+      </label>
     </div>
 
-    <div class="campo">
-      <label>Tema do card</label>
-      <div class="tema-opcoes" data-av-temas>
-        {{#each temas}}
-          <label class="tema-opcao tema-{{chave}}" title="{{rotulo}}">
-            <input type="radio" name="tema" value="{{chave}}" {{#if ativo}}checked{{/if}} data-av-in="tema">
-            <span class="tema-amostra"></span>
-            <span class="tema-rotulo">{{rotulo}}</span>
-          </label>
-        {{/each}}
-      </div>
+    <div class="adm-ed-sec">Cor do card</div>
+    <div class="adm-av-cores" data-av-temas>
+      {{#each temas}}
+        <label class="adm-av-cor tema-{{chave}}">
+          <input type="radio" name="tema" value="{{chave}}" {{#if ativo}}checked{{/if}} data-av-in="tema">
+          <span class="adm-av-cor-bola" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+          <span class="adm-av-cor-nome">{{rotulo}}</span>
+        </label>
+      {{/each}}
     </div>
 
-    <div class="linha-campos">
-      <div class="campo">
-        <label for="av-link">Link (opcional)</label>
-        <input type="text" id="av-link" name="link" value="{{modelo.link}}" maxlength="{{limites.link}}" placeholder="https://… ou /mensagens" data-av-in="link" autocomplete="off">
-      </div>
-      <div class="campo">
-        <label for="av-link-texto">Texto do botão</label>
-        <input type="text" id="av-link-texto" name="link_texto" value="{{modelo.link_texto}}" maxlength="{{limites.linkTexto}}" placeholder="Saiba mais" data-av-in="link_texto" autocomplete="off">
-      </div>
+    <div class="adm-ed-sec">Quantas vezes aparece</div>
+    <div class="adm-tipos adm-av-tipos">
+      <label class="adm-tipo">
+        <input type="radio" name="frequencia" value="uma_vez"{{#unless diario}} checked{{/unless}}>
+        <span class="adm-tipo-ic" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg></span>
+        <span class="adm-tipo-txt"><strong>Uma vez</strong><small>Some quando a pessoa fecha ou toca em Entendi. Ideal para novidades</small></span>
+      </label>
+      <label class="adm-tipo">
+        <input type="radio" name="frequencia" value="diario"{{#if diario}} checked{{/if}}>
+        <span class="adm-tipo-ic" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.5 15a9 9 0 1 1-2.1-9.4L23 10"/></svg></span>
+        <span class="adm-tipo-txt"><strong>Todo dia</strong><small>Fechou, some só naquele dia. Bom para lembretes com prazo</small></span>
+      </label>
     </div>
 
-    <div class="campo">
-      <label for="av-freq">Quantas vezes aparece</label>
-      <select id="av-freq" name="frequencia">
-        <option value="uma_vez" {{#unless diario}}selected{{/unless}}>Uma vez — some depois que a pessoa fecha ou clica "Entendi"</option>
-        <option value="diario" {{#if diario}}selected{{/if}}>Todo dia — fechou, some só naquele dia; volta no dia seguinte até a validade</option>
-      </select>
-      <p class="ajuda">"Todo dia" é bom para lembretes com prazo (combine com "Válido até"). "Uma vez" é o ideal para novidades e atualizações.</p>
+    <div class="ed-campos adm-av-campos">
+      <label class="ed-campo com-ic">
+        <span class="ed-ic" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+        <span class="ed-rot">Válido até (opcional) <button type="button" class="adm-av-limpar" data-av-sem-data{{#unless expiraISO}} hidden{{/unless}}>Sem data</button></span>
+        <input type="date" name="expira_em" value="{{expiraISO}}" data-av-data-in>
+        <small class="ed-ajuda">Depois dessa data o card para de aparecer sozinho.</small>
+      </label>
     </div>
 
-    <div class="linha-campos">
-      <div class="campo">
-        <label for="av-expira">Válido até (opcional)</label>
-        <input type="date" id="av-expira" name="expira_em" value="{{expiraISO}}">
-        <p class="ajuda">Depois dessa data o card para de aparecer sozinho.</p>
-      </div>
-      <div class="campo">
-        <label for="av-ativo">Publicação</label>
-        <select id="av-ativo" name="ativo">
-          <option value="1" {{#if modelo.ativo}}selected{{/if}}>Publicado (aparece para todos)</option>
-          <option value="0" {{#unless modelo.ativo}}selected{{/unless}}>Rascunho (só eu vejo aqui)</option>
-        </select>
-        {{#if editando}}
-          <label class="check-linha" style="margin-top:10px;"><input type="checkbox" name="reexibir" value="1"> Mostrar de novo para quem já viu</label>
-        {{else}}
-          <p class="ajuda">Ao publicar, todo mundo recebe uma notificação e o card na tela.</p>
-        {{/if}}
-      </div>
+    <div class="adm-ed-sec">Publicação</div>
+    <div class="adm-tipos adm-av-tipos">
+      <label class="adm-tipo">
+        <input type="radio" name="ativo" value="1"{{#if modelo.ativo}} checked{{/if}}>
+        <span class="adm-tipo-ic" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg></span>
+        <span class="adm-tipo-txt"><strong>Publicar para todos</strong><small>{{#if editando}}Continua na tela de todo mundo{{else}}Todo mundo recebe uma notificação e o card na tela{{/if}}</small></span>
+      </label>
+      <label class="adm-tipo">
+        <input type="radio" name="ativo" value="0"{{#unless modelo.ativo}} checked{{/unless}}>
+        <span class="adm-tipo-ic" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+        <span class="adm-tipo-txt"><strong>Rascunho</strong><small>Fica guardado aqui e só você vê</small></span>
+      </label>
+      {{#if editando}}
+        <label class="adm-av-reexibir">
+          <span class="adm-av-reexibir-txt"><strong>Mostrar de novo para quem já viu</strong><small>O card volta a aparecer para todo mundo</small></span>
+          <input type="checkbox" name="reexibir" value="1" class="pref-switch">
+        </label>
+      {{/if}}
     </div>
 
-    <div class="avisos-form-acoes">
-      <button type="submit" class="btn btn-primario">{{#if editando}}Salvar alterações{{else}}Publicar aviso{{/if}}</button>
-      {{#if editando}}<a href="/admin/avisos" class="btn btn-secundario">Cancelar</a>{{/if}}
+    <div class="adm-av-acoes">
+      <button type="submit" class="btn btn-primario adm-camp-btn">{{#if editando}}Salvar alterações{{else}}Publicar aviso{{/if}}</button>
+      {{#if editando}}<a href="/admin/avisos" class="adm-av-cancelar">Cancelar edição</a>{{/if}}
     </div>
   </form>
 

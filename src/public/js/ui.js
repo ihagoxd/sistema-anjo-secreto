@@ -7334,6 +7334,32 @@
       el.link.setAttribute('href', link ? (/^(https?:\/\/|\/)/i.test(link) ? link : 'https://' + link) : '#');
       card.className = 'aviso-card tema-' + (val('tema') || 'dourado');
       if (contador) contador.textContent = val('mensagem').length;
+      extras();
+    }
+    // Formulário no estilo do app: contador do título, emoji marcado na fileira, mensagem que
+    // cresce enquanto digita, "Sem data" e o botão dizendo o que vai acontecer
+    var fAv = editor.querySelector('[data-adm-av-form]');
+    function extras() {
+      if (!fAv) return;
+      var ct = fAv.querySelector('[data-av-cont="titulo"]');
+      if (ct) ct.textContent = val('titulo').length + '/' + ct.getAttribute('data-max');
+      var em = val('emoji').trim();
+      fAv.querySelectorAll('[data-emoji-atalhos] button').forEach(function (b) { b.classList.toggle('sel', b.textContent === em); });
+      var ta = fAv.querySelector('textarea[data-cresce]');
+      if (ta) { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 220) + 'px'; }
+      var dt = fAv.querySelector('[data-av-data-in]'), sd = fAv.querySelector('[data-av-sem-data]');
+      if (dt && sd) sd.hidden = !dt.value;
+      var ok = fAv.querySelector('button[type="submit"]');
+      var rasc = fAv.querySelector('input[name="ativo"][value="0"]');
+      if (ok && !fAv.querySelector('input[name="id_aviso"]')) ok.textContent = rasc && rasc.checked ? 'Salvar rascunho' : 'Publicar aviso';
+    }
+    if (fAv) {
+      var semData = fAv.querySelector('[data-av-sem-data]');
+      if (semData) semData.addEventListener('click', function (e) {
+        e.preventDefault();
+        var dt = fAv.querySelector('[data-av-data-in]');
+        if (dt) { dt.value = ''; extras(); }
+      });
     }
     editor.addEventListener('input', atualizar);
     editor.addEventListener('change', function (e) {

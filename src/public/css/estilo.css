@@ -4824,3 +4824,40 @@ html.mini .tema-banner { animation: none !important; }
 .adm-vazio small { max-width: 300px; }
 .adm-vazio-link { margin-top: 10px; font-weight: 700; font-size: 14px; color: var(--accent-strong); }
 .adm-pessoa[data-sit="pendente"] .adm-pessoa-txt small { white-space: normal; }
+
+/* Painel do admin: atenção, números 2x2, campanha do mês */
+.adm-painel { display: flex; flex-direction: column; gap: 4px; }
+.adm-painel .adm-cab { margin-bottom: 8px; }
+.adm-atencao { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+.adm-at { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); color: var(--text); font-size: 13.5px; line-height: 1.35; transition: transform 0.15s var(--ease-spring), background 0.15s; }
+.adm-at:hover { text-decoration: none; color: var(--text); background: var(--hover); }
+.adm-at:active { transform: scale(0.98); }
+.adm-at-ic { width: 36px; height: 36px; flex-shrink: 0; border-radius: 50%; display: grid; place-items: center; background: color-mix(in srgb, var(--st-azul) 16%, transparent); color: var(--st-azul); }
+.adm-at.alerta { border-color: color-mix(in srgb, var(--st-amarelo) 45%, var(--line)); }
+.adm-at.alerta .adm-at-ic { background: color-mix(in srgb, var(--st-amarelo) 18%, transparent); color: var(--st-amarelo); }
+.adm-at-txt { flex: 1; min-width: 0; }
+.adm-at-acao { display: inline-flex; align-items: center; gap: 2px; flex-shrink: 0; font-weight: 700; font-size: 13px; color: var(--accent-strong); }
+.adm-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (min-width: 900px) { .adm-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.adm-stat { display: flex; flex-direction: column; gap: 2px; padding: 14px; border-radius: 18px; border: 1px solid var(--line); background: var(--surface); color: var(--text); transition: transform 0.15s var(--ease-spring), background 0.15s; }
+.adm-stat:hover { text-decoration: none; color: var(--text); background: var(--hover); }
+.adm-stat:active { transform: scale(0.97); }
+.adm-stat-ic { width: 38px; height: 38px; margin-bottom: 8px; border-radius: 12px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-strong); }
+.adm-stat strong { font-size: 26px; font-weight: 800; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.adm-stat small { font-size: 12.5px; color: var(--text-faint); line-height: 1.3; }
+.adm-stat.alerta { border-color: color-mix(in srgb, var(--st-amarelo) 50%, var(--line)); }
+.adm-stat.alerta .adm-stat-ic { background: color-mix(in srgb, var(--st-amarelo) 18%, transparent); color: var(--st-amarelo); }
+.adm-camp { display: flex; flex-direction: column; gap: 14px; padding: 16px; border-radius: 18px; border: 1px solid var(--line); background: var(--surface); }
+.adm-camp-topo { display: flex; align-items: center; gap: 12px; }
+.adm-camp-ic { width: 46px; height: 46px; flex-shrink: 0; border-radius: 14px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-strong); }
+.adm-camp-txt { min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+.adm-camp-txt strong { font-size: 15.5px; }
+.adm-camp-txt small { font-size: 12.5px; color: var(--text-faint); }
+.adm-camp-nums { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; text-align: center; }
+.adm-camp-nums div { display: flex; flex-direction: column; padding: 10px 4px; border-radius: 14px; background: var(--surface-2); }
+.adm-camp-nums strong { font-size: 19px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.adm-camp-nums small { font-size: 11.5px; color: var(--text-faint); }
+.adm-camp-btn { width: 100%; min-height: 44px; border-radius: 999px; font-weight: 700; justify-content: center; }
+.adm-sec-tit { display: flex; align-items: baseline; justify-content: space-between; }
+.adm-sec-tit a { font-size: 13px; text-transform: none; letter-spacing: 0; color: var(--accent-strong); }
+.adm-atv { padding: 4px 14px; }

@@ -516,3 +516,12 @@ CREATE INDEX IF NOT EXISTS idx_grupo_mensagens_grupo ON grupo_mensagens (id_grup
 
 -- Tema da rede escolhido para a campanha (chave do catálogo em config/temas.js)
 ALTER TABLE campanhas ADD COLUMN IF NOT EXISTS tema VARCHAR(30);
+
+-- Curtidas em comentários (coração ao lado de cada comentário, como no Instagram)
+CREATE TABLE IF NOT EXISTS comentario_curtidas (
+  id_comentario INTEGER NOT NULL REFERENCES post_comentarios(id_comentario) ON DELETE CASCADE,
+  id_usuario    INTEGER NOT NULL REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
+  criado_em     TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (id_comentario, id_usuario)
+);
+CREATE INDEX IF NOT EXISTS idx_coment_curt_coment ON comentario_curtidas(id_comentario);

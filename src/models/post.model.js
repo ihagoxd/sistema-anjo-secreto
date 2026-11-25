@@ -363,6 +363,25 @@ async function buscarComentario(idComentario) {
   const res = await db.query(`SELECT id_comentario, id_usuario, id_post, imagem, responde_a FROM post_comentarios WHERE id_comentario = $1`, [idComentario]);
   return res.rows[0] || null;
 }
+// ---------- Curtidas em comentários ----------
+async function curtirComentario(idComentario, idUsuario) {
+  await db.query(
+    `INSERT INTO comentario_curtidas (id_comentario, id_usuario) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+    [idComentario, idUsuario]
+  );
+}
+async function descurtirComentario(idComentario, idUsuario) {
+  await db.query(`DELETE FROM comentario_curtidas WHERE id_comentario = $1 AND id_usuario = $2`, [idComentario, idUsuario]);
+}
+async function jaCurtiuComentario(idComentario, idUsuario) {
+  const res = await db.query(`SELECT 1 FROM comentario_curtidas WHERE id_comentario = $1 AND id_usuario = $2`, [idComentario, idUsuario]);
+  return res.rowCount > 0;
+}
+async function contarCurtidasComentario(idComentario) {
+  const res = await db.query(`SELECT count(*)::int AS n FROM comentario_curtidas WHERE id_comentario = $1`, [idComentario]);
+  return res.rows[0] ? res.rows[0].n : 0;
+}
+
 // Fotos dos comentários de um post (para apagar do disco junto com o post).
 async function listarImagensComentarios(idPost) {
   const res = await db.query(`SELECT imagem FROM post_comentarios WHERE id_post = $1 AND imagem IS NOT NULL`, [idPost]);
@@ -375,6 +394,7 @@ async function removerComentario(idComentario) {
 module.exports = {
   atualizarVideo,
   buscarPosts, buscarLugares,
+  curtirComentario, descurtirComentario, jaCurtiuComentario, contarCurtidasComentario,
   criar, listarFeed, listarNovosDesde, listarPorUsuario, listarRepostadosPor, contarRepostadosPor, buscarPorId, buscarFeedUm, remover, contarNovosDesde, adicionarColaboradores, atualizarTexto,
   curtir, descurtir, jaCurtiu, contarCurtidas, listarCurtidores, reacaoDe, reacoesTop,
   adicionarMidias, listarMidias, locaisSugeridos, salvar, dessalvar, jaSalvou, listarSalvosPor,

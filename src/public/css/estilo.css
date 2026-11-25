@@ -4174,3 +4174,5 @@ body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
 /* Mensagens ancoradas embaixo (como no Instagram): com poucas mensagens elas ficam
    junto do compositor, não no topo; com muitas, a rolagem continua normal. */
 .dm-msgs > :first-child { margin-top: auto; }
+/* Conversa vazia nos canais secretos: o aviso e o "ainda não há mensagens" ficam juntos, centrados */
+.dm-aviso + .dm-inicio { margin-top: 0; }

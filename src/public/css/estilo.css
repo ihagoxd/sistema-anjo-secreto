@@ -4743,3 +4743,80 @@ html.mini .tema-banner { animation: none !important; }
 .conv-acao-apagar { background: var(--st-vermelho); }
 .conv-mudo { display: inline-grid; place-items: center; margin-left: 5px; color: var(--text-faint); vertical-align: -2px; }
 .conv-mudo[hidden] { display: none; }
+
+/* =========================================================================
+   PAINEL DO ADMIN como app: cabeçalho com ação, busca e filtros na hora,
+   pessoas em linhas (⋯ abre a folha de ações) e ações sem recarregar.
+   ========================================================================= */
+.adm { max-width: 640px; margin: 0 auto; }
+.adm-cab { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; }
+.adm-cab-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+.adm-cab-txt h1 { margin: 0; font-size: 22px; }
+.adm-cab-txt small { font-size: 13px; color: var(--text-faint); }
+.adm-cab-btn { width: 44px; height: 44px; flex-shrink: 0; display: grid; place-items: center; border: none; border-radius: 50%; background: none; color: var(--text); cursor: pointer; transition: background 0.15s, transform 0.18s var(--ease-spring); }
+.adm-cab-btn:hover { background: var(--hover); color: var(--text); text-decoration: none; }
+.adm-cab-btn:active { transform: scale(0.9); }
+.adm-busca { margin: 0 0 10px; }
+.adm-chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px 8px; padding: 2px 16px 6px; }
+.adm-chips::-webkit-scrollbar { display: none; }
+.adm-chips .chip { flex-shrink: 0; white-space: nowrap; }
+.adm-lista { display: flex; flex-direction: column; }
+.adm-pessoa { display: flex; align-items: center; gap: 8px; padding: 2px 0; border-radius: 14px; transition: background 0.12s, opacity 0.2s, transform 0.25s var(--ease-out); }
+.adm-pessoa[hidden] { display: none; }
+.adm-pessoa.inativa .adm-av, .adm-pessoa.inativa strong { opacity: 0.55; }
+.adm-pessoa.saindo { opacity: 0; transform: translateX(-18px); }
+.adm-pessoa.trocou { animation: adm-trocou 0.9s ease-out; }
+@keyframes adm-trocou { from { background: var(--accent-soft); } to { background: transparent; } }
+.adm-pessoa-link { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 8px 4px; color: var(--text); border-radius: 12px; }
+.adm-pessoa-link:hover { text-decoration: none; color: var(--text); }
+.adm-pessoa-link:active { background: var(--hover); }
+.adm-av { width: 48px; height: 48px; flex-shrink: 0; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-strong); font-weight: 700; font-size: 17px; }
+.adm-av img { width: 100%; height: 100%; object-fit: cover; }
+.adm-pessoa-txt { min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+.adm-pessoa-txt strong { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.adm-pessoa-txt small { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.adm-ponto { width: 7px; height: 7px; flex-shrink: 0; border-radius: 50%; background: var(--text-faint); }
+.adm-ponto-ativo { background: var(--st-verde); }
+.adm-ponto-pendente { background: var(--st-amarelo); }
+.adm-ponto-recusado { background: var(--st-vermelho); }
+.adm-pessoa-acoes { display: flex; gap: 6px; flex-shrink: 0; }
+.adm-btn { height: 32px; padding: 0 14px; border: none; border-radius: 9px; background: var(--surface-2); color: var(--text); font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; transition: filter 0.15s, transform 0.15s var(--ease-spring), opacity 0.15s; }
+.adm-btn:active { transform: scale(0.95); }
+.adm-btn-pri { background: var(--accent); color: var(--on-accent, #fff); }
+.adm-btn:disabled, .adm-btn.enviando { opacity: 0.55; pointer-events: none; }
+.adm-mais { width: 40px; height: 40px; flex-shrink: 0; display: grid; place-items: center; border: none; border-radius: 50%; background: none; color: var(--text-soft); cursor: pointer; }
+.adm-mais:hover { background: var(--hover); color: var(--text); }
+.adm-vazio { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 40px 16px; text-align: center; color: var(--text-faint); }
+.adm-vazio[hidden] { display: none; }
+.adm-vazio strong { color: var(--text); font-size: 15px; }
+.adm-vazio-ic { width: 60px; height: 60px; margin-bottom: 6px; border-radius: 50%; display: grid; place-items: center; border: 2px solid var(--line-strong); color: var(--text-soft); }
+
+/* Folhas do admin (novo usuário, ações de uma pessoa) */
+.adm-folha { max-width: 460px; }
+.adm-folha form { display: flex; flex-direction: column; }
+.adm-campos { margin: 0 -16px; border-top: none; }
+.ed-ajuda { font-size: 12px; color: var(--text-faint); }
+.adm-tipos { display: flex; flex-direction: column; gap: 8px; margin: 14px 0; }
+.adm-tipo { position: relative; display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 14px; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+.adm-tipo input { position: absolute; opacity: 0; pointer-events: none; }
+.adm-tipo-ic { width: 38px; height: 38px; flex-shrink: 0; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); color: var(--text-soft); transition: background 0.15s, color 0.15s; }
+.adm-tipo-txt { display: flex; flex-direction: column; line-height: 1.3; }
+.adm-tipo-txt strong { font-size: 14.5px; }
+.adm-tipo-txt small { font-size: 12.5px; color: var(--text-faint); }
+.adm-tipo:has(input:checked) { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, transparent); }
+.adm-tipo:has(input:checked) .adm-tipo-ic { background: var(--accent); color: var(--on-accent, #fff); }
+.adm-tipo:has(input:focus-visible) { box-shadow: 0 0 0 2px var(--accent-ring); }
+.adm-folha-ok { width: 100%; min-height: 46px; border-radius: 999px; font-size: 15.5px; font-weight: 700; }
+.adm-folha-ok.enviando { opacity: 0.6; pointer-events: none; }
+.adm-op-quem { display: flex; align-items: center; gap: 12px; padding: 4px 2px 12px; border-bottom: 1px solid var(--line); margin-bottom: 6px; }
+.adm-op-quem .adm-av { width: 44px; height: 44px; font-size: 16px; }
+.adm-op-quem div { display: flex; flex-direction: column; line-height: 1.3; min-width: 0; }
+.adm-op-quem strong { font-size: 15px; }
+.adm-op-quem small { font-size: 13px; color: var(--text-faint); }
+.comp-mais-op.adm-op-perigo { color: var(--st-vermelho); }
+.comp-mais-op.adm-op-perigo .comp-mais-ic { color: var(--st-vermelho); }
+.adm-pessoa.enviando { opacity: 0.55; pointer-events: none; }
+.adm-senha-card { text-align: center; }
+.adm-senha-ic { width: 52px; height: 52px; margin: 0 auto 8px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-strong); }
+.adm-senha { display: block; margin: 10px auto 4px; padding: 12px 16px; border-radius: 12px; background: var(--surface-2); border: 1px dashed var(--line-strong); font-size: 22px; font-weight: 700; letter-spacing: 0.08em; color: var(--text); user-select: all; }
+.adm-senha-card .modal-acoes { justify-content: center; }

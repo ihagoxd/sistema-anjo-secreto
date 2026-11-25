@@ -1,7 +1,7 @@
 {{! Uma pessoa na lista de usuários do admin, como linha de app: tocar abre a edição e o ⋯ abre
     a folha de ações (editar, senha, inativar, excluir). Pendentes têm Aprovar/Recusar na linha,
     como as solicitações do Instagram. O servidor devolve esta mesma linha depois de cada ação. }}
-<div class="adm-pessoa{{#if (eq sit "inativo")}} inativa{{/if}}" data-adm-pessoa="{{id_usuario}}" data-sit="{{sit}}"{{#if (eq tipo_usuario "ADMINISTRADOR")}} data-admin="1"{{/if}}{{#if ehEu}} data-eu="1"{{/if}} data-nome="{{nome}}" data-login="{{usuario}}">
+<div class="adm-pessoa{{#if (eq sit "inativo")}} inativa{{/if}}" data-adm-pessoa="{{id_usuario}}" data-sit="{{sit}}"{{#if (eq tipo_usuario "ADMINISTRADOR")}} data-admin="1"{{/if}}{{#if ehEu}} data-eu="1"{{/if}} {{#unless ativo}} data-inativo="1"{{/unless}} data-nome="{{nome}}" data-login="{{usuario}}"{{#if oculto}} hidden{{/if}}>
   <a class="adm-pessoa-link" href="/admin/usuarios/{{id_usuario}}/editar">
     <span class="adm-av" aria-hidden="true">{{#if foto_perfil}}<img src="{{foto_perfil}}" alt="" loading="lazy">{{else}}{{inicial nome}}{{/if}}</span>
     <span class="adm-pessoa-txt">

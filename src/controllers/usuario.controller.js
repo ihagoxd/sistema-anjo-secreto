@@ -2,6 +2,7 @@
 
 const usuarioService = require('../services/usuario.service');
 const { buscarPorId } = require('../models/usuario.model');
+const { semAcentoJs } = require('../config/db');
 const { registrarLog } = require('../services/log.service');
 const { responder, renderizar, ehFetch } = require('../utils/responder');
 
@@ -55,8 +56,10 @@ async function getLista(req, res, next) {
   try {
     const busca = String(req.query.q || '').trim();
     const filtro = FILTROS.includes(req.query.f) ? req.query.f : 'todos';
+    // A lista vem inteira: busca e filtros trocam na hora no navegador. O filtro/busca da URL
+    // já chegam aplicados (as linhas fora dele vêm escondidas), sem piscar a lista toda.
     const [usuarios, resumo] = await Promise.all([
-      usuarioService.listarUsuarios(busca, filtro),
+      usuarioService.listarUsuarios('', 'todos'),
       usuarioService.contarResumo(),
     ]);
     const filtros = [
@@ -68,8 +71,15 @@ async function getLista(req, res, next) {
       { chave: 'admins', rotulo: 'Administradores', n: resumo.admins },
     ].map((f) => ({ ...f, ativo: f.chave === filtro }));
     const me = req.session.usuario.id_usuario;
-    const lista = usuarios.map((u) => paraLinha(u, me));
-    res.render('admin/usuarios', { titulo: 'Usuários', usuarios: lista, busca, filtro, filtros, resumo });
+    const termo = semAcentoJs(busca.toLowerCase());
+    const lista = usuarios.map((u) => {
+      const l = paraLinha(u, me);
+      const noFiltro = { todos: true, pendentes: l.sit === 'pendente', aprovados: l.sit === 'ativo', inativos: !u.ativo, recusados: l.sit === 'recusado', admins: u.tipo_usuario === 'ADMINISTRADOR' }[filtro];
+      const naBusca = !termo || semAcentoJs(`${u.nome} ${u.usuario}`.toLowerCase()).includes(termo.replace(/^@/, ''));
+      l.oculto = !(noFiltro && naBusca);
+      return l;
+    });
+    res.render('admin/usuarios', { titulo: 'Usuários', pagina: 'adm-usuarios', usuarios: lista, busca, filtro, filtros, resumo, algumVisivel: lista.some((l) => !l.oculto) });
   } catch (err) {
     next(err);
   }

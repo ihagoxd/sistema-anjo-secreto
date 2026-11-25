@@ -1,57 +1,79 @@
-<div class="pagina-cabecalho">
-  <div>
-    <h1>Usuários</h1>
-    <p class="subtitulo">{{resumo.aprovados}} ativo{{#unless (eq resumo.aprovados 1)}}s{{/unless}}{{#if resumo.pendentes}} · <strong>{{resumo.pendentes}} aguardando aprovação</strong>{{/if}}{{#if resumo.inativos}} · {{resumo.inativos}} inativo{{#unless (eq resumo.inativos 1)}}s{{/unless}}{{/if}}</p>
-  </div>
-  <button type="button" class="btn btn-primario" data-criar-abrir>+ Novo usuário</button>
-</div>
+{{! Usuários como uma lista de app: a busca e os filtros respondem na hora (sem recarregar),
+    o ⋯ de cada pessoa abre a folha de ações e o + abre a folha "Novo usuário". }}
+<div class="adm" data-adm-usuarios>
+  <header class="adm-cab">
+    <div class="adm-cab-txt">
+      <h1>Usuários</h1>
+      <small data-adm-resumo>{{resumo.aprovados}} ativo{{#unless (eq resumo.aprovados 1)}}s{{/unless}}{{#if resumo.pendentes}} · {{resumo.pendentes}} aguardando{{/if}}{{#if resumo.inativos}} · {{resumo.inativos}} inativo{{#unless (eq resumo.inativos 1)}}s{{/unless}}{{/if}}</small>
+    </div>
+    <button type="button" class="adm-cab-btn" data-abrir-modal="admNovoUsuario" aria-label="Novo usuário">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+    </button>
+  </header>
 
-<form class="form card criar-form" action="/admin/usuarios" method="POST" novalidate hidden data-criar-form>
-  <input type="hidden" name="_csrf" value="{{csrfToken}}">
-  <h3 style="margin-top:0;">Novo usuário</h3>
-  <div class="linha-campos">
-    <div class="campo">
-      <label for="nome">Nome completo</label>
-      <input type="text" id="nome" name="nome" required>
-    </div>
-    <div class="campo">
-      <label for="usuario">Usuário (login)</label>
-      <input type="text" id="usuario" name="usuario" autocapitalize="none" spellcheck="false" required>
-    </div>
+  <div class="direct-busca adm-busca">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="search" value="{{busca}}" placeholder="Pesquisar por nome ou @usuário" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Pesquisar usuários" data-adm-busca>
+    <button type="button" class="direct-busca-x" data-adm-busca-x aria-label="Limpar"{{#unless busca}} hidden{{/unless}}>&times;</button>
   </div>
-  <div class="linha-campos">
-    <div class="campo">
-      <label for="tipo_usuario">Tipo</label>
-      <select id="tipo_usuario" name="tipo_usuario">
-        <option value="PARTICIPANTE">Participante (joga)</option>
-        <option value="ADMINISTRADOR">Administrador (só gerencia, não joga)</option>
-      </select>
-    </div>
-    <div class="campo">
-      <label for="senha">Senha inicial</label>
-      <input type="text" id="senha" name="senha" minlength="6" required autocomplete="off">
-      <p class="ajuda">Provisória: a pessoa cria a senha dela no primeiro acesso.</p>
-    </div>
-  </div>
-  <div style="display:flex; gap:10px; flex-wrap:wrap;">
-    <button type="submit" class="btn btn-primario">Criar usuário</button>
-    <button type="button" class="btn btn-secundario" data-criar-fechar>Cancelar</button>
-  </div>
-</form>
 
-<div class="filtros-usuarios">
-  <nav class="filtro-chips" aria-label="Filtrar usuários">
+  <nav class="adm-chips" aria-label="Filtrar usuários" data-adm-chips>
     {{#each filtros}}
-      <a href="/admin/usuarios?f={{this.chave}}{{#if ../busca}}&amp;q={{../busca}}{{/if}}" class="chip {{#if this.ativo}}ativo{{/if}} {{#if this.alerta}}alerta{{/if}}">{{this.rotulo}} <span class="chip-n">{{this.n}}</span></a>
+      <a href="/admin/usuarios?f={{this.chave}}" class="chip{{#if this.ativo}} ativo{{/if}}{{#if this.alerta}} alerta{{/if}}" data-adm-filtro="{{this.chave}}">{{this.rotulo}} <span class="chip-n" data-adm-n="{{this.chave}}">{{this.n}}</span></a>
     {{/each}}
   </nav>
-  <form class="filtros" action="/admin/usuarios" method="GET">
-    <input type="hidden" name="f" value="{{filtro}}">
-    <div class="campo busca-campo" style="margin:0;">
-      <svg class="busca-lupa" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="search" name="q" value="{{busca}}" placeholder="Buscar por nome ou usuário…">
-    </div>
-  </form>
+
+  <div class="adm-lista" data-adm-lista>
+    {{#each usuarios}}{{> admUsuario}}{{/each}}
+  </div>
+  <div class="adm-vazio" data-adm-vazio{{#if algumVisivel}} hidden{{/if}}>
+    <span class="adm-vazio-ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+    <strong>Ninguém por aqui</strong>
+    <small>Nenhuma pessoa nesta lista{{#if busca}} com essa pesquisa{{/if}}.</small>
+  </div>
 </div>
 
-{{> tabelaUsuarios}}
+{{! Folha "Novo usuário": cria por fetch e a pessoa entra no topo da lista na hora }}
+<div class="modal sheet-share" id="admNovoUsuario" hidden aria-hidden="true">
+  <div class="modal-card share-card adm-folha">
+    <div class="sheet-cab sempre">
+      <span class="sheet-grab" aria-hidden="true"></span>
+      <span class="sheet-titulo">Novo usuário</span>
+      <button type="button" class="sheet-x" data-fechar-modal="admNovoUsuario" aria-label="Fechar">&times;</button>
+    </div>
+    <form action="/admin/usuarios" method="POST" novalidate data-adm-form data-adm-novo>
+      <input type="hidden" name="_csrf" value="{{csrfToken}}">
+      <div class="ed-campos adm-campos">
+        <label class="ed-campo com-ic">
+          <span class="ed-ic" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+          <span class="ed-rot">Nome completo</span>
+          <input type="text" name="nome" required autocomplete="off" placeholder="Nome e sobrenome">
+        </label>
+        <label class="ed-campo com-ic">
+          <span class="ed-ic" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.9 7.9"/></svg></span>
+          <span class="ed-rot">Usuário (login)</span>
+          <input type="text" name="usuario" required autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="nome.sobrenome">
+        </label>
+        <label class="ed-campo com-ic">
+          <span class="ed-ic" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+          <span class="ed-rot">Senha provisória</span>
+          <input type="text" name="senha" minlength="6" required autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Mínimo de 6 caracteres">
+          <small class="ed-ajuda">No primeiro acesso a pessoa cria a senha dela.</small>
+        </label>
+      </div>
+      <div class="adm-tipos" role="radiogroup" aria-label="Tipo de acesso">
+        <label class="adm-tipo">
+          <input type="radio" name="tipo_usuario" value="PARTICIPANTE" checked>
+          <span class="adm-tipo-ic" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span>
+          <span class="adm-tipo-txt"><strong>Participante</strong><small>Joga o Anjo Secreto e usa a rede</small></span>
+        </label>
+        <label class="adm-tipo">
+          <input type="radio" name="tipo_usuario" value="ADMINISTRADOR">
+          <span class="adm-tipo-ic" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+          <span class="adm-tipo-txt"><strong>Administrador</strong><small>Só gerencia, não entra no sorteio</small></span>
+        </label>
+      </div>
+      <button type="submit" class="btn btn-primario adm-folha-ok">Criar usuário</button>
+    </form>
+  </div>
+</div>

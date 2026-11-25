@@ -20,7 +20,11 @@ const SELECT_POST = `
            WHERE pc.id_post = p.id_post) AS colaboradores,
          (SELECT COUNT(*) FROM post_curtidas c WHERE c.id_post = p.id_post)::int AS curtidas,
          (SELECT u2.usuario FROM post_curtidas c2 JOIN usuarios u2 ON u2.id_usuario = c2.id_usuario
-           WHERE c2.id_post = p.id_post ORDER BY c2.criado_em DESC LIMIT 1) AS curtidor,
+           WHERE c2.id_post = p.id_post ORDER BY (c2.id_usuario = $1) ASC, c2.criado_em DESC LIMIT 1) AS curtidor,
+         -- até 3 curtidores para as fotinhas da linha "Curtido por" (os outros antes de mim)
+         (SELECT json_agg(json_build_object('usuario', x.usuario, 'nome', x.nome, 'foto', x.foto_perfil))
+            FROM (SELECT u5.usuario, u5.nome, u5.foto_perfil FROM post_curtidas c5 JOIN usuarios u5 ON u5.id_usuario = c5.id_usuario
+                   WHERE c5.id_post = p.id_post ORDER BY (c5.id_usuario = $1) ASC, c5.criado_em DESC LIMIT 3) x) AS curtidores,
          (SELECT COUNT(*) FROM post_comentarios m WHERE m.id_post = p.id_post)::int AS comentarios,
          (SELECT COUNT(*) FROM reposts r WHERE r.id_post = p.id_post)::int AS reposts,
          EXISTS(SELECT 1 FROM post_curtidas c WHERE c.id_post = p.id_post AND c.id_usuario = $1) AS curtiu,
@@ -293,15 +297,16 @@ async function contarCurtidas(idPost) {
   return res.rows[0].n;
 }
 // Quem curtiu (mais recentes primeiro) — para a folha "Curtidas" do post.
-async function listarCurtidores(idPost, limite = 200) {
+// eu (opcional): quem está vendo vai para o fim da lista (como no "Curtido por" do Instagram)
+async function listarCurtidores(idPost, limite = 200, eu = null) {
   const res = await db.query(
     `SELECT u.nome, u.usuario, u.foto_perfil, c.reacao
        FROM post_curtidas c
        JOIN usuarios u ON u.id_usuario = c.id_usuario
       WHERE c.id_post = $1
-      ORDER BY c.criado_em DESC
+      ORDER BY (c.id_usuario = $3) ASC, c.criado_em DESC
       LIMIT $2`,
-    [idPost, limite]
+    [idPost, limite, eu]
   );
   return res.rows;
 }

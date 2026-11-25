@@ -186,7 +186,7 @@ async function postCurtir(req, res, next) {
   try {
     const r = await postService.alternarCurtida(req.params.id_post, req.session.usuario.id_usuario, req.body && req.body.reacao);
     if (!r.ok) return res.status(404).json({ erro: 'Post não encontrado.' });
-    res.json({ curtiu: r.curtiu, reacao: r.reacao, total: r.total, curtidor: r.curtidor, reacoesTop: r.reacoesTop });
+    res.json({ curtiu: r.curtiu, reacao: r.reacao, total: r.total, curtidor: r.curtidor, curtidores: r.curtidores, reacoesTop: r.reacoesTop });
   } catch (err) {
     next(err);
   }

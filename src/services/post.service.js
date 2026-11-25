@@ -226,11 +226,13 @@ async function alternarCurtida(idPost, idUsuario, reacaoPedida = null) {
     await notificacaoService.notificarCurtida(post.id_usuario, idUsuario, idPost, post.imagem);
   }
   const total = await postModel.contarCurtidas(idPost);
-  // Quem aparece na linha "Curtido por fulano e outras pessoas" (o curtidor mais recente)
-  const primeiros = await postModel.listarCurtidores(idPost, 1);
+  // Quem aparece na linha "Curtido por fulano e outras N pessoas": até 3, os outros antes de mim
+  const recentes = await postModel.listarCurtidores(idPost, 4, idUsuario);
+  const curtidores = recentes.slice(0, 3).map((u) => ({ usuario: u.usuario, nome: u.nome, foto: u.foto_perfil }));
   return {
     ok: true, curtiu, reacao: curtiu ? (reacao || '❤️') : null, total,
-    curtidor: primeiros.length ? primeiros[0].usuario : null,
+    curtidor: curtidores.length ? curtidores[0].usuario : null,
+    curtidores,
     reacoesTop: await postModel.reacoesTop(idPost),
   };
 }

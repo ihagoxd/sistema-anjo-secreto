@@ -5174,57 +5174,86 @@
     /* ---- Pinça direto na foto do feed (estilo Instagram): dois dedos ampliam
        a imagem por cima da página (fundo escurece) e ao soltar ela volta sozinha.
        A imagem real é clonada numa camada fixed — assim nenhum overflow/stacking
-       do card corta o zoom. ---- */
+       do card corta o zoom. Sem engasgar:
+       - os ouvintes ficam SÓ nas fotos (rolar o resto do feed não espera script)
+       - a original só some depois que a cópia já está desenhada por cima (sem piscar)
+       - no máximo um desenho por quadro (requestAnimationFrame)
+       - a rolagem fica parada enquanto pinça ---- */
     (function () {
-      var pAlvo = null, pClone = null, pVeu = null;
-      var pD0 = 0, pCx0 = 0, pCy0 = 0;
+      var pAlvo = null, pClone = null, pVeu = null, pEscondida = false;
+      var pD0 = 0, pCx0 = 0, pCy0 = 0, pRaf = 0, pUlt = null;
 
       function pDist(t) { return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY); }
       function pCentro(t) { return { x: (t[0].clientX + t[1].clientX) / 2, y: (t[0].clientY + t[1].clientY) / 2 }; }
 
-      document.addEventListener('touchstart', function (e) {
+      function inicio(e) {
         if (e.touches.length !== 2 || pAlvo) return;
-        var midia = e.target.closest('.tw-post-midia');
-        var img = midia && midia.querySelector('img');
-        if (!img) return;
+        var img = e.currentTarget.querySelector('img');
+        if (!img || !img.complete) return;
         e.preventDefault();
         var r = img.getBoundingClientRect();
-        pD0 = pDist(e.touches);
+        pD0 = pDist(e.touches) || 1;
         var c = pCentro(e.touches); pCx0 = c.x; pCy0 = c.y;
-
         pVeu = document.createElement('div'); pVeu.className = 'pinca-veu';
         document.body.appendChild(pVeu);
         pClone = img.cloneNode();
         pClone.className = 'pinca-img';
+        pClone.decoding = 'sync'; // a foto já está na memória: desenha no mesmo quadro
         pClone.style.left = r.left + 'px'; pClone.style.top = r.top + 'px';
         pClone.style.width = r.width + 'px'; pClone.style.height = r.height + 'px';
         pClone.style.transformOrigin = (pCx0 - r.left) + 'px ' + (pCy0 - r.top) + 'px';
         document.body.appendChild(pClone);
-        img.style.visibility = 'hidden';
-        pAlvo = img;
-      }, { passive: false });
-
-      document.addEventListener('touchmove', function (e) {
-        if (!pAlvo || e.touches.length < 2) return;
-        e.preventDefault();
-        var c = pCentro(e.touches);
-        var esc = Math.max(1, Math.min(4, pDist(e.touches) / pD0));
-        pClone.style.transform = 'translate(' + (c.x - pCx0) + 'px,' + (c.y - pCy0) + 'px) scale(' + esc + ')';
+        document.documentElement.classList.add('pinca-ativa'); // congela a rolagem
+        pAlvo = img; pEscondida = false; pUlt = null;
+      }
+      function desenhar() {
+        pRaf = 0;
+        if (!pAlvo || !pUlt) return;
+        var esc = Math.max(1, Math.min(4, pUlt.d / pD0));
+        pClone.style.transform = 'translate3d(' + (pUlt.c.x - pCx0) + 'px,' + (pUlt.c.y - pCy0) + 'px,0) scale(' + esc + ')';
         pVeu.style.opacity = Math.min(0.7, (esc - 1) * 0.9);
-      }, { passive: false });
-
+        // a cópia já está na tela por cima: agora sim a original sai (nada pisca)
+        if (!pEscondida) { pAlvo.style.visibility = 'hidden'; pEscondida = true; }
+      }
+      function mover(e) {
+        if (!pAlvo || e.touches.length < 2) return;
+        if (e.cancelable) e.preventDefault();
+        pUlt = { c: pCentro(e.touches), d: pDist(e.touches) };
+        if (!pRaf) pRaf = requestAnimationFrame(desenhar);
+      }
       function pSoltar() {
         if (!pAlvo) return;
         pincaAte = Date.now();
+        if (pRaf) { cancelAnimationFrame(pRaf); pRaf = 0; }
         var img = pAlvo, cl = pClone, v = pVeu;
-        pAlvo = null; pClone = null; pVeu = null;
+        pAlvo = null; pClone = null; pVeu = null; pUlt = null;
+        document.documentElement.classList.remove('pinca-ativa');
         cl.style.transition = 'transform 0.28s cubic-bezier(0.22, 1, 0.36, 1)';
         v.style.transition = 'opacity 0.28s ease';
-        cl.style.transform = 'none'; v.style.opacity = '0';
+        cl.style.transform = 'translate3d(0,0,0) scale(1)'; v.style.opacity = '0';
         setTimeout(function () { img.style.visibility = ''; cl.remove(); v.remove(); }, 300);
       }
-      document.addEventListener('touchend', function (e) { if (pAlvo && e.touches.length < 2) pSoltar(); });
-      document.addEventListener('touchcancel', function () { pSoltar(); });
+      function fim(e) { if (pAlvo && e.touches.length < 2) pSoltar(); }
+
+      function ligar(midia) {
+        if (midia.__pinca) return;
+        midia.__pinca = true;
+        midia.addEventListener('touchstart', inicio, { passive: false });
+        midia.addEventListener('touchmove', mover, { passive: false });
+        midia.addEventListener('touchend', fim);
+        midia.addEventListener('touchcancel', pSoltar);
+      }
+      document.querySelectorAll('.tw-post-midia').forEach(ligar);
+      // posts que entram depois (rolagem infinita, post novo ao vivo, abas do perfil)
+      new MutationObserver(function (muts) {
+        muts.forEach(function (m) {
+          m.addedNodes.forEach(function (n) {
+            if (n.nodeType !== 1) return;
+            if (n.classList.contains('tw-post-midia')) ligar(n);
+            n.querySelectorAll && n.querySelectorAll('.tw-post-midia').forEach(ligar);
+          });
+        });
+      }).observe(document.body, { childList: true, subtree: true });
     })();
 
     /* ---- "N curtidas" → folha com quem curtiu (estilo Instagram) ---- */

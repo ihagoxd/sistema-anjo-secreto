@@ -30,7 +30,7 @@
     {{#each tema.prefs.campos}}
       {{#if (eq this.tipo "lista")}}
         <div class="campo campo-chips" data-chips data-max="{{this.max}}">
-          <label for="chips-{{this.campo}}"><span class="lbl-ic">{{this.emoji}}</span> {{this.rotulo}} <span class="chips-cont" data-chips-cont></span></label>
+          <label for="chips-{{this.campo}}"><span class="lbl-ic">{{{this.icone}}}</span> {{this.rotulo}} <span class="chips-cont" data-chips-cont></span></label>
           {{#if this.dica}}<p class="pf-secao-dica">{{this.dica}}</p>{{/if}}
           <div class="chips" data-chips-box>
             <span class="chips-lista" data-chips-lista></span>
@@ -46,12 +46,12 @@
         </div>
       {{else if (eq this.tipo "textarea")}}
         <div class="campo">
-          <label for="pt-{{this.campo}}"><span class="lbl-ic">{{this.emoji}}</span> {{this.rotulo}}</label>
+          <label for="pt-{{this.campo}}"><span class="lbl-ic">{{{this.icone}}}</span> {{this.rotulo}}</label>
           <textarea id="pt-{{this.campo}}" name="{{this.campo}}" rows="2" maxlength="500" placeholder="{{this.placeholder}}">{{lookup @root.dados this.campo}}</textarea>
         </div>
       {{else}}
         <div class="campo">
-          <label for="pt-{{this.campo}}"><span class="lbl-ic">{{this.emoji}}</span> {{this.rotulo}}</label>
+          <label for="pt-{{this.campo}}"><span class="lbl-ic">{{{this.icone}}}</span> {{this.rotulo}}</label>
           <input type="text" id="pt-{{this.campo}}" name="{{this.campo}}" maxlength="150" value="{{lookup @root.dados this.campo}}" placeholder="{{this.placeholder}}">
         </div>
       {{/if}}

@@ -125,9 +125,9 @@ function montarGostos(tema, dados) {
   for (const c of tema.prefs.campos) {
     const v = dados[c.campo];
     if (c.tipo === 'lista') {
-      if (Array.isArray(v) && v.length) out.push({ campo: c.campo, rotulo: c.rotulo, emoji: c.emoji, lista: v });
+      if (Array.isArray(v) && v.length) out.push({ campo: c.campo, rotulo: c.rotulo, emoji: c.emoji, icone: c.icone, lista: v });
     } else if (v && String(v).trim()) {
-      out.push({ campo: c.campo, rotulo: c.rotulo, emoji: c.emoji, valor: String(v).trim() });
+      out.push({ campo: c.campo, rotulo: c.rotulo, emoji: c.emoji, icone: c.icone, valor: String(v).trim() });
     }
   }
   return out;

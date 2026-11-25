@@ -5,7 +5,7 @@
 <div class="card gt-card gt-{{tema.chave}}">
   <div class="gt-deco" aria-hidden="true">{{#if (eq tema.chave "halloween")}}<span>🎃</span><span>🕸️</span><span>🍬</span>{{else}}<span>🎈</span><span>✨</span><span>🎁</span>{{/if}}</div>
   <div class="gt-cab">
-    <span class="gt-emoji">{{tema.emoji}}</span>
+    <span class="gt-emoji">{{{tema.icone}}}</span>
     <div>
       <div class="gt-kicker">{{tema.prefs.titulo}}</div>
       <div class="gt-tit">{{#if tema.prefs.gostosTitulo}}{{tema.prefs.gostosTitulo}} {{nome}}{{else}}O que {{nome}} quer ganhar{{/if}}</div>
@@ -13,7 +13,7 @@
   </div>
   {{#each gostosTema}}
     <div class="gt-item">
-      <span class="gt-item-emoji">{{this.emoji}}</span>
+      <span class="gt-item-emoji">{{{this.icone}}}</span>
       <div class="gt-item-txt">
         <div class="gt-item-rotulo">{{this.rotulo}}</div>
         {{#if this.lista}}

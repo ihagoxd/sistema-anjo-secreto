@@ -5059,3 +5059,12 @@ form.treme { animation: auth-treme 0.42s ease; }
 .auth-ok h2 { margin: 0; font-size: 21px; }
 .auth-ok p { margin: 0 0 12px; font-size: 14px; opacity: 0.85; }
 .auth-ok strong { color: var(--ouro); }
+
+/* Rótulos dos temas: ícone SVG (1em) no lugar do emoji, na cor de destaque */
+.tema-ic { display: inline-block; flex-shrink: 0; vertical-align: -0.16em; }
+.gt-emoji, .gt-item-emoji, .tema-atual-ic, .tema-card-emoji, .camp-tema-emoji, .side-tema-chip, .side-link-emoji { color: var(--accent-strong); }
+.lbl-ic .tema-ic { font-size: 16px; color: var(--accent-strong); vertical-align: -3px; }
+.gt-emoji { font-size: 28px; display: grid; place-items: center; }
+.gt-item-emoji { font-size: 21px; display: grid; place-items: center; }
+.tema-card-emoji, .camp-tema-emoji { font-size: 22px; display: inline-grid; place-items: center; }
+.tb-kicker .tema-ic { font-size: 1.25em; vertical-align: -0.28em; margin-right: 2px; }

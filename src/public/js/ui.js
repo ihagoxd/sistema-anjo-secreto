@@ -7545,6 +7545,40 @@
     });
   })();
 
+  /* ---------- Natal: neve de presentes ao salvar a cartinha e a árvore da faixa que brilha
+     e solta flocos ao toque (nada disso roda com "menos movimento") ---------- */
+  (function () {
+    if (!document.body.classList.contains('tema-natal')) return;
+    var reduz = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var NEVE = ['❄', '🎁', '❄', '⭐', '❄', '🎄', '❄', '🎁'];
+    function chuva(n, lista) {
+      if (reduz) return;
+      var itens = lista || NEVE;
+      var caixa = document.createElement('div'); caixa.className = 'nt-chuva'; caixa.setAttribute('aria-hidden', 'true');
+      for (var i = 0; i < n; i++) {
+        var p = document.createElement('i');
+        p.textContent = itens[i % itens.length];
+        p.style.left = (Math.random() * 100) + '%';
+        p.style.setProperty('--t', (Math.random() * 14 + 18).toFixed(0) + 'px');
+        p.style.setProperty('--x', (Math.random() * 140 - 70).toFixed(0) + 'px');
+        p.style.setProperty('--r', (Math.random() * 360 + 90).toFixed(0) + 'deg');
+        p.style.setProperty('--d', (Math.random() * 1.6 + 2.6).toFixed(2) + 's');
+        p.style.setProperty('--delay', (Math.random() * 1).toFixed(2) + 's');
+        caixa.appendChild(p);
+      }
+      document.body.appendChild(caixa);
+      setTimeout(function () { caixa.remove(); }, 5500);
+    }
+    if (document.querySelector('[data-confete]')) chuva(56);
+    window.__festejar = function () { chuva(56); };
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest('[data-arvore]'); if (!a) return;
+      a.classList.remove('pula'); void a.offsetWidth; a.classList.add('pula');
+      try { if (navigator.vibrate) navigator.vibrate(15); } catch (x) {}
+      chuva(18, ['❄', '❄', '⭐', '❄']);
+    });
+  })();
+
   /* ---------- Tema da conversa (Direct do escritório, como no Instagram) ----------
      A folha lista os temas; tocar num salva (vale para os dois lados) e aplica na hora.
      O outro lado recebe por SSE e a conversa dele muda também, com um aviso na tela. */

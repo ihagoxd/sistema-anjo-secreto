@@ -558,7 +558,11 @@ async function postLimpar(req, res, next) {
     if (canal === 'u') await dmService.marcarLidas(me, id);
     else await grupoService.marcarLidas(me, id);
     await notificacaoService.lerConversa(me, canal, id).catch(() => {});
-    res.json({ ok: true });
+    // texto que a linha da lista passa a mostrar (como uma conversa sem mensagens)
+    let rotulo = '';
+    if (canal === 'u') { const u = await usuarioModel.buscarPorId(id); rotulo = u ? '@' + u.usuario : ''; }
+    else { const g = await grupoService.abrir(me, id); rotulo = g ? g.membros.length + ' participantes' : ''; }
+    res.json({ ok: true, rotulo });
   } catch (err) { next(err); }
 }
 

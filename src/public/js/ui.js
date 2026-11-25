@@ -120,16 +120,27 @@
       if (btn) btn.setAttribute('aria-expanded', 'true');
       if (ehGaveta(bloco)) {
         document.body.classList.add('sem-scroll');
+        // o voltar do celular fecha a gaveta (e não sai da página)
+        if (!(history.state && history.state.comentarios)) { try { history.pushState({ comentarios: bloco.getAttribute('data-bloco') }, ''); } catch (x) {} }
       } else {
         var inp = bloco.querySelector('.tw-reply input[name="texto"]');
         if (inp) window.setTimeout(function () { inp.focus(); }, 50);
       }
     }
-    function fecharComentarios(bloco, btn) {
+    function fecharComentarios(bloco, btn, viaHistorico) {
       bloco.setAttribute('hidden', '');
+      bloco.classList.remove('cheia');
+      bloco.style.transform = ''; bloco.style.transition = ''; bloco.style.bottom = ''; bloco.style.maxHeight = '';
+      if (!btn) btn = document.querySelector('.tw-acao.coment[data-comentarios="' + bloco.getAttribute('data-bloco') + '"]');
       if (btn) btn.setAttribute('aria-expanded', 'false');
       document.body.classList.remove('sem-scroll');
+      if (!viaHistorico && history.state && history.state.comentarios) { try { history.back(); } catch (x) {} }
     }
+    window.addEventListener('popstate', function (e) {
+      if (e.state && e.state.comentarios) return;
+      document.querySelectorAll('.tw-post:not(.tw-post-det) .tw-comentarios-bloco:not([hidden])')
+        .forEach(function (b) { fecharComentarios(b, null, true); });
+    });
     document.addEventListener('click', function (e) {
       var btn = e.target.closest('[data-comentarios]');
       if (!btn) return;

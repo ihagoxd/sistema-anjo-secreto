@@ -44,7 +44,7 @@
       </a>
     {{else}}
       <span class="side-secao">Menu</span>
-      <a href="/feed" class="side-link {{#if (ou (comeca caminhoAtual "/feed") (comeca caminhoAtual "/u/"))}}ativo{{/if}}">
+      <a href="/feed" class="side-link {{#if abaInicio}}ativo{{/if}}">
         <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5.5v-6.5h-5V21H4a1 1 0 0 1-1-1z"/></svg>
         <span>Início</span>
       </a>

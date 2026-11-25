@@ -8,6 +8,12 @@
 function contexto(req, res, next) {
   res.locals.usuario = req.session.usuario || null;
   res.locals.caminhoAtual = req.path;
+  // Aba ativa na barra de baixo/menu: o MEU perfil (e as abas dele) acende o perfil; o perfil de
+  // outra pessoa continua dentro do Início, como no Instagram
+  const eu = req.session.usuario && req.session.usuario.usuario ? '/u/' + req.session.usuario.usuario.toLowerCase() : null;
+  const p = String(req.path || '').toLowerCase();
+  res.locals.noMeuPerfil = !!eu && (p === eu || p.indexOf(eu + '/') === 0);
+  res.locals.abaInicio = p.indexOf('/feed') === 0 || (p.indexOf('/u/') === 0 && !res.locals.noMeuPerfil);
   if (req.session.flash) {
     res.locals.sucesso = req.session.flash.sucesso;
     res.locals.erro = req.session.flash.erro;

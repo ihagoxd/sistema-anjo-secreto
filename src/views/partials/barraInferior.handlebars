@@ -20,7 +20,7 @@
     </a>
   {{else}}
     {{! Barra estilo Instagram: início, pesquisar, criar, Direct, painel do Anjo, perfil }}
-    <a href="/feed" class="bi-item {{#if (ou (comeca caminhoAtual "/feed") (comeca caminhoAtual "/u/"))}}ativo{{/if}}" aria-label="Início">
+    <a href="/feed" class="bi-item {{#if abaInicio}}ativo{{/if}}" aria-label="Início">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5.5v-6.5h-5V21H4a1 1 0 0 1-1-1z"/></svg>
     </a>
     <button type="button" class="bi-item" data-busca-abrir aria-label="Pesquisar">
@@ -39,7 +39,7 @@
   {{/if}}
 
   {{#unless (eq usuario.tipo_usuario "ADMINISTRADOR")}}
-  <a href="/u/{{usuario.usuario}}" class="bi-perfil {{#if (eq caminhoAtual (concat "/u/" usuario.usuario))}}ativo{{/if}}" aria-label="Meu perfil">
+  <a href="/u/{{usuario.usuario}}" class="bi-perfil {{#if noMeuPerfil}}ativo{{/if}}" aria-label="Meu perfil">
     <span class="bi-perfil-av">{{#if usuario.foto_perfil}}<img src="{{usuario.foto_perfil}}" alt="">{{else}}{{inicial usuario.nome}}{{/if}}</span>
   </a>
   {{/unless}}

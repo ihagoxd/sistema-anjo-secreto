@@ -198,6 +198,22 @@
     document.addEventListener('pointerup', soltarGaveta);
     document.addEventListener('pointercancel', soltarGaveta);
 
+    // Teclado do celular: a gaveta sobe junto (o campo de comentar nunca fica escondido atrás dele)
+    function ajustarTecladoGaveta() {
+      var bloco = document.querySelector('.tw-post:not(.tw-post-det) .tw-comentarios-bloco:not([hidden])');
+      if (!bloco || !ehGaveta(bloco) || !window.visualViewport) return;
+      var vv = window.visualViewport;
+      var tampa = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      bloco.style.bottom = tampa > 40 ? tampa + 'px' : '';
+      bloco.style.maxHeight = tampa > 40 ? Math.round(vv.height - 12) + 'px' : '';
+    }
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', ajustarTecladoGaveta);
+      window.visualViewport.addEventListener('scroll', ajustarTecladoGaveta);
+    }
+    document.addEventListener('focusin', function (e) { if (e.target.closest('.tw-comentarios-bloco .tw-reply')) setTimeout(ajustarTecladoGaveta, 60); });
+    document.addEventListener('focusout', function (e) { if (e.target.closest('.tw-comentarios-bloco .tw-reply')) setTimeout(ajustarTecladoGaveta, 250); });
+
     // Emojis rápidos da folha de comentários: adiciona no campo de resposta
     document.addEventListener('click', function (e) {
       var b = e.target.closest('[data-emoji-rapido]');

@@ -8,6 +8,7 @@ const temaService = require('../services/tema.service');
 const notificacaoService = require('../services/notificacao.service');
 const avisoModel = require('../models/aviso.model');
 const { porChave: temaPorChave } = require('../config/temas');
+const { responder } = require('../utils/responder');
 
 // O tema escolhido para a campanha passa a valer para todo mundo (igual a Admin → Tema da rede).
 async function ativarTemaDaCampanha(req, chave, avisar) {
@@ -138,14 +139,18 @@ async function getDetalhe(req, res, next) {
 async function postEditar(req, res, next) {
   try {
     const r = await campanhaService.editarCampanha(req.params.id_campanha, { nome: req.body.nome, descricao: req.body.descricao, tema: req.body.tema });
-    if (!r.ok) {
-      flash(req, 'erro', MSG[r.motivo] || 'Não foi possível salvar.');
-      return res.redirect(`/admin/campanhas/${req.params.id_campanha}`);
-    }
+    const destino = `/admin/campanhas/${req.params.id_campanha}`;
+    if (!r.ok) return responder(req, res, { ok: false, erro: MSG[r.motivo] || 'Não foi possível salvar.', destino });
     await registrarLog({ idUsuario: req.session.usuario.id_usuario, acao: 'CAMPANHA_EDITADA', descricao: r.campanha.nome, entidade: 'campanha', idReferencia: r.campanha.id_campanha, ip: req.ip });
     const t = req.body.tema ? await ativarTemaDaCampanha(req, r.campanha.tema, true) : { mudou: false };
-    flash(req, 'sucesso', `Campanha atualizada${t.mudou ? `. Tema ${t.tema.emoji} ${t.tema.nome} ativado para todo mundo` : ''}.`);
-    res.redirect(`/admin/campanhas/${req.params.id_campanha}`);
+    // Tema novo muda o visual da rede inteira: a tela recarrega para já aparecer com ele.
+    if (t.mudou) req.session.flash = { sucesso: `Campanha salva. Tema ${t.tema.nome} ativado para todo mundo.` };
+    responder(req, res, {
+      msg: 'Campanha salva',
+      flash: `Campanha atualizada${t.mudou ? `. Tema ${t.tema.emoji} ${t.tema.nome} ativado para todo mundo` : ''}.`,
+      destino,
+      dados: { nome: r.campanha.nome, descricao: r.campanha.descricao || '', redirect: t.mudou ? destino : undefined },
+    });
   } catch (err) {
     next(err);
   }
@@ -179,13 +184,9 @@ async function postEncerrar(req, res, next) {
 async function postApagar(req, res, next) {
   try {
     const r = await campanhaService.apagarCampanha(req.params.id_campanha);
-    if (r.ok) {
-      await registrarLog({ idUsuario: req.session.usuario.id_usuario, acao: 'CAMPANHA_APAGADA', descricao: r.campanha.nome, entidade: 'campanha', idReferencia: r.campanha.id_campanha, ip: req.ip });
-      flash(req, 'sucesso', `Campanha "${r.campanha.nome}" apagada.`);
-    } else {
-      flash(req, 'erro', MSG[r.motivo] || 'Não foi possível apagar.');
-    }
-    res.redirect('/admin/campanhas');
+    if (!r.ok) return responder(req, res, { ok: false, erro: MSG[r.motivo] || 'Não foi possível apagar.', destino: '/admin/campanhas' });
+    await registrarLog({ idUsuario: req.session.usuario.id_usuario, acao: 'CAMPANHA_APAGADA', descricao: r.campanha.nome, entidade: 'campanha', idReferencia: r.campanha.id_campanha, ip: req.ip });
+    responder(req, res, { msg: 'Campanha apagada', flash: `Campanha "${r.campanha.nome}" apagada.`, destino: '/admin/campanhas' });
   } catch (err) {
     next(err);
   }

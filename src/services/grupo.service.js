@@ -174,8 +174,8 @@ function marcarLidas(me, idGrupo) { return grupoModel.marcarLidas(Number(idGrupo
 function contarNaoLidasTotal(me) { return grupoModel.contarNaoLidasTotal(me); }
 
 function previaUltima(r, me) {
-  if (r.ult_apagada) return '🚫 Mensagem apagada';
-  const corpo = r.ult_texto || (r.ult_imagem ? '📷 Foto' : r.ult_audio ? '🎤 Mensagem de voz' : r.ult_video ? '🎬 Vídeo' : '');
+  if (r.ult_apagada) return 'Mensagem apagada';
+  const corpo = r.ult_texto || (r.ult_imagem ? 'Foto' : r.ult_audio ? 'Mensagem de voz' : r.ult_video ? 'Vídeo' : '');
   if (r.ult_sistema) return corpo;
   const quem = r.ult_de === me ? 'Você' : primeiroNome({ nome: r.ult_nome });
   return `${quem}: ${corpo}`;

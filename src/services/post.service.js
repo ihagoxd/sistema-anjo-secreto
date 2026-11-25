@@ -329,10 +329,10 @@ async function comentar(idPost, idUsuario, texto, imagemPath = null, respondeA =
     if (imagemPath) apagarUpload(imagemPath); // não deixa a foto órfã no disco se o banco recusar
     throw e;
   }
-  // Prévia da notificação: o texto; se veio só a foto, "📷 Foto". Miniatura: a do post, senão a do comentário.
-  await notificacaoService.notificarComentario(post.id_usuario, idUsuario, idPost, t || '📷 Foto', post.imagem || imagemPath);
+  // Prévia da notificação: o texto; se veio só a foto, "Foto". Miniatura: a do post, senão a do comentário.
+  await notificacaoService.notificarComentario(post.id_usuario, idUsuario, idPost, t || 'Foto', post.imagem || imagemPath);
   if (pai && pai.id_usuario !== idUsuario && pai.id_usuario !== post.id_usuario) {
-    await notificacaoService.notificarResposta(pai.id_usuario, idUsuario, idPost, t || '📷 Foto', post.imagem || imagemPath);
+    await notificacaoService.notificarResposta(pai.id_usuario, idUsuario, idPost, t || 'Foto', post.imagem || imagemPath);
   }
   await notificarMencoes(t, idUsuario, idPost);
   return { ok: true, idComentario: novo.id_comentario, texto: t || null, imagem: imagemPath, responde_a: pai ? pai.id_comentario : null };

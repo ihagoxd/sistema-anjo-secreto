@@ -4440,7 +4440,7 @@
     function avisoNavegador(n) {
       if (!('Notification' in window) || Notification.permission !== 'granted') return;
       if (pushAtivoAqui()) return;
-      var titulo = n.emoji + ' ' + n.titulo;
+      var titulo = n.titulo;
       var corpo = n.detalhe ? n.texto + ' · ' + n.detalhe : n.texto;
       var opts = { body: corpo, icon: n.ator_foto || '/img/icon-512.png', badge: '/img/icon-512.png', tag: 'anjo-' + n.id, data: { url: hrefDe(n) } };
       if (n.imagem) opts.image = n.imagem;
@@ -6374,9 +6374,9 @@
     function trechoDe(bolha) {
       var t = bolha.querySelector('.dm-bolha-txt');
       if (t && t.textContent.trim()) return t.textContent.trim().slice(0, 90);
-      if (bolha.querySelector('.dm-audio')) return '🎤 Mensagem de voz';
-      if (bolha.querySelector('.dm-bolha-img, .dm-storyprev-img')) return '📷 Foto';
-      if (bolha.querySelector('.dm-bolha-video')) return '🎬 Vídeo';
+      if (bolha.querySelector('.dm-audio')) return 'Mensagem de voz';
+      if (bolha.querySelector('.dm-bolha-img, .dm-storyprev-img')) return 'Foto';
+      if (bolha.querySelector('.dm-bolha-video')) return 'Vídeo';
       return 'Mensagem';
     }
     function iniciarResposta(bolha) {

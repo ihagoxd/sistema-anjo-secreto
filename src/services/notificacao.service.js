@@ -96,12 +96,12 @@ const TIPOS = {
   ANIVERSARIO: {
     emoji: '🎂', categoria: 'aniversario', temAtor: true,
     titulo: (r) => `Hoje é aniversário de ${primeiroNome(r.ator_nome)}!`,
-    texto: () => 'Mande os parabéns 🎉',
+    texto: () => 'Mande os parabéns',
   },
   ANIVERSARIO_SEU: {
     emoji: '🎉', categoria: 'aniversario', temAtor: false,
     titulo: () => 'Feliz aniversário!',
-    texto: () => 'Que o seu dia seja incrível 🎂',
+    texto: () => 'Que o seu dia seja incrível',
   },
   SORTEIO: {
     emoji: '🎲', categoria: 'sistema', temAtor: false,
@@ -149,10 +149,10 @@ function previaMensagem({ texto, imagem, audio, video, story } = {}) {
   let p = null;
   const t = String(texto || '').trim().replace(/\s+/g, ' ');
   if (t) p = t.length > PREVIA_MAX ? `${t.slice(0, PREVIA_MAX - 1)}…` : t;
-  else if (imagem) p = '📷 Foto';
-  else if (audio) p = '🎤 Mensagem de voz';
-  else if (video) p = '🎥 Vídeo';
-  if (story) p = p ? `↩️ ${p}` : '↩️ Respondeu ao seu story';
+  else if (imagem) p = 'Foto';
+  else if (audio) p = 'Mensagem de voz';
+  else if (video) p = 'Vídeo';
+  if (story) p = p ? `Respondeu ao seu story: ${p}` : 'Respondeu ao seu story';
   return p;
 }
 

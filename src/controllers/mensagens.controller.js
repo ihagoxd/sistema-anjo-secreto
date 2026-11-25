@@ -145,7 +145,7 @@ async function renderInbox(req, res, sel) {
       await mensagemService.marcarThreadLida(ctx.campanha.id_campanha, me, 'protegido');
       ctx.unread.protegido = 0;
       const c = await mensagemService.listarConversa(ctx.campanha.id_campanha, me);
-      conversa = Object.assign({ secreto: true, rotulo: 'você é o anjo secreto dele(a) 🎭',
+      conversa = Object.assign({ secreto: true, rotulo: 'você é o anjo secreto dele(a)',
         foto: ctx.protegido.foto_perfil, mensagens: c.comProtegido, action: '/mensagens/protegido',
         placeholder: 'Mensagem anônima…' }, ctxProtegido(ctx.protegido.nome));
       avisarLeitura(me, 'protegido', null, ctx.campanha);
@@ -519,7 +519,7 @@ async function getEstado(req, res, next) {
     Object.keys(resumo.ultima || {}).forEach((id) => {
       const u = resumo.ultima[id];
       if (apagadaAntes('u:' + id, u.criado_em)) return;
-      previas[id] = { minha: !!u.minha, texto: u.texto || '📎 mídia', em: u.criado_em };
+      previas[id] = { minha: !!u.minha, texto: u.texto || 'Mídia', em: u.criado_em };
     });
     const grupos = {};
     (await grupoService.listarDoUsuario(me)).forEach((g) => {

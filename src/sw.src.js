@@ -97,7 +97,7 @@ self.addEventListener('push', function (e) {
       actions: [{ action: 'abrir', title: 'Abrir' }],
     };
     if (d.imagem) opcoes.image = d.imagem;
-    var titulo = (d.emoji ? d.emoji + ' ' : '') + (d.titulo || 'Anjo Secreto');
+    var titulo = d.titulo || 'Anjo Secreto';
     await self.registration.showNotification(titulo, opcoes);
   })());
 });

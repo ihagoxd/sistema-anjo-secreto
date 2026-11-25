@@ -16,10 +16,10 @@ const render = require('./render.service');
 
 const STORY_ATIVO_MS = 24 * 3600 * 1000;
 
-// Trecho curto de uma mensagem citada (texto ou "📷 Foto", "🎤 Mensagem de voz"…).
+// Trecho curto de uma mensagem citada (texto ou "Foto", "Mensagem de voz"…).
 function trechoDe(q) {
-  let trecho = q.apagada ? '🚫 Mensagem apagada'
-    : (q.texto || (q.imagem ? '📷 Foto' : q.audio ? '🎤 Mensagem de voz' : q.video ? '🎬 Vídeo' : ''));
+  let trecho = q.apagada ? 'Mensagem apagada'
+    : (q.texto || (q.imagem ? 'Foto' : q.audio ? 'Mensagem de voz' : q.video ? 'Vídeo' : ''));
   if (trecho.length > 90) trecho = `${trecho.slice(0, 90)}…`;
   return trecho;
 }
@@ -186,7 +186,7 @@ async function bolhaGrupo(idMensagem, idObservador, conversa) {
 
 // Prévia curta para a lista de conversas (igual à do servidor na primeira carga).
 function previaDe(m) {
-  return m.texto || (m.imagem ? '📷 Foto' : m.audio ? '🎤 Mensagem de voz' : m.video ? '🎬 Vídeo' : '📎 mídia');
+  return m.texto || (m.imagem ? 'Foto' : m.audio ? 'Mensagem de voz' : m.video ? 'Vídeo' : 'Mídia');
 }
 
 module.exports = { prepararTodas, anexarCitacoes, anexarCartoesDeStory, anexarPreviasDePost, marcarVisto, bolhaDm, bolhaJogo, bolhaGrupo, itemGrupo, previaDe };

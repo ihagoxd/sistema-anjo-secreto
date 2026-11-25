@@ -8424,6 +8424,20 @@
     }
     window.__admAplicar = aplicarResposta;
 
+    // Número de cadastros pendentes no ícone de Aprovações (barra de baixo e menu lateral)
+    document.addEventListener('adm:resumo', function (e) {
+      var n = e.detail && e.detail.pendentes;
+      if (n == null) return;
+      [['.barra-inferior a[href="/admin/aprovacoes"]', 'bi-badge'], ['.side-nav a[href="/admin/aprovacoes"]', 'nav-badge']].forEach(function (par) {
+        var a = document.querySelector(par[0]);
+        if (!a) return;
+        var b = a.querySelector('[data-adm-badge]');
+        if (!n) { if (b) b.remove(); return; }
+        if (!b) { b = document.createElement('span'); b.className = par[1]; b.setAttribute('data-adm-badge', ''); a.appendChild(b); }
+        b.textContent = n;
+      });
+    });
+
     function validar(form) {
       var campos = form.querySelectorAll('input[required], input[minlength]');
       for (var i = 0; i < campos.length; i++) {

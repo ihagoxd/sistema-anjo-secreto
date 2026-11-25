@@ -78,6 +78,9 @@ async function carregarContextoApp(req, res, next) {
     if (campanha) totalMsg += await mensagemService.contarNaoLidas(campanha.id_campanha, me);
     res.locals.msgNaoLidas = totalMsg;
 
+    // Admin: cadastros aguardando aprovação viram um número no ícone de Aprovações (barra e menu)
+    if (u.tipo_usuario === 'ADMINISTRADOR') res.locals.admPendentes = await usuarioModel.contarPorStatus('PENDENTE');
+
     // Tutorial passo a passo: em QUALQUER página, para participante que ainda não viu
     // (perfil completo ou já sorteado). O marcador vai no layout; o JS leva a pessoa ao
     // Feed e segue por todas as telas. ?tour=1 (no Feed) repete a qualquer hora.

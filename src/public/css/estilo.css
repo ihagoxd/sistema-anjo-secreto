@@ -4630,3 +4630,11 @@ body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
   .tw-post:not(.tw-post-det) .tw-comentarios-bloco:not([hidden]) .sheet-grab { width: 44px; height: 5px; margin: 6px auto 10px; }
   .tw-post:not(.tw-post-det) .tw-comentarios-bloco.cheia:not([hidden]) { min-height: 94dvh; max-height: 94dvh; }
 }
+
+/* COMENTÁRIOS: sem barra de rolagem lateral na lista (era a faixa roxa grossa) e os 8 emojis
+   rápidos cabem na largura, divididos por igual */
+.tw-comentarios { overflow-x: hidden; }
+@media (max-width: 899px) {
+  .tw-post:not(.tw-post-det) .tw-comentarios-bloco:not([hidden]) .sheet-emojis { gap: 0; padding-left: 0; padding-right: 0; }
+  .sheet-emoji { flex: 1 1 0; min-width: 0; font-size: 24px; padding: 4px 0; text-align: center; }
+}

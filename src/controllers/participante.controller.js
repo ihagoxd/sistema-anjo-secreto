@@ -137,8 +137,8 @@ async function postPreferenciasTema(req, res, next) {
     if (ehFetch(req)) return res.json({ ok: true, msg: r.vazio ? 'Lista limpa' : 'Lista salva', festejar: !r.vazio });
     req.session.flash = {
       sucesso: r.vazio
-        ? 'Lista limpa. Quando quiser, conte o que gostaria de ganhar. 🎈'
-        : `Salvo! Seu anjo vai adorar saber o que te faz feliz. ${tema.emoji}`,
+        ? 'Lista limpa. Quando quiser, conte o que gostaria de ganhar.'
+        : 'Salvo! Seu anjo vai adorar saber o que te faz feliz.',
     };
     res.redirect('/participante/preferencias/tema');
   } catch (err) {
@@ -219,12 +219,12 @@ async function postPerfil(req, res, next) {
     await usuarioModel.marcarPerfilCompleto(idUsuario);
     req.session.usuario.perfil_completo = true;
 
-    let msg = 'Perfil atualizado! Seu anjo vai adorar. ✨';
+    let msg = 'Perfil atualizado! Seu anjo vai adorar.';
     if (r.ignoradas > 0) msg += ` (${r.ignoradas} foto(s) não couberam no limite de ${preferenciaService.MAX_FOTOS}.)`;
     // Primeira vez que completa o perfil: vai para o feed, onde o tutorial passo a passo
     // começa sozinho (só para quem ainda não viu).
     if (primeiraVez && !req.session.usuario.tutorial_visto) {
-      req.session.flash = { sucesso: 'Perfil salvo! Agora um tour rapidinho pelo app. 🎬' };
+      req.session.flash = { sucesso: 'Perfil salvo! Agora um tour rapidinho pelo app.' };
       if (ehFetch(req)) return res.json({ ok: true, redirect: '/feed' });
       return res.redirect('/feed');
     }
@@ -265,7 +265,7 @@ async function postLegendaFoto(req, res, next) {
   try {
     await preferenciaService.salvarLegenda(req.params.id_foto, req.session.usuario.id_usuario, req.body.legenda);
     if (ehFetch(req)) return res.json({ ok: true });
-    req.session.flash = { sucesso: 'Legenda salva. ✍️' };
+    req.session.flash = { sucesso: 'Legenda salva.' };
     res.redirect('/participante/preferencias');
   } catch (err) {
     next(err);

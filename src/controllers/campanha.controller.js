@@ -17,7 +17,7 @@ async function ativarTemaDaCampanha(req, chave, avisar) {
   if (!r.ok || !r.mudou) return { mudou: false, tema: r.ok ? r.tema : null };
   await registrarLog({
     idUsuario: me.id_usuario, acao: 'TEMA_ALTERADO',
-    descricao: `${r.anterior.emoji} ${r.anterior.nome} → ${r.tema.emoji} ${r.tema.nome} (pela campanha)`,
+    descricao: `${r.anterior.nome} → ${r.tema.nome} (pela campanha)`,
     entidade: 'tema', ip: req.ip,
   });
   if (avisar) {
@@ -80,7 +80,7 @@ async function postCriar(req, res, next) {
     await registrarLog({ idUsuario: req.session.usuario.id_usuario, acao: 'CAMPANHA_CRIADA', descricao: r.campanha.nome, entidade: 'campanha', idReferencia: r.campanha.id_campanha, ip: req.ip });
     // Tema escolhido para a rodada entra em vigor agora (se for diferente do atual)
     const t = await ativarTemaDaCampanha(req, r.campanha.tema, req.body.avisar === '1');
-    flash(req, 'sucesso', `Campanha "${r.campanha.nome}" criada${t.mudou ? ` com o tema ${t.tema.emoji} ${t.tema.nome} ativado para todo mundo` : ''}.`);
+    flash(req, 'sucesso', `Campanha "${r.campanha.nome}" criada${t.mudou ? ` com o tema ${t.tema.nome} ativado para todo mundo` : ''}.`);
     res.redirect(`/admin/campanhas/${r.campanha.id_campanha}`);
   } catch (err) {
     next(err);
@@ -148,7 +148,7 @@ async function postEditar(req, res, next) {
     if (t.mudou) req.session.flash = { sucesso: `Campanha salva. Tema ${t.tema.nome} ativado para todo mundo.` };
     responder(req, res, {
       msg: 'Campanha salva',
-      flash: `Campanha atualizada${t.mudou ? `. Tema ${t.tema.emoji} ${t.tema.nome} ativado para todo mundo` : ''}.`,
+      flash: `Campanha atualizada${t.mudou ? `. Tema ${t.tema.nome} ativado para todo mundo` : ''}.`,
       destino,
       dados: { nome: r.campanha.nome, descricao: r.campanha.descricao || '', redirect: t.mudou ? destino : undefined },
     });
@@ -169,7 +169,7 @@ async function postEncerrar(req, res, next) {
         const v = await temaService.definir('padrao', req.session.usuario.nome);
         if (v.ok && v.mudou) {
           voltou = true;
-          await registrarLog({ idUsuario: req.session.usuario.id_usuario, acao: 'TEMA_ALTERADO', descricao: `${v.anterior.emoji} ${v.anterior.nome} → ${v.tema.emoji} ${v.tema.nome} (campanha encerrada)`, entidade: 'tema', ip: req.ip });
+          await registrarLog({ idUsuario: req.session.usuario.id_usuario, acao: 'TEMA_ALTERADO', descricao: `${v.anterior.nome} → ${v.tema.nome} (campanha encerrada)`, entidade: 'tema', ip: req.ip });
         }
       }
       flash(req, 'sucesso', `Campanha "${r.campanha.nome}" encerrada.${voltou ? ' O tema da rede voltou ao padrão.' : ''}`);

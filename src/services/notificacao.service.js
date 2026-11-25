@@ -495,8 +495,8 @@ function notificarTeste(idUsuario) {
 async function notificarTema(idsUsuarios, tema) {
   const link = tema.temPrefs ? '/participante/preferencias/tema' : '/feed';
   const detalhe = tema.temPrefs
-    ? `${tema.emoji} ${tema.nome}: conte o que você quer ganhar!`
-    : `${tema.emoji} Tema ${tema.nome}`;
+    ? `${tema.nome}: conte o que você quer ganhar!`
+    : `Tema ${tema.nome}`;
   for (const id of idsUsuarios) {
     await seguro(() => criar({ idUsuario: id, tipo: 'TEMA', idAtor: null, link, detalhe }));
   }

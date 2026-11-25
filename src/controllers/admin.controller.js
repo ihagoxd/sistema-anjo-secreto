@@ -97,7 +97,7 @@ async function postTema(req, res, next) {
     }
     await registrarLog({
       idUsuario: me.id_usuario, acao: 'TEMA_ALTERADO',
-      descricao: `${r.anterior.emoji} ${r.anterior.nome} → ${r.tema.emoji} ${r.tema.nome}`,
+      descricao: `${r.anterior.nome} → ${r.tema.nome}`,
       entidade: 'tema', ip: req.ip,
     });
     // Avisa todo mundo (sino + push) — opcional, marcado por padrão no formulário.
@@ -108,7 +108,7 @@ async function postTema(req, res, next) {
       avisados = ids.length;
     }
     req.session.flash = {
-      sucesso: `Tema "${r.tema.nome}" ativado! A rede inteira já está com o visual novo${avisados ? ` e ${avisados} pessoa${avisados > 1 ? 's foram avisadas' : ' foi avisada'}` : ''}. ${r.tema.emoji}`,
+      sucesso: `Tema "${r.tema.nome}" ativado! A rede inteira já está com o visual novo${avisados ? ` e ${avisados} pessoa${avisados > 1 ? 's foram avisadas' : ' foi avisada'}` : ''}.`,
     };
     res.redirect('/admin/tema');
   } catch (err) {

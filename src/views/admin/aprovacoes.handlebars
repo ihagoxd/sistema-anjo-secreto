@@ -1,48 +1,23 @@
-<div class="pagina-cabecalho">
-  <div>
-    <h1>Cadastros pendentes</h1>
-    <p class="subtitulo">Aprove apenas pessoas que você reconhece como funcionários.</p>
-  </div>
-  <a href="/admin" class="btn btn-secundario btn-sm">Voltar</a>
-</div>
+{{! Aprovações como as solicitações do Instagram: Aprovar/Recusar em cada pessoa, e a linha
+    sai na hora (sem recarregar). Quando acaba a fila, aparece o "Tudo em dia". }}
+<div class="adm" data-adm-sai>
+  <header class="adm-cab">
+    <div class="adm-cab-txt">
+      <h1>Aprovações</h1>
+      <small><span data-adm-n="pendentes">{{pendentes.length}}</span> aguardando · aprove só quem você reconhece</small>
+    </div>
+    <a class="adm-cab-btn" href="/admin/usuarios?f=recusados" aria-label="Ver cadastros recusados">
+      <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="17" y1="8" x2="22" y2="13"/><line x1="22" y1="8" x2="17" y2="13"/></svg>
+    </a>
+  </header>
 
-{{#if pendentes.length}}
-  <div class="tabela-wrap">
-    <table class="tabela">
-      <thead>
-        <tr>
-          <th>Nome</th>
-          <th>Usuário</th>
-          <th>Solicitado em</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{#each pendentes}}
-          <tr>
-            <td data-label="Nome">{{this.nome}}</td>
-            <td data-label="Usuário">{{this.usuario}}</td>
-            <td data-label="Solicitado em">{{formatarData this.criado_em}}</td>
-            <td data-label="Ações" class="td-acoes">
-              <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                <form action="/admin/aprovacoes/{{this.id_usuario}}/aprovar" method="POST">
-                  {{#if ../csrfToken}}<input type="hidden" name="_csrf" value="{{../csrfToken}}">{{/if}}
-                  <button type="submit" class="btn btn-primario btn-sm">Aprovar</button>
-                </form>
-                <form action="/admin/aprovacoes/{{this.id_usuario}}/recusar" method="POST"
-                  data-confirmar="Recusar o cadastro de {{this.nome}}?">
-                  {{#if ../csrfToken}}<input type="hidden" name="_csrf" value="{{../csrfToken}}">{{/if}}
-                  <button type="submit" class="btn btn-perigo btn-sm">Recusar</button>
-                </form>
-              </div>
-            </td>
-          </tr>
-        {{/each}}
-      </tbody>
-    </table>
+  <div class="adm-lista" data-adm-lista>
+    {{#each pendentes}}{{> admUsuario}}{{/each}}
   </div>
-{{else}}
-  <div class="card card-centro">
-    <p class="texto-suave" style="margin:0;">Nenhum cadastro aguardando aprovação no momento.</p>
+  <div class="adm-vazio" data-adm-vazio{{#if pendentes.length}} hidden{{/if}}>
+    <span class="adm-vazio-ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+    <strong>Tudo em dia</strong>
+    <small>Nenhum cadastro aguardando aprovação. Quando alguém se cadastrar, aparece aqui.</small>
+    <a class="adm-vazio-link" href="/admin/usuarios">Ver todos os usuários</a>
   </div>
-{{/if}}
+</div>

@@ -10,7 +10,7 @@ const notificacaoService = require('../services/notificacao.service');
 const avisoModel = require('../models/aviso.model');
 const { registrarLog, listarLogs, listarAcoes } = require('../services/log.service');
 const { responder } = require('../utils/responder');
-const { linhaAtualizada } = require('./usuario.controller');
+const { linhaAtualizada, paraLinha } = require('./usuario.controller');
 
 // Volta para a página de onde a ação partiu (lista de usuários com filtro, ou aprovações).
 function voltarDe(req, padrao) {
@@ -119,7 +119,7 @@ async function postTema(req, res, next) {
 async function getAprovacoes(req, res, next) {
   try {
     const pendentes = await usuarioService.listarPendentes();
-    res.render('admin/aprovacoes', { titulo: 'Aprovações', pendentes });
+    res.render('admin/aprovacoes', { titulo: 'Aprovações', pendentes: pendentes.map((u) => paraLinha(u, req.session.usuario.id_usuario)) });
   } catch (err) {
     next(err);
   }

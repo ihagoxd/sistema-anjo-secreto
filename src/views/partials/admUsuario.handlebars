@@ -6,7 +6,7 @@
     <span class="adm-av" aria-hidden="true">{{#if foto_perfil}}<img src="{{foto_perfil}}" alt="" loading="lazy">{{else}}{{inicial nome}}{{/if}}</span>
     <span class="adm-pessoa-txt">
       <strong>{{nome}}{{#if ehEu}} <span class="eu-tag">você</span>{{/if}}</strong>
-      <small><i class="adm-ponto adm-ponto-{{sit}}" aria-hidden="true"></i>@{{usuario}} · {{sitRotulo}}{{#if (eq tipo_usuario "ADMINISTRADOR")}} · Admin{{/if}}{{#if senha_provisoria}} · senha provisória{{/if}}</small>
+      <small><i class="adm-ponto adm-ponto-{{sit}}" aria-hidden="true"></i>@{{usuario}} · {{#if (eq sit "pendente")}}pediu {{tempoRel criado_em}}{{else}}{{sitRotulo}}{{/if}}{{#if (eq tipo_usuario "ADMINISTRADOR")}} · Admin{{/if}}{{#if senha_provisoria}} · senha provisória{{/if}}</small>
     </span>
   </a>
   {{#if (eq sit "pendente")}}

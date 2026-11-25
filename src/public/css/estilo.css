@@ -4821,3 +4821,6 @@ html.mini .tema-banner { animation: none !important; }
 .adm-senha-ic { width: 52px; height: 52px; margin: 0 auto 8px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-strong); }
 .adm-senha { display: block; margin: 10px auto 4px; padding: 12px 16px; border-radius: 12px; background: var(--surface-2); border: 1px dashed var(--line-strong); font-size: 22px; font-weight: 700; letter-spacing: 0.08em; color: var(--text); user-select: all; }
 .adm-senha-card .modal-acoes { justify-content: center; }
+.adm-vazio small { max-width: 300px; }
+.adm-vazio-link { margin-top: 10px; font-weight: 700; font-size: 14px; color: var(--accent-strong); }
+.adm-pessoa[data-sit="pendente"] .adm-pessoa-txt small { white-space: normal; }

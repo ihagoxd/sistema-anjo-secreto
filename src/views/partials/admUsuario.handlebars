@@ -1,0 +1,26 @@
+{{! Uma pessoa na lista de usuários do admin, como linha de app: tocar abre a edição e o ⋯ abre
+    a folha de ações (editar, senha, inativar, excluir). Pendentes têm Aprovar/Recusar na linha,
+    como as solicitações do Instagram. O servidor devolve esta mesma linha depois de cada ação. }}
+<div class="adm-pessoa{{#if (eq sit "inativo")}} inativa{{/if}}" data-adm-pessoa="{{id_usuario}}" data-sit="{{sit}}"{{#if (eq tipo_usuario "ADMINISTRADOR")}} data-admin="1"{{/if}}{{#if ehEu}} data-eu="1"{{/if}} data-nome="{{nome}}" data-login="{{usuario}}">
+  <a class="adm-pessoa-link" href="/admin/usuarios/{{id_usuario}}/editar">
+    <span class="adm-av" aria-hidden="true">{{#if foto_perfil}}<img src="{{foto_perfil}}" alt="" loading="lazy">{{else}}{{inicial nome}}{{/if}}</span>
+    <span class="adm-pessoa-txt">
+      <strong>{{nome}}{{#if ehEu}} <span class="eu-tag">você</span>{{/if}}</strong>
+      <small><i class="adm-ponto adm-ponto-{{sit}}" aria-hidden="true"></i>@{{usuario}} · {{sitRotulo}}{{#if (eq tipo_usuario "ADMINISTRADOR")}} · Admin{{/if}}{{#if senha_provisoria}} · senha provisória{{/if}}</small>
+    </span>
+  </a>
+  {{#if (eq sit "pendente")}}
+    <div class="adm-pessoa-acoes">
+      <form action="/admin/aprovacoes/{{id_usuario}}/aprovar" method="POST" data-adm-form>
+        <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
+        <button type="submit" class="adm-btn adm-btn-pri">Aprovar</button>
+      </form>
+      <form action="/admin/aprovacoes/{{id_usuario}}/recusar" method="POST" data-adm-form data-confirmar="Recusar o cadastro de {{nome}}?" data-confirmar-sub="Dá para aprovar depois pelo filtro Recusados." data-confirmar-ok="Recusar">
+        <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
+        <button type="submit" class="adm-btn">Recusar</button>
+      </form>
+    </div>
+  {{else}}
+    <button type="button" class="adm-mais" data-adm-mais aria-label="Opções de {{nome}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button>
+  {{/if}}
+</div>

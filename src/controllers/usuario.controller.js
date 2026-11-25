@@ -3,6 +3,7 @@
 const usuarioService = require('../services/usuario.service');
 const { buscarPorId } = require('../models/usuario.model');
 const { registrarLog } = require('../services/log.service');
+const { responder, renderizar, ehFetch } = require('../utils/responder');
 
 const MSG = {
   NOME: 'Informe o nome completo.',
@@ -26,6 +27,20 @@ const FILTROS = ['todos', 'pendentes', 'aprovados', 'recusados', 'inativos', 'ad
 
 function flash(req, tipo, msg) {
   req.session.flash = { [tipo]: msg };
+}
+
+// Situação resumida de cada pessoa na lista: pendente | recusado | inativo | ativo
+const SIT_ROTULO = { pendente: 'Aguardando aprovação', recusado: 'Recusado', inativo: 'Inativo', ativo: 'Ativo' };
+function paraLinha(u, idMe) {
+  const sit = u.status === 'PENDENTE' ? 'pendente' : u.status === 'RECUSADO' ? 'recusado' : !u.ativo ? 'inativo' : 'ativo';
+  return { ...u, sit, sitRotulo: SIT_ROTULO[sit], ehEu: Number(u.id_usuario) === Number(idMe) };
+}
+
+// Linha atualizada da pessoa (HTML pronto) + contagens dos filtros, para a tela trocar na hora.
+async function linhaAtualizada(req, res, idUsuario) {
+  const [u, resumo] = await Promise.all([buscarPorId(idUsuario), usuarioService.contarResumo()]);
+  const html = u ? await renderizar(res, 'partials/admUsuario', paraLinha(u, req.session.usuario.id_usuario)) : '';
+  return { html, resumo };
 }
 
 // Volta para a lista mantendo busca/filtro de onde a ação partiu.
@@ -52,13 +67,8 @@ async function getLista(req, res, next) {
       { chave: 'recusados', rotulo: 'Recusados', n: resumo.recusados },
       { chave: 'admins', rotulo: 'Administradores', n: resumo.admins },
     ].map((f) => ({ ...f, ativo: f.chave === filtro }));
-    // Situação resumida para a tabela: pendente | recusado | inativo | ativo
     const me = req.session.usuario.id_usuario;
-    const lista = usuarios.map((u) => ({
-      ...u,
-      ehEu: Number(u.id_usuario) === Number(me),
-      sit: u.status === 'PENDENTE' ? 'pendente' : u.status === 'RECUSADO' ? 'recusado' : !u.ativo ? 'inativo' : 'ativo',
-    }));
+    const lista = usuarios.map((u) => paraLinha(u, me));
     res.render('admin/usuarios', { titulo: 'Usuários', usuarios: lista, busca, filtro, filtros, resumo });
   } catch (err) {
     next(err);
@@ -69,13 +79,14 @@ async function postCriar(req, res, next) {
   try {
     const { nome, usuario, senha, tipo_usuario } = req.body;
     const r = await usuarioService.criarUsuario({ nome, usuario, senha, tipoUsuario: tipo_usuario });
-    if (!r.ok) {
-      flash(req, 'erro', MSG[r.motivo] || 'Não foi possível criar o usuário.');
-      return res.redirect('/admin/usuarios');
-    }
+    if (!r.ok) return responder(req, res, { ok: false, erro: MSG[r.motivo] || 'Não foi possível criar o usuário.', destino: '/admin/usuarios' });
     await registrarLog({ idUsuario: req.session.usuario.id_usuario, acao: 'USUARIO_CRIADO', descricao: `usuario: ${r.usuario.usuario}`, entidade: 'usuario', idReferencia: r.usuario.id_usuario, ip: req.ip });
-    flash(req, 'sucesso', `Usuário "${r.usuario.nome}" criado. A senha definida é provisória: no primeiro login a pessoa cria a dela.`);
-    res.redirect('/admin/usuarios');
+    responder(req, res, {
+      msg: `${r.usuario.nome} foi criado(a)`,
+      flash: `Usuário "${r.usuario.nome}" criado. A senha definida é provisória: no primeiro login a pessoa cria a dela.`,
+      destino: '/admin/usuarios',
+      dados: { id_usuario: r.usuario.id_usuario, ...(await linhaAtualizada(req, res, r.usuario.id_usuario)) },
+    });
   } catch (err) {
     next(err);
   }
@@ -112,20 +123,20 @@ async function postEditar(req, res, next) {
     const { nome, usuario, tipo_usuario } = req.body;
     const idAtor = req.session.usuario.id_usuario;
     const r = await usuarioService.editarUsuario(req.params.id_usuario, { nome, usuario, tipoUsuario: tipo_usuario }, idAtor);
-    if (!r.ok) {
-      flash(req, 'erro', MSG[r.motivo] || 'Não foi possível salvar.');
-      return res.redirect(`/admin/usuarios/${req.params.id_usuario}/editar`);
-    }
+    if (!r.ok) return responder(req, res, { ok: false, erro: MSG[r.motivo] || 'Não foi possível salvar.', destino: `/admin/usuarios/${req.params.id_usuario}/editar` });
     // Editou a si mesmo: a sessão passa a refletir o novo nome/login na hora.
     if (r.ehProprio) {
       req.session.usuario.nome = r.usuario.nome;
       req.session.usuario.usuario = r.usuario.usuario;
     }
     await registrarLog({ idUsuario: idAtor, acao: 'USUARIO_EDITADO', descricao: `usuario: ${r.usuario.usuario}${r.mudouTipo ? ` (agora ${r.usuario.tipo_usuario === 'ADMINISTRADOR' ? 'administrador' : 'participante'})` : ''}`, entidade: 'usuario', idReferencia: r.usuario.id_usuario, ip: req.ip });
-    let msg = `Usuário "${r.usuario.nome}" atualizado.`;
-    if (r.mudouTipo && !r.ehProprio) msg += ' Como o tipo mudou, a sessão da pessoa foi encerrada: no próximo login ela já entra com o novo perfil.';
-    flash(req, 'sucesso', msg);
-    res.redirect('/admin/usuarios');
+    const aviso = r.mudouTipo && !r.ehProprio ? 'Como o tipo mudou, a sessão da pessoa foi encerrada: no próximo login ela já entra com o novo perfil.' : null;
+    responder(req, res, {
+      msg: 'Alterações salvas',
+      flash: `Usuário "${r.usuario.nome}" atualizado.${aviso ? ` ${aviso}` : ''}`,
+      destino: '/admin/usuarios',
+      dados: { aviso, nome: r.usuario.nome, usuario: r.usuario.usuario },
+    });
   } catch (err) {
     next(err);
   }
@@ -135,18 +146,20 @@ async function postEditar(req, res, next) {
 async function postInativar(req, res, next) {
   try {
     const r = await usuarioService.inativarUsuario(req.params.id_usuario, req.session.usuario.id_usuario);
-    if (r.ok) {
-      await registrarLog({ idUsuario: req.session.usuario.id_usuario, acao: 'USUARIO_INATIVADO', descricao: `usuario: ${r.usuario.usuario}`, entidade: 'usuario', idReferencia: Number(req.params.id_usuario), ip: req.ip });
-      let msg = `"${r.usuario.nome}" foi inativado(a): não entra mais`;
-      msg += r.sessoesDerrubadas ? ' e a sessão aberta foi encerrada.' : '.';
-      if (r.campanhaAtiva) {
-        msg += ` Atenção: está na campanha "${r.campanhaAtiva.nome}" em andamento — o anjo dessa pessoa continua com ela como protegida. Se ela saiu de vez, refaça o sorteio na campanha.`;
-      }
-      flash(req, 'sucesso', msg);
-    } else {
-      flash(req, 'erro', MSG[r.motivo] || 'Não foi possível inativar.');
-    }
-    res.redirect(voltarLista(req));
+    if (!r.ok) return responder(req, res, { ok: false, erro: MSG[r.motivo] || 'Não foi possível inativar.', destino: voltarLista(req) });
+    await registrarLog({ idUsuario: req.session.usuario.id_usuario, acao: 'USUARIO_INATIVADO', descricao: `usuario: ${r.usuario.usuario}`, entidade: 'usuario', idReferencia: Number(req.params.id_usuario), ip: req.ip });
+    let msg = `"${r.usuario.nome}" foi inativado(a): não entra mais`;
+    msg += r.sessoesDerrubadas ? ' e a sessão aberta foi encerrada.' : '.';
+    const aviso = r.campanhaAtiva
+      ? `${r.usuario.nome} está na campanha "${r.campanhaAtiva.nome}" em andamento: o anjo dessa pessoa continua com ela como protegida. Se ela saiu de vez, refaça o sorteio na campanha.`
+      : null;
+    if (aviso) msg += ` Atenção: ${aviso}`;
+    responder(req, res, {
+      msg: `${r.usuario.nome} foi inativado(a)`,
+      flash: msg,
+      destino: voltarLista(req),
+      dados: { aviso, link: r.campanhaAtiva ? `/admin/campanhas/${r.campanhaAtiva.id_campanha}` : null, ...(await linhaAtualizada(req, res, req.params.id_usuario)) },
+    });
   } catch (err) {
     next(err);
   }
@@ -155,17 +168,20 @@ async function postInativar(req, res, next) {
 async function postAtivar(req, res, next) {
   try {
     const r = await usuarioService.ativarUsuario(req.params.id_usuario);
-    if (r.ok) {
-      await registrarLog({ idUsuario: req.session.usuario.id_usuario, acao: 'USUARIO_ATIVADO', descricao: `usuario: ${r.usuario.usuario}`, entidade: 'usuario', idReferencia: Number(req.params.id_usuario), ip: req.ip });
-      let msg = `"${r.usuario.nome}" foi reativado(a).`;
-      if (r.aindaBloqueado) msg += ` O cadastro ainda está ${r.usuario.status === 'PENDENTE' ? 'pendente' : 'recusado'} — aprove para a pessoa conseguir entrar.`;
-      else if (r.campanhaAtiva && r.temPar) msg += ` Ela volta ao par que já tinha na campanha "${r.campanhaAtiva.nome}" — nada muda no sorteio.`;
-      else if (r.campanhaAtiva) msg += ` Ela só entra num par quando o sorteio da campanha "${r.campanhaAtiva.nome}" for refeito.`;
-      flash(req, 'sucesso', msg);
-    } else {
-      flash(req, 'erro', MSG[r.motivo] || 'Não foi possível ativar.');
-    }
-    res.redirect(voltarLista(req));
+    if (!r.ok) return responder(req, res, { ok: false, erro: MSG[r.motivo] || 'Não foi possível ativar.', destino: voltarLista(req) });
+    await registrarLog({ idUsuario: req.session.usuario.id_usuario, acao: 'USUARIO_ATIVADO', descricao: `usuario: ${r.usuario.usuario}`, entidade: 'usuario', idReferencia: Number(req.params.id_usuario), ip: req.ip });
+    let msg = `"${r.usuario.nome}" foi reativado(a).`;
+    let aviso = null;
+    if (r.aindaBloqueado) aviso = `O cadastro ainda está ${r.usuario.status === 'PENDENTE' ? 'pendente' : 'recusado'}: aprove para a pessoa conseguir entrar.`;
+    else if (r.campanhaAtiva && r.temPar) msg += ` Ela volta ao par que já tinha na campanha "${r.campanhaAtiva.nome}" — nada muda no sorteio.`;
+    else if (r.campanhaAtiva) aviso = `Ela só entra num par quando o sorteio da campanha "${r.campanhaAtiva.nome}" for refeito.`;
+    if (aviso) msg += ` ${aviso}`;
+    responder(req, res, {
+      msg: `${r.usuario.nome} foi reativado(a)`,
+      flash: msg,
+      destino: voltarLista(req),
+      dados: { aviso, ...(await linhaAtualizada(req, res, req.params.id_usuario)) },
+    });
   } catch (err) {
     next(err);
   }
@@ -176,13 +192,14 @@ async function postExcluir(req, res, next) {
   try {
     const alvoId = Number(req.params.id_usuario);
     const r = await usuarioService.excluirUsuario(alvoId, req.session.usuario.id_usuario);
-    if (r.ok) {
-      await registrarLog({ idUsuario: req.session.usuario.id_usuario, acao: 'USUARIO_EXCLUIDO', descricao: `usuario: ${r.usuario.usuario}`, entidade: 'usuario', idReferencia: alvoId, ip: req.ip });
-      flash(req, 'sucesso', `Usuário "${r.usuario.nome}" foi excluído permanentemente${r.arquivos ? ` (${r.arquivos} arquivo(s) de mídia removidos)` : ''}.`);
-    } else {
-      flash(req, 'erro', MSG[r.motivo] || 'Não foi possível excluir o usuário.');
-    }
-    res.redirect(voltarLista(req));
+    if (!r.ok) return responder(req, res, { ok: false, erro: MSG[r.motivo] || 'Não foi possível excluir o usuário.', destino: voltarLista(req) });
+    await registrarLog({ idUsuario: req.session.usuario.id_usuario, acao: 'USUARIO_EXCLUIDO', descricao: `usuario: ${r.usuario.usuario}`, entidade: 'usuario', idReferencia: alvoId, ip: req.ip });
+    responder(req, res, {
+      msg: `${r.usuario.nome} foi excluído(a)`,
+      flash: `Usuário "${r.usuario.nome}" foi excluído permanentemente${r.arquivos ? ` (${r.arquivos} arquivo(s) de mídia removidos)` : ''}.`,
+      destino: voltarLista(req),
+      dados: { resumo: await usuarioService.contarResumo() },
+    });
   } catch (err) {
     next(err);
   }
@@ -193,12 +210,11 @@ async function postResetarSenha(req, res, next) {
   try {
     const idAtor = req.session.usuario.id_usuario;
     const r = await usuarioService.resetarSenha(req.params.id_usuario, req.body.senha, idAtor);
-    if (!r.ok) {
-      flash(req, 'erro', MSG[r.motivo] || 'Não foi possível redefinir a senha.');
-      return res.redirect(`/admin/usuarios/${req.params.id_usuario}/editar`);
-    }
+    if (!r.ok) return responder(req, res, { ok: false, erro: MSG[r.motivo] || 'Não foi possível redefinir a senha.', destino: `/admin/usuarios/${req.params.id_usuario}/editar` });
     await registrarLog({ idUsuario: idAtor, acao: 'SENHA_RESETADA', descricao: `usuario: ${r.usuario.usuario}`, entidade: 'usuario', idReferencia: r.usuario.id_usuario, ip: req.ip });
-    // A senha vai pela sessão (não pela URL) e a tela de edição mostra o cartão.
+    // Tela fluida: a senha volta no JSON (só para este admin, nunca na URL) e aparece num cartão
+    // com "Copiar". Sem JS, vai pela sessão e a tela de edição mostra o cartão uma vez.
+    if (ehFetch(req)) return res.json({ ok: true, msg: 'Senha redefinida', senha: r.senhaProvisoria, nome: r.usuario.nome, ...(await linhaAtualizada(req, res, r.usuario.id_usuario)) });
     req.session.senhaResetada = { id: r.usuario.id_usuario, senha: r.senhaProvisoria };
     res.redirect(`/admin/usuarios/${r.usuario.id_usuario}/editar`);
   } catch (err) {

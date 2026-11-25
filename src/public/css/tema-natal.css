@@ -98,7 +98,7 @@ body.tema-natal .app { position: relative; z-index: 1; }
 [data-theme='light'] .nt-estrelinha { filter: drop-shadow(0 0 4px rgba(230, 170, 40, 0.6)) saturate(1.3); }
 @keyframes nt-pisca-estrela { 0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; } 50% { transform: scale(0.6) rotate(20deg); opacity: 0.55; } }
 /* Nuvens fofas passando bem devagar */
-.nt-nuvem { position: absolute; left: 0; width: 170px; height: 58px; opacity: 0.18; animation: nt-nuvem var(--d, 90s) linear infinite;
+.nt-nuvem { position: absolute; left: 0; width: 170px; height: 58px; opacity: 0.24; animation: nt-nuvem var(--d, 90s) linear infinite;
   background: radial-gradient(circle at 30% 62%, #fff 0 22px, transparent 23px), radial-gradient(circle at 52% 42%, #fff 0 29px, transparent 30px), radial-gradient(circle at 74% 62%, #fff 0 22px, transparent 23px), linear-gradient(#fff, #fff) 22% 100% / 60% 22px no-repeat; border-radius: 30px; }
 .nt-nuvem.b { width: 130px; height: 44px; opacity: 0.13; }
 [data-theme='light'] .nt-nuvem { opacity: 0.9; filter: drop-shadow(0 4px 8px rgba(80, 120, 200, 0.12)); }
@@ -138,6 +138,20 @@ body.tema-natal .app { position: relative; z-index: 1; }
 .nt-luzes i::before { content: ''; position: absolute; left: 2px; top: -3px; width: 5px; height: 4px; border-radius: 1px; background: #4a5a8e; }
 @keyframes nt-pisca { 0%, 40% { opacity: 1; } 100% { opacity: 0.4; } }
 [data-theme='light'] .nt-luzes::before { background: radial-gradient(60% 18px at 50% 0, transparent 92%, rgba(38, 50, 95, 0.3) 93% 98%, transparent 99%) 0 0 / 160px 20px repeat-x; }
+/* Névoa de neve macia no pé da tela (celular): no lugar da vila, que lá ficaria cortada pela barra */
+.nt-nevoa { display: none; position: absolute; left: -50vw; width: 220vw; bottom: -30px; height: 200px; opacity: 0.6;
+  background:
+    radial-gradient(ellipse 30% 70% at 15% 100%, rgba(255, 255, 255, 0.26), transparent 70%),
+    radial-gradient(ellipse 36% 80% at 45% 100%, rgba(214, 228, 255, 0.24), transparent 70%),
+    radial-gradient(ellipse 30% 65% at 72% 100%, rgba(255, 255, 255, 0.26), transparent 70%),
+    radial-gradient(ellipse 28% 60% at 95% 100%, rgba(214, 228, 255, 0.22), transparent 70%);
+  animation: nt-nevoa 70s linear infinite; }
+.nt-nevoa.b { height: 140px; opacity: 0.5; animation-duration: 100s; animation-direction: reverse; }
+[data-theme='light'] .nt-nevoa { opacity: 1; background:
+    radial-gradient(ellipse 30% 70% at 15% 100%, rgba(143, 184, 255, 0.22), transparent 70%),
+    radial-gradient(ellipse 36% 80% at 45% 100%, rgba(255, 143, 171, 0.14), transparent 70%),
+    radial-gradient(ellipse 30% 65% at 72% 100%, rgba(143, 184, 255, 0.22), transparent 70%); }
+@keyframes nt-nevoa { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(25vw, 0, 0); } }
 /* Cena desenhada no chão */
 .nt-cena { position: absolute; left: 0; bottom: 0; width: 100%; height: 230px; }
 .nt-morro-tras { fill: #9fb8ec; opacity: 0.55; }
@@ -157,8 +171,10 @@ body.tema-natal .app { position: relative; z-index: 1; }
 body.tema-natal .tema-banner.tb-natal::before, body.tema-natal .pft-hero::before, body.tema-natal .auth-plate::before {
   content: ''; position: absolute; left: 16px; right: 16px; top: 0; height: 16px; z-index: 3; pointer-events: none;
   background:
-    radial-gradient(circle at 11px 4px, #ffffff 0 9px, transparent 9.5px) 0 0 / 23px 16px repeat-x,
-    radial-gradient(circle at 5px 2px, #ffffff 0 5px, transparent 5.5px) 12px 3px / 31px 16px repeat-x,
+    radial-gradient(10px 9px at 10px 4px, #ffffff 98%, transparent) 0 0 / 74px 16px repeat-x,
+    radial-gradient(7px 7px at 28px 3px, #ffffff 98%, transparent) 0 0 / 74px 16px repeat-x,
+    radial-gradient(12px 10px at 47px 4px, #ffffff 98%, transparent) 0 0 / 74px 16px repeat-x,
+    radial-gradient(6px 6px at 65px 3px, #ffffff 98%, transparent) 0 0 / 74px 16px repeat-x,
     linear-gradient(#ffffff, #ffffff) 0 0 / 100% 5px no-repeat;
   border-radius: 0 0 10px 10px;
   filter: drop-shadow(0 3px 3px rgba(20, 35, 90, 0.18));
@@ -212,8 +228,20 @@ body.tema-natal .topo-mobile::after {
   to   { background-position: 34px 0, 51px 0, 0 0; }
 }
 body.tema-natal .barra-inferior { background: var(--surface); border-top: none; backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: 0 -6px 24px rgba(10, 20, 60, 0.3); }
-/* Faixa só no topo, seguindo o arredondamento da pílula: rosa → azul-bebê andando */
-body.tema-natal .barra-inferior::before { content: ''; position: absolute; inset: -1px; border-radius: inherit; padding-top: 4px; pointer-events: none; background: var(--nt-faixa); background-size: 200% 100%; animation: nt-faixa-anda 6s linear infinite; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+/* Neve fofa acumulada em cima da pílula da barra de baixo (como num telhado) */
+body.tema-natal .barra-inferior::before {
+  content: ''; position: absolute; left: 18px; right: 18px; top: -11px; height: 16px; pointer-events: none; z-index: 2;
+  background:
+    radial-gradient(9px 8px at 10px 10px, #ffffff 98%, transparent) 0 0 / 74px 16px repeat-x,
+    radial-gradient(7px 6px at 27px 11px, #ffffff 98%, transparent) 0 0 / 74px 16px repeat-x,
+    radial-gradient(11px 9px at 46px 10px, #ffffff 98%, transparent) 0 0 / 74px 16px repeat-x,
+    radial-gradient(6px 5px at 64px 12px, #ffffff 98%, transparent) 0 0 / 74px 16px repeat-x,
+    linear-gradient(#ffffff, #ffffff) 0 100% / 100% 6px no-repeat;
+  -webkit-mask: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  filter: drop-shadow(0 -1px 2px rgba(20, 35, 90, 0.22));
+}
+[data-theme='light'] body.tema-natal .barra-inferior::before { filter: drop-shadow(0 -1px 2px rgba(40, 70, 140, 0.3)); }
+body.tema-natal .barra-inferior { border: 1px solid color-mix(in srgb, var(--nt-azul) 35%, var(--line)); }
 body.tema-natal .bi-item.ativo { color: var(--accent-strong); }
 body.tema-natal .bi-item.ativo svg { animation: nt-pula 0.5s var(--ease-spring); filter: drop-shadow(0 0 6px rgba(255, 143, 171, 0.6)); }
 @keyframes nt-pula { 0% { transform: scale(0.8); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }
@@ -477,12 +505,14 @@ body.tema-natal .auth-anjo { animation: nt-flutua 3.5s ease-in-out infinite; fil
 /* ---------- MOBILE ---------- */
 @media (max-width: 899px) {
   .nt-luzes { display: none; }
-  .nt-lua { width: 64px; height: 64px; top: 72px; right: 6%; }
-  .nt-floco:nth-of-type(n+16) { display: none; }
-  .nt-floco.cristal:nth-of-type(n+26) { display: none; }
-  .nt-nuvem.b { display: none; }
-  .nt-treno { width: 110px; height: 35px; }
-  .nt-cena { height: 170px; }
+  .nt-lua { width: 84px; height: 84px; top: 68px; right: 5%; }
+  .nt-estrelinha { width: calc(var(--t, 10px) * 1.4); height: calc(var(--t, 10px) * 1.4); }
+  .nt-floco.cristal { width: calc(var(--t, 16px) * 0.85); height: calc(var(--t, 16px) * 0.85); opacity: 0.8; }
+  .nt-treno { width: 128px; height: 41px; }
+  .nt-cena { display: none; height: 170px; }
+  .nt-nevoa { display: block; }
+  body:has(.auth-tela) .nt-cena { display: block; }
+  body:has(.auth-tela) .nt-nevoa { display: none; }
   body.tema-natal .pagina-cabecalho h1, body.tema-natal .adm-cab-txt h1 { font-size: 26px; }
 }
 

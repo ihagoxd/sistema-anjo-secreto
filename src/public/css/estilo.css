@@ -4569,3 +4569,38 @@ body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
 .stview.pausado:not(.respondendo) .stview-vistos,
 .stview.pausado:not(.respondendo) .stview-del,
 .stview.pausado:not(.respondendo) .stview-marcar { opacity: 0; transition-delay: 0.18s; }
+
+/* ============================================================
+   PESQUISA: filtros, destaque do termo, lugares, termos recentes e publicação por cima
+   ============================================================ */
+.busca-chips { display: flex; gap: 6px; padding: 2px 12px 8px; overflow-x: auto; scrollbar-width: none; width: 100%; max-width: 640px; margin-inline: auto; flex-shrink: 0; }
+.busca-chips::-webkit-scrollbar { display: none; }
+.busca-chips[hidden] { display: none; }
+.busca-chip { flex-shrink: 0; height: 32px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface-2); color: var(--text-soft); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s; }
+.busca-chip:hover { color: var(--text); }
+.busca-chip.ativo { background: var(--text); border-color: var(--text); color: var(--bg); }
+.busca-lista mark { background: none; color: var(--accent-strong); font-weight: 700; padding: 0; }
+.busca-ver-mais { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 10px; border: none; background: none; color: var(--accent-strong); font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; border-radius: 10px; }
+.busca-ver-mais:hover { background: var(--hover); }
+.busca-ic { width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); color: var(--text-soft); }
+.busca-lugar, .busca-termo { display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px 10px; border: none; background: none; color: var(--text); font: inherit; text-align: left; cursor: pointer; border-radius: 12px; }
+.busca-lugar:hover, .busca-termo:hover { background: var(--hover); }
+.busca-lugar-txt, .busca-termo-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+.busca-lugar-txt strong, .busca-termo-txt strong { font-size: 14.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.busca-lugar-txt small, .busca-termo-txt small { font-size: 12.5px; color: var(--text-faint); }
+.busca-lugar-cab { display: flex; align-items: center; gap: 10px; padding: 8px 4px 12px; }
+.busca-lugar-cab .busca-ic { background: var(--accent-soft); color: var(--accent-strong); }
+.busca-post-thumb.falhou img { display: none; }
+.busca-carregando { display: flex; justify-content: center; padding: 18px; }
+.busca-post-view { position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; background: var(--bg); animation: busca-post-entra 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.busca-post-view[hidden] { display: none; }
+@keyframes busca-post-entra { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+.busca-post-topo { display: flex; align-items: center; gap: 6px; height: 54px; padding: 0 12px 0 6px; border-bottom: 1px solid var(--line); flex-shrink: 0; }
+.busca-post-topo strong { font-size: 16px; }
+.busca-post-corpo { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 8px 0 calc(100px + env(safe-area-inset-bottom, 0px)); }
+.busca-post-corpo .feed { max-width: 600px; margin: 0 auto; }
+@media (min-width: 900px) { .busca-post-view { border-radius: 0 18px 18px 0; background: var(--surface); } }
+@media (prefers-reduced-motion: reduce) { .busca-post-view { animation: none; } }
+/* Miniatura da publicação: o ícone de balão só aparece se a foto não carregar */
+.busca-post-thumb img + svg { display: none; }
+.busca-post-thumb.falhou img + svg { display: block; }

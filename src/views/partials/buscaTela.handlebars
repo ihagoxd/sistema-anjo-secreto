@@ -11,11 +11,25 @@
       </button>
     </div>
   </div>
+  <nav class="busca-chips" data-busca-chips hidden aria-label="Filtrar resultados">
+    <button type="button" class="busca-chip ativo" data-modo="tudo">Tudo</button>
+    <button type="button" class="busca-chip" data-modo="pessoas">Pessoas</button>
+    <button type="button" class="busca-chip" data-modo="posts">Publicações</button>
+    <button type="button" class="busca-chip" data-modo="lugares">Lugares</button>
+  </nav>
   <div class="busca-corpo">
     <div class="busca-recentes-cab" hidden>
       <strong>Recentes</strong>
       <button type="button" class="busca-limpartudo" data-busca-limpar-recentes>Limpar tudo</button>
     </div>
     <div class="busca-lista"></div>
+  </div>
+  {{! Publicação aberta por cima da pesquisa (voltar retorna aos resultados, do mesmo jeito) }}
+  <div class="busca-post-view" data-busca-post hidden>
+    <div class="busca-post-topo">
+      <button type="button" class="btn-icone" data-busca-post-voltar aria-label="Voltar aos resultados"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <strong>Publicação</strong>
+    </div>
+    <div class="busca-post-corpo" data-busca-post-corpo></div>
   </div>
 </div>

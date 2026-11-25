@@ -1,0 +1,18 @@
+{{! Casinha fofa (caixa 120x120): telhado nevado, janela acesa, porta com guirlanda e fumacinha saindo
+    da chaminé. Parâmetros: x, y, s (escala) e telhado (cor). }}
+<g class="nt-casa" transform="translate({{x}} {{y}}) scale({{s}})">
+  <rect x="76" y="24" width="12" height="24" rx="2.5" fill="#cdd9f2"/>
+  <rect x="73.5" y="20" width="17" height="8" rx="4" fill="#ffffff"/>
+  <g class="nt-fumaca" fill="#ffffff"><circle cx="82" cy="12" r="4.5"/><circle cx="87" cy="3" r="6"/><circle cx="83" cy="-8" r="7.5"/></g>
+  <rect x="18" y="56" width="84" height="60" rx="7" fill="#fff4e6"/>
+  <path d="M12 60 L60 21 L108 60 Z" fill="{{telhado}}" stroke="{{telhado}}" stroke-width="9" stroke-linejoin="round"/>
+  <path d="M10 61 L60 19 L110 61" stroke="#ffffff" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="22" cy="65" r="3.4" fill="#fff"/><circle cx="40" cy="66" r="2.6" fill="#fff"/><circle cx="80" cy="66" r="3" fill="#fff"/><circle cx="98" cy="65" r="3.4" fill="#fff"/>
+  <rect class="nt-janela" x="30" y="72" width="24" height="21" rx="5" fill="#ffd36e"/>
+  <path d="M42 72 v21 M30 82.5 h24" stroke="#f2b84b" stroke-width="2.2"/>
+  <rect x="66" y="80" width="23" height="36" rx="11.5" fill="{{telhado}}"/>
+  <circle cx="84" cy="99" r="2" fill="#ffd36e"/>
+  <circle cx="77.5" cy="90" r="5.5" fill="none" stroke="#5fc9a8" stroke-width="3.2"/>
+  <circle cx="77.5" cy="95" r="1.6" fill="#ff6b8a"/>
+  <rect x="14" y="112" width="92" height="7" rx="3.5" fill="#ffffff"/>
+</g>

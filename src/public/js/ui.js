@@ -7545,8 +7545,8 @@
     });
   })();
 
-  /* ---------- Natal: neve de presentes ao salvar a cartinha e a árvore da faixa que brilha
-     e solta flocos ao toque (nada disso roda com "menos movimento") ---------- */
+  /* ---------- Natal: neve de presentes ao salvar a cartinha e o boneco de neve da faixa que pula,
+     acena e solta flocos ao toque (nada disso roda com "menos movimento") ---------- */
   (function () {
     if (!document.body.classList.contains('tema-natal')) return;
     var reduz = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -7573,8 +7573,8 @@
     if (document.querySelector('[data-confete]')) chuva(56);
     window.__festejar = function () { chuva(56); };
     document.addEventListener('click', function (e) {
-      var a = e.target.closest('[data-arvore]'); if (!a) return;
-      a.classList.remove('pula'); void a.offsetWidth; a.classList.add('pula');
+      var a = e.target.closest('[data-boneco]'); if (!a) return;
+      a.classList.remove('pula'); void a.getBoundingClientRect(); a.classList.add('pula');
       try { if (navigator.vibrate) navigator.vibrate(15); } catch (x) {}
       chuva(18, ['*', '*', '⭐', '*']);
     });

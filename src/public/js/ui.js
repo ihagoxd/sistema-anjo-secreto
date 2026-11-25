@@ -4986,6 +4986,37 @@
     msgs.addEventListener('pointercancel', function () { swFim(null); });
   })();
 
+  /* ---------- Direct no celular: conversa em tela cheia que acompanha o teclado ----------
+     A conversa fica position:fixed com altura = visualViewport (o teclado "empurra" o
+     compositor para cima em vez de cobri-lo) e, se a pessoa estava no fim, continua no fim. */
+  (function () {
+    var sec = document.querySelector('.direct.tem-conversa .direct-conversa');
+    if (!sec) return;
+    var msgs = document.getElementById('dmMsgs');
+    var mob = window.matchMedia('(max-width: 899px)');
+    var raiz = document.documentElement;
+    function noFim() { return !msgs || (msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight) < 90; }
+    function ajustar() {
+      if (!mob.matches || !window.visualViewport) { raiz.style.removeProperty('--dm-vh'); raiz.style.removeProperty('--dm-top'); return; }
+      var vv = window.visualViewport, fim = noFim();
+      raiz.style.setProperty('--dm-vh', Math.round(vv.height) + 'px');
+      raiz.style.setProperty('--dm-top', Math.round(vv.offsetTop) + 'px');
+      if (fim && msgs) requestAnimationFrame(function () { msgs.scrollTop = msgs.scrollHeight; });
+    }
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', ajustar);
+      window.visualViewport.addEventListener('scroll', ajustar);
+    }
+    window.addEventListener('resize', ajustar);
+    ajustar();
+    // Nome no cabeçalho abre o perfil (no celular o botão "Ver perfil" não aparece)
+    var cab = sec.querySelector('.dm-cab-txt[data-perfil]');
+    if (cab) {
+      cab.addEventListener('click', function () { location.href = cab.getAttribute('data-perfil'); });
+      cab.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cab.click(); } });
+    }
+  })();
+
   /* ---------- Direct (mensagens): Enter envia, auto-scroll, editar ---------- */
   (function () {
     var msgs = document.getElementById('dmMsgs');
@@ -5010,8 +5041,10 @@
           }
         }
       });
-      ta.focus();
-      var v = ta.value; ta.value = ''; ta.value = v; // cursor ao fim
+      if (!window.matchMedia('(max-width: 899px)').matches || ta.value) {
+        ta.focus();
+        var v = ta.value; ta.value = ''; ta.value = v; // cursor ao fim
+      }
     }
 
     // Editar mensagem (inline, AJAX).

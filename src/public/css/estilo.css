@@ -4126,3 +4126,51 @@ body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
 .camp-tema-tag { margin-left: auto; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 2px 7px; border-radius: 999px; background: var(--accent); color: var(--on-accent, #fff); }
 .camp-temas-avisar { font-size: 13px; }
 .badge.badge-tema { background: var(--accent-soft); color: var(--accent-strong); }
+
+/* ============================================================
+   DIRECT NO PADRÃO DO INSTAGRAM
+   compositor: câmera à esquerda, mic/foto dentro do campo, "Enviar" ao digitar;
+   filtro de voz só enquanto grava; no celular a conversa é tela cheia
+   (sem topo e sem barra inferior) e acompanha o teclado.
+   ============================================================ */
+.dm-cam { flex-shrink: 0; width: 40px; height: 40px; margin-bottom: 1px; border-radius: 50%; border: none; background: var(--accent); color: var(--on-accent, #fff); display: grid; place-items: center; cursor: pointer; transition: transform 0.12s, filter 0.12s; }
+.dm-cam:hover { filter: brightness(1.08); }
+.dm-cam:active { transform: scale(0.94); }
+.dm-cam svg { width: 20px; height: 20px; }
+.dm-campo { padding-right: 2px; }
+.dm-campo .dm-acao-in { margin: 3px 0; }
+.dm-campo .dm-acao-in[hidden] { display: none; }
+.dm-enviar-txt { flex-shrink: 0; align-self: center; height: 36px; margin: 3px 4px 3px 0; padding: 0 12px 0 6px; border: none; background: none; color: var(--accent-strong); font: inherit; font-size: 14.5px; font-weight: 700; cursor: pointer; border-radius: 18px; }
+.dm-enviar-txt:hover { background: var(--accent-soft); }
+.dm-enviar-txt[hidden] { display: none; }
+/* digitando: só o "Enviar" fica (os ícones saem, como no Instagram) */
+.dm-campo:has([data-btn-enviar]:not([hidden])) [data-foto-btn] { display: none; }
+/* filtro de voz só aparece enquanto grava */
+.dm-composer .dm-filtro { display: none; }
+.dm-composer:has([data-linha-gravando]:not([hidden])) .dm-filtro { display: flex; }
+.dm-msgs { overscroll-behavior: contain; }
+.direct-conversa[data-tema]:not([data-tema="padrao"]) .dm-cam { background: var(--ct-acento); color: #fff; }
+.direct-conversa[data-tema]:not([data-tema="padrao"]) .dm-enviar-txt { color: var(--ct-acento); }
+
+@media (max-width: 899px) {
+  /* Conversa aberta = tela cheia: some o topo, some a barra inferior, nada rola por trás */
+  body:has(.direct.tem-conversa) .topo-mobile, body:has(.direct.tem-conversa) .barra-inferior { display: none; }
+  body:has(.direct.tem-conversa), body:has(.direct.tem-conversa) .conteudo { overflow: hidden; }
+  .direct.tem-conversa { height: auto; min-height: 0; margin: 0; }
+  .direct.tem-conversa .direct-conversa {
+    position: fixed; left: 0; right: 0; z-index: 60;
+    top: var(--dm-top, 0px); height: var(--dm-vh, 100dvh);
+    background: var(--bg);
+  }
+  .direct.tem-conversa .dm-cab { padding: 6px 10px 6px 4px; padding-top: calc(6px + env(safe-area-inset-top, 0px)); gap: 8px; background: var(--surface); }
+  .direct.tem-conversa .dm-cab .conv-av { width: 38px; height: 38px; font-size: 15px; }
+  .direct.tem-conversa .dm-cab-nome { font-size: 15px; }
+  .direct.tem-conversa .dm-verperfil { display: none; }
+  .direct.tem-conversa .dm-cab-txt[data-perfil] { cursor: pointer; }
+  .direct.tem-conversa .dm-msgs { padding: 12px 12px 10px; }
+  .direct.tem-conversa .dm-composer { padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px)); gap: 6px; background: var(--surface); }
+  .direct.tem-conversa .dm-composer textarea { font-size: 16px; } /* 16px: o iOS não dá zoom ao focar */
+}
+/* Mensagens ancoradas embaixo (como no Instagram): com poucas mensagens elas ficam
+   junto do compositor, não no topo; com muitas, a rolagem continua normal. */
+.dm-msgs > :first-child { margin-top: auto; }

@@ -2256,6 +2256,186 @@
     });
   })();
 
+  /* ---------- Destaques do perfil (como no Instagram) ----------
+     Tocar numa bolinha abre o destaque no visualizador de stories. No meu perfil: "Novo" cria
+     escolhendo stories do arquivo; segurar a bolinha renomeia ou exclui. No meu story, o botão
+     "Destaque" adiciona a um destaque existente ou cria um novo na hora. ---------- */
+  (function () {
+    var metaD = document.querySelector('meta[name="csrf-token"]');
+    var CSRF_D = metaD ? metaD.getAttribute('content') : '';
+    var HJ = { 'X-CSRF-Token': CSRF_D, 'X-Requested-With': 'fetch', 'Accept': 'application/json', 'Content-Type': 'application/json' };
+    function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+    function getJ(url) { return fetch(url, { headers: HJ }).then(function (r) { return r.ok ? r.json() : r.json().then(function (d) { throw d; }); }); }
+    function postJ(url, corpo) { return fetch(url, { method: 'POST', headers: HJ, body: JSON.stringify(corpo || {}) }).then(function (r) { return r.json().then(function (d) { if (!r.ok || d.ok === false) throw d; return d; }); }); }
+    var cache = {};
+
+    // ----- abrir (tocar na bolinha) -----
+    function abrir(id, el) {
+      var p = cache[id] || getJ('/destaques/' + id);
+      cache[id] = p;
+      p.then(function (g) { if (window.__abrirGrupoStory) window.__abrirGrupoStory(g, el); })
+        .catch(function () { delete cache[id]; toast('Não foi possível abrir o destaque.'); });
+    }
+    document.addEventListener('pointerdown', function (e) {
+      var b = e.target.closest('[data-destaque]');
+      if (b && !cache[b.getAttribute('data-destaque')]) cache[b.getAttribute('data-destaque')] = getJ('/destaques/' + b.getAttribute('data-destaque')).catch(function () { delete cache[b.getAttribute('data-destaque')]; return Promise.reject(); });
+    }, { passive: true });
+
+    // ----- folha genérica -----
+    var folhaEl = null;
+    function folha(titulo, corpoHtml, aoFechar) {
+      if (!folhaEl) {
+        folhaEl = document.createElement('div');
+        folhaEl.className = 'modal sheet-share dest-folha';
+        folhaEl.setAttribute('aria-hidden', 'true'); folhaEl.hidden = true;
+        document.body.appendChild(folhaEl);
+        new MutationObserver(function () { if (folhaEl.hidden && folhaEl.__aoFechar) { var f = folhaEl.__aoFechar; folhaEl.__aoFechar = null; f(); } })
+          .observe(folhaEl, { attributes: true, attributeFilter: ['hidden'] });
+      }
+      folhaEl.__aoFechar = aoFechar || null;
+      folhaEl.innerHTML = '<div class="modal-card share-card dest-card"><div class="sheet-cab sempre"><span class="sheet-grab" aria-hidden="true"></span>'
+        + '<span class="sheet-titulo">' + esc(titulo) + '</span><button type="button" class="sheet-x" data-fechar-modal aria-label="Fechar">&times;</button></div>'
+        + corpoHtml + '</div>';
+      folhaEl.hidden = false; folhaEl.setAttribute('aria-hidden', 'false');
+      return folhaEl;
+    }
+    function fecharFolha() { if (folhaEl) { folhaEl.hidden = true; folhaEl.setAttribute('aria-hidden', 'true'); } }
+
+    // bolinha nova/atualizada na fileira do meu perfil (sem recarregar)
+    function poeBolinha(d) {
+      var fila = document.querySelector('[data-pf-destaques]');
+      if (!fila || !document.querySelector('[data-destaque-novo]')) return;
+      delete cache[d.id_destaque];
+      var b = fila.querySelector('[data-destaque="' + d.id_destaque + '"]');
+      if (!b) {
+        b = document.createElement('button'); b.type = 'button'; b.className = 'pf-dest';
+        b.setAttribute('data-destaque', d.id_destaque); b.setAttribute('data-dono', '1');
+        fila.appendChild(b);
+      }
+      b.setAttribute('aria-label', 'Destaque ' + d.titulo);
+      b.innerHTML = '<span class="pf-dest-av">' + (d.capa ? '<img src="' + esc(d.capa) + '" alt="" draggable="false">' : d.capa_video ? '<video src="' + esc(d.capa_video) + '#t=0.1" muted playsinline preload="metadata"></video>' : '') + '</span>'
+        + '<span class="pf-dest-tit">' + esc(d.titulo) + '</span>';
+    }
+
+    // ----- "Novo" (meu perfil): nome + escolher stories do arquivo -----
+    function grade(arquivo, marcados) {
+      if (!arquivo.length) return '<p class="texto-suave dest-vazio">Você ainda não tem stories guardados. Publique um story e ele aparece aqui por 30 dias.</p>';
+      return '<div class="dest-grade">' + arquivo.map(function (s) {
+        var dia = new Date(s.criado_em);
+        var rot = ('0' + dia.getDate()).slice(-2) + '/' + ('0' + (dia.getMonth() + 1)).slice(-2);
+        return '<button type="button" class="dest-item' + (marcados && marcados.indexOf(s.id_story) >= 0 ? ' sel' : '') + '" data-dest-story="' + s.id_story + '">'
+          + (s.imagem ? '<img src="' + esc(s.imagem) + '" alt="" loading="lazy">' : '<video src="' + esc(s.video) + '#t=0.1" muted playsinline preload="metadata"></video>')
+          + '<span class="dest-dia">' + rot + '</span><span class="dest-check" aria-hidden="true"></span></button>';
+      }).join('') + '</div>';
+    }
+    function novoDestaque(idInicial, aoFechar) {
+      getJ('/destaques/painel').then(function (p) {
+        var f = folha('Novo destaque', '<input type="text" class="grupo-input dest-nome" maxlength="30" placeholder="Nome do destaque" data-dest-nome autocomplete="off">'
+          + '<div class="dest-sub">Escolha os stories</div>' + grade(p.arquivo, idInicial ? [idInicial] : [])
+          + '<div class="share-rodape"><button type="button" class="btn btn-primario share-enviar" data-dest-criar disabled>Criar destaque</button></div>', aoFechar);
+        var nome = f.querySelector('[data-dest-nome]'), btn = f.querySelector('[data-dest-criar]');
+        function atualizar() { btn.disabled = !nome.value.trim() || !f.querySelector('.dest-item.sel'); }
+        nome.addEventListener('input', atualizar);
+        f.addEventListener('click', function (e) {
+          var it = e.target.closest('[data-dest-story]');
+          if (it) { it.classList.toggle('sel'); atualizar(); return; }
+          if (!e.target.closest('[data-dest-criar]') || btn.disabled) return;
+          btn.disabled = true; btn.textContent = 'Criando…';
+          var ids = Array.prototype.map.call(f.querySelectorAll('.dest-item.sel'), function (x) { return x.getAttribute('data-dest-story'); });
+          postJ('/destaques', { titulo: nome.value, stories: ids.join(',') })
+            .then(function (d) { poeBolinha(d.destaque); fecharFolha(); toast('Destaque criado'); })
+            .catch(function (d) { btn.disabled = false; btn.textContent = 'Criar destaque'; toast((d && d.erro) || 'Não foi possível criar.'); });
+        });
+        setTimeout(function () { try { nome.focus({ preventScroll: true }); } catch (x) {} }, 120);
+      }).catch(function () { toast('Não foi possível abrir.'); if (aoFechar) aoFechar(); });
+    }
+
+    // ----- "Destaque" num story meu (visualizador): adicionar a um destaque ou criar -----
+    document.addEventListener('story:destacar', function (e) {
+      var idStory = e.detail && e.detail.id_story;
+      var retomar = function () { if (window.__retomarStory) window.__retomarStory(); };
+      getJ('/destaques/painel?story=' + idStory).then(function (p) {
+        var bolas = p.destaques.map(function (d) {
+          return '<button type="button" class="pf-dest' + (d.tem ? ' ja' : '') + '" data-dest-add="' + d.id_destaque + '"' + (d.tem ? ' disabled' : '') + '>'
+            + '<span class="pf-dest-av">' + (d.capa ? '<img src="' + esc(d.capa) + '" alt="">' : '') + (d.tem ? '<span class="dest-ja" aria-hidden="true"></span>' : '') + '</span>'
+            + '<span class="pf-dest-tit">' + esc(d.titulo) + '</span></button>';
+        }).join('');
+        var f = folha('Adicionar ao destaque', '<div class="pf-destaques dest-escolha">'
+          + '<button type="button" class="pf-dest pf-dest-novo" data-dest-novo-aqui><span class="pf-dest-av"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span><span class="pf-dest-tit">Novo</span></button>'
+          + bolas + '</div>'
+          + '<div class="dest-novo-aqui" data-dest-novo-campos hidden><input type="text" class="grupo-input" maxlength="30" placeholder="Nome do destaque" data-dest-nome-aqui autocomplete="off">'
+          + '<button type="button" class="btn btn-primario btn-sm" data-dest-criar-aqui>Criar</button></div>', retomar);
+        f.addEventListener('click', function (ev) {
+          var add = ev.target.closest('[data-dest-add]');
+          if (add && !add.disabled) {
+            add.disabled = true;
+            postJ('/destaques/' + add.getAttribute('data-dest-add') + '/stories', { id_story: idStory })
+              .then(function () { fecharFolha(); toast('Adicionado ao destaque'); })
+              .catch(function (d) { add.disabled = false; toast((d && d.erro) || 'Não foi possível adicionar.'); });
+            return;
+          }
+          if (ev.target.closest('[data-dest-novo-aqui]')) {
+            var campos = f.querySelector('[data-dest-novo-campos]'); campos.hidden = false;
+            f.querySelector('[data-dest-nome-aqui]').focus();
+            return;
+          }
+          if (ev.target.closest('[data-dest-criar-aqui]')) {
+            var nm = f.querySelector('[data-dest-nome-aqui]').value;
+            if (!nm.trim()) { f.querySelector('[data-dest-nome-aqui]').focus(); return; }
+            postJ('/destaques', { titulo: nm, stories: String(idStory) })
+              .then(function (d) { poeBolinha(d.destaque); fecharFolha(); toast('Destaque criado'); })
+              .catch(function (d) { toast((d && d.erro) || 'Não foi possível criar.'); });
+          }
+        });
+        f.addEventListener('keydown', function (ev) { if (ev.key === 'Enter' && ev.target.matches('[data-dest-nome-aqui]')) { ev.preventDefault(); f.querySelector('[data-dest-criar-aqui]').click(); } });
+      }).catch(function () { toast('Não foi possível abrir.'); retomar(); });
+    });
+
+    // ----- segurar a minha bolinha: renomear ou excluir -----
+    function gerenciar(b) {
+      var id = b.getAttribute('data-destaque');
+      var tit = (b.querySelector('.pf-dest-tit') || {}).textContent || '';
+      var f = folha('Destaque', '<input type="text" class="grupo-input dest-nome" maxlength="30" value="' + esc(tit) + '" data-dest-renomear autocomplete="off">'
+        + '<div class="comp-mais-lista dest-acoes">'
+        + '<button type="button" class="comp-mais-op" data-dest-salvar-nome><span class="comp-mais-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></span><span class="comp-mais-txt"><strong>Salvar nome</strong><small>Aparece embaixo da bolinha</small></span></button>'
+        + '<button type="button" class="comp-mais-op comp-mais-sair" data-dest-excluir><span class="comp-mais-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></span><span class="comp-mais-txt"><strong>Excluir destaque</strong><small>Os stories continuam no seu arquivo</small></span></button>'
+        + '</div>');
+      f.addEventListener('click', function (e) {
+        if (e.target.closest('[data-dest-salvar-nome]')) {
+          var nm = f.querySelector('[data-dest-renomear]').value;
+          postJ('/destaques/' + id + '/nome', { titulo: nm })
+            .then(function (d) { var t = b.querySelector('.pf-dest-tit'); if (t) t.textContent = d.titulo; delete cache[id]; fecharFolha(); toast('Nome salvo'); })
+            .catch(function (d) { toast((d && d.erro) || 'Não foi possível salvar.'); });
+          return;
+        }
+        var ex = e.target.closest('[data-dest-excluir]');
+        if (ex) {
+          if (!ex.classList.contains('confirmando')) { ex.classList.add('confirmando'); ex.querySelector('strong').textContent = 'Toque de novo para excluir'; return; }
+          postJ('/destaques/' + id + '/excluir')
+            .then(function () { b.remove(); delete cache[id]; fecharFolha(); toast('Destaque excluído'); })
+            .catch(function () { toast('Não foi possível excluir.'); });
+        }
+      });
+    }
+    var segurarT = 0, segurou = false;
+    document.addEventListener('pointerdown', function (e) {
+      var b = e.target.closest('[data-destaque][data-dono]');
+      segurou = false; clearTimeout(segurarT);
+      if (!b) return;
+      segurarT = setTimeout(function () { segurou = true; try { if (navigator.vibrate) navigator.vibrate(15); } catch (x) {} gerenciar(b); }, 520);
+    }, { passive: true });
+    ['pointerup', 'pointercancel', 'pointermove'].forEach(function (ev) {
+      document.addEventListener(ev, function (e) { if (ev !== 'pointermove' || Math.abs(e.movementX) + Math.abs(e.movementY) > 6) clearTimeout(segurarT); }, { passive: true });
+    });
+    document.addEventListener('contextmenu', function (e) { if (e.target.closest('[data-destaque][data-dono]')) { e.preventDefault(); } });
+
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-destaque]');
+      if (b) { e.preventDefault(); if (segurou) { segurou = false; return; } abrir(b.getAttribute('data-destaque'), b.querySelector('.pf-dest-av')); return; }
+      if (e.target.closest('[data-destaque-novo]')) { e.preventDefault(); novoDestaque(null); }
+    });
+  })();
+
   /* ---------- Compositor do mural: Publicar só habilita com conteúdo + textarea cresce ---------- */
   (function () {
     var form = document.querySelector('.post-compositor');

@@ -1,43 +1,79 @@
-<div class="pagina-cabecalho">
-  <div>
-    <h1>Campanhas</h1>
-    <p class="subtitulo">Cada mês tem sua rodada do Anjo Secreto.</p>
-  </div>
-  <a href="/admin" class="btn btn-secundario btn-sm">Voltar</a>
-</div>
+{{! Campanhas como lista de app: a rodada em aberto em destaque (ou o cartão para criar a do mês)
+    e todas as rodadas em linhas. Apagar confirma no card e a linha sai sem recarregar. }}
+<div class="adm">
+  <header class="adm-cab">
+    <div class="adm-cab-txt">
+      <h1>Campanhas</h1>
+      <small>Cada mês tem a sua rodada do Anjo Secreto</small>
+    </div>
+  </header>
 
-{{#if aberta}}
-  <div class="card camp-mes">
-    <div class="camp-mes-txt">
-      <strong>🎁 {{aberta.nome}}</strong>
-      <span class="texto-suave">{{#if (eq aberta.status "EM_ANDAMENTO")}}Em andamento — acompanhe a rodada.{{else}}Pronta para o sorteio.{{/if}}</span>
-    </div>
-    <a href="/admin/campanhas/{{aberta.id_campanha}}" class="btn btn-primario">Abrir campanha</a>
-  </div>
-{{else}}
-  <form class="camp-mes card" action="/admin/campanhas" method="POST">
-    <input type="hidden" name="_csrf" value="{{csrfToken}}">
-    <div class="camp-mes-txt">
-      <strong>🎁 Campanha do mês</strong>
-      <span class="texto-suave">Nasce configurada como "{{sugestao}}" — dá para renomear depois.</span>
-    </div>
-    {{! Tema da rede durante a campanha: vem marcado o tema em uso; escolher outro ativa na hora para todo mundo }}
-    <div class="camp-temas">
-      <div class="camp-temas-tit">Tema da rede durante esta campanha</div>
-      <div class="camp-temas-grade">
-        {{#each temas}}
-          <label class="camp-tema tc-{{this.chave}}">
-            <input type="radio" name="tema" value="{{this.chave}}"{{#if this.ativo}} checked{{/if}}>
-            <span class="camp-tema-emoji" aria-hidden="true">{{this.emoji}}</span>
-            <span class="camp-tema-txt"><strong>{{this.nome}}</strong><small>{{this.slogan}}</small></span>
-            {{#if this.ativo}}<span class="camp-tema-tag">em uso</span>{{/if}}
-          </label>
-        {{/each}}
+  {{#if aberta}}
+    <a class="adm-camp adm-camp-aberta" href="/admin/campanhas/{{aberta.id_campanha}}">
+      <div class="adm-camp-topo">
+        <span class="adm-camp-ic" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span>
+        <div class="adm-camp-txt">
+          <strong>{{aberta.nome}}</strong>
+          <small>{{#if (eq aberta.status "EM_ANDAMENTO")}}<i class="adm-ponto adm-ponto-ativo"></i>Em andamento: acompanhe a rodada{{else}}<i class="adm-ponto adm-ponto-pendente"></i>Pronta para o sorteio{{/if}}</small>
+        </div>
+        <span class="pn-linha-seta" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
       </div>
-      <label class="check-linha camp-temas-avisar"><input type="checkbox" name="avisar" value="1" checked> Avisar todo mundo se o tema mudar</label>
-    </div>
-    <button type="submit" class="btn btn-primario">Criar campanha do mês</button>
-  </form>
-{{/if}}
+    </a>
+  {{else}}
+    <form class="adm-camp camp-mes" action="/admin/campanhas" method="POST">
+      <input type="hidden" name="_csrf" value="{{csrfToken}}">
+      <div class="adm-camp-topo">
+        <span class="adm-camp-ic" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></span>
+        <div class="adm-camp-txt">
+          <strong>Campanha do mês</strong>
+          <small>Nasce como "{{sugestao}}" e dá para renomear depois</small>
+        </div>
+      </div>
+      {{! Tema da rede durante a campanha: vem marcado o tema em uso; escolher outro ativa na hora para todo mundo }}
+      <div class="camp-temas">
+        <div class="camp-temas-tit">Tema da rede durante esta campanha</div>
+        <div class="camp-temas-grade">
+          {{#each temas}}
+            <label class="camp-tema tc-{{this.chave}}">
+              <input type="radio" name="tema" value="{{this.chave}}"{{#if this.ativo}} checked{{/if}}>
+              <span class="camp-tema-emoji" aria-hidden="true">{{this.emoji}}</span>
+              <span class="camp-tema-txt"><strong>{{this.nome}}</strong><small>{{this.slogan}}</small></span>
+              {{#if this.ativo}}<span class="camp-tema-tag">em uso</span>{{/if}}
+            </label>
+          {{/each}}
+        </div>
+        <label class="check-linha camp-temas-avisar"><input type="checkbox" name="avisar" value="1" checked> Avisar todo mundo se o tema mudar</label>
+      </div>
+      <button type="submit" class="btn btn-primario adm-camp-btn">Criar campanha do mês</button>
+    </form>
+  {{/if}}
 
-{{> tabelaCampanhas}}
+  <div class="pn-sec">
+    <div class="pn-sec-tit">Todas as rodadas</div>
+    <div class="adm-lista" data-adm-sai>
+      {{#each campanhas}}
+        <div class="adm-pessoa" data-adm-linha="{{this.id_campanha}}">
+          <a class="adm-pessoa-link" href="/admin/campanhas/{{this.id_campanha}}">
+            <span class="adm-av adm-av-ic" aria-hidden="true"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+            <span class="adm-pessoa-txt">
+              <strong>{{this.nome}}</strong>
+              <small>{{#if (eq this.status "RASCUNHO")}}<i class="adm-ponto adm-ponto-pendente"></i>Rascunho{{/if}}{{#if (eq this.status "EM_ANDAMENTO")}}<i class="adm-ponto adm-ponto-ativo"></i>Em andamento{{/if}}{{#if (eq this.status "ENCERRADA")}}<i class="adm-ponto"></i>Encerrada{{/if}} · criada {{tempoRel this.criado_em}}</small>
+            </span>
+          </a>
+          {{#unless (eq this.status "EM_ANDAMENTO")}}
+            <form action="/admin/campanhas/{{this.id_campanha}}/apagar" method="POST" data-adm-form
+                  data-confirmar="Apagar a campanha &quot;{{this.nome}}&quot;?" data-confirmar-sub="Remove o sorteio, os participantes e as mensagens do jogo. Não dá para desfazer." data-confirmar-ok="Apagar">
+              <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
+              <button type="submit" class="adm-mais" aria-label="Apagar a campanha {{this.nome}}"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+            </form>
+          {{/unless}}
+        </div>
+      {{/each}}
+      <div class="adm-vazio" data-adm-vazio{{#if campanhas.length}} hidden{{/if}}>
+        <span class="adm-vazio-ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+        <strong>Nenhuma rodada ainda</strong>
+        <small>Crie a campanha do mês acima.</small>
+      </div>
+    </div>
+  </div>
+</div>

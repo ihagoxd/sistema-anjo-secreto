@@ -4882,3 +4882,11 @@ html.mini .tema-banner { animation: none !important; }
   body.pg-adm-ed .topo-mobile { display: none; }
   body.pg-adm-ed .container { padding: 0 0 calc(96px + env(safe-area-inset-bottom, 0px)); }
 }
+/* Campanhas (admin) */
+a.adm-camp { color: var(--text); transition: background 0.15s, transform 0.15s var(--ease-spring); }
+a.adm-camp:hover { text-decoration: none; color: var(--text); background: var(--hover); }
+a.adm-camp:active { transform: scale(0.985); }
+.adm-camp-aberta .adm-camp-txt { flex: 1; }
+.adm-camp .camp-temas { margin: 0; }
+.adm-av-ic { background: var(--surface-2); color: var(--text-soft); }
+.adm-pessoa form { display: contents; }

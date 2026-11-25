@@ -8397,7 +8397,7 @@
         if (lista && lista.closest) {
           var sai = lista.closest('[data-adm-sai]');
           var vazio = sai && sai.querySelector('[data-adm-vazio]');
-          if (vazio && !sai.querySelector('[data-adm-pessoa]')) vazio.hidden = false;
+          if (vazio && !sai.querySelector('[data-adm-pessoa], [data-adm-linha]')) vazio.hidden = false;
         }
       }, 220);
     }
@@ -8465,7 +8465,7 @@
       postar(form.action, new URLSearchParams(new FormData(form)))
         .then(function (d) {
           if (!d || !d.ok) { toast((d && d.erro) || 'Não foi possível concluir.'); return; }
-          aplicarResposta(d, form.closest('[data-adm-pessoa]'), form);
+          aplicarResposta(d, form.closest('[data-adm-pessoa], [data-adm-linha]'), form);
         })
         .catch(function () { toast('Sem conexão. Tente de novo.'); })
         .finally(function () { delete form.dataset.enviando; botoes.forEach(function (b) { b.classList.remove('enviando'); }); });

@@ -8539,6 +8539,86 @@
         .finally(function () { delete form.dataset.enviando; botoes.forEach(function (b) { b.classList.remove('enviando'); }); });
     });
 
+    /* --- Digitação nos formulários do admin ---
+       Enter pula para o próximo campo (no último da folha "Novo usuário", cria); o login se ajeita
+       enquanto digita (minúsculo, sem espaço nem acento) e, na folha, já sai sugerido do nome;
+       "Gerar" cria uma senha provisória fácil de ditar; a folha sobe junto com o teclado. */
+    function normalizarLogin(v) {
+      return semAcento(v).replace(/\s+/g, '.').replace(/[^a-z0-9._-]/g, '').replace(/\.{2,}/g, '.').slice(0, 80);
+    }
+    function loginDoNome(nome) {
+      var p = semAcento(nome).trim().split(/\s+/).filter(function (x) { return x && !/^(da|de|do|das|dos|e)$/.test(x); });
+      if (!p.length) return '';
+      return normalizarLogin(p.length > 1 ? p[0] + '.' + p[p.length - 1] : p[0]);
+    }
+    document.addEventListener('input', function (e) {
+      var t = e.target;
+      if (t.matches && t.matches('[data-adm-login]')) {
+        var limpo = normalizarLogin(t.value);
+        if (limpo !== t.value) {
+          var antes = normalizarLogin(t.value.slice(0, t.selectionStart || 0)).length;
+          t.value = limpo;
+          try { t.setSelectionRange(antes, antes); } catch (x) {}
+        }
+        t.dataset.mexido = t.value ? '1' : '';
+        return;
+      }
+      if (t.matches && t.matches('[data-adm-nome]')) {
+        var login = t.form && t.form.querySelector('[data-adm-login]');
+        if (login && !login.dataset.mexido) login.value = loginDoNome(t.value);
+      }
+    });
+    function senhaFacil() {
+      var c = 'bcdfgjklmnprstvz', v = 'aeiou', s = '';
+      for (var i = 0; i < 3; i++) s += c[Math.floor(Math.random() * c.length)] + v[Math.floor(Math.random() * v.length)];
+      return s + String(Math.floor(10 + Math.random() * 90));
+    }
+    document.addEventListener('click', function (e) {
+      var g = e.target.closest('[data-adm-gerar-senha]');
+      if (g) {
+        e.preventDefault();
+        var campo = g.closest('label') && g.closest('label').querySelector('input');
+        if (campo) { campo.value = senhaFacil(); campo.dispatchEvent(new Event('input', { bubbles: true })); campo.focus(); }
+        return;
+      }
+      // Abriu a folha "Novo usuário": o teclado já vem no nome (foco dentro do toque, para o iPhone abrir)
+      var abre = e.target.closest('[data-abrir-modal="admNovoUsuario"]');
+      if (abre) {
+        var nome = document.querySelector('#admNovoUsuario [data-adm-nome]');
+        if (nome) try { nome.focus({ preventScroll: true }); } catch (x) { nome.focus(); }
+      }
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' || e.shiftKey || e.isComposing) return;
+      var t = e.target;
+      if (!t.matches || !t.matches('input') || /^(search|checkbox|radio|submit|button)$/.test(t.type)) return;
+      var form = t.closest('[data-adm-novo], [data-adm-av-form], [data-adm-ed] form, [data-adm-cp] form');
+      if (!form) return;
+      var campos = Array.prototype.filter.call(form.querySelectorAll('input[type="text"], input[type="date"], textarea'), function (c) {
+        return !c.disabled && c.offsetParent !== null;
+      });
+      var prox = campos[campos.indexOf(t) + 1];
+      if (prox) { e.preventDefault(); prox.focus(); return; }
+      if (form.hasAttribute('data-adm-novo')) return; // último campo da folha: Enter cria o usuário
+      e.preventDefault(); t.blur();
+    });
+    // Teclado do celular: a folha aberta sobe junto e o campo em foco fica à vista
+    if (window.visualViewport) {
+      var ajustarFolha = function () {
+        var m = document.querySelector('#admNovoUsuario:not([hidden])');
+        if (!m) return;
+        var card = m.querySelector('.modal-card'), vv = window.visualViewport;
+        var dif = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+        card.style.transform = dif > 40 ? 'translateY(-' + Math.round(dif) + 'px)' : '';
+        card.style.maxHeight = dif > 40 ? Math.max(240, Math.round(vv.height - 24)) + 'px' : '';
+        var foco = document.activeElement;
+        if (dif > 40 && foco && card.contains(foco)) { var lab = foco.closest('label') || foco; lab.scrollIntoView({ block: 'nearest' }); }
+      };
+      window.visualViewport.addEventListener('resize', ajustarFolha);
+      window.visualViewport.addEventListener('scroll', ajustarFolha);
+      document.addEventListener('focusin', function (e) { if (e.target.closest && e.target.closest('#admNovoUsuario')) setTimeout(ajustarFolha, 80); });
+    }
+
     /* --- Logs: busca (com pausa curta), filtro por ação e "carregar mais" ao chegar no fim --- */
     var logs = document.querySelector('[data-adm-logs]');
     if (logs) (function () {

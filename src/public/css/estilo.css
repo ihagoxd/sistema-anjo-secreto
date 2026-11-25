@@ -5009,3 +5009,5 @@ div.adm-stat:active { transform: none; }
 .adm-av-acoes { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 20px; }
 .adm-av-cancelar { font-size: 14px; font-weight: 600; color: var(--text-soft); }
 .adm-cab-voltar { align-self: flex-start; margin-top: -6px; }
+/* Folha "Novo usuário": rola por dentro quando o teclado aperta a tela */
+#admNovoUsuario .modal-card { overflow-y: auto; overscroll-behavior: contain; transition: transform 0.18s ease-out; }

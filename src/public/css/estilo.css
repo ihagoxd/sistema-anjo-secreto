@@ -5062,11 +5062,10 @@ form.treme { animation: auth-treme 0.42s ease; }
 
 /* Rótulos dos temas: ícone SVG (1em) no lugar do emoji, na cor de destaque */
 .tema-ic { display: inline-block; flex-shrink: 0; vertical-align: -0.16em; }
-.gt-emoji, .gt-item-emoji, .tema-atual-ic, .tema-card-emoji, .camp-tema-emoji, .side-tema-chip, .side-link-emoji { color: var(--accent-strong); }
+.gt-emoji, .gt-item-emoji, .side-tema-chip, .side-link-emoji { color: var(--accent-strong); }
 .lbl-ic .tema-ic { font-size: 16px; color: var(--accent-strong); vertical-align: -3px; }
 .gt-emoji { font-size: 28px; display: grid; place-items: center; }
 .gt-item-emoji { font-size: 21px; display: grid; place-items: center; }
-.tema-card-emoji, .camp-tema-emoji { font-size: 22px; display: inline-grid; place-items: center; }
 .tb-kicker .tema-ic { font-size: 1.25em; vertical-align: -0.28em; margin-right: 2px; }
 
 /* Direct sem emoji nos rótulos: menu da mensagem com ícone e "Mensagem apagada" com sinal */
@@ -5118,5 +5117,4 @@ form.treme { animation: auth-treme 0.42s ease; }
 .tp-floco { position: absolute; top: -6px; width: 4px; height: 4px; border-radius: 50%; background: #fff; opacity: 0.9; z-index: 3; animation: tp-floco var(--d, 5s) linear infinite; }
 @keyframes tp-floco { to { transform: translate3d(-6px, 240px, 0); } }
 .tema-card.tc-natal .tema-card-tit h2 { color: #e5383b; }
-.camp-tema.tc-natal .camp-tema-emoji { color: #e5383b; }
 @media (prefers-reduced-motion: reduce) { .tp-luzes, .tp-floco { animation: none !important; } }

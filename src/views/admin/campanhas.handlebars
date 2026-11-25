@@ -36,7 +36,7 @@
           {{#each temas}}
             <label class="camp-tema tc-{{this.chave}}">
               <input type="radio" name="tema" value="{{this.chave}}"{{#if this.ativo}} checked{{/if}}>
-              <span class="camp-tema-emoji" aria-hidden="true">{{{this.icone}}}</span>
+              <span class="camp-tema-emoji" aria-hidden="true">{{this.emoji}}</span>
               <span class="camp-tema-txt"><strong>{{this.nome}}</strong><small>{{this.slogan}}</small></span>
               {{#if this.ativo}}<span class="camp-tema-tag">em uso</span>{{/if}}
             </label>

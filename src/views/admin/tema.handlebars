@@ -6,7 +6,7 @@
 </header>
 
 <div class="card tema-atual">
-  <div class="tema-atual-ic" aria-hidden="true">{{{atual.icone}}}</div>
+  <div class="tema-atual-ic" aria-hidden="true">{{atual.emoji}}</div>
   <div class="tema-atual-txt">
     <div class="tema-atual-rot">Em uso agora</div>
     <strong class="tema-atual-nome">{{atual.nome}}</strong>
@@ -58,7 +58,7 @@
       </div>
       <div class="tema-card-corpo">
         <div class="tema-card-tit">
-          <span class="tema-card-emoji" aria-hidden="true">{{{icone}}}</span>
+          <span class="tema-card-emoji" aria-hidden="true">{{emoji}}</span>
           <h2>{{nome}}</h2>
           {{#if ativo}}<span class="tema-badge">Em uso</span>{{/if}}
         </div>

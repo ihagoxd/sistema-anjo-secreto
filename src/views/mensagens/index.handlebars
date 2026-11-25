@@ -96,7 +96,7 @@
         </a>
         <span class="conv-av {{#if conversa.anonimo}}anjo-av{{/if}}{{#if conversa.grupo}} grupo-av{{/if}}">
           {{#if conversa.grupo}}
-            {{#if conversa.foto}}<img src="{{conversa.foto}}" alt="">{{else}}{{#each conversa.amostra}}<span class="grupo-av-m">{{#if this.foto}}<img src="{{this.foto}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</span>{{else}}<span class="grupo-av-m">👥</span>{{/each}}{{/if}}
+            {{#if conversa.foto}}<img src="{{conversa.foto}}" alt="">{{else}}{{#each conversa.amostra}}<span class="grupo-av-m">{{#if this.foto}}<img src="{{this.foto}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</span>{{else}}<span class="grupo-av-m grupo-av-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>{{/each}}{{/if}}
           {{else}}{{#if (eq conversa.tipo "protegido")}}
             <span class="sig-emoji" aria-hidden="true">👀</span>
             <span class="sig-foto">{{#if conversa.foto}}<img src="{{conversa.foto}}" alt="">{{else}}{{inicial conversa.titulo}}{{/if}}</span>
@@ -280,7 +280,7 @@
     </div>
     {{! Foto do grupo (opcional) }}
     <div class="grupo-foto-area">
-      <span class="conv-av grupo-av grupo-foto-prev" data-g-foto-prev>{{#if conversa.foto}}<img src="{{conversa.foto}}" alt="">{{else}}{{#each conversa.amostra}}<span class="grupo-av-m">{{#if this.foto}}<img src="{{this.foto}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</span>{{else}}<span class="grupo-av-m">👥</span>{{/each}}{{/if}}</span>
+      <span class="conv-av grupo-av grupo-foto-prev" data-g-foto-prev>{{#if conversa.foto}}<img src="{{conversa.foto}}" alt="">{{else}}{{#each conversa.amostra}}<span class="grupo-av-m">{{#if this.foto}}<img src="{{this.foto}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</span>{{else}}<span class="grupo-av-m grupo-av-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>{{/each}}{{/if}}</span>
       <div class="grupo-foto-acoes">
         <button type="button" class="grupo-add" data-g-foto-trocar>{{#if conversa.foto}}Trocar foto{{else}}Adicionar foto{{/if}}</button>
         {{#if conversa.foto}}<button type="button" class="grupo-add grupo-add-tirar" data-g-foto-remover>Remover</button>{{/if}}

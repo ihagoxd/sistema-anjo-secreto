@@ -220,14 +220,34 @@ async function contarNovosDesde(idPost) {
 
 // Post completo (com autor + contagens + curtiu) para a página individual.
 // Busca de publicações (texto, localização ou @autor), mais novas primeiro.
-async function buscarPosts(idUsuarioAtual, termo, limite = 12) {
+// Busca de publicações: por texto/lugar/autor (sem acento) OU de um lugar exato.
+// antes = id da última já mostrada ("carregar mais").
+async function buscarPosts(idUsuarioAtual, termo, limite = 12, opcoes = {}) {
+  const t = String(termo || '').trim();
+  const local = opcoes.local ? String(opcoes.local).trim() : '';
+  const antes = parseInt(opcoes.antes, 10) || null;
+  if (!t && !local) return [];
+  const S = db.semAcentoSql;
+  const filtro = local
+    ? 'p.local = $3'
+    : `(${S('p.texto')} LIKE $3 OR ${S('p.local')} LIKE $3 OR ${S('u.usuario')} LIKE $3 OR ${S('u.nome')} LIKE $3)`;
+  const res = await db.query(
+    `${SELECT_POST} WHERE ${filtro} AND ($4::int IS NULL OR p.id_post < $4)
+     ORDER BY p.id_post DESC LIMIT $2`,
+    [idUsuarioAtual, limite, local || `%${db.semAcentoJs(t)}%`, antes]
+  );
+  return res.rows;
+}
+
+// Lugares marcados nas publicações que batem com o termo (com quantas publicações cada um)
+async function buscarLugares(termo, limite = 8) {
   const t = String(termo || '').trim();
   if (!t) return [];
-  const S = db.semAcentoSql;
   const res = await db.query(
-    `${SELECT_POST} WHERE (${S('p.texto')} LIKE $3 OR ${S('p.local')} LIKE $3 OR ${S('u.usuario')} LIKE $3 OR ${S('u.nome')} LIKE $3)
-     ORDER BY p.id_post DESC LIMIT $2`,
-    [idUsuarioAtual, limite, `%${db.semAcentoJs(t)}%`]
+    `SELECT p.local, count(*)::int AS total FROM posts p
+      WHERE p.local IS NOT NULL AND p.local <> '' AND ${db.semAcentoSql('p.local')} LIKE $1
+      GROUP BY p.local ORDER BY total DESC, max(p.id_post) DESC LIMIT $2`,
+    [`%${db.semAcentoJs(t)}%`, limite]
   );
   return res.rows;
 }
@@ -349,7 +369,7 @@ async function removerComentario(idComentario) {
 
 module.exports = {
   atualizarVideo,
-  buscarPosts,
+  buscarPosts, buscarLugares,
   criar, listarFeed, listarNovosDesde, listarPorUsuario, listarRepostadosPor, contarRepostadosPor, buscarPorId, buscarFeedUm, remover, contarNovosDesde, adicionarColaboradores, atualizarTexto,
   curtir, descurtir, jaCurtiu, contarCurtidas, listarCurtidores, reacaoDe, reacoesTop,
   adicionarMidias, listarMidias, locaisSugeridos, salvar, dessalvar, jaSalvou, listarSalvosPor,

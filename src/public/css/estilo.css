@@ -4604,3 +4604,14 @@ body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
 /* Miniatura da publicação: o ícone de balão só aparece se a foto não carregar */
 .busca-post-thumb img + svg { display: none; }
 .busca-post-thumb.falhou img + svg { display: block; }
+
+/* FEED: compositor compacto no celular — fechado é uma linha só (foto, texto, galeria); abre ao tocar */
+.comp-foto-rapida { display: none; flex-shrink: 0; width: 40px; height: 40px; margin-top: 3px; border: none; border-radius: 50%; background: none; color: var(--text-soft); cursor: pointer; place-items: center; }
+.comp-foto-rapida:hover { background: var(--hover); color: var(--text); }
+@media (max-width: 899px) {
+  .post-compositor:not(.aberto) { padding-top: 10px; padding-bottom: 10px; }
+  .post-compositor:not(.aberto) .compositor-topo { align-items: center; }
+  .post-compositor:not(.aberto) .compositor-topo textarea { min-height: 40px; height: 40px; padding-top: 9px; padding-bottom: 9px; white-space: nowrap; text-overflow: ellipsis; }
+  .post-compositor:not(.aberto) .compositor-rodape { display: none; }
+  .post-compositor:not(.aberto) .comp-foto-rapida { display: grid; }
+}

@@ -53,6 +53,8 @@
       <div class="compositor-topo">
         <span class="post-avatar">{{#if usuario.foto_perfil}}<img src="{{usuario.foto_perfil}}" alt="">{{else}}{{inicial usuario.nome}}{{/if}}</span>
         <textarea name="texto" maxlength="{{limite}}" placeholder="{{#if tema.placeholderPost}}{{tema.placeholderPost}}{{else}}No que você está pensando?{{/if}}" autocomplete="off" data-mencoes data-texto></textarea>
+        {{! Compositor fechado (celular): atalho direto para a galeria, como no Instagram }}
+        <button type="button" class="comp-foto-rapida" data-foto-rapida aria-label="Foto ou vídeo" title="Foto ou vídeo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3" ry="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button>
       </div>
       <div class="compositor-preview" data-preview hidden></div>
       {{! Enquete (como no WhatsApp): o texto do post é a pergunta; as opções são montadas pelo JS }}

@@ -33,6 +33,23 @@
   document.addEventListener('touchstart', bloquearPinca, { passive: false });
   document.addEventListener('touchmove', bloquearPinca, { passive: false });
 
+  /* "Curtido por" (Instagram): fotinhas + "fulano e outras N pessoas" — espelho do helper do servidor */
+  function linhaCurtidasHtml(curtidores, curtidor, n) {
+    n = Number(n) || 0;
+    if (!n) return '';
+    function e(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+    var lista = (curtidores && curtidores.length) ? curtidores : (curtidor ? [{ usuario: curtidor }] : []);
+    if (!lista.length) return '<strong>' + n + '</strong> curtida' + (n === 1 ? '' : 's');
+    var avs = lista.slice(0, 3).map(function (c) {
+      return '<span class="ig-curt-av">' + (c.foto ? '<img src="' + e(c.foto) + '" alt="">' : e((String(c.nome || c.usuario || '?').trim()[0] || '?').toUpperCase())) + '</span>';
+    }).join('');
+    var a = '<strong>' + e(lista[0].usuario) + '</strong>', txt;
+    if (n === 1) txt = 'Curtido por ' + a;
+    else if (n === 2 && lista[1]) txt = 'Curtido por ' + a + ' e <strong>' + e(lista[1].usuario) + '</strong>';
+    else txt = 'Curtido por ' + a + ' e <strong>' + (n - 1 === 1 ? 'outra pessoa' : 'outras ' + (n - 1) + ' pessoas') + '</strong>';
+    return '<span class="ig-curt-avs" aria-hidden="true">' + avs + '</span><span class="ig-curt-txt">' + txt + '</span>';
+  }
+
   /* ---------- Comentários: abrir/fechar inline no feed + responder sem recarregar ---------- */
   (function () {
     function escaparHtml(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
@@ -4979,13 +4996,8 @@
           if (linha) {
             var n = Number(d.total) || 0;
             linha.hidden = !n;
-            if (d.curtidor) {
-              var dv = document.createElement('div'); dv.textContent = d.curtidor;
-              linha.innerHTML = 'Curtido por <strong>' + dv.innerHTML + '</strong>'
-                + (n > 1 ? ' e <strong>outras pessoas</strong>' : '');
-            } else {
-              linha.innerHTML = '<strong>' + n + '</strong> curtida' + (n === 1 ? '' : 's');
-            }
+            var alvoLinha = linha.querySelector('[data-linha-curtidas]') || linha;
+            alvoLinha.innerHTML = linhaCurtidasHtml(d.curtidores, d.curtidor, n);
           }
         })
         .catch(function () {})
@@ -7320,8 +7332,7 @@
         if (top) top.innerHTML = (d.reacoesTop || []).map(function (r) { return '<i>' + r + '</i>'; }).join('');
         var txt = linha.querySelector('[data-linha-curtidas]');
         if (txt) {
-          if (d.curtidor) { var dv = document.createElement('div'); dv.textContent = d.curtidor; txt.innerHTML = 'Curtido por <strong>' + dv.innerHTML + '</strong>' + (n > 1 ? ' e <strong>outras pessoas</strong>' : ''); }
-          else txt.innerHTML = '<strong>' + n + '</strong> curtida' + (n === 1 ? '' : 's');
+          txt.innerHTML = linhaCurtidasHtml(d.curtidores, d.curtidor, n);
         }
       }
     }

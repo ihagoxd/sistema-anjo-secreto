@@ -3549,7 +3549,16 @@
     if (temConteudo()) abrir();
     // Atalho da galeria (compositor fechado): mesmo botão de foto do rodapé
     var rapida = comp.querySelector('[data-foto-rapida]');
-    if (rapida) rapida.addEventListener('click', function () { abrir(); var b = comp.querySelector('[data-foto-btn]'); if (b) b.click(); });
+    // Só abre a galeria: o compositor abre DEPOIS que a foto é escolhida (evento change);
+    // se a pessoa cancelar a galeria, nada muda na tela (como no Instagram)
+    if (rapida) rapida.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var input = comp.querySelector('[data-foto]');
+      if (!input) return;
+      input.removeAttribute('capture');
+      rapida.blur();
+      input.click();
+    });
     // Tocou e saiu sem escrever nem escolher nada: volta a ser uma linha só
     function temOpcoes() {
       var colab = comp.querySelector('[data-colab-id]'), local = comp.querySelector('[data-local-input]'), pres = comp.querySelector('[data-presente-input]');

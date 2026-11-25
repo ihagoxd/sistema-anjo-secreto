@@ -543,11 +543,13 @@
     // Fica registrado em log no servidor. (Este listener vem ANTES do card de confirmação
     // no arquivo, então ainda enxerga data-confirmado="1".)
     var modal = null;
-    function pessoaHtml(p, papel) {
-      if (!p) return '<div class="rev-pessoa"><span class="rev-papel">' + esc(papel) + '</span><span class="rev-sem">ninguém (sem par)</span></div>';
+    // Uma pessoa da corrente anjo → pessoa → protegido (linha com foto, papel e nome)
+    function pessoaHtml(p, papel, destaque) {
+      if (!p) return '<div class="rev-linha vazia"><span class="rev-av">?</span><span class="rev-txt"><small>' + esc(papel) + '</small><strong>Ninguém (sem par)</strong></span></div>';
       var av = p.foto_perfil ? '<img src="' + esc(p.foto_perfil) + '" alt="">' : esc((p.nome || '?').trim().charAt(0).toUpperCase());
-      return '<div class="rev-pessoa"><span class="rev-papel">' + esc(papel) + '</span><span class="av-md">' + av + '</span><strong>' + esc(p.nome) + '</strong><small>@' + esc(p.usuario) + '</small></div>';
+      return '<div class="rev-linha' + (destaque ? ' destaque' : '') + '"><span class="rev-av">' + av + '</span><span class="rev-txt"><small>' + esc(papel) + '</small><strong>' + esc(p.nome) + '</strong><em>@' + esc(p.usuario) + '</em></span></div>';
     }
+    var ELO = '<div class="rev-elo" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg><span>é anjo de</span></div>';
     function abrirRevelacao(d) {
       if (!modal) {
         modal = document.createElement('div');
@@ -559,11 +561,13 @@
           if (ev.target === modal || ev.target.closest('[data-fechar-modal]')) { modal.hidden = true; modal.setAttribute('aria-hidden', 'true'); }
         });
       }
-      modal.innerHTML = '<div class="modal-card rev-card">'
-        + '<div class="modal-cab"><h2>🔓 Par de ' + esc(d.pessoa.nome) + '</h2><p class="texto-suave" style="margin:0;">Esta consulta ficou registrada em log. Use com responsabilidade.</p></div>'
-        + '<div class="rev-bloco"><div class="rev-par">' + pessoaHtml(d.anjo, 'Anjo de ' + (d.pessoa.nome.split(' ')[0] || '')) + '<span class="rev-seta-grande" aria-hidden="true">→</span>' + pessoaHtml(d.pessoa, 'Pessoa') + '</div></div>'
-        + '<div class="rev-bloco"><div class="rev-par">' + pessoaHtml(d.pessoa, 'Pessoa') + '<span class="rev-seta-grande" aria-hidden="true">→</span>' + pessoaHtml(d.protegido, 'Protegido de ' + (d.pessoa.nome.split(' ')[0] || '')) + '</div></div>'
-        + '<div class="modal-acoes"><button type="button" class="btn btn-primario btn-sm" data-fechar-modal>Fechar</button></div>'
+      var primeiro = d.pessoa.nome.split(' ')[0] || '';
+      modal.innerHTML = '<div class="modal-card rev-card rev-card-app">'
+        + '<span class="rev-cab-ic" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg></span>'
+        + '<h2 class="rev-tit">Par de ' + esc(d.pessoa.nome) + '</h2>'
+        + '<p class="rev-sub">Esta consulta ficou registrada em log. Use com responsabilidade.</p>'
+        + '<div class="rev-cadeia">' + pessoaHtml(d.anjo, 'Anjo de ' + primeiro) + ELO + pessoaHtml(d.pessoa, 'Pessoa consultada', true) + ELO + pessoaHtml(d.protegido, 'Protegido de ' + primeiro) + '</div>'
+        + '<button type="button" class="btn btn-primario rev-fechar" data-fechar-modal>Fechar</button>'
         + '</div>';
       modal.hidden = false;
       modal.setAttribute('aria-hidden', 'false');

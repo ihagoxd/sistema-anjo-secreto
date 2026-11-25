@@ -4638,3 +4638,15 @@ body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
   .tw-post:not(.tw-post-det) .tw-comentarios-bloco:not([hidden]) .sheet-emojis { gap: 0; padding-left: 0; padding-right: 0; }
   .sheet-emoji { flex: 1 1 0; min-width: 0; font-size: 24px; padding: 4px 0; text-align: center; }
 }
+
+/* COMENTÁRIOS: campo no padrão do Instagram — pílula com a foto dentro; "Publicar" em texto
+   só aparece quando há texto ou foto (:placeholder-shown acompanha até limpeza feita por JS) */
+.tw-post .tw-reply input[name="texto"] { height: 42px; box-sizing: border-box; border-radius: 22px 0 0 22px; border-right: none; padding-right: 6px; margin-right: -8px; box-shadow: none; }
+.tw-post .tw-reply .tw-reply-foto { width: 44px; height: 42px; box-sizing: border-box; border-radius: 0 22px 22px 0; background: var(--surface-2); border: 1px solid var(--line-strong, var(--line)); border-left: none; color: var(--text-soft); }
+.tw-post .tw-reply .tw-reply-foto:hover { background: var(--surface-2); color: var(--text); }
+.tw-post .tw-reply:has(input[name="texto"]:focus) input[name="texto"],
+.tw-post .tw-reply:has(input[name="texto"]:focus) .tw-reply-foto { border-color: var(--accent); box-shadow: none; }
+.tw-post .tw-reply.tem-foto .tw-reply-foto { color: var(--accent-strong); }
+.tw-post .tw-reply button[type="submit"].btn { background: none; border: none; box-shadow: none; color: var(--accent-strong); font-weight: 800; font-size: 14.5px; padding: 0 2px 0 4px; min-height: 0; height: 42px; }
+.tw-post .tw-reply button[type="submit"].btn:hover { background: none; color: var(--accent); }
+.tw-post .tw-reply:not(.tem-foto):has(input[name="texto"]:placeholder-shown) button[type="submit"].btn { display: none; }

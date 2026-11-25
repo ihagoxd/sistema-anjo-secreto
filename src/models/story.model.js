@@ -121,10 +121,15 @@ async function remover(idStory) {
   await db.query(`DELETE FROM stories WHERE id_story = $1`, [idStory]);
 }
 
-// Apaga stories expirados e devolve as mídias para tirar do disco.
+// Arquivo (como no Instagram): o story sai das bolinhas em 24 h, mas fica guardado 30 dias para
+// poder virar destaque; o que está num destaque fica guardado enquanto estiver lá.
+// Apaga o que passou disso e devolve as mídias para tirar do disco.
 async function removerExpirados() {
   const res = await db.query(
-    `DELETE FROM stories WHERE criado_em <= now() - interval '24 hours' RETURNING imagem, video`
+    `DELETE FROM stories s
+      WHERE s.criado_em <= now() - interval '30 days'
+        AND NOT EXISTS (SELECT 1 FROM destaque_stories d WHERE d.id_story = s.id_story)
+      RETURNING imagem, video`
   );
   return res.rows;
 }

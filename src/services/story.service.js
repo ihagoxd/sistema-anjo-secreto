@@ -12,7 +12,8 @@ const usuarioModel = require('../models/usuario.model');
 const dmService = require('./mensagemDireta.service');
 const { apagarUpload, UPLOAD_DIR } = require('../config/upload');
 
-// Tira do banco e do disco os stories com mais de 24 h (chamado nas listagens).
+// Tira do banco e do disco os stories que saíram do arquivo (30 dias, fora de destaques).
+// As bolinhas continuam mostrando só as últimas 24 h (ATIVO no modelo).
 async function limparExpirados() {
   const mortos = await storyModel.removerExpirados();
   mortos.forEach((m) => { apagarUpload(m.imagem); apagarUpload(m.video); });

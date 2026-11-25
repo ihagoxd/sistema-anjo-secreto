@@ -525,3 +525,20 @@ CREATE TABLE IF NOT EXISTS comentario_curtidas (
   PRIMARY KEY (id_comentario, id_usuario)
 );
 CREATE INDEX IF NOT EXISTS idx_coment_curt_coment ON comentario_curtidas(id_comentario);
+
+-- Destaques do perfil (como no Instagram): coleções de stories que não somem em 24 h
+CREATE TABLE IF NOT EXISTS destaques (
+  id_destaque   SERIAL PRIMARY KEY,
+  id_usuario    INTEGER NOT NULL REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
+  titulo        VARCHAR(30) NOT NULL,
+  criado_em     TIMESTAMPTZ NOT NULL DEFAULT now(),
+  atualizado_em TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_destaques_usuario ON destaques(id_usuario, criado_em);
+CREATE TABLE IF NOT EXISTS destaque_stories (
+  id_destaque   INTEGER NOT NULL REFERENCES destaques(id_destaque) ON DELETE CASCADE,
+  id_story      INTEGER NOT NULL REFERENCES stories(id_story) ON DELETE CASCADE,
+  adicionado_em TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (id_destaque, id_story)
+);
+CREATE INDEX IF NOT EXISTS idx_destaque_stories_story ON destaque_stories(id_story);

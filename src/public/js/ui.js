@@ -886,8 +886,9 @@
       fetch('/stories', { method: 'POST', headers: { 'X-Requested-With': 'fetch', 'Accept': 'application/json', 'X-CSRF-Token': CSRF }, body: fd })
         .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
         .then(function () {
+          invalidarDados();
           fecharComposer();
-          toast('Story publicado.');
+          toast('Story publicado');
           // Anel "Seu story" vira dourado na hora, sem recarregar
           var anel = document.querySelector('.story-ring.eu-story');
           if (anel) {
@@ -1437,10 +1438,15 @@
             if (!e.target.closest('.stdel-confirma')) return;
             var item = grupos[gi] && grupos[gi].itens[ii];
             if (!item) return;
+            var btnOk = e.target.closest('.stdel-confirma'); btnOk.disabled = true;
             fetch('/stories/' + item.id_story + '/remover', { method: 'POST', headers: { 'X-CSRF-Token': CSRF, 'X-Requested-With': 'fetch' } })
               .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
-              .then(function () { window.location.reload(); })
-              .catch(function () { toast('Não foi possível apagar.'); });
+              .then(function () {
+                delModal.hidden = true; delModal.setAttribute('aria-hidden', 'true');
+                removerDaTela(item);
+              })
+              .catch(function () { toast('Não foi possível apagar.'); })
+              .then(function () { btnOk.disabled = false; });
           });
         }
         delModal.hidden = false;
@@ -1508,6 +1514,15 @@
           if (eixo === 'v') {
             // fecha se puxou bastante OU se foi um flick rápido pra baixo
             if (dy > 90 || (dy > 24 && vVel > 0.55)) { fecharView('arrasto'); return; }
+            // pra cima (como no Instagram): no story dos outros abre a resposta; no meu, a atividade
+            if (dy < -60 || (dy < -24 && vVel < -0.55)) {
+              encaixarQuadro();
+              var gAtual = grupos[gi];
+              if (gAtual && gAtual.eu) { if (!vistosEl.hidden) vistosEl.click(); else pausar(false); }
+              else if (respEl && !rodapeEl.hidden) { respEl.focus(); }
+              else pausar(false);
+              return;
+            }
             encaixarQuadro(); pausar(false); return;
           }
           if (eixo === 'h') {
@@ -1539,6 +1554,30 @@
         });
         zona.addEventListener('pointercancel', function () { soltarArrasto(null, true); });
       });
+    }
+
+    // Story apagado: sai da sequência na hora (sem recarregar). Era o último meu? O anel volta
+    // a ser "adicionar story".
+    function removerDaTela(item) {
+      invalidarDados();
+      var g = grupos[gi];
+      if (!g) { fecharView(); return; }
+      var pos = g.itens.indexOf(item);
+      if (pos >= 0) g.itens.splice(pos, 1);
+      toast('Story apagado');
+      if (!g.itens.length) {
+        grupos.splice(gi, 1);
+        var anel = document.querySelector('.story-ring.eu-story');
+        if (anel && g.eu) {
+          anel.classList.remove('tem', 'visto'); anel.classList.add('sem');
+          anel.removeAttribute('data-ver-stories'); anel.setAttribute('data-add-story', '');
+        }
+        fecharView();
+        return;
+      }
+      if (ii >= g.itens.length) ii = g.itens.length - 1;
+      pausado = false;
+      mostrar();
     }
 
     function pausar(sim) {
@@ -1657,10 +1696,23 @@
     }
 
     // Pré-carrega a próxima mídia (do mesmo grupo ou o 1º do grupo seguinte)
+    var preVideo = null;
     function preCarregar() {
-      var g = grupos[gi];
-      var prox = (g && g.itens[ii + 1]) || (grupos[gi + 1] && grupos[gi + 1].itens[0]);
-      if (prox && prox.imagem) { var im = new Image(); im.src = prox.imagem; }
+      var fila = [], g = grupos[gi];
+      for (var a = gi, b = ii + 1; a < grupos.length && fila.length < 3; a++, b = 0) {
+        var ga = grupos[a];
+        for (; ga && b < ga.itens.length && fila.length < 3; b++) fila.push(ga.itens[b]);
+      }
+      var videoFeito = false;
+      fila.forEach(function (it) {
+        if (it.imagem) { var im = new Image(); im.decoding = 'async'; im.src = it.imagem; }
+        else if (it.video && !videoFeito) {
+          videoFeito = true;
+          if (!preVideo) { preVideo = document.createElement('video'); preVideo.muted = true; preVideo.preload = 'auto'; preVideo.playsInline = true; }
+          if (preVideo.getAttribute('src') !== it.video) preVideo.src = it.video;
+        }
+      });
+      if (!g) return;
     }
 
     function proximo() {
@@ -1715,6 +1767,12 @@
     window.__reordenarFilaStories = reordenarFila;
 
     var fechando = false;
+    var fechandoPeloVoltar = false;
+    window.addEventListener('popstate', function (e) {
+      if (!view || view.hidden || (e.state && e.state.storyAberto)) return;
+      fechandoPeloVoltar = true;
+      fecharView();
+    });
     // modo: 'arrasto' (puxou pra baixo: o quadro continua caindo e some) | outro (fade rápido)
     function fecharView(modo) {
       if (!view || view.hidden || fechando) return;
@@ -1729,6 +1787,8 @@
         document.body.classList.remove('sem-scroll');
         fechando = false;
         atualizarAneis();
+        if (!fechandoPeloVoltar && history.state && history.state.storyAberto) { try { history.back(); } catch (x) {} }
+        fechandoPeloVoltar = false;
       };
       var reduzir = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (reduzir || !quadroEl) { fim(); return; }
@@ -1777,6 +1837,7 @@
           view.classList.remove('fechando');
           view.classList.add('abrindo');
           view.hidden = false;
+          if (!(history.state && history.state.storyAberto)) { try { history.pushState({ storyAberto: 1 }, ''); } catch (x) {} }
           setTimeout(function () { view.classList.remove('abrindo'); }, 340);
           mostrar();
         })

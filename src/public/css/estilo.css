@@ -4557,3 +4557,15 @@ body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
 @media (max-width: 899px) {
   #painelNotif.notif-modal { place-items: stretch; overflow: hidden; backdrop-filter: none; -webkit-backdrop-filter: none; animation: none; }
 }
+
+/* STORIES: segurar esconde a interface (como no Instagram) — sem ícone de pausa no meio */
+.stview .stview-progresso, .stview .stview-cab, .stview .stview-rodape, .stview .stview-vistos, .stview .stview-del, .stview .stview-marcar {
+  transition: opacity 0.2s ease 0s;
+}
+.stview.pausado .stview-media::after { display: none; }
+.stview.pausado:not(.respondendo) .stview-progresso,
+.stview.pausado:not(.respondendo) .stview-cab,
+.stview.pausado:not(.respondendo) .stview-rodape,
+.stview.pausado:not(.respondendo) .stview-vistos,
+.stview.pausado:not(.respondendo) .stview-del,
+.stview.pausado:not(.respondendo) .stview-marcar { opacity: 0; transition-delay: 0.18s; }

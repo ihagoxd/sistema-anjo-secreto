@@ -212,36 +212,72 @@ body.tema-natal .avatar { background: var(--nt-rosa); color: #fff; }
 body.tema-natal .side-rodape { border-top: 1px dashed var(--line-strong); }
 body.tema-natal .topo-mobile { border-bottom: none; }
 body.tema-natal .topo-ig .topo-marca .marca-emblema { filter: drop-shadow(0 0 8px rgba(255, 211, 110, 0.6)); }
-/* Celular: luzinhas quentinhas (dourado e rosa) penduradas embaixo do topo, piscando em sequência */
+/* Celular: o mesmo pisca-pisca pendurado embaixo do topo (fio com barriguinha nos dois grupos, assim ele
+   nunca some; as lâmpadas dourada/branca e rosa piscam alternadas) */
+body.tema-natal .topo-mobile::before, body.tema-natal .topo-mobile::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: -22px; height: 22px; pointer-events: none;
+  animation: nt-pisca-pisca 1.5s infinite;
+}
 body.tema-natal .topo-mobile::after {
-  content: ''; position: absolute; left: 0; right: 0; bottom: -14px; height: 15px; pointer-events: none;
   background:
-    radial-gradient(4px 5px at 50% 70%, #ffd36e 0 99%, transparent 100%) 0 0 / 34px 15px repeat-x,
-    radial-gradient(4px 5px at 50% 70%, #ff8fab 0 99%, transparent 100%) 17px 0 / 34px 15px repeat-x,
-    radial-gradient(60% 9px at 50% 0, transparent 90%, rgba(255, 255, 255, 0.45) 92% 98%, transparent 100%) 0 0 / 34px 9px repeat-x;
-  filter: drop-shadow(0 0 5px rgba(255, 220, 150, 0.85));
-  animation: nt-luzes-correm 1.4s steps(2) infinite;
+    radial-gradient(1.5px 2.2px at 10.4px 10px, rgba(255, 255, 255, 0.95) 96%, transparent) 0 0 / 96px 22px repeat-x,
+    radial-gradient(4.6px 6.4px at 12px 12.6px, #ffd36e 96%, transparent) 0 0 / 96px 22px repeat-x,
+    radial-gradient(3px 2.3px at 12px 4.6px, #4f5f98 96%, transparent) 0 0 / 96px 22px repeat-x,
+    radial-gradient(1.5px 2.2px at 58.4px 10px, rgba(255, 255, 255, 0.95) 96%, transparent) 0 0 / 96px 22px repeat-x,
+    radial-gradient(4.6px 6.4px at 60px 12.6px, #fff3d1 96%, transparent) 0 0 / 96px 22px repeat-x,
+    radial-gradient(3px 2.3px at 60px 4.6px, #4f5f98 96%, transparent) 0 0 / 96px 22px repeat-x,
+    radial-gradient(60% 6px at 50% 0, transparent 84%, rgba(255, 255, 255, 0.55) 87% 96%, transparent 98%) 12px 0 / 24px 7px repeat-x;
+  filter: drop-shadow(0 0 3px rgba(255, 214, 120, 0.95)) drop-shadow(0 0 8px rgba(255, 214, 120, 0.45));
 }
-[data-theme='light'] body.tema-natal .topo-mobile::after { filter: drop-shadow(0 0 4px rgba(240, 96, 127, 0.45)); }
-@keyframes nt-luzes-correm {
-  from { background-position: 0 0, 17px 0, 0 0; }
-  to   { background-position: 34px 0, 51px 0, 0 0; }
+body.tema-natal .topo-mobile::before {
+  background:
+    radial-gradient(1.5px 2.2px at 34.4px 10px, rgba(255, 255, 255, 0.95) 96%, transparent) 0 0 / 96px 22px repeat-x,
+    radial-gradient(4.6px 6.4px at 36px 12.6px, #ff8fab 96%, transparent) 0 0 / 96px 22px repeat-x,
+    radial-gradient(3px 2.3px at 36px 4.6px, #4f5f98 96%, transparent) 0 0 / 96px 22px repeat-x,
+    radial-gradient(1.5px 2.2px at 82.4px 10px, rgba(255, 255, 255, 0.95) 96%, transparent) 0 0 / 96px 22px repeat-x,
+    radial-gradient(4.6px 6.4px at 84px 12.6px, #ff7aa0 96%, transparent) 0 0 / 96px 22px repeat-x,
+    radial-gradient(3px 2.3px at 84px 4.6px, #4f5f98 96%, transparent) 0 0 / 96px 22px repeat-x,
+    radial-gradient(60% 6px at 50% 0, transparent 84%, rgba(255, 255, 255, 0.55) 87% 96%, transparent 98%) 12px 0 / 24px 7px repeat-x;
+  filter: drop-shadow(0 0 3px rgba(255, 143, 171, 0.95)) drop-shadow(0 0 8px rgba(255, 143, 171, 0.45));
+  animation-delay: -0.75s;
 }
+
 body.tema-natal .barra-inferior { background: var(--surface); border-top: none; backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: 0 -6px 24px rgba(10, 20, 60, 0.3); }
-/* Neve fofa acumulada em cima da pílula da barra de baixo (como num telhado) */
-body.tema-natal .barra-inferior::before {
-  content: ''; position: absolute; left: 18px; right: 18px; top: -11px; height: 16px; pointer-events: none; z-index: 2;
-  background:
-    radial-gradient(9px 8px at 10px 10px, #ffffff 98%, transparent) 0 0 / 74px 16px repeat-x,
-    radial-gradient(7px 6px at 27px 11px, #ffffff 98%, transparent) 0 0 / 74px 16px repeat-x,
-    radial-gradient(11px 9px at 46px 10px, #ffffff 98%, transparent) 0 0 / 74px 16px repeat-x,
-    radial-gradient(6px 5px at 64px 12px, #ffffff 98%, transparent) 0 0 / 74px 16px repeat-x,
-    linear-gradient(#ffffff, #ffffff) 0 100% / 100% 6px no-repeat;
-  -webkit-mask: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
-  filter: drop-shadow(0 -1px 2px rgba(20, 35, 90, 0.22));
+/* Pisca-pisca em cima da pílula da barra de baixo: fio com barriguinha entre as lâmpadas (no fundo
+   da própria barra) e lâmpadas com reflexo e soquete em dois grupos que piscam alternados:
+   dourada e branca quentinha num, rosa no outro. As pontas somem suavemente. */
+body.tema-natal .barra-inferior {
+  border: 1px solid color-mix(in srgb, var(--nt-azul) 35%, var(--line));
+  background: radial-gradient(60% 6px at 50% 0, transparent 84%, rgba(255, 255, 255, 0.6) 87% 96%, transparent 98%) 6px -1px / 24px 7px repeat-x, var(--surface);
 }
-[data-theme='light'] body.tema-natal .barra-inferior::before { filter: drop-shadow(0 -1px 2px rgba(40, 70, 140, 0.3)); }
-body.tema-natal .barra-inferior { border: 1px solid color-mix(in srgb, var(--nt-azul) 35%, var(--line)); }
+[data-theme='light'] body.tema-natal .barra-inferior { background: radial-gradient(60% 6px at 50% 0, transparent 84%, rgba(38, 50, 95, 0.4) 87% 96%, transparent 98%) 6px -1px / 24px 7px repeat-x, var(--surface); }
+body.tema-natal .barra-inferior::before, body.tema-natal .barra-inferior::after {
+  content: ''; position: absolute; left: 18px; right: 18px; top: -7px; height: 22px; pointer-events: none; z-index: 2;
+  -webkit-mask: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent); mask: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+  animation: nt-pisca-pisca 1.5s infinite;
+}
+body.tema-natal .barra-inferior::before {
+  background:
+    radial-gradient(1.5px 2.2px at 10.4px 10px, rgba(255, 255, 255, 0.95) 96%, transparent) 0 0 / 96px 22px repeat-x,
+    radial-gradient(4.6px 6.4px at 12px 12.6px, #ffd36e 96%, transparent) 0 0 / 96px 22px repeat-x,
+    radial-gradient(3px 2.3px at 12px 4.6px, #4f5f98 96%, transparent) 0 0 / 96px 22px repeat-x,
+    radial-gradient(1.5px 2.2px at 58.4px 10px, rgba(255, 255, 255, 0.95) 96%, transparent) 0 0 / 96px 22px repeat-x,
+    radial-gradient(4.6px 6.4px at 60px 12.6px, #fff3d1 96%, transparent) 0 0 / 96px 22px repeat-x,
+    radial-gradient(3px 2.3px at 60px 4.6px, #4f5f98 96%, transparent) 0 0 / 96px 22px repeat-x;
+  filter: drop-shadow(0 0 3px rgba(255, 214, 120, 0.95)) drop-shadow(0 0 8px rgba(255, 214, 120, 0.5));
+}
+body.tema-natal .barra-inferior::after {
+  background:
+    radial-gradient(1.5px 2.2px at 34.4px 10px, rgba(255, 255, 255, 0.95) 96%, transparent) 0 0 / 96px 22px repeat-x,
+    radial-gradient(4.6px 6.4px at 36px 12.6px, #ff8fab 96%, transparent) 0 0 / 96px 22px repeat-x,
+    radial-gradient(3px 2.3px at 36px 4.6px, #4f5f98 96%, transparent) 0 0 / 96px 22px repeat-x,
+    radial-gradient(1.5px 2.2px at 82.4px 10px, rgba(255, 255, 255, 0.95) 96%, transparent) 0 0 / 96px 22px repeat-x,
+    radial-gradient(4.6px 6.4px at 84px 12.6px, #ff7aa0 96%, transparent) 0 0 / 96px 22px repeat-x,
+    radial-gradient(3px 2.3px at 84px 4.6px, #4f5f98 96%, transparent) 0 0 / 96px 22px repeat-x;
+  filter: drop-shadow(0 0 3px rgba(255, 143, 171, 0.95)) drop-shadow(0 0 8px rgba(255, 143, 171, 0.5));
+  animation-delay: -0.75s;
+}
+@keyframes nt-pisca-pisca { 0%, 46% { opacity: 1; } 54%, 96% { opacity: 0.3; } 100% { opacity: 1; } }
 body.tema-natal .bi-item.ativo { color: var(--accent-strong); }
 body.tema-natal .bi-item.ativo svg { animation: nt-pula 0.5s var(--ease-spring); filter: drop-shadow(0 0 6px rgba(255, 143, 171, 0.6)); }
 @keyframes nt-pula { 0% { transform: scale(0.8); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }
@@ -520,7 +556,7 @@ body.tema-natal .auth-anjo { animation: nt-flutua 3.5s ease-in-out infinite; fil
 @media (prefers-reduced-motion: reduce) {
   .nt-deco .nt-floco, .nt-deco .nt-treno, .nt-deco .nt-nuvem, .nt-chuva, body.tema-natal .tb-floco { display: none !important; }
   .nt-lua, .nt-estrelinha, .nt-luzes i, .nt-janela, .nt-fumaca circle, .nt-braco, .tb-boneco, .tema-banner,
-  body.tema-natal .sidebar::before, body.tema-natal .barra-inferior::before, body.tema-natal .topo-mobile::after,
+  body.tema-natal .sidebar::before, body.tema-natal .barra-inferior::before, body.tema-natal .barra-inferior::after, body.tema-natal .topo-mobile::before, body.tema-natal .topo-mobile::after,
   body.tema-natal .story-ring.tem, body.tema-natal .story-ring.tem .story-ring-in,
   body.tema-natal .post-compositor, body.tema-natal .direct-lista-topo::after,
   body.tema-natal .direct-placeholder-ic, body.tema-natal .auth-anjo, body.tema-natal .bi-item.ativo svg,
@@ -531,3 +567,8 @@ body.tema-natal .auth-anjo { animation: nt-flutua 3.5s ease-in-out infinite; fil
 /* Login: a assinatura fica numa pílula para não sumir em cima da neve da cena */
 body.tema-natal .auth-colofao { position: relative; z-index: 2; align-self: center; width: max-content; margin-left: auto; margin-right: auto; padding: 6px 14px; border-radius: 999px; background: rgba(28, 43, 97, 0.62); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); color: #e8efff; }
 [data-theme='light'] body.tema-natal .auth-colofao { background: rgba(255, 255, 255, 0.85); color: #4f5d8c; box-shadow: 0 4px 14px rgba(40, 70, 140, 0.12); }
+/* Tema claro: as lampadinhas ganham contorno de sombra para não sumirem no fundo branco */
+[data-theme='light'] body.tema-natal .topo-mobile::before, [data-theme='light'] body.tema-natal .topo-mobile::after,
+[data-theme='light'] body.tema-natal .barra-inferior::before, [data-theme='light'] body.tema-natal .barra-inferior::after {
+  filter: drop-shadow(0 1px 1.2px rgba(38, 50, 95, 0.45)) drop-shadow(0 0 5px rgba(255, 170, 120, 0.55));
+}

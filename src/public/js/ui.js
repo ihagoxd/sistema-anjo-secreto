@@ -3542,11 +3542,26 @@
       var enq = comp.querySelector('[data-enquete-builder]');
       return !!(enq && !enq.hidden);
     }
-    if (ta) { ta.addEventListener('focus', abrir); ta.addEventListener('input', abrir); }
+    if (ta) { ta.addEventListener('focus', abrir); ta.addEventListener('input', abrir); ta.addEventListener('pointerdown', abrir); }
     comp.addEventListener('change', function (e) { if (e.target.type === 'file') abrir(); });
     comp.addEventListener('click', function (e) { if (e.target.closest('[data-enquete-btn], [data-camera], [data-foto-btn]')) abrir(); });
     comp.addEventListener('reset', function () { setTimeout(function () { comp.classList.remove('aberto'); }, 0); });
     if (temConteudo()) abrir();
+    // Atalho da galeria (compositor fechado): mesmo botão de foto do rodapé
+    var rapida = comp.querySelector('[data-foto-rapida]');
+    if (rapida) rapida.addEventListener('click', function () { abrir(); var b = comp.querySelector('[data-foto-btn]'); if (b) b.click(); });
+    // Tocou e saiu sem escrever nem escolher nada: volta a ser uma linha só
+    function temOpcoes() {
+      var colab = comp.querySelector('[data-colab-id]'), local = comp.querySelector('[data-local-input]'), pres = comp.querySelector('[data-presente-input]');
+      return !!((colab && colab.value) || (local && local.value) || (pres && pres.value));
+    }
+    comp.addEventListener('focusout', function () {
+      setTimeout(function () {
+        if (comp.contains(document.activeElement)) return;
+        if (document.querySelector('.modal:not([hidden]), .cam-modal:not([hidden]), .cropper:not([hidden])')) return; // folha de marcar/local/câmera aberta
+        if (!temConteudo() && !temOpcoes()) comp.classList.remove('aberto');
+      }, 180);
+    });
   })();
 
   /* ---------- Nota (Instagram Notes): prévia ao vivo, contador e sugestões ---------- */

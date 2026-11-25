@@ -25,14 +25,14 @@ async function listarLogs(opcoes = 200) {
   const limite = Math.min(Math.max(parseInt(o.limite, 10) || 200, 1), 500);
   const offset = Math.max(parseInt(o.offset, 10) || 0, 0);
   const acao = o.acao ? String(o.acao).trim().toUpperCase() : null;
-  const termo = o.q && String(o.q).trim() ? `%${String(o.q).trim()}%` : null;
+  const termo = o.q && String(o.q).trim() ? `%${db.semAcentoJs(String(o.q).trim())}%` : null;
   const res = await db.query(
     `SELECT l.*, u.nome AS nome_usuario, u.usuario AS login_usuario,
             COUNT(*) OVER()::int AS total
        FROM logs_sistema l
        LEFT JOIN usuarios u ON u.id_usuario = l.id_usuario
       WHERE ($1::text IS NULL OR l.acao = $1)
-        AND ($2::text IS NULL OR l.descricao ILIKE $2 OR u.nome ILIKE $2 OR u.usuario ILIKE $2 OR l.ip ILIKE $2)
+        AND ($2::text IS NULL OR ${db.semAcentoSql('l.descricao')} LIKE $2 OR ${db.semAcentoSql('u.nome')} LIKE $2 OR lower(u.usuario) LIKE $2 OR l.ip LIKE $2)
       ORDER BY l.criado_em DESC
       LIMIT $3 OFFSET $4`,
     [acao, termo, limite, offset]
@@ -43,7 +43,7 @@ async function listarLogs(opcoes = 200) {
 // Ações que já apareceram nos logs (para o filtro), com a contagem de cada uma.
 async function listarAcoes() {
   const res = await db.query(
-    `SELECT acao, COUNT(*)::int AS n FROM logs_sistema GROUP BY acao ORDER BY acao ASC`
+    `SELECT acao, COUNT(*)::int AS n FROM logs_sistema GROUP BY acao ORDER BY n DESC, acao ASC`
   );
   return res.rows;
 }

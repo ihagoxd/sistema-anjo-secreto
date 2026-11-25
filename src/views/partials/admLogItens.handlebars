@@ -1,0 +1,14 @@
+{{! Itens da lista de logs (a página inicial e cada "carregar mais"/filtro por fetch usam este mesmo trecho) }}
+{{#each logs}}
+  <li class="atv-item adm-log">
+    <span class="atv-dot"></span>
+    <div class="atv-txt">
+      <span><span class="atv-acao">{{rotuloAcao this.acao}}</span>{{#if this.nome_usuario}} <span class="atv-quem">· {{this.nome_usuario}}</span>{{/if}}</span>
+      {{#if this.descricao}}<span class="log-det adm-log-det">{{this.descricao}}</span>{{/if}}
+      <span class="adm-log-meta">{{formatarData this.criado_em}}{{#if this.ip}} · IP {{this.ip}}{{/if}}</span>
+    </div>
+    <span class="atv-tempo">{{tempoRel this.criado_em}}</span>
+  </li>
+{{else}}
+  <li class="adm-logs-vazio">{{#if filtrando}}Nada encontrado com esse filtro.{{else}}Nenhum log ainda.{{/if}}</li>
+{{/each}}

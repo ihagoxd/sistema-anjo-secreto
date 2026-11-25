@@ -9,7 +9,7 @@ const temaService = require('../services/tema.service');
 const notificacaoService = require('../services/notificacao.service');
 const avisoModel = require('../models/aviso.model');
 const { registrarLog, listarLogs, listarAcoes } = require('../services/log.service');
-const { responder } = require('../utils/responder');
+const { responder, renderizar, ehFetch } = require('../utils/responder');
 const { linhaAtualizada, paraLinha } = require('./usuario.controller');
 
 // Volta para a página de onde a ação partiu (lista de usuários com filtro, ou aprovações).
@@ -159,7 +159,7 @@ async function postRecusar(req, res, next) {
 }
 
 // ---------- Logs (auditoria) ----------
-const LOGS_POR_PAGINA = 100;
+const LOGS_POR_PAGINA = 40;
 async function getLogs(req, res, next) {
   try {
     const acao = String(req.query.acao || '').trim().toUpperCase();
@@ -172,6 +172,11 @@ async function getLogs(req, res, next) {
     const total = logs.length ? logs[0].total : 0;
     const paginas = Math.max(1, Math.ceil(total / LOGS_POR_PAGINA));
     const base = `/admin/logs?acao=${encodeURIComponent(acao)}&q=${encodeURIComponent(q)}`;
+    // Tela fluida: filtro, busca e "carregar mais" pedem só os itens (HTML pronto) por fetch
+    if (ehFetch(req)) {
+      const html = await renderizar(res, 'partials/admLogItens', { logs, filtrando: !!(acao || q) });
+      return res.json({ ok: true, html, total, pagina, proxima: pagina < paginas });
+    }
     res.render('admin/logs', {
       titulo: 'Logs do sistema',
       logs, total, acao, q, pagina, paginas,

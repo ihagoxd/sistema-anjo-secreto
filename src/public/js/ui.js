@@ -7589,7 +7589,7 @@
       t.addEventListener('animationend', function () { t.remove(); });
       camada.appendChild(t);
     }
-    if (camada) setInterval(treno, 70000 + Math.random() * 30000);
+    if (camada) { setTimeout(treno, 9000); setInterval(treno, 32000 + Math.random() * 16000); }
   })();
 
   /* ---------- Tema da conversa (Direct do escritório, como no Instagram) ----------

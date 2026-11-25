@@ -8525,6 +8525,39 @@
       if (linha) abrirFolha(linha);
     });
 
+    // Tela "Editar usuário": as mesmas ações, mas o resultado fica nesta tela
+    function naEdicao(acao, d, tela) {
+      if (d.msg) toast(d.msg);
+      if (acao === 'excluir') { setTimeout(function () { location.href = '/admin/usuarios'; }, 700); return; }
+      if (acao === 'inativar' || acao === 'ativar') {
+        var inativo = acao === 'inativar';
+        tela.toggleAttribute('data-inativo', inativo);
+        var bi = tela.querySelector('[data-adm-ed-op="inativar"]'), ba = tela.querySelector('[data-adm-ed-op="ativar"]');
+        if (bi) bi.hidden = inativo;
+        if (ba) ba.hidden = !inativo;
+        var sit = tela.querySelector('[data-adm-ed-sit]');
+        if (sit) sit.textContent = inativo ? 'Inativo' : 'Ativo';
+      }
+      if (d.aviso) setTimeout(function () { avisar(d.aviso, d.link); }, 250);
+    }
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-adm-ed-op]');
+      if (!b) return;
+      var tela = b.closest('[data-adm-ed]');
+      if (tela) executar(b.getAttribute('data-adm-ed-op'), tela);
+    });
+    // Salvou nome/login: o topo da tela acompanha
+    var formEd = document.querySelector('[data-adm-ed] form[data-fluido]');
+    if (formEd) formEd.addEventListener('fluido:salvo', function (e) {
+      var tela = formEd.closest('[data-adm-ed]');
+      var d = e.detail || {};
+      if (!tela) return;
+      var n = tela.querySelector('[data-adm-ed-nome]'), l = tela.querySelector('[data-adm-ed-login]');
+      if (n && d.nome) { n.textContent = d.nome; tela.setAttribute('data-nome', d.nome); }
+      if (l && d.usuario) l.textContent = '@' + d.usuario;
+      if (d.aviso) setTimeout(function () { avisar(d.aviso); }, 250);
+    });
+
     function executar(acao, linha) {
       if (!linha) return;
       var id = linha.getAttribute('data-adm-pessoa'), nome = linha.getAttribute('data-nome');
@@ -8548,7 +8581,8 @@
         postar(url).then(function (d) {
           if (!d || !d.ok) { toast((d && d.erro) || 'Não foi possível concluir.'); return; }
           if (acao === 'excluir') d.html = '';
-          aplicarResposta(d, linha);
+          if (linha.hasAttribute('data-adm-ed')) naEdicao(acao, d, linha);
+          else aplicarResposta(d, linha);
           if (acao === 'senha' && d.senha) mostrarSenha(d.nome || nome, d.senha);
         }).catch(function () { toast('Sem conexão. Tente de novo.'); })
           .finally(function () { linha.classList.remove('enviando'); });

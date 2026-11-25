@@ -119,6 +119,7 @@ async function getEditar(req, res, next) {
     delete req.session.senhaResetada;
     res.render('admin/usuarioEditar', {
       titulo: 'Editar usuário',
+      pagina: 'adm-ed',
       alvo,
       senhaResetada,
       ehProprio: Number(alvo.id_usuario) === Number(req.session.usuario.id_usuario),

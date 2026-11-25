@@ -4861,3 +4861,24 @@ html.mini .tema-banner { animation: none !important; }
 .adm-sec-tit { display: flex; align-items: baseline; justify-content: space-between; }
 .adm-sec-tit a { font-size: 13px; text-transform: none; letter-spacing: 0; color: var(--accent-strong); }
 .adm-atv { padding: 4px 14px; }
+
+/* Editar usuário (admin) */
+.adm-ed-quem { display: flex; align-items: center; gap: 12px; padding: 18px 16px 14px; }
+.adm-ed-quem .adm-av { width: 58px; height: 58px; font-size: 21px; }
+.adm-ed-quem > div { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+.adm-ed-quem strong { font-size: 17px; }
+.adm-ed-quem small { font-size: 13px; color: var(--text-faint); }
+.adm-ed[data-inativo] .adm-ed-quem .adm-av { opacity: 0.55; }
+.adm-ed-perfil { width: 40px; height: 40px; flex-shrink: 0; display: grid; place-items: center; border-radius: 50%; color: var(--text-soft); }
+.adm-ed-perfil:hover { background: var(--hover); color: var(--text); }
+.adm-ed-sec { padding: 18px 16px 8px; font-size: 13px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; color: var(--text-faint); }
+.adm-ed-tipos { margin: 0 16px; }
+.adm-tipo:has(input:disabled) { cursor: default; opacity: 0.75; }
+.adm-ed-acoes { margin: 0 16px; }
+.pn-linha.adm-ed-perigo, .pn-linha.adm-ed-perigo .pn-linha-ic { color: var(--st-vermelho); }
+.pn-linha.adm-ed-perigo .pn-linha-ic { background: color-mix(in srgb, var(--st-vermelho) 12%, transparent); }
+.adm-ed .senha-prov-card { margin: 0 16px 12px; }
+@media (max-width: 899px) {
+  body.pg-adm-ed .topo-mobile { display: none; }
+  body.pg-adm-ed .container { padding: 0 0 calc(96px + env(safe-area-inset-bottom, 0px)); }
+}

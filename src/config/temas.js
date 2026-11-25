@@ -7,7 +7,7 @@
  * login) e pode liberar uma aba extra de preferências para os participantes
  * (ex.: Mês das Crianças → "presentes que eu mais gosto"), que o anjo consulta.
  *
- * Temas: padrão, Dia das Crianças e Halloween. Para criar um novo
+ * Temas: padrão, Dia das Crianças, Halloween e Natal. Para criar um novo
  * tema: adicione um item aqui, uma folha /css/tema-<chave>.css e (se tiver aba de
  * preferências) os campos em `prefs`. O resto do app lê daqui.
  */
@@ -29,6 +29,9 @@ const IC = {
   filme: svg('<rect x="2" y="2" width="20" height="20" rx="2.2"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/>'),
   fantasma: svg('<path d="M5 21V10a7 7 0 0 1 14 0v11l-2.3-1.7L14.3 21 12 19.3 9.7 21l-2.4-1.7z"/><circle cx="9.5" cy="10" r="1" fill="currentColor"/><circle cx="14.5" cy="10" r="1" fill="currentColor"/>'),
   raio: svg('<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>'),
+  arvore: svg('<polygon points="12 2 17.5 9 14.6 9 19 15 15.6 15 19.5 20 4.5 20 8.4 15 5 15 9.4 9 6.5 9"/><line x1="12" y1="20" x2="12" y2="23"/>'),
+  talheres: svg('<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/>'),
+  biscoito: svg('<circle cx="12" cy="12" r="10"/><circle cx="8.5" cy="9" r="1" fill="currentColor"/><circle cx="14.5" cy="8.5" r="1" fill="currentColor"/><circle cx="15.5" cy="14.5" r="1" fill="currentColor"/><circle cx="9.5" cy="15" r="1" fill="currentColor"/>'),
 };
 
 const TEMAS = [
@@ -143,6 +146,56 @@ const TEMAS = [
         { campo: 'filme', tipo: 'texto', rotulo: 'Filme ou série de terror favorita', emoji: '🎬', icone: IC.filme, placeholder: 'Ex.: Invocação do Mal, Stranger Things, Sexta-Feira 13…' },
         { campo: 'medo', tipo: 'texto', rotulo: 'Meu medo bobo', emoji: '🕷️', icone: IC.fantasma, placeholder: 'Ex.: barata, escuro, palhaço, elevador…' },
         { campo: 'travessura', tipo: 'textarea', rotulo: 'Uma travessura que eu já aprontei', emoji: '😈', icone: IC.raio, placeholder: 'Aquela história que a turma precisa saber…' },
+        { campo: 'recado', tipo: 'textarea', rotulo: 'Recadinho pro meu anjo', emoji: '💌', icone: IC.carta, placeholder: 'Qualquer dica extra para o seu anjo acertar no presente' },
+      ],
+    },
+  },
+  {
+    chave: 'natal',
+    nome: 'Natal',
+    emoji: '🎄',
+    icone: IC.arvore,
+    slogan: 'Noite Feliz',
+    descricao: 'Dezembro com cara de Natal: neve caindo devagar, um varal de luzinhas piscando, vermelho e verde nos botões, dourado nos detalhes e uma aba para cada um escrever a cartinha do que quer ganhar.',
+    cor: '#071510',
+    classe: 'tema-natal',
+    css: 'tema-natal.css',
+    placeholderPost: 'Conta pra turma: como está o clima de Natal por aí?',
+    mudancas: [
+      'Neve caindo e varal de luzinhas piscando em todas as telas',
+      'Vermelho e verde nos botões, dourado nos detalhes e noite de pinheiros no fundo',
+      'Direct com balões vermelhos e verdes e flocos de neve no fundo da conversa',
+      'Faixa "Noite Feliz" no feed e no painel',
+      'Aba "Natal" nas preferências: a cartinha com o que pediria ao Papai Noel, a ceia, o doce e o filme favorito',
+      'O anjo vê a cartinha na página do protegido',
+      'Neve de presentes ao salvar a cartinha (e a árvore da faixa brilha ao toque)',
+    ],
+    banner: {
+      titulo: 'O Natal chegou',
+      texto: 'Escreva a sua cartinha: conte o que você pediria ao Papai Noel e deixe o seu anjo fazer a parte dele.',
+      botao: 'Escrever minha cartinha',
+      botaoPreenchido: 'Ver minha cartinha',
+    },
+    prefs: {
+      titulo: 'Natal',
+      subtitulo: 'O que você pediria ao Papai Noel? Seu anjo consulta esta cartinha.',
+      heroTitulo: 'Querido Papai Noel…',
+      heroTexto: 'Presentes, o doce da ceia, aquele filme que você vê todo ano… Quanto mais você contar, mais fácil o seu anjo acertar.',
+      gostosTitulo: 'A cartinha de Natal de',
+      cardTexto: 'Escreva a sua cartinha de Natal',
+      cardPreenchido: 'Ver minha cartinha',
+      campos: [
+        {
+          campo: 'presentes', tipo: 'lista', max: 12,
+          rotulo: 'O que eu pediria ao Papai Noel', emoji: '🎁', icone: IC.presente,
+          dica: 'Digite e aperte Enter para adicionar (até 12). Ou toque nas ideias abaixo.',
+          placeholder: 'Ex.: livro, perfume, caneca…',
+          sugestoes: ['📚 Livro', '🌸 Perfume', '☕ Caneca', '🧦 Meias divertidas', '🍫 Chocolate', '🍷 Vinho', '🎧 Fone de ouvido', '🪴 Plantinha', '🕯️ Vela aromática', '🧣 Cachecol', '🎮 Jogo', '🧴 Kit de skincare'],
+        },
+        { campo: 'ceia', tipo: 'texto', rotulo: 'Prato favorito da ceia', emoji: '🍗', icone: IC.talheres, placeholder: 'Ex.: peru, farofa, salpicão, bacalhau…' },
+        { campo: 'doce', tipo: 'texto', rotulo: 'Doce de Natal favorito', emoji: '🍪', icone: IC.biscoito, placeholder: 'Ex.: panetone, chocotone, rabanada, pavê…' },
+        { campo: 'filme', tipo: 'texto', rotulo: 'Filme de Natal que não pode faltar', emoji: '🎬', icone: IC.filme, placeholder: 'Ex.: Esqueceram de Mim, O Grinch, Simplesmente Amor…' },
+        { campo: 'tradicao', tipo: 'textarea', rotulo: 'Uma tradição de Natal que eu amo', emoji: '⭐', icone: IC.estrela, placeholder: 'Montar a árvore, o amigo secreto da família, a ceia na casa da vó…' },
         { campo: 'recado', tipo: 'textarea', rotulo: 'Recadinho pro meu anjo', emoji: '💌', icone: IC.carta, placeholder: 'Qualquer dica extra para o seu anjo acertar no presente' },
       ],
     },

@@ -143,6 +143,50 @@
       inp.setSelectionRange(inp.value.length, inp.value.length);
     });
 
+    // Curtir comentário: o coração muda na hora (otimista) e o servidor confirma o total.
+    // Toque duplo no texto do comentário também curte (como no Instagram).
+    function textoCurtidas(n) { return n + (n === 1 ? ' curtida' : ' curtidas'); }
+    function aplicarCurtidaComent(item, curtiu, total) {
+      var b = item.querySelector(':scope > .tw-coment-like'); var cont = item.querySelector(':scope > .tw-coment-main > .tw-coment-acoes [data-coment-curtidas]');
+      if (b) { b.classList.toggle('ativo', curtiu); b.setAttribute('aria-pressed', curtiu ? 'true' : 'false'); }
+      if (cont) { cont.textContent = textoCurtidas(total); cont.hidden = !total; }
+    }
+    var curtindoComent = {};
+    function curtirComentario(item, soCurtir) {
+      var b = item && item.querySelector(':scope > .tw-coment-like');
+      if (!b) return;
+      var id = b.getAttribute('data-coment-curtir');
+      var ja = b.classList.contains('ativo');
+      if (soCurtir && ja) { b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); return; } // toque duplo não descurte
+      if (curtindoComent[id]) return;
+      curtindoComent[id] = true;
+      var cont = item.querySelector(':scope > .tw-coment-main > .tw-coment-acoes [data-coment-curtidas]');
+      var antes = parseInt(cont && cont.textContent, 10) || 0;
+      aplicarCurtidaComent(item, !ja, Math.max(0, antes + (ja ? -1 : 1)));
+      if (!ja) { b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); try { if (navigator.vibrate) navigator.vibrate(8); } catch (x) {} }
+      var m = document.querySelector('meta[name="csrf-token"]');
+      fetch('/feed/comentarios/' + id + '/curtir', { method: 'POST', headers: { 'X-CSRF-Token': m ? m.getAttribute('content') : '', 'X-Requested-With': 'fetch', 'Accept': 'application/json' } })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+        .then(function (d) { aplicarCurtidaComent(item, !!d.curtiu, Number(d.total) || 0); })
+        .catch(function () { aplicarCurtidaComent(item, ja, antes); })
+        .then(function () { delete curtindoComent[id]; });
+    }
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-coment-curtir]');
+      if (!b) return;
+      e.preventDefault();
+      curtirComentario(b.closest('.tw-coment'), false);
+    });
+    var ultToqueComent = { el: null, t: 0 };
+    document.addEventListener('click', function (e) {
+      var txt = e.target.closest('.tw-coment-texto');
+      if (!txt || e.target.closest('a')) return;
+      var item = txt.closest('.tw-coment');
+      var agora = Date.now();
+      if (ultToqueComent.el === item && agora - ultToqueComent.t < 320) { ultToqueComent.el = null; curtirComentario(item, true); return; }
+      ultToqueComent = { el: item, t: agora };
+    });
+
     // Abrir/fechar comentários: no celular vira gaveta (trava o scroll do fundo,
     // teclado só abre quando a pessoa toca no campo); no desktop segue inline.
     var mqCel = window.matchMedia('(max-width: 899px)');
@@ -354,9 +398,11 @@
             '</button></form></div>' +
             (c.texto ? '<div class="tw-coment-texto">' + comMencoesJs(c.texto) + '</div>' : '') +
             (c.imagem ? '<div class="tw-coment-img" data-img="' + escaparHtml(c.imagem) + '" role="button" tabindex="0" aria-label="Ampliar imagem"><img src="' + escaparHtml(c.imagem) + '" alt="Imagem do comentário" draggable="false"></div>' : '') +
-            '<button type="button" class="tw-coment-resp" data-coment-responder="' + escaparHtml(c.usuario) + '" data-coment-pai="' + (c.responde_a || c.id_comentario) + '">Responder</button>'
+            '<div class="tw-coment-acoes"><span class="tw-coment-curtidas" data-coment-curtidas hidden>0 curtidas</span>' +
+            '<button type="button" class="tw-coment-resp" data-coment-responder="' + escaparHtml(c.usuario) + '" data-coment-pai="' + (c.responde_a || c.id_comentario) + '">Responder</button></div>'
             + (fioPai ? '' : '<div class="tw-fio" data-fio="' + c.id_comentario + '" hidden><button type="button" class="tw-ver-respostas" data-ver-respostas data-n="0">Ver respostas</button><div class="tw-respostas" hidden></div></div>')
-            + '</div>';
+            + '</div>'
+            + '<button type="button" class="tw-coment-like" data-coment-curtir="' + c.id_comentario + '" aria-pressed="false" aria-label="Curtir comentário"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg></button>';
           if (lista) lista.appendChild(el);
           if (inp) inp.value = '';
           cancelarRespostaFio(form);

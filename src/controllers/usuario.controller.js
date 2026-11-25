@@ -222,4 +222,4 @@ async function postResetarSenha(req, res, next) {
   }
 }
 
-module.exports = { getLista, postCriar, getEditar, postEditar, postInativar, postAtivar, postExcluir, postResetarSenha };
+module.exports = { linhaAtualizada, getLista, postCriar, getEditar, postEditar, postInativar, postAtivar, postExcluir, postResetarSenha };

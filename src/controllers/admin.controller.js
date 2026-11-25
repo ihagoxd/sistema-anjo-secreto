@@ -9,6 +9,8 @@ const temaService = require('../services/tema.service');
 const notificacaoService = require('../services/notificacao.service');
 const avisoModel = require('../models/aviso.model');
 const { registrarLog, listarLogs, listarAcoes } = require('../services/log.service');
+const { responder } = require('../utils/responder');
+const { linhaAtualizada } = require('./usuario.controller');
 
 // Volta para a página de onde a ação partiu (lista de usuários com filtro, ou aprovações).
 function voltarDe(req, padrao) {
@@ -126,13 +128,15 @@ async function getAprovacoes(req, res, next) {
 async function postAprovar(req, res, next) {
   try {
     const r = await usuarioService.aprovarCadastro(req.params.id_usuario);
-    if (r.ok) {
-      await registrarLog({ idUsuario: req.session.usuario.id_usuario, acao: 'CADASTRO_APROVADO', descricao: `usuario: ${r.usuario.usuario}${r.reaprovado ? ' (estava recusado)' : ''}`, entidade: 'usuario', idReferencia: r.usuario.id_usuario, ip: req.ip });
-      req.session.flash = { sucesso: `Cadastro de "${r.usuario.nome}" aprovado. ${r.usuario.ativo ? 'A pessoa já pode entrar.' : 'A pessoa está inativa — ative-a para conseguir entrar.'}` };
-    } else {
-      req.session.flash = { erro: r.motivo === 'JA_APROVADO' ? 'Esse cadastro já estava aprovado.' : 'Cadastro não pôde ser aprovado.' };
-    }
-    res.redirect(voltarDe(req, '/admin/aprovacoes'));
+    if (!r.ok) return responder(req, res, { ok: false, erro: r.motivo === 'JA_APROVADO' ? 'Esse cadastro já estava aprovado.' : 'Cadastro não pôde ser aprovado.', destino: voltarDe(req, '/admin/aprovacoes') });
+    await registrarLog({ idUsuario: req.session.usuario.id_usuario, acao: 'CADASTRO_APROVADO', descricao: `usuario: ${r.usuario.usuario}${r.reaprovado ? ' (estava recusado)' : ''}`, entidade: 'usuario', idReferencia: r.usuario.id_usuario, ip: req.ip });
+    const aviso = r.usuario.ativo ? null : 'A pessoa está inativa: reative para ela conseguir entrar.';
+    responder(req, res, {
+      msg: `${r.usuario.nome} foi aprovado(a)`,
+      flash: `Cadastro de "${r.usuario.nome}" aprovado. ${r.usuario.ativo ? 'A pessoa já pode entrar.' : 'A pessoa está inativa — ative-a para conseguir entrar.'}`,
+      destino: voltarDe(req, '/admin/aprovacoes'),
+      dados: { aviso, ...(await linhaAtualizada(req, res, r.usuario.id_usuario)) },
+    });
   } catch (err) {
     next(err);
   }
@@ -141,13 +145,14 @@ async function postAprovar(req, res, next) {
 async function postRecusar(req, res, next) {
   try {
     const r = await usuarioService.recusarCadastro(req.params.id_usuario);
-    if (r.ok) {
-      await registrarLog({ idUsuario: req.session.usuario.id_usuario, acao: 'CADASTRO_RECUSADO', descricao: `usuario: ${r.usuario.usuario}`, entidade: 'usuario', idReferencia: r.usuario.id_usuario, ip: req.ip });
-      req.session.flash = { sucesso: `Cadastro de "${r.usuario.nome}" recusado. Se foi engano, dá para aprovar depois na lista de usuários (filtro "Recusados").` };
-    } else {
-      req.session.flash = { erro: 'Cadastro não pôde ser recusado (só cadastros pendentes podem ser recusados).' };
-    }
-    res.redirect(voltarDe(req, '/admin/aprovacoes'));
+    if (!r.ok) return responder(req, res, { ok: false, erro: 'Cadastro não pôde ser recusado (só cadastros pendentes podem ser recusados).', destino: voltarDe(req, '/admin/aprovacoes') });
+    await registrarLog({ idUsuario: req.session.usuario.id_usuario, acao: 'CADASTRO_RECUSADO', descricao: `usuario: ${r.usuario.usuario}`, entidade: 'usuario', idReferencia: r.usuario.id_usuario, ip: req.ip });
+    responder(req, res, {
+      msg: `Cadastro de ${r.usuario.nome} recusado`,
+      flash: `Cadastro de "${r.usuario.nome}" recusado. Se foi engano, dá para aprovar depois na lista de usuários (filtro "Recusados").`,
+      destino: voltarDe(req, '/admin/aprovacoes'),
+      dados: await linhaAtualizada(req, res, r.usuario.id_usuario),
+    });
   } catch (err) {
     next(err);
   }

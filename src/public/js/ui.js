@@ -3394,6 +3394,137 @@
     });
   })();
 
+  /* ---------- Direct: arrastar a conversa para a esquerda → Silenciar / Apagar (como no Instagram);
+     no PC, clique com o botão direito na conversa abre as mesmas opções. ---------- */
+  (function () {
+    var scroll = document.querySelector('.direct-scroll');
+    if (!scroll) return;
+    var metaA = document.querySelector('meta[name="csrf-token"]');
+    var CSRF_A = metaA ? metaA.getAttribute('content') : '';
+    var LARG = 152;
+    var acoes = document.createElement('div');
+    acoes.className = 'conv-acoes'; acoes.hidden = true;
+    acoes.innerHTML = '<button type="button" class="conv-acao conv-acao-mudo" data-conv-acao="silenciar"></button>'
+      + '<button type="button" class="conv-acao conv-acao-apagar" data-conv-acao="apagar">Apagar</button>';
+    scroll.appendChild(acoes);
+    var aberta = null;
+    function info(conv) {
+      if (conv.hasAttribute('data-conv-u')) return { canal: 'u', id: conv.getAttribute('data-conv-u') };
+      if (conv.hasAttribute('data-conv-g')) return { canal: 'g', id: conv.getAttribute('data-conv-g') };
+      return null;
+    }
+    function mudo(conv) { var m = conv.querySelector('[data-conv-mudo]'); return !!(m && !m.hidden); }
+    function posicionar(conv) {
+      acoes.style.top = conv.offsetTop + 'px'; acoes.style.height = conv.offsetHeight + 'px';
+      acoes.querySelector('[data-conv-acao="silenciar"]').textContent = mudo(conv) ? 'Ativar som' : 'Silenciar';
+      acoes.hidden = false;
+    }
+    function fechar(animar) {
+      if (!aberta) return;
+      var c = aberta; aberta = null;
+      c.style.transition = animar === false ? '' : 'transform 0.2s ease';
+      c.style.transform = '';
+      setTimeout(function () { c.style.transition = ''; c.classList.remove('deslizando'); if (!aberta) acoes.hidden = true; }, 210);
+    }
+    function abrir(conv) {
+      if (aberta && aberta !== conv) fechar();
+      aberta = conv; posicionar(conv);
+      conv.classList.add('deslizando');
+      conv.style.transition = 'transform 0.2s ease';
+      conv.style.transform = 'translateX(' + (-LARG) + 'px)';
+    }
+    // arrasto com o dedo
+    var sw = null;
+    scroll.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'mouse') return;
+      var conv = e.target.closest('.conv');
+      if (!conv || !info(conv) || e.target.closest('.conv-acoes')) return;
+      sw = { conv: conv, x0: e.clientX, y0: e.clientY, dx: 0, decidido: false, base: aberta === conv ? -LARG : 0 };
+    }, { passive: true });
+    scroll.addEventListener('pointermove', function (e) {
+      if (!sw) return;
+      var dx = e.clientX - sw.x0, dy = e.clientY - sw.y0;
+      if (!sw.decidido) {
+        if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+        sw.decidido = true;
+        if (Math.abs(dx) < Math.abs(dy) * 1.3) { sw = null; return; }
+        if (aberta && aberta !== sw.conv) fechar();
+        posicionar(sw.conv); sw.conv.classList.add('deslizando'); sw.conv.style.transition = 'none';
+      }
+      sw.dx = Math.max(-LARG - 40, Math.min(0, sw.base + dx));
+      sw.conv.style.transform = 'translateX(' + sw.dx + 'px)';
+    }, { passive: true });
+    function soltar() {
+      if (!sw) return;
+      var s = sw; sw = null;
+      if (!s.decidido) return;
+      s.conv.__arrastou = true; setTimeout(function () { s.conv.__arrastou = false; }, 350);
+      if (s.dx < -LARG / 2) abrir(s.conv); else { aberta = s.conv; fechar(); }
+    }
+    scroll.addEventListener('pointerup', soltar);
+    scroll.addEventListener('pointercancel', function () { if (sw && sw.decidido) { sw.dx = 0; } soltar(); });
+    // clique: com a conversa aberta, fecha em vez de navegar; depois de arrastar, não navega
+    scroll.addEventListener('click', function (e) {
+      var conv = e.target.closest('.conv');
+      if (conv && (conv.__arrastou || aberta === conv)) { e.preventDefault(); e.stopPropagation(); if (aberta === conv && !conv.__arrastou) fechar(); return; }
+      if (aberta && !e.target.closest('.conv-acoes')) { e.preventDefault(); fechar(); }
+    }, true);
+    scroll.addEventListener('scroll', function () { if (aberta) fechar(); }, { passive: true });
+
+    // ações
+    function postar(url) {
+      return fetch(url, { method: 'POST', headers: { 'X-CSRF-Token': CSRF_A, 'X-Requested-With': 'fetch', 'Accept': 'application/json' } })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(); });
+    }
+    function silenciar(conv) {
+      var i = info(conv); if (!i) return;
+      postar('/mensagens/' + i.canal + '/' + i.id + '/silenciar').then(function (d) {
+        var m = conv.querySelector('[data-conv-mudo]'); if (m) m.hidden = !d.silenciada;
+        toast(d.silenciada ? 'Conversa silenciada' : 'Som da conversa ativado');
+      }).catch(function () { toast('Não foi possível silenciar.'); });
+    }
+    var conf = null, alvoConf = null;
+    function confirmarApagar(conv) {
+      alvoConf = conv;
+      if (!conf) {
+        conf = document.createElement('div');
+        conf.className = 'modal'; conf.hidden = true; conf.setAttribute('aria-hidden', 'true');
+        conf.innerHTML = '<div class="modal-card conf-card"><h3 class="conf-titulo">Apagar conversa?</h3>'
+          + '<p class="texto-suave conf-sub">As mensagens somem só para você. A outra pessoa continua vendo tudo.</p>'
+          + '<div class="modal-acoes"><button type="button" class="btn btn-secundario btn-sm" data-fechar-modal>Cancelar</button>'
+          + '<button type="button" class="btn btn-primario btn-sm conf-perigo" data-conv-apagar-ok>Apagar</button></div></div>';
+        document.body.appendChild(conf);
+        conf.addEventListener('click', function (e) {
+          if (!e.target.closest('[data-conv-apagar-ok]') || !alvoConf) return;
+          fecharModal(conf);
+          var c = alvoConf, i = info(c); alvoConf = null;
+          postar('/mensagens/' + i.canal + '/' + i.id + '/limpar').then(function (d) {
+            var s = c.querySelector('.conv-sub'), h = c.querySelector('.conv-hora'), b = c.querySelector('.conv-badge');
+            if (s && d.rotulo) s.textContent = d.rotulo;
+            if (h) h.remove(); if (b) b.remove(); c.classList.remove('tem-novas');
+            // conversa aberta ao lado (PC): esvazia na hora
+            if (c.classList.contains('ativa')) { var msgs = document.getElementById('dmMsgs'); if (msgs) msgs.querySelectorAll('.dm-bolha, .dm-sistema, .dm-dia').forEach(function (x) { x.remove(); }); }
+            toast('Conversa apagada');
+          }).catch(function () { toast('Não foi possível apagar.'); });
+        });
+      }
+      abrirModal(conf);
+    }
+    acoes.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-conv-acao]'); if (!b || !aberta) return;
+      var conv = aberta;
+      fechar();
+      if (b.getAttribute('data-conv-acao') === 'silenciar') silenciar(conv); else confirmarApagar(conv);
+    });
+    // PC: botão direito na conversa → as mesmas opções
+    scroll.addEventListener('contextmenu', function (e) {
+      var conv = e.target.closest('.conv');
+      if (!conv || !info(conv)) return;
+      e.preventDefault();
+      abrir(conv);
+    });
+  })();
+
   /* ---------- Pesquisa do Direct: filtra a lista na hora (nome, @usuário, grupo), sem recarregar ---------- */
   (function () {
     var inp = document.querySelector('[data-direct-busca]');

@@ -76,7 +76,7 @@
           <span class="conv-av{{#if this.temStory}} st-anel {{#if this.storyVisto}}st-visto{{else}}st-tem{{/if}}{{/if}}"{{#if this.temStory}} data-ver-stories="{{this.id_usuario}}" title="Ver o story de {{this.nome}}"{{/if}}>{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="">{{else}}{{inicial this.nome}}{{/if}}</span>
           <i class="online-dot" data-online-de="{{this.id_usuario}}"{{#unless this.online}} hidden{{/unless}} title="Ativo agora"></i>
           <div class="conv-txt">
-            <div class="conv-nome">{{this.nome}}{{#if this.souProtegido}} <span class="tag-tirei">você tirou 🎁</span>{{/if}}</div>
+            <div class="conv-nome">{{this.nome}}{{#if this.souProtegido}} <span class="tag-tirei">você tirou 🎁</span>{{/if}}<span class="conv-mudo" data-conv-mudo{{#unless this.silenciada}} hidden{{/unless}} title="Silenciada"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13.7 21a2 2 0 0 1-3.4 0"/><path d="M18.6 13A17.9 17.9 0 0 1 18 8"/><path d="M6.3 6.3A5.9 5.9 0 0 0 6 8c0 7-3 9-3 9h14"/><path d="M18 8a6 6 0 0 0-9.3-5"/><line x1="1" y1="1" x2="23" y2="23"/></svg></span></div>
             <div class="conv-linha2"><span class="conv-sub">{{#if this.ultima}}{{#if this.ultima.minha}}Você: {{/if}}{{this.ultima.texto}}{{else}}@{{this.usuario}}{{/if}}</span>{{#if this.ultima}}<span class="conv-hora" data-conv-hora="{{isoData this.ultima.criado_em}}">· {{tempoCurto this.ultima.criado_em}}</span>{{/if}}</div>
           </div>
           {{#if this.naoLidas}}<span class="conv-badge">{{this.naoLidas}}</span>{{/if}}

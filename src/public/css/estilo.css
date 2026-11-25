@@ -4729,3 +4729,17 @@ html.mini .tema-banner { animation: none !important; }
 .conv-linha2 .conv-sub { flex: 0 1 auto; min-width: 0; }
 .conv-hora { flex-shrink: 0; font-size: 12.5px; color: var(--text-faint); white-space: nowrap; }
 .conv.tem-novas .conv-hora { color: var(--text-soft); }
+
+/* DIRECT: arrastar a conversa para a esquerda mostra Silenciar / Apagar por trás */
+.direct-scroll { position: relative; }
+.conv { touch-action: pan-y; }
+.conv.deslizando { position: relative; z-index: 2; background: var(--bg); }
+[data-theme='dark'] .direct-lista .conv.deslizando, .direct-lista .conv.deslizando { background: var(--surface); }
+@media (max-width: 899px) { .direct-lista .conv.deslizando { background: var(--bg); } }
+.conv-acoes { position: absolute; right: 8px; z-index: 1; display: flex; width: 152px; border-radius: 12px; overflow: hidden; }
+.conv-acoes[hidden] { display: none; }
+.conv-acao { flex: 1; border: none; color: #fff; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.conv-acao-mudo { background: #6b7280; }
+.conv-acao-apagar { background: var(--st-vermelho); }
+.conv-mudo { display: inline-grid; place-items: center; margin-left: 5px; color: var(--text-faint); vertical-align: -2px; }
+.conv-mudo[hidden] { display: none; }

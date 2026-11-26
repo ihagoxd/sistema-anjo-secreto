@@ -353,6 +353,8 @@ body.tema-natal .adm-lista, body.tema-natal .adm-camp-topo.adm-cp-quem {
   border: 1px solid var(--line); border-radius: 18px; background: color-mix(in srgb, var(--surface) 94%, transparent);
 }
 body.tema-natal .adm-lista { padding: 6px 12px; }
+/* Quando o filtro ou a busca não acham ninguém, o cartão vazio virava uma barrinha: some junto */
+body.tema-natal .adm-lista:not(:has(> :not([hidden]))) { display: none; }
 body.tema-natal .adm-camp-topo.adm-cp-quem { padding: 12px 14px; }
 /* O botão do topo à direita (novo usuário, publicar aviso, recusados) ficava em cima da lua e o ícone branco
    sumia nela: ganha um círculo da noite */

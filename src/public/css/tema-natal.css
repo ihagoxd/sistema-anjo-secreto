@@ -553,6 +553,10 @@ body.tema-natal .lado-rodape::after { content: ' · Feliz Natal!'; }
 body.tema-natal .tw-banner { background: linear-gradient(120deg, #0f2558 0%, #3e6fd8 100%); }
 body.tema-natal .tw-tab.ativo::after { background: var(--nt-grad); width: 64px; }
 body.tema-natal .tw-avatar.st-tem { box-shadow: 0 0 0 3px var(--surface), 0 0 0 7px var(--nt-vermelho); }
+/* Anel de story já visto (avatar do perfil e da lista do Direct): o "ouro" do tema (vermelho) misturado com a
+   linha azul virava roxo; fica no azul-gelo apagado, como na fileira dos stories do feed */
+body.tema-natal .tw-avatar.st-visto { box-shadow: 0 0 0 3px var(--surface), 0 0 0 6px color-mix(in srgb, var(--nt-azul) 40%, var(--line-strong)); }
+body.tema-natal .conv-av.st-visto, body.tema-natal .nota-av.st-visto { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px color-mix(in srgb, var(--nt-azul) 40%, var(--line-strong)); }
 body.tema-natal .tw-gostos-intro { background: color-mix(in srgb, var(--nt-vermelho) 16%, var(--surface)); }
 body.tema-natal .chip-item, body.tema-natal .gt-chips .chip-item { font-weight: 600; }
 body.tema-natal .chip-item:nth-child(2n+1) { background: #ffe3e7; color: #c41f38; }

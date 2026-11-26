@@ -684,6 +684,19 @@ body.tema-natal .auth-assina:hover { filter: none; text-decoration: underline; }
 [data-theme='light'] body.tema-natal .auth-colofao { filter: drop-shadow(0 4px 8px rgba(20, 50, 120, 0.2)); }
 @keyframes nt-etiqueta { from { transform: rotate(-3deg); } to { transform: rotate(3deg); } }
 @media (prefers-reduced-motion: reduce) { body.tema-natal .auth-colofao { animation: none; } }
+/* Logo do anjo maior no Natal. No celular o espaço sai de margens um pouco menores, para o login
+   continuar cabendo na tela sem precisar rolar. */
+body.tema-natal .auth-anjo { width: 200px; height: 200px; }
+@media (min-width: 860px) { body.tema-natal .auth-anjo { width: 232px; height: 232px; } }
+@media (max-width: 600px) {
+  body.tema-natal .auth-anjo { width: 148px; height: 148px; }
+  body.tema-natal .auth-kicker { margin-bottom: 4px; }
+  body.tema-natal .auth-wordmark { margin-top: 0; }
+  body.tema-natal .auth-losango { margin: 6px 0; }
+  body.tema-natal .auth-id { padding-bottom: 6px; }
+  body.tema-natal .auth-colofao { margin-top: 12px; transform-origin: 50% -12px; }
+  body.tema-natal .auth-colofao::after { height: 12px; }
+}
 /* Tema claro: as lampadinhas ganham contorno de sombra para não sumirem no fundo branco */
 [data-theme='light'] body.tema-natal .barra-inferior::before, [data-theme='light'] body.tema-natal .barra-inferior::after {
   filter: drop-shadow(0 1px 1.2px rgba(38, 50, 95, 0.45)) drop-shadow(0 0 5px rgba(255, 170, 120, 0.55));

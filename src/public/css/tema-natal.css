@@ -335,6 +335,8 @@ body.tema-natal .post-compositor {
    Mystery Quest): a pessoa já vê o texto com cara de Natal enquanto escreve. O @usuário da legenda segue na fonte normal. */
 body.tema-natal .tw-post-texto.ig-texto { font-family: var(--font-post); font-weight: 700; font-size: 21px; line-height: 1.4; color: var(--text); }
 body.tema-natal .tw-post-texto.ig-legenda { font-family: var(--font-post); font-weight: 700; font-size: 19px; line-height: 1.4; }
+/* Post longo (mais de 80 letras): a letra de cartão de Natal cansa em texto grande, vai na letra normal */
+body.tema-natal .tw-post-texto.longo { font-family: var(--font-body); font-weight: 400; font-size: 15.5px; line-height: 1.5; }
 body.tema-natal .tw-post-texto .ig-user { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-weight: 700; font-size: 14px; }
 body.tema-natal .tw-post-texto .mencao { font-family: inherit; }
 body.tema-natal .tw-post-texto .post-edit-box textarea { font-family: var(--font-post); font-weight: 700; font-size: 20px; }

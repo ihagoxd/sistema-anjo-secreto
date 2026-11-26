@@ -211,6 +211,11 @@ const helpers = {
     return y > 0 ? Math.max(0, Math.min(100, Math.round((x / y) * 100))) : 0;
   },
 
+  // Texto de post longo (mais de 80 letras): o tema pode trocar a letra enfeitada pela normal, que lê melhor
+  textoLongo(t) {
+    return String(t || '').length > 80;
+  },
+
   // Formata TIMESTAMP para pt-BR (dd/mm/aaaa hh:mm)
   formatarData(data) {
     if (!data) return '-';

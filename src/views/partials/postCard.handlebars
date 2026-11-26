@@ -42,7 +42,7 @@
     {{/if}}
   </header>
 
-  {{#unless this.imagem}}{{#if this.texto}}<div class="tw-post-texto ig-texto{{#if this.enquete}}{{#unless this.enquete.pergunta}} enq-pergunta{{/unless}}{{/if}}"><span data-post-texto>{{comMencoes this.texto}}</span></div>{{/if}}{{/unless}}
+  {{#unless this.imagem}}{{#if this.texto}}<div class="tw-post-texto ig-texto{{#if (textoLongo this.texto)}} longo{{/if}}{{#if this.enquete}}{{#unless this.enquete.pergunta}} enq-pergunta{{/unless}}{{/if}}"><span data-post-texto>{{comMencoes this.texto}}</span></div>{{/if}}{{/unless}}
   {{#if this.enquete}}{{> enquete this}}{{/if}}
 
   {{#if (alemDoPrimeiro this.midias)}}
@@ -89,7 +89,7 @@
   <div class="ig-rodape">
     <div class="ig-curtidas" data-vercurtidas="{{this.id_post}}" role="button" tabindex="0" title="Ver quem curtiu"{{#unless (num this.curtidas)}} hidden{{/unless}}><span data-linha-curtidas>{{linhaCurtidas this.curtidores this.curtidas}}</span></div>
 
-    {{#if this.imagem}}{{#if this.texto}}<div class="tw-post-texto ig-legenda"><a href="/u/{{this.usuario}}" class="ig-user">{{this.usuario}}</a><span data-post-texto>{{comMencoes this.texto}}</span></div>{{/if}}{{/if}}
+    {{#if this.imagem}}{{#if this.texto}}<div class="tw-post-texto ig-legenda{{#if (textoLongo this.texto)}} longo{{/if}}"><a href="/u/{{this.usuario}}" class="ig-user">{{this.usuario}}</a><span data-post-texto>{{comMencoes this.texto}}</span></div>{{/if}}{{/if}}
 
     {{#unless @root.detalhe}}
       {{! Prévia dos 2 comentários mais recentes (tom suave, diferente da legenda do autor) }}

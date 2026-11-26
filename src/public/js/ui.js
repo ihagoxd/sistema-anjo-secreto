@@ -8753,7 +8753,14 @@
           .then(function (r) { return r.json(); })
           .then(function (d) {
             if (meu !== seq || !d || !d.ok) return;
-            if (maisUm) lista.insertAdjacentHTML('beforeend', d.html); else { lista.innerHTML = d.html; }
+            if (maisUm) {
+              // A leva nova começa com o título do dia; se o dia continua o último da lista, o título sai
+              var dias = lista.querySelectorAll('.adm-log-dia'), ultDia = dias.length ? dias[dias.length - 1].getAttribute('data-dia') : null;
+              var nAntes = lista.children.length;
+              lista.insertAdjacentHTML('beforeend', d.html);
+              var primeiro = lista.children[nAntes];
+              if (primeiro && primeiro.classList.contains('adm-log-dia') && primeiro.getAttribute('data-dia') === ultDia) primeiro.remove();
+            } else { lista.innerHTML = d.html; }
             mais.hidden = !d.proxima;
             var filtrando = !!(est.acao || est.q);
             if (totalEl) totalEl.textContent = d.total + (d.total === 1 ? ' registro' : ' registros') + (filtrando ? (d.total === 1 ? ' encontrado' : ' encontrados') : '');

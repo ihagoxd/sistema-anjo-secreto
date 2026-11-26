@@ -10,6 +10,7 @@ const notificacaoService = require('../services/notificacao.service');
 const avisoModel = require('../models/aviso.model');
 const { registrarLog, listarLogs, listarAcoes } = require('../services/log.service');
 const { responder, renderizar, ehFetch } = require('../utils/responder');
+const { fuso } = require('../config/fuso');
 const { linhaAtualizada, paraLinha } = require('./usuario.controller');
 
 // Volta para a página de onde a ação partiu (lista de usuários com filtro, ou aprovações).
@@ -160,15 +161,34 @@ async function postRecusar(req, res, next) {
 
 // ---------- Logs (auditoria) ----------
 const LOGS_POR_PAGINA = 40;
+// Logs separados por dia, como a atividade do Instagram: o primeiro registro de cada dia leva o título
+// ("Hoje", "Ontem", "25 de novembro"). Num "carregar mais", o ui.js tira o título se o dia continua o anterior.
+function marcarDias(logs) {
+  const diaDe = (d) => d.toLocaleDateString('en-CA', { timeZone: fuso });
+  const hoje = diaDe(new Date()), ontem = diaDe(new Date(Date.now() - 86400000));
+  let anterior = null;
+  return logs.map((l) => {
+    const d = new Date(l.criado_em);
+    if (Number.isNaN(d.getTime())) return l;
+    const dia = diaDe(d);
+    if (dia === anterior) return l;
+    anterior = dia;
+    const outroAno = dia.slice(0, 4) !== hoje.slice(0, 4);
+    const diaTitulo = dia === hoje ? 'Hoje' : dia === ontem ? 'Ontem'
+      : d.toLocaleDateString('pt-BR', { timeZone: fuso, day: 'numeric', month: 'long', ...(outroAno ? { year: 'numeric' } : {}) });
+    return { ...l, dia, diaTitulo };
+  });
+}
 async function getLogs(req, res, next) {
   try {
     const acao = String(req.query.acao || '').trim().toUpperCase();
     const q = String(req.query.q || '').trim();
     const pagina = Math.max(parseInt(req.query.pagina, 10) || 1, 1);
-    const [logs, acoes] = await Promise.all([
+    const [brutos, acoes] = await Promise.all([
       listarLogs({ limite: LOGS_POR_PAGINA, offset: (pagina - 1) * LOGS_POR_PAGINA, acao: acao || null, q: q || null }),
       listarAcoes(),
     ]);
+    const logs = marcarDias(brutos);
     const total = logs.length ? logs[0].total : 0;
     const paginas = Math.max(1, Math.ceil(total / LOGS_POR_PAGINA));
     const base = `/admin/logs?acao=${encodeURIComponent(acao)}&q=${encodeURIComponent(q)}`;

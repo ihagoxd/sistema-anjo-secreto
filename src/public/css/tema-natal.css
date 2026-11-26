@@ -306,6 +306,9 @@ body.tema-natal .acao-card-tema .acao-ic { background: var(--nt-grad); color: #f
    login, exclusões, inativações, recusas, desativações), que salta aos olhos na lista */
 body.tema-natal .atv-dot { background: var(--nt-azul); }
 [data-theme='light'] body.tema-natal .atv-dot { background: var(--nt-azul-forte); }
+/* Títulos dos dias nos logs na letra de Natal */
+body.tema-natal .adm-log-dia { font-family: var(--font-display); font-size: 21px; font-weight: 700; line-height: 1.1; padding-top: 18px; }
+body.tema-natal .adm-log-dia:first-child { padding-top: 12px; }
 body.tema-natal .atv-item.atv-alerta .atv-dot { background: var(--nt-vermelho); box-shadow: 0 0 0 3px color-mix(in srgb, var(--nt-vermelho) 24%, transparent); }
 body.tema-natal .tema-chip { background: var(--nt-grad); color: #fff; }
 

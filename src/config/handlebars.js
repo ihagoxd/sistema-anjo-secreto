@@ -198,6 +198,13 @@ const helpers = {
       : `${d.toLocaleDateString(PT, tz({ day: '2-digit', month: '2-digit' }))} ${hm}`;
   },
 
+  // Só a hora ("11:59"), no fuso da aplicação (logs separados por dia)
+  hora(data) {
+    if (!data) return '';
+    const d = new Date(data);
+    return Number.isNaN(d.getTime()) ? '' : d.toLocaleTimeString(PT, tz({ hour: '2-digit', minute: '2-digit' }));
+  },
+
   // Formata TIMESTAMP para pt-BR (dd/mm/aaaa hh:mm)
   formatarData(data) {
     if (!data) return '-';

@@ -7584,16 +7584,19 @@
       chuva(18, ['*', '*', '⭐', '*']);
     });
     // Curtida (post ou story): quando o coração vira "curtido" (.ativo), solta uns flocos de neve em volta
-    // dele. Só observa o botão tocado, e só até ele mudar (ou 3s)
-    function flocosNaCurtida(b) {
+    // dele. Só observa o botão tocado, e só até ele mudar (ou 3s). op (opcional): n flocos, dist a mais e sx
+    // (quanto abre para os lados, para botões largos como o Aprovar)
+    function flocosNaCurtida(b, op) {
+      op = op || {};
+      var n = op.n || 8, longe = op.dist || 0, sx = op.sx || 1;
       var r = b.getBoundingClientRect();
       var svg = b.querySelector('svg'); if (svg) r = svg.getBoundingClientRect();
       var caixa = document.createElement('span'); caixa.className = 'nt-curtida-neve'; caixa.setAttribute('aria-hidden', 'true');
       caixa.style.left = (r.left + r.width / 2) + 'px'; caixa.style.top = (r.top + r.height / 2) + 'px';
-      for (var i = 0; i < 8; i++) {
+      for (var i = 0; i < n; i++) {
         var p = document.createElement('i');
-        var ang = (i / 8) * Math.PI * 2 + (Math.random() - 0.5) * 0.5, dist = 20 + Math.random() * 12;
-        p.style.setProperty('--x', Math.round(Math.cos(ang) * dist) + 'px');
+        var ang = (i / n) * Math.PI * 2 + (Math.random() - 0.5) * 0.5, dist = 20 + longe + Math.random() * 12;
+        p.style.setProperty('--x', Math.round(Math.cos(ang) * dist * sx) + 'px');
         p.style.setProperty('--y', Math.round(Math.sin(ang) * dist) + 'px');
         if (i % 2) p.className = 'cristal';
         caixa.appendChild(p);
@@ -7611,6 +7614,12 @@
       obs.observe(b, { attributes: true, attributeFilter: ['class'] });
       setTimeout(function () { obs.disconnect(); }, 3000);
     }, true); // captura: o coração do story vira .ativo no próprio clique, antes de o evento chegar aqui
+    // Aprovações: ao tocar em Aprovar, sai um estouro de floquinhos do botão (a pessoa sai da lista em seguida)
+    document.addEventListener('click', function (e) {
+      if (reduz) return;
+      var b = e.target.closest('form[action$="/aprovar"] .adm-btn-pri'); if (!b || b.disabled) return;
+      flocosNaCurtida(b, { n: 12, dist: 6, sx: 2.2 });
+    }, true);
     // Trenó do Papai Noel: além da volta fixa do CSS, de tempos em tempos passa outro (altura e velocidade variam)
     var camada = document.querySelector('.nt-deco');
     function treno() {

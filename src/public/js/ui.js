@@ -7578,6 +7578,34 @@
       try { if (navigator.vibrate) navigator.vibrate(15); } catch (x) {}
       chuva(18, ['*', '*', '⭐', '*']);
     });
+    // Curtida: quando o coração vira "curtido" (o servidor responde e põe .ativo), solta uns flocos de neve
+    // em volta dele. Só observa o botão tocado, e só até ele mudar (ou 3s)
+    function flocosNaCurtida(b) {
+      var r = b.getBoundingClientRect();
+      var svg = b.querySelector('svg'); if (svg) r = svg.getBoundingClientRect();
+      var caixa = document.createElement('span'); caixa.className = 'nt-curtida-neve'; caixa.setAttribute('aria-hidden', 'true');
+      caixa.style.left = (r.left + r.width / 2) + 'px'; caixa.style.top = (r.top + r.height / 2) + 'px';
+      for (var i = 0; i < 8; i++) {
+        var p = document.createElement('i');
+        var ang = (i / 8) * Math.PI * 2 + (Math.random() - 0.5) * 0.5, dist = 20 + Math.random() * 12;
+        p.style.setProperty('--x', Math.round(Math.cos(ang) * dist) + 'px');
+        p.style.setProperty('--y', Math.round(Math.sin(ang) * dist) + 'px');
+        if (i % 2) p.className = 'cristal';
+        caixa.appendChild(p);
+      }
+      document.body.appendChild(caixa);
+      setTimeout(function () { caixa.remove(); }, 1000);
+    }
+    document.addEventListener('click', function (e) {
+      if (reduz || !window.MutationObserver) return;
+      var b = e.target.closest('[data-curtir]'); if (!b || b.classList.contains('ativo')) return;
+      var obs = new MutationObserver(function () {
+        if (!b.classList.contains('ativo')) return;
+        obs.disconnect(); flocosNaCurtida(b);
+      });
+      obs.observe(b, { attributes: true, attributeFilter: ['class'] });
+      setTimeout(function () { obs.disconnect(); }, 3000);
+    });
     // Trenó do Papai Noel: além da volta fixa do CSS, de tempos em tempos passa outro (altura e velocidade variam)
     var camada = document.querySelector('.nt-deco');
     function treno() {

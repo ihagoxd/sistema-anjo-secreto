@@ -390,6 +390,9 @@ body.tema-natal .adm-vazio-ic.nt-globo {
 }
 body.tema-natal .adm-vazio-ic.nt-globo::after { content: ''; position: absolute; inset: 0; border-radius: 50%; pointer-events: none; background: radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.22), transparent 38%); }
 .nt-globo .nt-globo-cena { display: block; width: 100%; height: 100%; }
+/* Notificações: o globo fica no lugar do sino (o ui.js põe o globo; o sino some) */
+body.tema-natal .notif-vazio > svg { display: none; }
+body.tema-natal .notif-vazio .nt-globo { margin: 0 auto 12px; }
 /* No claro o chão sumia no fundo: o globo ganha um céu azul mais forte e o chão fica branco */
 [data-theme='light'] body.tema-natal .adm-vazio-ic.nt-globo { background: linear-gradient(180deg, #c3d7fb, #e6efff); }
 [data-theme='light'] .nt-globo-chao { fill: #fff; }

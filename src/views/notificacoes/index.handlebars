@@ -33,3 +33,6 @@
 
   {{#if temMais}}<button type="button" class="notif-mais" data-notif-mais>Carregar mais</button>{{/if}}
 </div>
+{{#if (eq tema.chave "natal")}}{{! Natal: o globo de neve que o ui.js põe no lugar do sino quando a lista fica vazia }}
+<template id="ntGlobo"><span class="adm-vazio-ic nt-globo">{{> natalGlobo}}</span></template>
+{{/if}}

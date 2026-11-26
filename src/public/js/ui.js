@@ -7616,6 +7616,18 @@
       obs.observe(b, { attributes: true, attributeFilter: ['class'] });
       setTimeout(function () { obs.disconnect(); }, 3000);
     }, true); // captura: o coração do story vira .ativo no próprio clique, antes de o evento chegar aqui
+    // Notificações: no vazio ("Você está em dia!" e os outros) entra o globo de neve no lugar do sino. A página
+    // refaz o vazio a cada troca de filtro, então um observador recoloca o globo
+    var tplGlobo = document.getElementById('ntGlobo'), pgNotif = document.querySelector('[data-notif-pagina]');
+    if (tplGlobo && pgNotif) {
+      var porGlobo = function () {
+        pgNotif.querySelectorAll('.notif-vazio').forEach(function (v) {
+          if (!v.querySelector('.nt-globo')) v.insertBefore(tplGlobo.content.firstElementChild.cloneNode(true), v.firstChild);
+        });
+      };
+      porGlobo();
+      if (window.MutationObserver) new MutationObserver(porGlobo).observe(pgNotif, { childList: true });
+    }
     // Direct: ao enviar uma mensagem, sai um estourinho de floquinhos da bolha
     document.addEventListener('dm:enviada', function (e) {
       if (reduz || !e.detail) return;

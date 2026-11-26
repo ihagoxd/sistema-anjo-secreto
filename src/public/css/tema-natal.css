@@ -753,6 +753,15 @@ body.tema-natal .busca-chip.ativo { background: var(--nt-grad); border-color: tr
 /* Títulos da pesquisa (Recentes, Sugestões, Pessoas, Publicações…) na letra de Natal, como os outros títulos */
 body.tema-natal .busca-subtitulo { font-family: var(--font-display); font-weight: 700; font-size: 21px; line-height: 1.1; padding-top: 14px; }
 body.tema-natal .tour-card, body.tema-natal .aviso-card { border-radius: 24px; }
+/* Card do aviso (o que aparece na tela de todo mundo, na prévia do admin e em /avisos): neve acumulada no
+   topo, escorrendo em pingos pela beirada, no lugar da faixa colorida (a cor do aviso continua no emoji, na
+   etiqueta, no botão e no clarão do canto) */
+body.tema-natal .aviso-card::before, body.tema-natal .aviso-slot.animar .aviso-card::before {
+  height: 16px; z-index: 1; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 16' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23ffffff'/%3E%3Cstop offset='1' stop-color='%23dbe8ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M0 0H300V8C294 8 292 12 286 12C280 12 279 8 272 8C262 8 258 10 250 10C244 10 242 15 238 15C234 15 234 9 226 9C214 9 210 12 200 12C192 12 190 8 180 8C170 8 166 11 158 11C152 11 151 16 146 16C141 16 142 10 134 10C124 10 120 7 110 7C100 7 98 12 88 12C80 12 78 8 70 8C62 8 60 13 54 13C49 13 50 9 42 9C32 9 30 12 20 12C12 12 8 8 0 8Z' fill='url(%23g)'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat; animation: none;
+  filter: drop-shadow(0 2px 2px rgba(8, 18, 52, 0.28));
+}
+[data-theme='light'] body.tema-natal .aviso-card::before, [data-theme='light'] body.tema-natal .aviso-slot.animar .aviso-card::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 16' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23ffffff'/%3E%3Cstop offset='1' stop-color='%23dbe8ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M0 0H300V8C294 8 292 12 286 12C280 12 279 8 272 8C262 8 258 10 250 10C244 10 242 15 238 15C234 15 234 9 226 9C214 9 210 12 200 12C192 12 190 8 180 8C170 8 166 11 158 11C152 11 151 16 146 16C141 16 142 10 134 10C124 10 120 7 110 7C100 7 98 12 88 12C80 12 78 8 70 8C62 8 60 13 54 13C49 13 50 9 42 9C32 9 30 12 20 12C12 12 8 8 0 8Z' fill='url(%23g)' stroke='rgba(47,95,208,.35)' stroke-width='1' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E"); filter: drop-shadow(0 2px 2px rgba(47, 95, 208, 0.16)); }
+body.tema-natal .aviso-card { padding-top: 28px; }
 body.tema-natal .comp-mais-ic { background: color-mix(in srgb, var(--nt-azul) 24%, var(--surface-2)); color: var(--accent-strong); }
 
 /* ---------- LOADER (tela do anjo) ---------- */

@@ -668,7 +668,9 @@ html.mini body.tema-natal.pronto .auth-wordmark .aw-l { animation-delay: calc(0.
    arremessa, a bola voa em arco, estoura na placa (que balança) e ela se abaixa para pegar mais neve.
    A cena fica presa no pé da tela; a .auth-tela reserva o espaço dela embaixo. */
 body.tema-natal .auth-tela { padding-bottom: 70px; }
-.nt-placa-cena { position: absolute; left: 0; right: 0; bottom: 0; height: 58px; z-index: 2; pointer-events: none; }
+/* overflow hidden: quando a placa balança com a bolada, os cantos de baixo passavam do fim da tela e a
+   tela do login ganhava uma barra de rolagem por um instante. 66px = 58 da placa + folga para o balanço em cima */
+.nt-placa-cena { position: absolute; left: 0; right: 0; bottom: 0; height: 66px; z-index: 2; pointer-events: none; overflow: hidden; }
 .nt-placa { position: absolute; left: 50%; bottom: 0; width: 150px; height: 58px; margin-left: -75px; transform-origin: 50% 100%; animation: nt-placa-treme 4.4s ease-out -2.464s infinite; }
 .nt-placa-arte { position: absolute; inset: 0; display: block; }
 .nt-placa-txt { position: absolute; left: 6px; right: 6px; top: 12px; text-align: center; line-height: 1.02; color: #fff3d6; text-shadow: 0 1px 0 rgba(60, 30, 10, 0.55); }

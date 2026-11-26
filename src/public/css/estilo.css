@@ -5117,7 +5117,9 @@ form.treme { animation: auth-treme 0.42s ease; }
 
 /* Admin → Tema da rede: prévia do Natal (fica aqui porque a folha do tema só carrega quando ele está ativo) */
 @font-face { font-family: 'Mountains of Christmas'; src: url('/fonts/MountainsOfChristmas-700.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
-.tc-natal { --tp-fundo: radial-gradient(circle at 84% 14%, rgba(190, 220, 255, 0.35), transparent 26%), linear-gradient(180deg, #0f2558, #060f2b); --tp-bg: #0a1a45; --tp-surface: #10235a; --tp-linha: #24437f; --tp-texto: #f3f7ff; --tp-accent: #ff5d72; --tp-accent2: #8fd0ff; }
+.tc-natal { --tp-fundo: radial-gradient(circle at 84% 14%, rgba(190, 220, 255, 0.35), transparent 26%), linear-gradient(180deg, #0f2558, #060f2b); --tp-bg: #0a1a45; --tp-surface: #10235a; --tp-linha: #24437f; --tp-texto: #f3f7ff; --tp-accent: #ff5d72; --tp-accent2: #8fd0ff;
+  /* sem estas, o anel dos stories (border com var vazia) sumia e a mídia, as bolhas e o avatar ficavam vazios */
+  --tp-accent-soft: #3e6fd8; --tp-anel: #ffffff; --tp-bolha: linear-gradient(135deg, #ff5d72, #e3304a); --tp-midia: linear-gradient(135deg, #2f5fd0, #8fd0ff); --tp-moldura: #24437f; }
 .tc-natal .tp-stories i:nth-child(odd) { border-color: #ffffff; }
 .tc-natal .tp-stories i:nth-child(even) { border-color: #8fd0ff; }
 .tp-luzes { position: absolute; left: 0; right: 0; top: 0; height: 10px; z-index: 3; pointer-events: none;

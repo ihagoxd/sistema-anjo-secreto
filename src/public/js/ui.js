@@ -7248,7 +7248,7 @@
       document.body.classList.remove('travado');
       revelar(false);
       window.setTimeout(function () { removerLoader(loader); }, 900);
-    }, 1650);
+    }, document.body.classList.contains('tema-natal') ? 1800 : 1650); // Natal: o gorro cai no logo antes da cortina subir
   } else {
     // Navegação / F5: sem loader — conteúdo aparece na hora.
     removerLoader(loader);

@@ -21,6 +21,8 @@
       catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
       document.documentElement.classList.add('preparando');
       try { if (sessionStorage.getItem('anjoVisto')) document.documentElement.classList.add('mini'); } catch (e) {}
+      {{#if (eq tema.chave "natal")}}// Natal: no login o trenó do Papai Noel já é a abertura, então a cortina do anjo não aparece aqui
+      document.documentElement.classList.add('mini');{{/if}}
     })();
   </script>
 </head>

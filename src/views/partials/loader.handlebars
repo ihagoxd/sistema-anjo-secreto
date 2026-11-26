@@ -1,4 +1,5 @@
 <div id="loader" aria-hidden="true">
+  {{#if (eq tema.chave "natal")}}{{! Natal: neve caindo na cortina }}<div class="nt-loader-neve"><i style="left:6%;--d:3.6s;--a:-0.4s;--t:4px"></i><i style="left:14%;--d:4.8s;--a:-2.1s;--t:3px"></i><i style="left:22%;--d:4.1s;--a:-3.3s;--t:5px"></i><i style="left:31%;--d:5.2s;--a:-1.2s;--t:3px"></i><i style="left:39%;--d:3.9s;--a:-2.8s;--t:4px"></i><i style="left:47%;--d:4.6s;--a:-0.9s;--t:6px"></i><i style="left:55%;--d:5.4s;--a:-3.9s;--t:3px"></i><i style="left:63%;--d:4.2s;--a:-1.7s;--t:4px"></i><i style="left:71%;--d:3.7s;--a:-2.5s;--t:5px"></i><i style="left:79%;--d:5s;--a:-0.2s;--t:3px"></i><i style="left:87%;--d:4.4s;--a:-3.1s;--t:4px"></i><i style="left:94%;--d:3.8s;--a:-1.4s;--t:5px"></i></div>{{/if}}
   <div class="loader-ceu">
     <span style="left:14%;top:22%;animation-delay:.2s"></span>
     <span class="g" style="left:26%;top:64%;animation-delay:1.1s"></span>
@@ -20,6 +21,7 @@
         <circle class="l cabeca" cx="88" cy="62" r="13" pathLength="1"/>
       </svg>
       <img src="/img/logo.png" alt="">
+      {{#if (eq tema.chave "natal")}}{{! Natal: gorro de Papai Noel que cai no logo antes da cortina subir }}<svg class="nt-loader-gorro" viewBox="0 0 64 52" aria-hidden="true"><path d="M8 40 C10 22 22 8 38 8 C48 8 54 12 52 18 C46 16 40 20 40 28 L44 40 Z" fill="#e3304a"/><path d="M14 30 C18 20 26 14 34 13" stroke="#ff7d8f" stroke-width="2" fill="none" stroke-linecap="round" opacity=".7"/><rect x="4" y="36" width="44" height="12" rx="6" fill="#fff"/><g class="nt-loader-pompom"><circle cx="52" cy="18" r="6.5" fill="#fff"/></g></svg>{{/if}}
     </div>
 
     <div class="loader-wordmark">

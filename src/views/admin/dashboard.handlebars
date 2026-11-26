@@ -119,6 +119,7 @@
       {{#if logs.length}}
         <ul class="atividade">
           {{#each logs}}
+            {{#if this.diaTitulo}}<li class="adm-log-dia">{{this.diaTitulo}}</li>{{/if}}
             <li class="atv-item{{#if (logAlerta this.acao)}} atv-alerta{{/if}}">
               <span class="atv-dot"></span>
               <div class="atv-txt">

@@ -56,7 +56,7 @@ async function getDashboard(req, res, next) {
       totalUsuarios: resumo.todos,
       totalCampanhas: campanhas.length,
       campanhaAtiva, rascunho, mensagens, participantesAtivos, inativos,
-      logs,
+      logs: marcarDias(logs), // separados por dia, como nos logs
       temaAtivo, temaPreenchidos,
       natal: temaAtivo.chave === 'natal' ? contagemNatal() : null,
     });

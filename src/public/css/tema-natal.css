@@ -418,6 +418,12 @@ body.tema-natal .btn-perigo { background: var(--nt-vermelho-forte); color: #fff;
 body.tema-natal button.adm-par-p.sel { background: color-mix(in srgb, var(--nt-azul) 20%, transparent); box-shadow: 0 0 0 5px color-mix(in srgb, var(--nt-azul) 20%, transparent); }
 /* Ver par (campanha): a pessoa consultada em azul-gelo com o contorno vermelho (o accent-soft do escuro é roxo) */
 body.tema-natal .rev-linha.destaque { background: color-mix(in srgb, var(--nt-azul) 16%, var(--surface-2)); }
+/* Preferências: a barra do "x de 8 preenchidos" enche com listras de bengala doce (vermelho e branco),
+   que andam devagar */
+body.tema-natal .pr-barra { height: 8px; }
+body.tema-natal .pr-barra i { background: repeating-linear-gradient(-45deg, #e3304a 0 6px, #ffffff 6px 12px); background-size: 17px 17px; animation: nt-bengala 1.2s linear infinite; }
+@keyframes nt-bengala { to { background-position: 17px 0; } }
+@media (prefers-reduced-motion: reduce) { body.tema-natal .pr-barra i { animation: none; } }
 /* Filtros escolhidos do admin (Usuários, Logs) em vermelho, como os outros filtros do tema (eram roxos) */
 body.tema-natal .chip.ativo { background: var(--nt-grad); border-color: transparent; color: #fff; }
 body.tema-natal .chip.ativo .chip-n { background: rgba(255, 255, 255, 0.22); color: #fff; }

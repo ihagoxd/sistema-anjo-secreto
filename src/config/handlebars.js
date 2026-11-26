@@ -239,10 +239,10 @@ const helpers = {
   },
 
   // Ações dos logs que merecem atenção (a bolinha fica de alerta): falha de login, exclusões, inativações,
-  // recusas e desativações
+  // recusas, desativações e revelações do sorteio (o segredo foi aberto)
   logAlerta(acao) {
     return ['LOGIN_FALHA', 'USUARIO_EXCLUIDO', 'USUARIO_INATIVADO', 'CADASTRO_RECUSADO', 'CAMPANHA_APAGADA',
-      'PARTICIPANTE_REMOVIDO', 'AVISO_EXCLUIDO', 'AVISO_DESATIVADO'].includes(acao);
+      'PARTICIPANTE_REMOVIDO', 'AVISO_EXCLUIDO', 'AVISO_DESATIVADO', 'SORTEIO_REVELADO', 'ANJO_REVELADO'].includes(acao);
   },
 
   // Classe de badge Bootstrap conforme status da campanha

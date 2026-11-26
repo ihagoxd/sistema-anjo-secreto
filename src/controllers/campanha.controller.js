@@ -100,6 +100,12 @@ async function getDetalhe(req, res, next) {
       participanteService.resumoMensagens(campanha.id_campanha),
     ]);
     const ativos = participantes.filter((p) => p.ativo && p.usuario_ativo);
+    // Rodada em andamento: quem ainda não mandou nenhuma mensagem para o protegido vem primeiro, marcado,
+    // para o admin saber quem lembrar (o sort é estável: o resto mantém a ordem de antes)
+    if (campanha.status === 'EM_ANDAMENTO') {
+      participantes.forEach((p) => { p.naoEscreveu = !!(p.tem_par && p.ativo && p.usuario_ativo && Number(p.msgs_enviadas) === 0); });
+      participantes.sort((a, b) => (b.naoEscreveu ? 1 : 0) - (a.naoEscreveu ? 1 : 0));
+    }
     // Quem saiu/foi inativado DEPOIS do sorteio: o anjo dessa pessoa ficou sem protegido
     // até o sorteio ser refeito. Em rascunho não importa (o sorteio ainda vai acontecer).
     const inativosComPar = campanha.status === 'EM_ANDAMENTO'

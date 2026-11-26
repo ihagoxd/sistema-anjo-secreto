@@ -101,7 +101,7 @@
                 <span class="adm-av" aria-hidden="true">{{#if this.foto_perfil}}<img src="{{this.foto_perfil}}" alt="" loading="lazy">{{else}}{{inicial this.nome}}{{/if}}</span>
                 <span class="adm-pessoa-txt">
                   <strong>{{this.nome}}</strong>
-                  <small>{{#if this.usuario_ativo}}{{#if this.ativo}}<i class="adm-ponto adm-ponto-ativo"></i>{{else}}<i class="adm-ponto"></i>Fora desta rodada · {{/if}}{{else}}<i class="adm-ponto adm-ponto-recusado"></i>Inativo · {{/if}}{{#if ../sorteada}}{{#if this.tem_par}}<span class="adm-nw">{{this.msgs_enviadas}} enviada{{#unless (eq this.msgs_enviadas 1)}}s{{/unless}} ·</span> <span class="adm-nw">{{this.msgs_recebidas}} recebida{{#unless (eq this.msgs_recebidas 1)}}s{{/unless}}</span>{{else}}sem par (entrou depois){{/if}}{{else}}@{{this.usuario}}{{/if}}</small>
+                  <small>{{#if this.usuario_ativo}}{{#if this.ativo}}<i class="adm-ponto adm-ponto-ativo"></i>{{else}}<i class="adm-ponto"></i>Fora desta rodada · {{/if}}{{else}}<i class="adm-ponto adm-ponto-recusado"></i>Inativo · {{/if}}{{#if ../sorteada}}{{#if this.tem_par}}{{#if this.naoEscreveu}}<span class="adm-nw adm-nao-escreveu">não escreveu ·</span>{{else}}<span class="adm-nw">{{this.msgs_enviadas}} enviada{{#unless (eq this.msgs_enviadas 1)}}s{{/unless}} ·</span>{{/if}} <span class="adm-nw">{{this.msgs_recebidas}} recebida{{#unless (eq this.msgs_recebidas 1)}}s{{/unless}}</span>{{else}}sem par (entrou depois){{/if}}{{else}}@{{this.usuario}}{{/if}}</small>
                 </span>
               </a>
               {{#if ../sorteada}}{{#if this.tem_par}}

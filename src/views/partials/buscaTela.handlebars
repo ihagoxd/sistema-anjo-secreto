@@ -17,6 +17,7 @@
     <button type="button" class="busca-chip" data-modo="posts">Publicações</button>
     <button type="button" class="busca-chip" data-modo="lugares">Lugares</button>
   </nav>
+  {{#if (eq tema.chave "natal")}}{{! Natal: globo de neve que o ui.js põe em cima do "Nada encontrado" }}<template id="ntGloboBusca"><span class="adm-vazio-ic nt-globo">{{> natalGlobo}}</span></template>{{/if}}
   <div class="busca-corpo">
     <div class="busca-recentes-cab" hidden>
       <strong>Recentes</strong>

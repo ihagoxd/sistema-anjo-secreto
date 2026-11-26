@@ -714,6 +714,12 @@
     }
     function noTitulo(txt) { var d = document.createElement('div'); d.className = 'busca-subtitulo'; d.textContent = txt; return d; }
     function noAviso(txt) { var d = document.createElement('div'); d.className = 'texto-suave busca-vazio'; d.textContent = txt; return d; }
+    // Nada encontrado: no Natal entra o globo de neve (modelo no buscaTela) em cima do texto
+    function noNada(txt) {
+      var d = noAviso(txt), tpl = document.getElementById('ntGloboBusca');
+      if (tpl) { d.classList.add('com-globo'); d.insertBefore(tpl.content.firstElementChild.cloneNode(true), d.firstChild); }
+      return d;
+    }
     function noVerMais(txt, alvo) {
       var b = document.createElement('button'); b.type = 'button'; b.className = 'busca-ver-mais'; b.setAttribute('data-ir-modo', alvo);
       b.innerHTML = '<span>' + esc(txt) + '</span>' + SVG.seta; return b;
@@ -801,7 +807,7 @@
       }
       if (!itens.length) {
         if (res.esperando) itens.push(noCarregando());
-        else itens.push(noAviso(modo === 'tudo' ? 'Nada encontrado para \u201c' + q + '\u201d.' : 'Nada nesta aba para \u201c' + q + '\u201d.'));
+        else itens.push(noNada(modo === 'tudo' ? 'Nada encontrado para \u201c' + q + '\u201d.' : 'Nada nesta aba para \u201c' + q + '\u201d.'));
       }
       montar(itens);
     }

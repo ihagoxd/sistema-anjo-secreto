@@ -4979,7 +4979,8 @@ div.adm-stat:active { transform: none; }
 .adm-par-p .adm-av { width: 38px; height: 38px; font-size: 14px; }
 .adm-par-p.inativa { opacity: 0.55; }
 .adm-par-txt { min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
-.adm-par-txt strong { font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* O nome quebra em até duas linhas: a lista serve para identificar as pessoas, e cortado ("André Felip…") não dá */
+.adm-par-txt strong { font-size: 13.5px; line-height: 1.2; overflow: hidden; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .adm-par-txt small { font-size: 11.5px; color: var(--text-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .adm-par-seta { color: var(--accent-strong); display: grid; place-items: center; }
 .adm-cab-voltar { margin-left: -10px; }

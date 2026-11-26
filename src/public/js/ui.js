@@ -7620,6 +7620,15 @@
       var b = e.target.closest('form[action$="/aprovar"] .adm-btn-pri'); if (!b || b.disabled) return;
       flocosNaCurtida(b, { n: 12, dist: 6, sx: 2.2 });
     }, true);
+    // Lua: a camada do céu é fixa, então a lua ficava parada atrás do conteúdo e, no feed (posts sem moldura), o
+    // texto e os ícones brancos sumiam nela ao rolar. A rolagem vai para a variável --nt-rolagem e, no celular,
+    // a lua sobe com a página (um pouco mais devagar, como no céu) e sai de trás do conteúdo
+    if (document.querySelector('.nt-lua')) {
+      var luaAgendada = false;
+      var luaRolagem = function () { luaAgendada = false; document.documentElement.style.setProperty('--nt-rolagem', String(Math.round(window.scrollY))); };
+      window.addEventListener('scroll', function () { if (!luaAgendada) { luaAgendada = true; requestAnimationFrame(luaRolagem); } }, { passive: true });
+      luaRolagem();
+    }
     // Trenó do Papai Noel: além da volta fixa do CSS, de tempos em tempos passa outro (altura e velocidade variam)
     var camada = document.querySelector('.nt-deco');
     function treno() {

@@ -913,7 +913,8 @@ html.mini body.tema-natal.pronto .auth-wordmark .aw-l { animation-delay: calc(0.
 /* ---------- MOBILE ---------- */
 @media (max-width: 899px) {
   .nt-luzes { display: none; }
-  .nt-lua { width: 150px; height: 150px; top: 66px; right: -30px; }
+  /* a lua sobe com a rolagem (o ui.js põe a rolagem em --nt-rolagem) e sai de trás dos posts */
+  .nt-lua { width: 150px; height: 150px; top: 66px; right: -30px; transform: translate3d(0, calc(var(--nt-rolagem, 0) * -0.7px), 0); will-change: transform; }
   .nt-estrelinha { width: calc(var(--t, 10px) * 1.4); height: calc(var(--t, 10px) * 1.4); }
   .nt-floco.cristal { width: calc(var(--t, 16px) * 0.85); height: calc(var(--t, 16px) * 0.85); opacity: 0.8; }
   .nt-treno { width: 128px; height: 41px; }

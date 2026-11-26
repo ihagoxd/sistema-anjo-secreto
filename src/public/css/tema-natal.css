@@ -692,6 +692,8 @@ body.tema-natal .busca-tela { background: var(--bg); }
 body.tema-natal .busca-campo { border: 1.5px solid var(--line); border-radius: 999px; }
 /* Filtro escolhido da pesquisa em vermelho, como os outros filtros do tema (era uma pílula branca) */
 body.tema-natal .busca-chip.ativo { background: var(--nt-grad); border-color: transparent; color: #fff; box-shadow: 0 4px 12px rgba(227, 48, 74, 0.3); }
+/* Títulos da pesquisa (Recentes, Sugestões, Pessoas, Publicações…) na letra de Natal, como os outros títulos */
+body.tema-natal .busca-subtitulo { font-family: var(--font-display); font-weight: 700; font-size: 21px; line-height: 1.1; padding-top: 14px; }
 body.tema-natal .tour-card, body.tema-natal .aviso-card { border-radius: 24px; }
 body.tema-natal .comp-mais-ic { background: color-mix(in srgb, var(--nt-azul) 24%, var(--surface-2)); color: var(--accent-strong); }
 

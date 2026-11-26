@@ -4102,7 +4102,9 @@ body.tour-trocando { opacity: 0; transition: opacity 0.26s ease; }
 .anexo-legenda { display: block; margin-top: 6px; font-size: 12.5px; color: var(--text-faint); }
 
 /* Admin → Tema da rede: prévia do Halloween */
-.tc-halloween { --tp-fundo: linear-gradient(160deg, #2a0f4a, #120a1f); --tp-bg: #0f0818; --tp-surface: #1a0f2b; --tp-linha: #35244f; --tp-texto: #f3ecff; --tp-accent: #ff7a1a; --tp-accent2: #8a3ffc; }
+.tc-halloween { --tp-fundo: linear-gradient(160deg, #2a0f4a, #120a1f); --tp-bg: #0f0818; --tp-surface: #1a0f2b; --tp-linha: #35244f; --tp-texto: #f3ecff; --tp-accent: #ff7a1a; --tp-accent2: #8a3ffc;
+  /* sem estas, o anel dos stories (border com var vazia) sumia e a mídia, as bolhas e o avatar ficavam vazios */
+  --tp-accent-soft: #3a1f5c; --tp-anel: #ff7a1a; --tp-bolha: linear-gradient(135deg, #ff7a1a, #ffb057); --tp-midia: linear-gradient(135deg, #8a3ffc, #ff7a1a); --tp-moldura: #35244f; }
 .tc-halloween .tp-stories i:nth-child(1), .tc-halloween .tp-stories i:nth-child(4) { border-color: #ff7a1a; }
 .tc-halloween .tp-stories i:nth-child(2), .tc-halloween .tp-stories i:nth-child(5) { border-color: #8a3ffc; }
 .tc-halloween .tp-stories i:nth-child(3) { border-color: #9dff57; }

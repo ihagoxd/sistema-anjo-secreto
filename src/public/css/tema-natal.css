@@ -690,6 +690,8 @@ body.tema-natal .notif-item.nova { background: color-mix(in srgb, var(--nt-verme
 body.tema-natal .notif-item { border-radius: 16px; }
 body.tema-natal .busca-tela { background: var(--bg); }
 body.tema-natal .busca-campo { border: 1.5px solid var(--line); border-radius: 999px; }
+/* Filtro escolhido da pesquisa em vermelho, como os outros filtros do tema (era uma pílula branca) */
+body.tema-natal .busca-chip.ativo { background: var(--nt-grad); border-color: transparent; color: #fff; box-shadow: 0 4px 12px rgba(227, 48, 74, 0.3); }
 body.tema-natal .tour-card, body.tema-natal .aviso-card { border-radius: 24px; }
 body.tema-natal .comp-mais-ic { background: color-mix(in srgb, var(--nt-azul) 24%, var(--surface-2)); color: var(--accent-strong); }
 

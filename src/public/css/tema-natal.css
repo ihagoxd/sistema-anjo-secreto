@@ -392,16 +392,16 @@ body.tema-natal .feed > .tw-post.ig-post + .tw-post.ig-post::after {
   body.tema-natal .feed:not(.feed-perfil) > .tw-post.ig-post + .tw-post.ig-post::after { left: -16px; right: -16px; }
 }
 /* No computador a vila nevada fica fixa no pé da tela e os posts (sem fundo, estilo Instagram) rolavam
-   por cima dela: o texto branco sumia na neve. A coluna do feed ganha um painel da noite; a vila continua
-   aparecendo dos lados. O varal vai até a borda do painel. */
+   por cima dela: o texto branco sumia na neve. A coluna do feed e o "Meu painel" (.pn, também sem fundo)
+   ganham um painel da noite; a vila continua aparecendo dos lados. O varal vai até a borda do painel. */
 @media (min-width: 900px) {
-  body.tema-natal .mural-centro {
+  body.tema-natal .mural-centro, body.tema-natal .pn {
     padding: 14px 20px 24px; border-radius: 26px;
     background: color-mix(in srgb, var(--bg) 90%, transparent);
     border: 1px solid color-mix(in srgb, var(--nt-azul) 22%, transparent);
     box-shadow: 0 24px 60px -30px rgba(2, 8, 28, 0.8);
   }
-  [data-theme='light'] body.tema-natal .mural-centro { background: color-mix(in srgb, var(--bg) 94%, transparent); box-shadow: 0 24px 60px -34px rgba(20, 50, 120, 0.3); }
+  [data-theme='light'] body.tema-natal .mural-centro, [data-theme='light'] body.tema-natal .pn { background: color-mix(in srgb, var(--bg) 94%, transparent); box-shadow: 0 24px 60px -34px rgba(20, 50, 120, 0.3); }
   body.tema-natal .mural-centro .feed > .tw-post.ig-post + .tw-post.ig-post::before,
   body.tema-natal .mural-centro .feed > .tw-post.ig-post + .tw-post.ig-post::after { left: -20px; right: -20px; }
 }

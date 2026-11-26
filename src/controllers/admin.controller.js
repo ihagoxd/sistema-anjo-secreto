@@ -58,6 +58,7 @@ async function getDashboard(req, res, next) {
       campanhaAtiva, rascunho, mensagens, participantesAtivos, inativos,
       logs,
       temaAtivo, temaPreenchidos,
+      natal: temaAtivo.chave === 'natal' ? contagemNatal() : null,
     });
   } catch (err) {
     next(err);
@@ -157,6 +158,16 @@ async function postRecusar(req, res, next) {
   } catch (err) {
     next(err);
   }
+}
+
+// Natal: quantos dias faltam para 25/12 (no fuso da aplicação) e o dia da semana, para a contagem do
+// topo do painel. Depois do dia 25 conta para o Natal do ano seguinte.
+function contagemNatal() {
+  const [a, m, d] = new Date().toLocaleDateString('en-CA', { timeZone: fuso }).split('-').map(Number);
+  const ano = m === 12 && d > 25 ? a + 1 : a;
+  const dias = Math.round((Date.UTC(ano, 11, 25) - Date.UTC(a, m - 1, d)) / 86400000);
+  const semana = new Date(Date.UTC(ano, 11, 25, 15)).toLocaleDateString('pt-BR', { weekday: 'long', timeZone: fuso });
+  return { dias, semana };
 }
 
 // ---------- Logs (auditoria) ----------

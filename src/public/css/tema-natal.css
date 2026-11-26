@@ -765,6 +765,14 @@ body.tema-natal .busca-chip.ativo { background: var(--nt-grad); border-color: tr
 /* Títulos da pesquisa (Recentes, Sugestões, Pessoas, Publicações…) na letra de Natal, como os outros títulos */
 body.tema-natal .busca-subtitulo { font-family: var(--font-display); font-weight: 700; font-size: 21px; line-height: 1.1; padding-top: 14px; }
 body.tema-natal .tour-card, body.tema-natal .aviso-card { border-radius: 24px; }
+/* Painel do admin: contagem para o Natal, com o número numa folhinha de calendário vermelha */
+.nt-contagem { display: flex; align-items: center; gap: 14px; margin: 0 0 10px; padding: 12px 14px; border-radius: 18px; border: 1px solid var(--line); background: color-mix(in srgb, var(--surface) 94%, transparent); }
+.nt-contagem-dia { width: 56px; height: 56px; flex-shrink: 0; border-radius: 16px; display: grid; place-items: center; align-content: center; gap: 1px; background: var(--nt-grad); color: #fff; box-shadow: 0 10px 20px -12px rgba(227, 48, 74, 0.9); }
+.nt-contagem-dia b { font-family: var(--font-display); font-size: 28px; font-weight: 700; line-height: 0.9; }
+.nt-contagem-dia small { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.92; }
+.nt-contagem-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; line-height: 1.15; }
+.nt-contagem-txt strong { font-family: var(--font-display); font-size: 22px; font-weight: 700; }
+.nt-contagem-txt small { font-size: 13px; color: var(--text-faint); }
 /* Tema da rede: a barra das cartinhas no vermelho do Papai Noel */
 body.tema-natal .tema-atual-barra span { background: var(--nt-grad); }
 /* As faíscas que piscam em volta do card do aviso viram floquinhos de neve (giram ao aparecer e piscam) */

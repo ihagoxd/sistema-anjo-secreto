@@ -11,6 +11,17 @@
     </a>
   </header>
 
+  {{#if natal}}
+    {{! Natal: contagem regressiva para o dia 25 }}
+    <div class="nt-contagem">
+      <span class="nt-contagem-dia" aria-hidden="true">{{#if natal.dias}}<b>{{natal.dias}}</b><small>{{#if (eq natal.dias 1)}}dia{{else}}dias{{/if}}</small>{{else}}<b>25</b><small>dez</small>{{/if}}</span>
+      <span class="nt-contagem-txt">
+        {{#if natal.dias}}<strong>{{#if (eq natal.dias 1)}}Falta 1 dia{{else}}Faltam {{natal.dias}} dias{{/if}} para o Natal</strong><small>{{#if (eq natal.dias 1)}}É amanhã!{{else}}Dia 25 cai numa {{natal.semana}}{{/if}}</small>
+        {{else}}<strong>Feliz Natal!</strong><small>Hoje é 25 de dezembro</small>{{/if}}
+      </span>
+    </div>
+  {{/if}}
+
   {{#if atencao.length}}
     <div class="adm-atencao">
       {{#each atencao}}

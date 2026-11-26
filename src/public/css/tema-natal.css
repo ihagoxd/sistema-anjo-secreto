@@ -313,7 +313,9 @@ body.tema-natal .story-ring.tem { background: conic-gradient(from 0deg, #ffffff,
 body.tema-natal .story-ring.tem .story-ring-in { animation: nt-gira 10s linear infinite reverse; }
 body.tema-natal .story-ring.visto { background: color-mix(in srgb, var(--nt-azul) 40%, var(--line-strong)); }
 body.tema-natal .story-ring.sem { background: var(--line-strong); }
-body.tema-natal .story-ring-in { background: var(--surface); border-color: var(--surface); }
+/* Miolo do anel dos stories: azul do tema com a letra branca, como as outras fotos sem imagem (era a
+   letra rosa no fundo escuro); a borda continua na cor do fundo, fazendo o respiro entre o anel e a foto */
+body.tema-natal .story-ring-in { background: var(--nt-azul-forte); color: #fff; border-color: var(--surface); }
 body.tema-natal .story-badge.mais { background: var(--nt-vermelho-forte); color: #fff; border-color: var(--bg); }
 body.tema-natal .post-compositor {
   border: 2px solid transparent; border-radius: 22px;

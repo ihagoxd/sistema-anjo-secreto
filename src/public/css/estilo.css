@@ -4829,6 +4829,10 @@ html.mini .tema-banner { animation: none !important; }
 .adm-vazio small { max-width: 300px; }
 .adm-vazio-link { margin-top: 10px; font-weight: 700; font-size: 14px; color: var(--accent-strong); }
 .adm-pessoa[data-sit="pendente"] .adm-pessoa-txt small { white-space: normal; }
+/* Quem participa (campanha): "0 enviadas · 0 recebidas" era cortado ao lado do Ver par; quebra entre as duas
+   contagens (cada uma inteira) em vez de cortar */
+.adm-pessoa-txt small:has(.adm-nw) { white-space: normal; }
+.adm-nw { white-space: nowrap; }
 /* No celular, Aprovar/Recusar ao lado do nome deixavam o texto com ~70px (nome e @ quebrando em várias linhas):
    os botões descem para uma linha própria, alinhada com o texto, como nas solicitações de amizade */
 @media (max-width: 599px) {

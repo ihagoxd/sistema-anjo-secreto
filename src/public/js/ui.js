@@ -7583,8 +7583,8 @@
       try { if (navigator.vibrate) navigator.vibrate(15); } catch (x) {}
       chuva(18, ['*', '*', '⭐', '*']);
     });
-    // Curtida: quando o coração vira "curtido" (o servidor responde e põe .ativo), solta uns flocos de neve
-    // em volta dele. Só observa o botão tocado, e só até ele mudar (ou 3s)
+    // Curtida (post ou story): quando o coração vira "curtido" (.ativo), solta uns flocos de neve em volta
+    // dele. Só observa o botão tocado, e só até ele mudar (ou 3s)
     function flocosNaCurtida(b) {
       var r = b.getBoundingClientRect();
       var svg = b.querySelector('svg'); if (svg) r = svg.getBoundingClientRect();
@@ -7603,14 +7603,14 @@
     }
     document.addEventListener('click', function (e) {
       if (reduz || !window.MutationObserver) return;
-      var b = e.target.closest('[data-curtir]'); if (!b || b.classList.contains('ativo')) return;
+      var b = e.target.closest('[data-curtir], .stview-like'); if (!b || b.classList.contains('ativo')) return;
       var obs = new MutationObserver(function () {
         if (!b.classList.contains('ativo')) return;
         obs.disconnect(); flocosNaCurtida(b);
       });
       obs.observe(b, { attributes: true, attributeFilter: ['class'] });
       setTimeout(function () { obs.disconnect(); }, 3000);
-    });
+    }, true); // captura: o coração do story vira .ativo no próprio clique, antes de o evento chegar aqui
     // Trenó do Papai Noel: além da volta fixa do CSS, de tempos em tempos passa outro (altura e velocidade variam)
     var camada = document.querySelector('.nt-deco');
     function treno() {

@@ -4824,6 +4824,14 @@ html.mini .tema-banner { animation: none !important; }
 .adm-vazio small { max-width: 300px; }
 .adm-vazio-link { margin-top: 10px; font-weight: 700; font-size: 14px; color: var(--accent-strong); }
 .adm-pessoa[data-sit="pendente"] .adm-pessoa-txt small { white-space: normal; }
+/* No celular, Aprovar/Recusar ao lado do nome deixavam o texto com ~70px (nome e @ quebrando em várias linhas):
+   os botões descem para uma linha própria, alinhada com o texto, como nas solicitações de amizade */
+@media (max-width: 599px) {
+  .adm-pessoa[data-sit="pendente"] { flex-wrap: wrap; }
+  .adm-pessoa[data-sit="pendente"] .adm-pessoa-link { flex-basis: 100%; padding-bottom: 6px; }
+  .adm-pessoa[data-sit="pendente"] .adm-pessoa-acoes { flex: 1; gap: 8px; padding: 0 4px 10px 64px; }
+  .adm-pessoa[data-sit="pendente"] .adm-pessoa-acoes .adm-btn { flex: 1; height: 34px; }
+}
 
 /* Painel do admin: atenção, números 2x2, campanha do mês */
 .adm-painel { display: flex; flex-direction: column; gap: 4px; }

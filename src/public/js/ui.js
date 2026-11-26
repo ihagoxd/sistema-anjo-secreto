@@ -7622,6 +7622,26 @@
       obs.observe(b, { attributes: true, attributeFilter: ['class'] });
       setTimeout(function () { obs.disconnect(); }, 3000);
     }, true); // captura: o coração do story vira .ativo no próprio clique, antes de o evento chegar aqui
+    // Cartinha: "x de 6 respondidas" com a barrinha de bengala doce, enchendo enquanto a pessoa escreve (os
+    // presentes contam quando há pelo menos uma etiqueta; elas entram por JS, por isso o observador)
+    var cartaProg = document.querySelector('[data-carta-prog]'), cartaForm = document.getElementById('formPrefsTema');
+    if (cartaProg && cartaForm) {
+      var cpTxt = cartaProg.querySelector('[data-carta-prog-txt]'), cpBarra = cartaProg.querySelector('[data-carta-prog-barra]');
+      var contarCarta = function () {
+        var campos = cartaForm.querySelectorAll('.campo'), n = 0;
+        campos.forEach(function (c) {
+          var lista = c.querySelector('[data-chips-lista]');
+          if (lista) { if (lista.children.length) n++; return; }
+          var f = c.querySelector('input[name], textarea[name]');
+          if (f && f.value.trim()) n++;
+        });
+        cpTxt.textContent = n + ' de ' + campos.length + ' respondidas';
+        cpBarra.style.width = (campos.length ? Math.round(n / campos.length * 100) : 0) + '%';
+      };
+      cartaForm.addEventListener('input', contarCarta);
+      if (window.MutationObserver) new MutationObserver(contarCarta).observe(cartaForm, { childList: true, subtree: true });
+      contarCarta();
+    }
     // Notificações: no vazio ("Você está em dia!" e os outros) entra o globo de neve no lugar do sino. A página
     // refaz o vazio a cada troca de filtro, então um observador recoloca o globo
     var tplGlobo = document.getElementById('ntGlobo'), pgNotif = document.querySelector('[data-notif-pagina]');

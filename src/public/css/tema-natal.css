@@ -440,6 +440,10 @@ body.tema-natal .stview-autor::before { content: ''; position: absolute; z-index
 /* Páginas de erro (404 e afins): o texto ficava solto no céu e "se perdeu entre as nuvens" sumia na lua; vai
    para um cartão da noite */
 body.tema-natal .erro-pagina { margin: 24px 16px 0; padding: 34px 20px 30px; border: 1px solid var(--line); border-radius: 22px; background: color-mix(in srgb, var(--surface) 94%, transparent); }
+/* Cartinha: contador "x de 6 respondidas" no pé do cabeçalho do papel, com a barrinha de bengala doce das
+   preferências num trilho cor de papel */
+.nt-carta-prog { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; font-size: 12.5px; font-weight: 700; color: #5a6a92; }
+[data-theme] body.tema-natal .nt-carta-prog .pr-barra { height: 8px; background: #efe4cc; }
 /* Filtros escolhidos do admin (Usuários, Logs) em vermelho, como os outros filtros do tema (eram roxos) */
 body.tema-natal .chip.ativo { background: var(--nt-grad); border-color: transparent; color: #fff; }
 body.tema-natal .chip.ativo .chip-n { background: rgba(255, 255, 255, 0.22); color: #fff; }

@@ -5133,4 +5133,6 @@ form.treme { animation: auth-treme 0.42s ease; }
 .tp-floco { position: absolute; top: -6px; width: 4px; height: 4px; border-radius: 50%; background: #fff; opacity: 0.9; z-index: 3; animation: tp-floco var(--d, 5s) linear infinite; }
 @keyframes tp-floco { to { transform: translate3d(-6px, 240px, 0); } }
 .tema-card.tc-natal .tema-card-tit h2 { font-family: 'Mountains of Christmas', inherit; font-weight: 700; font-size: 28px; color: #2f5fd0; }
+/* No modo escuro o azul forte quase sumia no cartão escuro: azul-gelo */
+[data-theme='dark'] .tema-card.tc-natal .tema-card-tit h2 { color: #8fd0ff; }
 @media (prefers-reduced-motion: reduce) { .tp-luzes, .tp-floco { animation: none !important; } }

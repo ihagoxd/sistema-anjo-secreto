@@ -7572,6 +7572,11 @@
     }
     if (document.querySelector('[data-confete]')) chuva(56);
     window.__festejar = function () { chuva(56); };
+    // Cartinha: ao salvar, o carimbo "Enviada" do Polo Norte bate em cima do selo
+    var formCarta = document.getElementById('formPrefsTema'), carimbo = document.querySelector('[data-carimbo]');
+    if (formCarta && carimbo) formCarta.addEventListener('fluido:salvo', function () {
+      carimbo.classList.remove('bate'); void carimbo.getBoundingClientRect(); carimbo.classList.add('visivel', 'bate');
+    });
     document.addEventListener('click', function (e) {
       var a = e.target.closest('[data-vila]'); if (!a) return;
       a.classList.remove('pula'); void a.getBoundingClientRect(); a.classList.add('pula');

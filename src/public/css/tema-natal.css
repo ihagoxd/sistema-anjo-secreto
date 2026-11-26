@@ -463,6 +463,61 @@ body.tema-natal .chips { border: 1.5px solid var(--line); border-radius: 16px; }
 body.tema-natal .chips:focus-within { border-color: var(--nt-vermelho); box-shadow: 0 0 0 4px rgba(255, 93, 114, 0.2); }
 body.tema-natal .chips-sug button { border-color: var(--line-strong); }
 body.tema-natal .pf-secao { border-top: 1px dashed var(--line-strong); }
+
+/* ---------- CARTINHA (aba Natal das preferências): uma carta de papel de verdade ----------
+   Papel creme com a borda de correio aéreo (listras vermelhas e azuis), pautas azul-claras e margem
+   vermelha; a saudação e os títulos na letra de Natal em tinta azul; selo do Polo Norte no canto e o
+   carimbo "Enviada" que bate em cima dele ao salvar; assinatura "Com carinho" no fim. É papel: fica
+   igual nos modos claro e escuro. [data-theme] só para ganhar das regras gerais de cartão do tema. */
+[data-theme] body.tema-natal .pft-hero, [data-theme] body.tema-natal .pft-form {
+  --tinta: #1d2f66; --tinta-suave: #5a6a92; --pauta: #dde6f7; --linha-papel: #c9d6f0;
+  border: 7px solid transparent; color: var(--tinta);
+  box-shadow: 0 18px 40px -18px rgba(2, 8, 28, 0.65);
+}
+[data-theme] body.tema-natal .pft-hero {
+  text-align: left; margin-bottom: 0; border-bottom: 0; border-radius: 16px 16px 0 0; padding: 22px 96px 12px 22px; overflow: visible;
+  box-shadow: none; /* a sombra fica só na parte de baixo da folha, senão escurece a emenda */
+  background: linear-gradient(#fffaf0, #fffaf0) padding-box, repeating-linear-gradient(-45deg, #e3304a 0 9px, #fffaf0 9px 15px, #2f5fd0 15px 24px, #fffaf0 24px 30px) border-box;
+}
+[data-theme] body.tema-natal .pft-form {
+  border-top: 0; border-radius: 0 0 16px 16px; margin-top: 0;
+  background:
+    linear-gradient(90deg, transparent 14px, rgba(227, 48, 74, 0.32) 14px 15.5px, transparent 15.5px) padding-box,
+    repeating-linear-gradient(180deg, transparent 0 33px, var(--pauta) 33px 34px) padding-box,
+    linear-gradient(#fffaf0, #fffaf0) padding-box, repeating-linear-gradient(-45deg, #e3304a 0 9px, #fffaf0 9px 15px, #2f5fd0 15px 24px, #fffaf0 24px 30px) border-box;
+}
+body.tema-natal .pft-hero-deco, body.tema-natal .pft-hero-emojis { display: none; }
+[data-theme] body.tema-natal .pft-hero-tit { color: var(--tinta); text-shadow: none; font-size: 36px; line-height: 1.05; margin: 0 0 8px; }
+body.tema-natal .pft-hero-txt { color: var(--tinta-suave); margin: 0; max-width: none; }
+.nt-selo { position: absolute; top: 14px; right: 16px; width: 58px; height: 68px; transform: rotate(4deg); filter: drop-shadow(0 2px 3px rgba(20, 30, 60, 0.25)); }
+.nt-selo svg, .nt-carimbo svg { display: block; }
+/* O círculo do carimbo fica no papel, ao lado do selo, e as ondinhas passam por cima dele */
+.nt-carimbo { position: absolute; top: 44px; right: 26px; width: 96px; height: 60px; opacity: 0; transform: rotate(-14deg); pointer-events: none; mix-blend-mode: multiply; }
+.nt-carimbo.visivel { opacity: 0.82; }
+.nt-carimbo.bate { animation: nt-carimbo-bate 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
+@keyframes nt-carimbo-bate { from { opacity: 0; transform: rotate(-14deg) scale(1.9); } to { opacity: 0.82; transform: rotate(-14deg) scale(1); } }
+/* Campos escritos "à mão" no papel */
+[data-theme] body.tema-natal .pft-form label { color: var(--tinta); font-family: var(--font-display); font-size: 20px; font-weight: 700; }
+body.tema-natal .pft-form .lbl-ic { color: #e3304a; }
+body.tema-natal .pft-form .pf-secao-dica, body.tema-natal .pft-form .chips-cont, body.tema-natal .pft-form .chips-sug-rot { color: var(--tinta-suave); }
+[data-theme] body.tema-natal .pft-form .campo input, [data-theme] body.tema-natal .pft-form .campo textarea, [data-theme] body.tema-natal .pft-form .chips {
+  background: rgba(255, 255, 255, 0.78); border: 1.5px solid var(--linha-papel); color: var(--tinta);
+}
+[data-theme] body.tema-natal .pft-form .chips input { background: transparent; border: none; color: var(--tinta); }
+body.tema-natal .pft-form input::placeholder, body.tema-natal .pft-form textarea::placeholder { color: #8a9ac0; }
+[data-theme] body.tema-natal .pft-form .campo input:focus, [data-theme] body.tema-natal .pft-form .campo textarea:focus, [data-theme] body.tema-natal .pft-form .chips:focus-within {
+  border-color: #e3304a; box-shadow: 0 0 0 4px rgba(227, 48, 74, 0.15);
+}
+body.tema-natal .pft-form .chip-item { background: #ffe1e6; color: #b3203a; }
+[data-theme] body.tema-natal .pft-form .chips-sug button { background: #fff; border-color: var(--linha-papel); color: var(--tinta); }
+[data-theme] body.tema-natal .pft-form .chips-sug button:hover { border-color: #e3304a; color: #b3203a; background: #fff5f6; }
+.nt-carta-assina { margin: 22px 6px 0; text-align: right; font-family: var(--font-display); font-weight: 700; font-size: 19px; line-height: 1.1; color: #1d2f66; }
+.nt-carta-assina b { display: block; font-size: 27px; color: #1d3f94; }
+/* A barra de salvar que gruda no pé (celular) fica no tom do papel */
+@media (max-width: 899px) {
+  [data-theme] body.tema-natal .pft-form .pf-salvar { background: color-mix(in srgb, #fffaf0 92%, transparent); border-top-color: #e6dcc6; }
+}
+@media (prefers-reduced-motion: reduce) { .nt-carimbo.bate { animation: none; } }
 body.tema-natal .galeria-add:hover { border-color: var(--nt-vermelho); color: var(--nt-vermelho); }
 
 /* Faixa "Feliz Natal!" no topo do feed: cartão da noite meio transparente (no celular a lua aparece atrás,

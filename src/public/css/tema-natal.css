@@ -1,86 +1,79 @@
 /* ============================================================
-   TEMA DA REDE: NATAL (Noite Feliz), fofo e ilustrado.
+   TEMA DA REDE: NATAL (Noite Feliz), noite azul de neve.
    Carregado só quando o admin ativa o tema. Entra DEPOIS do estilo.css e
-   repinta o app inteiro como um livrinho de Natal: céu azul suave com a lua
-   crescente sonolenta, estrelinhas piscando, nuvens fofas, neve fofinha e,
-   no chão, uma cena desenhada (boneco de neve acenando, casinhas com janela
-   acesa e fumacinha, pinheirinhos e montes de neve). Tons pastel (azul-bebê,
-   rosa e creme) e títulos arredondados (Fredoka, OFL, já servida no projeto).
+   repinta o app inteiro como uma noite de Natal: azul da meia-noite, lua
+   cheia atrás da faixa, neve caindo, o trenó cruzando o céu e, no chão
+   (computador e login), uma vila nevada com pinheiros e casinhas de janela
+   acesa. Botões no vermelho do Papai Noel, detalhes em branco e azul-gelo e
+   títulos e textos em letra de cartão de Natal (Mountains of Christmas, OFL).
    Só movimento barato (transform/opacity), menos elementos no celular e nada
    de animação para quem pede "menos movimento". Dois modos (claro/escuro).
-   Degradês sempre de DUAS cores (rosa + rosa / rosa + azul-bebê).
+   Degradês sempre de DUAS cores (vermelho + vermelho / branco + azul-gelo).
    ============================================================ */
 
-/* ---------- FONTE DOS TÍTULOS: Fredoka (OFL, servida localmente) ---------- */
+/* ---------- FONTE: Mountains of Christmas (OFL, servida localmente) ---------- */
 @font-face {
-  font-family: 'Fredoka';
-  src: url('/fonts/Fredoka-latin.woff2') format('woff2');
-  font-weight: 300 700; font-style: normal; font-display: swap;
+  font-family: 'Mountains of Christmas';
+  src: url('/fonts/MountainsOfChristmas-700.woff2') format('woff2');
+  font-weight: 700; font-style: normal; font-display: swap;
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-@font-face {
-  font-family: 'Fredoka';
-  src: url('/fonts/Fredoka-latin-ext.woff2') format('woff2');
-  font-weight: 300 700; font-style: normal; font-display: swap;
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
 /* ---------- TOKENS DO TEMA ---------- */
 body.tema-natal {
-  --font-display: 'Fredoka', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Mountains of Christmas', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-post: 'Mountains of Christmas', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --radius: 18px;
-  --nt-rosa: #ff8fab;
-  --nt-rosa-forte: #ff6b8a;
-  --nt-azul: #8fb8ff;
-  --nt-azul-forte: #6d95f0;
-  --nt-menta: #7ee0c3;
-  --nt-creme: #fff6e6;
-  --nt-dourado: #ffd36e;
-  --nt-grad: linear-gradient(135deg, #ff8fab, #ff6b8a);          /* rosa */
-  --nt-grad-azul: linear-gradient(135deg, #8fb8ff, #6d95f0);     /* azul-bebê */
-  --nt-faixa: linear-gradient(90deg, #ff8fab, #9ad0ff, #ff8fab); /* rosa → azul-bebê */
-  --nt-brilho: 0 0 18px rgba(255, 211, 110, 0.45);
+  --nt-vermelho: #ff5d72;          /* vermelho do Papai Noel: botões, curtir, avisos */
+  --nt-vermelho-forte: #e3304a;
+  --nt-azul: #8fd0ff;              /* azul-gelo: anéis, bordas, brilho da neve */
+  --nt-azul-forte: #3e6fd8;
+  --nt-neve: #ffffff;
+  --nt-grad: linear-gradient(135deg, #ff5d72, #e3304a);          /* vermelho */
+  --nt-grad-azul: linear-gradient(135deg, #5b8ef0, #2f5fd0);     /* azul */
+  --nt-faixa: linear-gradient(90deg, #ffffff, #8fd0ff, #ffffff); /* branco → azul-gelo */
+  --nt-tit-sombra: 0 0 18px rgba(160, 210, 255, 0.7), 0 2px 0 rgba(10, 30, 80, 0.6);
 }
-/* ESCURO: noite azul suave (periwinkle), texto creme, rosa de destaque */
+/* ESCURO: azul da meia-noite, texto branco, vermelho de destaque */
 [data-theme='dark'] body.tema-natal {
-  --bg: #1c2b61; --bg-2: #15214d;
-  --surface: #24356f; --surface-2: #2c3f80; --hover: #33488d;
-  --line: #3a4f95; --line-strong: #4a60aa;
-  --text: #f6f8ff; --text-soft: #d2daf6; --text-faint: #9eabd9;
-  --accent: #ff8fab; --accent-strong: #ffa9bf; --accent-soft: #4b3a78; --accent-ring: rgba(255, 143, 171, 0.38); --on-accent: #ffffff;
-  --ouro: #ff7f9e; --ouro-forte: #ff94ae; --on-ouro: #ffffff;
-  --success: #7ee0c3; --success-strong: #9ff0d6;
-  --btn-2-bg: #33488d; --btn-2-hover: #3a4f95;
-  --st-cinza: #9eabd9; --st-azul: #9ad0ff; --st-laranja: #ffb38a; --st-amarelo: #ffd36e; --st-verde: #7ee0c3; --st-vermelho: #ff7f96;
-  --shadow-pop: 0 16px 40px rgba(8, 14, 40, 0.5);
+  --bg: #0a1a45; --bg-2: #071334;
+  --surface: #10235a; --surface-2: #162d6b; --hover: #1b3577;
+  --line: #24437f; --line-strong: #2f5596;
+  --text: #f3f7ff; --text-soft: #c9d7f5; --text-faint: #8fa4d6;
+  --accent: #ff5d72; --accent-strong: #ff7d8f; --accent-soft: #33295e; --accent-ring: rgba(255, 93, 114, 0.38); --on-accent: #ffffff;
+  --ouro: #ff5d72; --ouro-forte: #ff7d8f; --on-ouro: #ffffff;
+  --success: #6fe0b5; --success-strong: #8ff0c9;
+  --btn-2-bg: #1b3577; --btn-2-hover: #21408a;
+  --st-cinza: #8fa4d6; --st-azul: #8fd0ff; --st-laranja: #ffb38a; --st-amarelo: #ffd36e; --st-verde: #6fe0b5; --st-vermelho: #ff7d8f;
+  --shadow-pop: 0 16px 40px rgba(2, 8, 28, 0.6);
 }
-/* CLARO: dia de neve, azul-bebê e branco, rosa de destaque */
+/* CLARO: dia de neve, branco e azul-gelo, vermelho de destaque e títulos azul-noite */
 [data-theme='light'] body.tema-natal {
-  --bg: #eaf4ff; --bg-2: #dcebff;
-  --surface: #ffffff; --surface-2: #f3f8ff; --hover: #e6f0ff;
-  --line: #d4e3f8; --line-strong: #b9cff0;
-  --text: #26325f; --text-soft: #4f5d8c; --text-faint: #8691b5;
-  --accent: #f0607f; --accent-strong: #d94a6a; --accent-soft: #ffe5ec; --accent-ring: rgba(240, 96, 127, 0.25); --on-accent: #ffffff;
-  --ouro: #f0607f; --ouro-forte: #d94a6a; --on-ouro: #ffffff;
-  --success: #2fb38a; --success-strong: #23936f;
-  --btn-2-bg: #ffffff; --btn-2-hover: #e6f0ff;
-  --st-cinza: #8691b5; --st-azul: #4f86e8; --st-laranja: #f08a4b; --st-amarelo: #d9a521; --st-verde: #2fb38a; --st-vermelho: #f0607f;
-  --shadow-pop: 0 14px 34px rgba(40, 70, 140, 0.14);
+  --bg: #eef5ff; --bg-2: #e0ecff;
+  --surface: #ffffff; --surface-2: #f3f8ff; --hover: #e8f1ff;
+  --line: #d3e2f7; --line-strong: #b5ccee;
+  --text: #142a5c; --text-soft: #3e5488; --text-faint: #7d8fb8;
+  --accent: #e3304a; --accent-strong: #c41f38; --accent-soft: #ffe3e7; --accent-ring: rgba(227, 48, 74, 0.25); --on-accent: #ffffff;
+  --ouro: #e3304a; --ouro-forte: #c41f38; --on-ouro: #ffffff;
+  --success: #1f9d72; --success-strong: #17805c;
+  --btn-2-bg: #ffffff; --btn-2-hover: #e8f1ff;
+  --st-cinza: #7d8fb8; --st-azul: #2f6fe0; --st-laranja: #e8803f; --st-amarelo: #c9961a; --st-verde: #1f9d72; --st-vermelho: #e3304a;
+  --shadow-pop: 0 14px 34px rgba(20, 50, 120, 0.14);
+  --nt-faixa: linear-gradient(90deg, #2f5fd0, #8fd0ff, #2f5fd0);
+  --nt-tit-sombra: 0 2px 0 rgba(143, 208, 255, 0.55);
 }
 
-/* ---------- FUNDO: céu azul suave com o brilho da lua ---------- */
+/* ---------- FUNDO: azul da meia-noite com o brilho da lua ---------- */
 [data-theme='dark'] body.tema-natal {
   background:
-    radial-gradient(circle at 86% 10%, rgba(255, 236, 190, 0.2), transparent 24%),
-    radial-gradient(circle at 10% 78%, rgba(255, 143, 171, 0.14), transparent 34%),
-    linear-gradient(180deg, #2d4596 0%, #22357a 45%, #1a2858 100%);
+    radial-gradient(circle at 88% 9%, rgba(190, 220, 255, 0.2), transparent 30%),
+    linear-gradient(180deg, #0f2558 0%, #0a1a45 50%, #060f2b 100%);
   background-attachment: fixed;
 }
 [data-theme='light'] body.tema-natal {
   background:
-    radial-gradient(circle at 86% 10%, rgba(255, 220, 150, 0.4), transparent 24%),
-    radial-gradient(circle at 10% 80%, rgba(255, 143, 171, 0.16), transparent 32%),
-    linear-gradient(180deg, #cfe5ff 0%, #e8f3ff 50%, #ffffff 100%);
+    radial-gradient(circle at 88% 9%, rgba(143, 208, 255, 0.35), transparent 30%),
+    linear-gradient(180deg, #d6e8ff 0%, #eef5ff 50%, #ffffff 100%);
   background-attachment: fixed;
 }
 [data-theme] body.tema-natal::before, [data-theme] body.tema-natal::after { display: none; animation: none; }
@@ -88,19 +81,25 @@ body.tema-natal .app { position: relative; z-index: 1; }
 
 /* ---------- DECORAÇÃO FIXA (partial temaDecoracao) ---------- */
 .nt-deco { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
-/* Lua crescente sonolenta com um halo que "respira" */
-.nt-lua { position: absolute; top: 52px; right: 7%; width: 96px; height: 96px; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Cdefs%3E%3Cmask%20id%3D%27m%27%3E%3Crect%20width%3D%27100%27%20height%3D%27100%27%20fill%3D%27white%27%2F%3E%3Ccircle%20cx%3D%2768%27%20cy%3D%2734%27%20r%3D%2738%27%20fill%3D%27black%27%2F%3E%3C%2Fmask%3E%3CradialGradient%20id%3D%27g%27%20cx%3D%2735%25%27%20cy%3D%2760%25%27%20r%3D%2770%25%27%3E%3Cstop%20offset%3D%270%27%20stop-color%3D%27%23fffaf0%27%2F%3E%3Cstop%20offset%3D%271%27%20stop-color%3D%27%23ffe3a0%27%2F%3E%3C%2FradialGradient%3E%3C%2Fdefs%3E%3Cg%20mask%3D%27url%28%23m%29%27%3E%3Ccircle%20cx%3D%2750%27%20cy%3D%2750%27%20r%3D%2744%27%20fill%3D%27url%28%23g%29%27%2F%3E%3C%2Fg%3E%3Cpath%20d%3D%27M20%2057%20q6%205%2012%200%27%20fill%3D%27none%27%20stroke%3D%27%23d39a4a%27%20stroke-width%3D%272.8%27%20stroke-linecap%3D%27round%27%2F%3E%3Cellipse%20cx%3D%2724%27%20cy%3D%2767%27%20rx%3D%275.5%27%20ry%3D%273.4%27%20fill%3D%27%23ffb3c4%27%20opacity%3D%27.85%27%2F%3E%3Cpath%20d%3D%27M31%2075%20q5%203.5%2010%20-0.5%27%20fill%3D%27none%27%20stroke%3D%27%23d39a4a%27%20stroke-width%3D%272.4%27%20stroke-linecap%3D%27round%27%2F%3E%3C%2Fsvg%3E") center / contain no-repeat; filter: drop-shadow(0 0 18px rgba(255, 226, 160, 0.6)); animation: nt-lua 6s ease-in-out infinite; }
-.nt-lua::before { content: ''; position: absolute; inset: -55%; border-radius: 50%; background: radial-gradient(circle, rgba(255, 240, 200, 0.26), transparent 62%); }
-[data-theme='light'] .nt-lua { filter: drop-shadow(0 0 12px rgba(240, 180, 80, 0.55)); }
-@keyframes nt-lua { 0%, 100% { transform: rotate(-4deg) translateY(0); } 50% { transform: rotate(3deg) translateY(-4px); } }
+/* Lua cheia azulada, com crateras suaves e um halo que "respira" (no celular fica atrás da faixa) */
+.nt-lua { position: absolute; top: 52px; right: 6%; width: 120px; height: 120px; border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 62%, rgba(150, 180, 230, 0.35) 0 9%, transparent 10%),
+    radial-gradient(circle at 62% 34%, rgba(150, 180, 230, 0.28) 0 6%, transparent 7%),
+    radial-gradient(circle at 70% 66%, rgba(150, 180, 230, 0.25) 0 5%, transparent 6%),
+    radial-gradient(circle at 40% 38%, #ffffff, #dbe8ff 55%, #a9c6ff);
+  box-shadow: 0 0 60px 14px rgba(170, 205, 255, 0.4); }
+.nt-lua::before { content: ''; position: absolute; inset: -60%; border-radius: 50%; background: radial-gradient(circle, rgba(190, 220, 255, 0.24), transparent 60%); animation: nt-lua 7s ease-in-out infinite; }
+[data-theme='light'] .nt-lua { box-shadow: 0 0 40px 10px rgba(120, 170, 240, 0.35); }
+@keyframes nt-lua { 0%, 100% { opacity: 0.7; transform: scale(0.96); } 50% { opacity: 1; transform: scale(1.04); } }
 /* Estrelinhas piscando */
-.nt-estrelinha { position: absolute; width: var(--t, 10px); height: var(--t, 10px); background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Cpolygon%20points%3D%2750%2C10%2061%2C38%2091%2C39%2067%2C57%2076%2C87%2050%2C70%2024%2C87%2033%2C57%209%2C39%2039%2C38%27%20fill%3D%27%23ffe08a%27%20stroke%3D%27%23ffe08a%27%20stroke-width%3D%279%27%20stroke-linejoin%3D%27round%27%2F%3E%3C%2Fsvg%3E") center / contain no-repeat; filter: drop-shadow(0 0 6px rgba(255, 224, 138, 0.8)); animation: nt-pisca-estrela 2.8s ease-in-out infinite; }
-[data-theme='light'] .nt-estrelinha { filter: drop-shadow(0 0 4px rgba(230, 170, 40, 0.6)) saturate(1.3); }
+.nt-estrelinha { position: absolute; width: var(--t, 10px); height: var(--t, 10px); background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Cpolygon%20points%3D%2750%2C10%2061%2C38%2091%2C39%2067%2C57%2076%2C87%2050%2C70%2024%2C87%2033%2C57%209%2C39%2039%2C38%27%20fill%3D%27%23ffffff%27%20stroke%3D%27%23ffffff%27%20stroke-width%3D%279%27%20stroke-linejoin%3D%27round%27%2F%3E%3C%2Fsvg%3E") center / contain no-repeat; filter: drop-shadow(0 0 6px rgba(190, 225, 255, 0.9)); animation: nt-pisca-estrela 2.8s ease-in-out infinite; }
+[data-theme='light'] .nt-estrelinha { filter: drop-shadow(0 0 1.5px rgba(47, 95, 208, 0.9)) drop-shadow(0 0 4px rgba(47, 95, 208, 0.4)); }
 @keyframes nt-pisca-estrela { 0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; } 50% { transform: scale(0.6) rotate(20deg); opacity: 0.55; } }
 /* Nuvens fofas passando bem devagar */
-.nt-nuvem { position: absolute; left: 0; width: 170px; height: 58px; opacity: 0.24; animation: nt-nuvem var(--d, 90s) linear infinite;
+.nt-nuvem { position: absolute; left: 0; width: 170px; height: 58px; opacity: 0.1; animation: nt-nuvem var(--d, 90s) linear infinite;
   background: radial-gradient(circle at 30% 62%, #fff 0 22px, transparent 23px), radial-gradient(circle at 52% 42%, #fff 0 29px, transparent 30px), radial-gradient(circle at 74% 62%, #fff 0 22px, transparent 23px), linear-gradient(#fff, #fff) 22% 100% / 60% 22px no-repeat; border-radius: 30px; }
-.nt-nuvem.b { width: 130px; height: 44px; opacity: 0.13; }
+.nt-nuvem.b { width: 130px; height: 44px; opacity: 0.07; }
 [data-theme='light'] .nt-nuvem { opacity: 0.9; filter: drop-shadow(0 4px 8px rgba(80, 120, 200, 0.12)); }
 @keyframes nt-nuvem { from { transform: translate3d(-200px, 0, 0); } to { transform: translate3d(calc(100vw + 40px), 0, 0); } }
 /* Neve fofinha: bolinhas macias (o <i> cai e balança); algumas maiores e desfocadas, perto da tela */
@@ -135,7 +134,7 @@ body.tema-natal .app { position: relative; z-index: 1; }
 .nt-luzes { position: absolute; top: 0; left: 0; right: 0; height: 30px; }
 .nt-luzes::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 20px; background: radial-gradient(60% 18px at 50% 0, transparent 92%, rgba(255, 255, 255, 0.35) 93% 98%, transparent 99%) 0 0 / 160px 20px repeat-x; }
 .nt-luzes i { position: absolute; top: var(--y, 14px); left: var(--x, 0); width: 9px; height: 13px; border-radius: 50% 50% 45% 45%; background: var(--c, #ffd36e); box-shadow: 0 0 12px 3px var(--c, #ffd36e); animation: nt-pisca var(--d, 2.2s) ease-in-out infinite alternate; }
-.nt-luzes i::before { content: ''; position: absolute; left: 2px; top: -3px; width: 5px; height: 4px; border-radius: 1px; background: #4a5a8e; }
+.nt-luzes i::before { content: ''; position: absolute; left: 2px; top: -3px; width: 5px; height: 4px; border-radius: 1px; background: #2a3f7a; }
 @keyframes nt-pisca { 0%, 40% { opacity: 1; } 100% { opacity: 0.4; } }
 [data-theme='light'] .nt-luzes::before { background: radial-gradient(60% 18px at 50% 0, transparent 92%, rgba(38, 50, 95, 0.3) 93% 98%, transparent 99%) 0 0 / 160px 20px repeat-x; }
 /* Névoa de neve macia no pé da tela (celular): no lugar da vila, que lá ficaria cortada pela barra */
@@ -149,14 +148,14 @@ body.tema-natal .app { position: relative; z-index: 1; }
 .nt-nevoa.b { height: 140px; opacity: 0.5; animation-duration: 100s; animation-direction: reverse; }
 [data-theme='light'] .nt-nevoa { opacity: 1; background:
     radial-gradient(ellipse 30% 70% at 15% 100%, rgba(143, 184, 255, 0.22), transparent 70%),
-    radial-gradient(ellipse 36% 80% at 45% 100%, rgba(255, 143, 171, 0.14), transparent 70%),
+    radial-gradient(ellipse 36% 80% at 45% 100%, rgba(255, 255, 255, 0.5), transparent 70%),
     radial-gradient(ellipse 30% 65% at 72% 100%, rgba(143, 184, 255, 0.22), transparent 70%); }
 @keyframes nt-nevoa { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(25vw, 0, 0); } }
 /* Cena desenhada no chão */
 .nt-cena { position: absolute; left: 0; bottom: 0; width: 100%; height: 230px; }
-.nt-morro-tras { fill: #9fb8ec; opacity: 0.55; }
+.nt-morro-tras { fill: #6f8fd6; opacity: 0.4; }
 .nt-morro { fill: #eef4ff; }
-[data-theme='light'] .nt-morro-tras { fill: #c9dcfa; opacity: 1; }
+[data-theme='light'] .nt-morro-tras { fill: #cfe0fb; opacity: 1; }
 [data-theme='light'] .nt-morro { fill: #ffffff; }
 .nt-janela { filter: drop-shadow(0 0 6px #ffd36e); animation: nt-janela 5s ease-in-out infinite; }
 @keyframes nt-janela { 0%, 100% { opacity: 1; } 50% { opacity: 0.82; } }
@@ -167,30 +166,17 @@ body.tema-natal .app { position: relative; z-index: 1; }
 .nt-braco { transform-box: fill-box; transform-origin: 0% 100%; animation: nt-acena 2.6s ease-in-out infinite; }
 @keyframes nt-acena { 0%, 60%, 100% { transform: rotate(0deg); } 70% { transform: rotate(-16deg); } 80% { transform: rotate(6deg); } 90% { transform: rotate(-12deg); } }
 
-/* Neve fofa acumulada no topo dos cartões especiais (faixa, cartinha, login) */
-body.tema-natal .tema-banner.tb-natal::before, body.tema-natal .pft-hero::before, body.tema-natal .auth-plate::before {
-  content: ''; position: absolute; left: 16px; right: 16px; top: 0; height: 16px; z-index: 3; pointer-events: none;
-  background:
-    radial-gradient(10px 9px at 10px 4px, #ffffff 98%, transparent) 0 0 / 74px 16px repeat-x,
-    radial-gradient(7px 7px at 28px 3px, #ffffff 98%, transparent) 0 0 / 74px 16px repeat-x,
-    radial-gradient(12px 10px at 47px 4px, #ffffff 98%, transparent) 0 0 / 74px 16px repeat-x,
-    radial-gradient(6px 6px at 65px 3px, #ffffff 98%, transparent) 0 0 / 74px 16px repeat-x,
-    linear-gradient(#ffffff, #ffffff) 0 0 / 100% 5px no-repeat;
-  border-radius: 0 0 10px 10px;
-  filter: drop-shadow(0 3px 3px rgba(20, 35, 90, 0.18));
-}
-
-/* ---------- TIPOGRAFIA: títulos arredondados ---------- */
+/* ---------- TIPOGRAFIA: títulos em letra de cartão de Natal ---------- */
 body.tema-natal .pagina-cabecalho h1, body.tema-natal .painel-hero-nome, body.tema-natal .pft-hero-tit,
 body.tema-natal .direct-lista-topo h1, body.tema-natal .direct-placeholder h2, body.tema-natal .tb-tit,
 body.tema-natal .auth-wordmark, body.tema-natal .loader-wordmark .nome, body.tema-natal .tw-vazio-tit, body.tema-natal .gt-tit,
 body.tema-natal .adm-cab-txt h1 {
   font-family: var(--font-display); font-weight: 700; letter-spacing: 0;
 }
-body.tema-natal .pagina-cabecalho h1, body.tema-natal .adm-cab-txt h1 { color: var(--accent-strong); }
-[data-theme='dark'] body.tema-natal .pagina-cabecalho h1, [data-theme='dark'] body.tema-natal .adm-cab-txt h1 { color: var(--nt-creme); text-shadow: 0 2px 0 rgba(255, 107, 138, 0.45), 0 0 18px rgba(255, 211, 110, 0.25); }
+body.tema-natal .pagina-cabecalho h1, body.tema-natal .adm-cab-txt h1 { color: #1d3f94; text-shadow: var(--nt-tit-sombra); }
+[data-theme='dark'] body.tema-natal .pagina-cabecalho h1, [data-theme='dark'] body.tema-natal .adm-cab-txt h1 { color: #ffffff; }
 body.tema-natal .pagina-cabecalho { border-bottom: 1px solid var(--line-strong); }
-body.tema-natal ::selection { background: #ffd1dc; color: #26325f; }
+body.tema-natal ::selection { background: #cfe8ff; color: #0a1a45; }
 
 /* ---------- SIDEBAR / TOPO / BARRA INFERIOR ---------- */
 body.tema-natal .sidebar { background: var(--surface); border-right: 1px solid var(--line); backdrop-filter: none; -webkit-backdrop-filter: none; }
@@ -199,53 +185,23 @@ body.tema-natal .sidebar::before { content: ''; position: absolute; left: 0; rig
 body.tema-natal .marca-tag { color: var(--accent-strong); letter-spacing: 0.1em; }
 body.tema-natal .marca-emblema { filter: drop-shadow(0 0 10px rgba(255, 211, 110, 0.55)); }
 body.tema-natal .side-link { border-radius: 14px; }
-body.tema-natal .side-link.ativo { background: var(--nt-grad); color: #fff; box-shadow: 0 8px 20px rgba(255, 107, 138, 0.3); }
+body.tema-natal .side-link.ativo { background: var(--nt-grad); color: #fff; box-shadow: 0 8px 20px rgba(227, 48, 74, 0.3); }
 body.tema-natal .side-link.ativo .icon { color: #fff; }
-body.tema-natal .side-link.ativo .nav-badge { background: #fff; color: var(--nt-rosa-forte); }
+body.tema-natal .side-link.ativo .nav-badge { background: #fff; color: var(--nt-vermelho-forte); }
 body.tema-natal .side-secao { color: var(--nt-azul-forte); }
 [data-theme='dark'] body.tema-natal .side-secao { color: var(--nt-azul); }
-body.tema-natal .side-link-tema { background: color-mix(in srgb, var(--nt-rosa) 14%, transparent); border: 1px dashed color-mix(in srgb, var(--nt-rosa) 60%, transparent); margin-top: 4px; }
-body.tema-natal .side-link-tema:hover { background: color-mix(in srgb, var(--nt-rosa) 24%, transparent); }
+body.tema-natal .side-link-tema { background: color-mix(in srgb, var(--nt-vermelho) 14%, transparent); border: 1px dashed color-mix(in srgb, var(--nt-vermelho) 60%, transparent); margin-top: 4px; }
+body.tema-natal .side-link-tema:hover { background: color-mix(in srgb, var(--nt-vermelho) 24%, transparent); }
 body.tema-natal .side-link-tema.ativo { border-color: transparent; }
-body.tema-natal .nav-badge, body.tema-natal .conv-badge, body.tema-natal .bi-badge, body.tema-natal .sino-badge { background: var(--nt-rosa-forte); color: #fff; }
-body.tema-natal .avatar { background: var(--nt-rosa); color: #fff; }
+body.tema-natal .nav-badge, body.tema-natal .conv-badge, body.tema-natal .bi-badge, body.tema-natal .sino-badge { background: var(--nt-vermelho-forte); color: #fff; }
+body.tema-natal .avatar { background: var(--nt-vermelho); color: #fff; }
 body.tema-natal .side-rodape { border-top: 1px dashed var(--line-strong); }
 body.tema-natal .topo-mobile { border-bottom: none; }
 body.tema-natal .topo-ig .topo-marca .marca-emblema { filter: drop-shadow(0 0 8px rgba(255, 211, 110, 0.6)); }
-/* Celular: o mesmo pisca-pisca pendurado embaixo do topo (fio com barriguinha nos dois grupos, assim ele
-   nunca some; as lâmpadas dourada/branca e rosa piscam alternadas) */
-body.tema-natal .topo-mobile::before, body.tema-natal .topo-mobile::after {
-  content: ''; position: absolute; left: 0; right: 0; bottom: -22px; height: 22px; pointer-events: none;
-  animation: nt-pisca-pisca 1.5s infinite;
-}
-body.tema-natal .topo-mobile::after {
-  background:
-    radial-gradient(1.5px 2.2px at 10.4px 10px, rgba(255, 255, 255, 0.95) 96%, transparent) 0 0 / 96px 22px repeat-x,
-    radial-gradient(4.6px 6.4px at 12px 12.6px, #ffd36e 96%, transparent) 0 0 / 96px 22px repeat-x,
-    radial-gradient(3px 2.3px at 12px 4.6px, #4f5f98 96%, transparent) 0 0 / 96px 22px repeat-x,
-    radial-gradient(1.5px 2.2px at 58.4px 10px, rgba(255, 255, 255, 0.95) 96%, transparent) 0 0 / 96px 22px repeat-x,
-    radial-gradient(4.6px 6.4px at 60px 12.6px, #fff3d1 96%, transparent) 0 0 / 96px 22px repeat-x,
-    radial-gradient(3px 2.3px at 60px 4.6px, #4f5f98 96%, transparent) 0 0 / 96px 22px repeat-x,
-    radial-gradient(60% 6px at 50% 0, transparent 84%, rgba(255, 255, 255, 0.55) 87% 96%, transparent 98%) 12px 0 / 24px 7px repeat-x;
-  filter: drop-shadow(0 0 3px rgba(255, 214, 120, 0.95)) drop-shadow(0 0 8px rgba(255, 214, 120, 0.45));
-}
-body.tema-natal .topo-mobile::before {
-  background:
-    radial-gradient(1.5px 2.2px at 34.4px 10px, rgba(255, 255, 255, 0.95) 96%, transparent) 0 0 / 96px 22px repeat-x,
-    radial-gradient(4.6px 6.4px at 36px 12.6px, #ff8fab 96%, transparent) 0 0 / 96px 22px repeat-x,
-    radial-gradient(3px 2.3px at 36px 4.6px, #4f5f98 96%, transparent) 0 0 / 96px 22px repeat-x,
-    radial-gradient(1.5px 2.2px at 82.4px 10px, rgba(255, 255, 255, 0.95) 96%, transparent) 0 0 / 96px 22px repeat-x,
-    radial-gradient(4.6px 6.4px at 84px 12.6px, #ff7aa0 96%, transparent) 0 0 / 96px 22px repeat-x,
-    radial-gradient(3px 2.3px at 84px 4.6px, #4f5f98 96%, transparent) 0 0 / 96px 22px repeat-x,
-    radial-gradient(60% 6px at 50% 0, transparent 84%, rgba(255, 255, 255, 0.55) 87% 96%, transparent 98%) 12px 0 / 24px 7px repeat-x;
-  filter: drop-shadow(0 0 3px rgba(255, 143, 171, 0.95)) drop-shadow(0 0 8px rgba(255, 143, 171, 0.45));
-  animation-delay: -0.75s;
-}
-
-body.tema-natal .barra-inferior { background: var(--surface); border-top: none; backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: 0 -6px 24px rgba(10, 20, 60, 0.3); }
+body.tema-natal .barra-inferior { background: var(--surface); border-top: none; backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: 0 -6px 24px rgba(2, 8, 28, 0.4); }
 /* Pisca-pisca em cima da pílula da barra de baixo: fio com barriguinha entre as lâmpadas (no fundo
    da própria barra) e lâmpadas com reflexo e soquete em dois grupos que piscam alternados:
-   dourada e branca quentinha num, rosa no outro. As pontas somem suavemente. */
+   dourada e branca quentinha num, vermelhas no outro. As pontas somem suavemente. */
 body.tema-natal .barra-inferior {
   border: 1px solid color-mix(in srgb, var(--nt-azul) 35%, var(--line));
   background: radial-gradient(60% 6px at 50% 0, transparent 84%, rgba(255, 255, 255, 0.6) 87% 96%, transparent 98%) 6px -1px / 24px 7px repeat-x, var(--surface);
@@ -260,28 +216,28 @@ body.tema-natal .barra-inferior::before {
   background:
     radial-gradient(1.5px 2.2px at 10.4px 10px, rgba(255, 255, 255, 0.95) 96%, transparent) 0 0 / 96px 22px repeat-x,
     radial-gradient(4.6px 6.4px at 12px 12.6px, #ffd36e 96%, transparent) 0 0 / 96px 22px repeat-x,
-    radial-gradient(3px 2.3px at 12px 4.6px, #4f5f98 96%, transparent) 0 0 / 96px 22px repeat-x,
+    radial-gradient(3px 2.3px at 12px 4.6px, #33508f 96%, transparent) 0 0 / 96px 22px repeat-x,
     radial-gradient(1.5px 2.2px at 58.4px 10px, rgba(255, 255, 255, 0.95) 96%, transparent) 0 0 / 96px 22px repeat-x,
     radial-gradient(4.6px 6.4px at 60px 12.6px, #fff3d1 96%, transparent) 0 0 / 96px 22px repeat-x,
-    radial-gradient(3px 2.3px at 60px 4.6px, #4f5f98 96%, transparent) 0 0 / 96px 22px repeat-x;
+    radial-gradient(3px 2.3px at 60px 4.6px, #33508f 96%, transparent) 0 0 / 96px 22px repeat-x;
   filter: drop-shadow(0 0 3px rgba(255, 214, 120, 0.95)) drop-shadow(0 0 8px rgba(255, 214, 120, 0.5));
 }
 body.tema-natal .barra-inferior::after {
   background:
     radial-gradient(1.5px 2.2px at 34.4px 10px, rgba(255, 255, 255, 0.95) 96%, transparent) 0 0 / 96px 22px repeat-x,
-    radial-gradient(4.6px 6.4px at 36px 12.6px, #ff8fab 96%, transparent) 0 0 / 96px 22px repeat-x,
-    radial-gradient(3px 2.3px at 36px 4.6px, #4f5f98 96%, transparent) 0 0 / 96px 22px repeat-x,
+    radial-gradient(4.6px 6.4px at 36px 12.6px, #ff5d72 96%, transparent) 0 0 / 96px 22px repeat-x,
+    radial-gradient(3px 2.3px at 36px 4.6px, #33508f 96%, transparent) 0 0 / 96px 22px repeat-x,
     radial-gradient(1.5px 2.2px at 82.4px 10px, rgba(255, 255, 255, 0.95) 96%, transparent) 0 0 / 96px 22px repeat-x,
-    radial-gradient(4.6px 6.4px at 84px 12.6px, #ff7aa0 96%, transparent) 0 0 / 96px 22px repeat-x,
-    radial-gradient(3px 2.3px at 84px 4.6px, #4f5f98 96%, transparent) 0 0 / 96px 22px repeat-x;
-  filter: drop-shadow(0 0 3px rgba(255, 143, 171, 0.95)) drop-shadow(0 0 8px rgba(255, 143, 171, 0.5));
+    radial-gradient(4.6px 6.4px at 84px 12.6px, #ff4d63 96%, transparent) 0 0 / 96px 22px repeat-x,
+    radial-gradient(3px 2.3px at 84px 4.6px, #33508f 96%, transparent) 0 0 / 96px 22px repeat-x;
+  filter: drop-shadow(0 0 3px rgba(255, 80, 100, 0.95)) drop-shadow(0 0 8px rgba(255, 80, 100, 0.5));
   animation-delay: -0.75s;
 }
 @keyframes nt-pisca-pisca { 0%, 46% { opacity: 1; } 54%, 96% { opacity: 0.3; } 100% { opacity: 1; } }
 body.tema-natal .bi-item.ativo { color: var(--accent-strong); }
-body.tema-natal .bi-item.ativo svg { animation: nt-pula 0.5s var(--ease-spring); filter: drop-shadow(0 0 6px rgba(255, 143, 171, 0.6)); }
+body.tema-natal .bi-item.ativo svg { animation: nt-pula 0.5s var(--ease-spring); filter: drop-shadow(0 0 6px rgba(255, 93, 114, 0.6)); }
 @keyframes nt-pula { 0% { transform: scale(0.8); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }
-body.tema-natal .bi-perfil.ativo .bi-perfil-av { border-color: var(--nt-rosa); }
+body.tema-natal .bi-perfil.ativo .bi-perfil-av { border-color: var(--nt-vermelho); }
 
 /* ---------- CARTÕES, BOTÕES, CAMPOS ---------- */
 body.tema-natal .card, body.tema-natal .painel, body.tema-natal .tabela-wrap, body.tema-natal .acao-card, body.tema-natal .stat {
@@ -290,49 +246,49 @@ body.tema-natal .card, body.tema-natal .painel, body.tema-natal .tabela-wrap, bo
 }
 [data-theme='light'] body.tema-natal .card, [data-theme='light'] body.tema-natal .painel, [data-theme='light'] body.tema-natal .acao-card, [data-theme='light'] body.tema-natal .stat { box-shadow: 0 8px 22px rgba(40, 70, 140, 0.08); }
 body.tema-natal .btn { border-radius: 999px; font-weight: 700; }
-body.tema-natal .btn-primario { background: var(--nt-grad); color: #fff; border-color: transparent; box-shadow: 0 6px 18px rgba(255, 107, 138, 0.38); text-shadow: 0 1px 1px rgba(180, 40, 80, 0.25); transition: transform 0.14s var(--ease-spring), box-shadow 0.14s, filter 0.14s; }
-body.tema-natal .btn-primario:hover { background: var(--nt-grad); color: #fff; filter: brightness(1.05); transform: translateY(-1px) scale(1.02); box-shadow: 0 10px 26px rgba(255, 107, 138, 0.48); }
+body.tema-natal .btn-primario { background: var(--nt-grad); color: #fff; border-color: transparent; box-shadow: 0 6px 18px rgba(227, 48, 74, 0.38); text-shadow: 0 1px 1px rgba(180, 40, 80, 0.25); transition: transform 0.14s var(--ease-spring), box-shadow 0.14s, filter 0.14s; }
+body.tema-natal .btn-primario:hover { background: var(--nt-grad); color: #fff; filter: brightness(1.05); transform: translateY(-1px) scale(1.02); box-shadow: 0 10px 26px rgba(227, 48, 74, 0.48); }
 body.tema-natal .btn-primario:active { transform: scale(0.97); }
 body.tema-natal .btn-secundario { border-color: var(--line-strong); }
 body.tema-natal .btn-secundario:hover { border-color: var(--nt-azul); }
 body.tema-natal .btn-link { color: var(--accent); }
 body.tema-natal .campo input, body.tema-natal .campo textarea, body.tema-natal .campo select { border: 1.5px solid var(--line); border-radius: 14px; }
-body.tema-natal .campo input:focus, body.tema-natal .campo textarea:focus, body.tema-natal .campo select:focus { border-color: var(--nt-rosa); box-shadow: 0 0 0 4px rgba(255, 143, 171, 0.22); }
-body.tema-natal .pref-switch:checked { background: var(--nt-rosa-forte); }
-body.tema-natal .check-linha input { accent-color: var(--nt-rosa-forte); }
+body.tema-natal .campo input:focus, body.tema-natal .campo textarea:focus, body.tema-natal .campo select:focus { border-color: var(--nt-vermelho); box-shadow: 0 0 0 4px rgba(255, 93, 114, 0.22); }
+body.tema-natal .pref-switch:checked { background: var(--nt-vermelho-forte); }
+body.tema-natal .check-linha input { accent-color: var(--nt-vermelho-forte); }
 body.tema-natal .alerta { border-radius: 16px; }
 body.tema-natal .alerta-sucesso { border-color: var(--st-verde); background: color-mix(in srgb, var(--st-verde) 14%, var(--surface)); }
 body.tema-natal .alerta-erro { border-color: var(--st-vermelho); background: color-mix(in srgb, var(--st-vermelho) 12%, var(--surface)); }
 
 /* Painel do participante: brilho da lua e neve no topo */
 body.tema-natal .painel-hero {
-  position: relative; overflow: hidden; border: 1px solid color-mix(in srgb, var(--nt-rosa) 40%, var(--line)); border-radius: 24px;
+  position: relative; overflow: hidden; border: 1px solid color-mix(in srgb, var(--nt-azul) 35%, var(--line)); border-radius: 24px;
   background:
-    radial-gradient(circle at 88% 12%, rgba(255, 236, 190, 0.24), transparent 26%),
-    radial-gradient(circle at 10% 90%, rgba(255, 143, 171, 0.18), transparent 36%),
+    radial-gradient(circle at 88% 12%, rgba(190, 220, 255, 0.22), transparent 28%),
     var(--surface);
 }
-body.tema-natal .painel-hero-av { border: 3px solid var(--surface); box-shadow: 0 0 0 3px var(--nt-rosa), 0 0 24px rgba(255, 143, 171, 0.4); background: var(--nt-rosa); color: #fff; }
-body.tema-natal .painel-hero-nome { font-size: 34px; color: var(--accent-strong); }
-[data-theme='dark'] body.tema-natal .painel-hero-nome { color: var(--nt-creme); text-shadow: 0 2px 0 rgba(255, 107, 138, 0.45); }
+body.tema-natal .painel-hero-av { border: 3px solid var(--surface); box-shadow: 0 0 0 3px var(--nt-vermelho), 0 0 24px rgba(255, 93, 114, 0.4); background: var(--nt-vermelho); color: #fff; }
+body.tema-natal .painel-hero-nome { font-size: 36px; color: #1d3f94; text-shadow: var(--nt-tit-sombra); }
+[data-theme='dark'] body.tema-natal .painel-hero-nome { color: #ffffff; }
 body.tema-natal .painel-hero-rot { color: var(--nt-azul-forte); }
 [data-theme='dark'] body.tema-natal .painel-hero-rot { color: var(--nt-azul); }
-body.tema-natal .acao-ic, body.tema-natal .stat-ic { background: var(--nt-rosa); color: #fff; border-radius: 14px; }
+body.tema-natal .acao-ic, body.tema-natal .stat-ic { background: var(--nt-vermelho); color: #fff; border-radius: 14px; }
 body.tema-natal .acoes-rapidas .acao-card:nth-child(2n) .acao-ic, body.tema-natal .painel-stats .stat:nth-child(2n) .stat-ic { background: var(--nt-azul-forte); color: #fff; }
-body.tema-natal .acao-card-tema { border: 1px dashed var(--nt-rosa); }
+body.tema-natal .acao-card-tema { border: 1px dashed var(--nt-vermelho); }
 body.tema-natal .acao-card-tema .acao-ic { background: var(--nt-grad); color: #fff; }
-body.tema-natal .atv-dot { background: var(--nt-rosa); }
+body.tema-natal .atv-dot { background: var(--nt-vermelho); }
 body.tema-natal .tema-chip { background: var(--nt-grad); color: #fff; }
 
 /* ---------- FEED ---------- */
 body.tema-natal .stories { border-bottom: 1px dashed var(--line-strong); }
-/* Anel de story: rosa e azul-bebê girando devagar (duas cores) */
-body.tema-natal .story-ring.tem { background: conic-gradient(from 0deg, #ff8fab 0 50%, #9ad0ff 50% 100%); animation: nt-gira 10s linear infinite; }
+/* Anel de story: branco e azul-gelo girando devagar (duas cores) */
+body.tema-natal .story-ring.tem { background: conic-gradient(from 0deg, #ffffff, #8fd0ff, #ffffff); animation: nt-gira 10s linear infinite; }
+[data-theme='light'] body.tema-natal .story-ring.tem { background: conic-gradient(from 0deg, #2f5fd0, #8fd0ff, #2f5fd0); }
 body.tema-natal .story-ring.tem .story-ring-in { animation: nt-gira 10s linear infinite reverse; }
 body.tema-natal .story-ring.visto { background: color-mix(in srgb, var(--nt-azul) 40%, var(--line-strong)); }
 body.tema-natal .story-ring.sem { background: var(--line-strong); }
 body.tema-natal .story-ring-in { background: var(--surface); border-color: var(--surface); }
-body.tema-natal .story-badge.mais { background: var(--nt-rosa-forte); color: #fff; border-color: var(--bg); }
+body.tema-natal .story-badge.mais { background: var(--nt-vermelho-forte); color: #fff; border-color: var(--bg); }
 body.tema-natal .post-compositor {
   border: 2px solid transparent; border-radius: 22px;
   background: linear-gradient(var(--surface), var(--surface)) padding-box, var(--nt-faixa) border-box;
@@ -340,15 +296,8 @@ body.tema-natal .post-compositor {
   animation: nt-borda-anda 8s linear infinite;
 }
 @keyframes nt-borda-anda { to { background-position: 0 0, 300% 0; } }
-/* Texto dos posts e o compositor em letra de cartão de Natal (Mountains of Christmas, OFL), como o Halloween
-   faz com a Mystery Quest: a pessoa já vê o texto com cara de Natal enquanto escreve. O @usuário da legenda segue na fonte normal. */
-@font-face {
-  font-family: 'Mountains of Christmas';
-  src: url('/fonts/MountainsOfChristmas-700.woff2') format('woff2');
-  font-weight: 700; font-style: normal; font-display: swap;
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-body.tema-natal { --font-post: 'Mountains of Christmas', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+/* Texto dos posts e o compositor na mesma letra de cartão de Natal dos títulos (como o Halloween faz com a
+   Mystery Quest): a pessoa já vê o texto com cara de Natal enquanto escreve. O @usuário da legenda segue na fonte normal. */
 body.tema-natal .tw-post-texto.ig-texto { font-family: var(--font-post); font-weight: 700; font-size: 21px; line-height: 1.4; color: var(--text); }
 body.tema-natal .tw-post-texto.ig-legenda { font-family: var(--font-post); font-weight: 700; font-size: 19px; line-height: 1.4; }
 body.tema-natal .tw-post-texto .ig-user { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-weight: 700; font-size: 14px; }
@@ -356,99 +305,101 @@ body.tema-natal .tw-post-texto .mencao { font-family: inherit; }
 body.tema-natal .tw-post-texto .post-edit-box textarea { font-family: var(--font-post); font-weight: 700; font-size: 20px; }
 body.tema-natal .compositor-topo textarea { font-family: var(--font-post); font-weight: 700; font-size: 20px; line-height: 1.4; }
 body.tema-natal .compositor-topo textarea::placeholder { font-family: var(--font-post); font-weight: 700; color: color-mix(in srgb, var(--nt-azul) 55%, var(--text-faint)); opacity: 1; }
+[data-theme='light'] body.tema-natal .compositor-topo textarea::placeholder { color: #5b7fc4; }
 body.tema-natal .comp-acao { color: var(--accent); }
-body.tema-natal .comp-acao:hover { background: color-mix(in srgb, var(--nt-rosa) 16%, transparent); transform: scale(1.1); }
+body.tema-natal .comp-acao:hover { background: color-mix(in srgb, var(--nt-vermelho) 16%, transparent); transform: scale(1.1); }
 body.tema-natal .comp-op-ic { background: color-mix(in srgb, var(--nt-azul) 24%, var(--surface-2)); color: var(--accent-strong); }
-body.tema-natal .comp-op.ativo .comp-switch { background: var(--nt-rosa-forte); }
+body.tema-natal .comp-op.ativo .comp-switch { background: var(--nt-vermelho-forte); }
 body.tema-natal .tw-post { border-radius: 22px; border-color: var(--line); }
 body.tema-natal .tw-post-av, body.tema-natal .tw-coment-av, body.tema-natal .tw-reply-av, body.tema-natal .post-avatar, body.tema-natal .sug-av, body.tema-natal .lado-eu-av, body.tema-natal .nota-av, body.tema-natal .ig-av { background: var(--nt-azul-forte); color: #fff; }
 body.tema-natal .ig-acoes button:hover { transform: scale(1.12); }
-body.tema-natal .tw-acao.curtir.ativo { color: var(--nt-rosa-forte); }
+body.tema-natal .tw-acao.curtir.ativo { color: var(--nt-vermelho-forte); }
 body.tema-natal .tw-reply input { border: 1.5px solid var(--line); background: var(--surface); }
-body.tema-natal .tw-reply input:focus { border-color: var(--nt-rosa); box-shadow: 0 0 0 4px rgba(255, 143, 171, 0.2); }
+body.tema-natal .tw-reply input:focus { border-color: var(--nt-vermelho); box-shadow: 0 0 0 4px rgba(255, 93, 114, 0.2); }
 body.tema-natal .feed-novas { background: var(--nt-grad); color: #fff; }
 body.tema-natal .lado-titulo { color: var(--nt-azul-forte); }
 [data-theme='dark'] body.tema-natal .lado-titulo { color: var(--nt-azul); }
 body.tema-natal .lado-rodape::after { content: ' · Noite Feliz'; }
-body.tema-natal .tw-banner { background: linear-gradient(120deg, #6d95f0 0%, #ff8fab 100%); }
+body.tema-natal .tw-banner { background: linear-gradient(120deg, #0f2558 0%, #3e6fd8 100%); }
 body.tema-natal .tw-tab.ativo::after { background: var(--nt-grad); width: 64px; }
-body.tema-natal .tw-avatar.st-tem { box-shadow: 0 0 0 3px var(--surface), 0 0 0 7px var(--nt-rosa); }
-body.tema-natal .tw-gostos-intro { background: color-mix(in srgb, var(--nt-rosa) 16%, var(--surface)); }
+body.tema-natal .tw-avatar.st-tem { box-shadow: 0 0 0 3px var(--surface), 0 0 0 7px var(--nt-vermelho); }
+body.tema-natal .tw-gostos-intro { background: color-mix(in srgb, var(--nt-vermelho) 16%, var(--surface)); }
 body.tema-natal .chip-item, body.tema-natal .gt-chips .chip-item { font-weight: 600; }
-body.tema-natal .chip-item:nth-child(2n+1) { background: #ffe5ec; color: #c43d63; }
-body.tema-natal .chip-item:nth-child(2n+2) { background: #e3efff; color: #3d63c4; }
-[data-theme='dark'] body.tema-natal .chip-item:nth-child(2n+1) { background: #5a3a72; color: #ffd1dc; }
-[data-theme='dark'] body.tema-natal .chip-item:nth-child(2n+2) { background: #34508f; color: #d6e6ff; }
-body.tema-natal .gt-cab { background: linear-gradient(135deg, #ffe5ec, #e3efff); }
-[data-theme='dark'] body.tema-natal .gt-cab { background: linear-gradient(135deg, #5a3a72, #34508f); }
+body.tema-natal .chip-item:nth-child(2n+1) { background: #ffe3e7; color: #c41f38; }
+body.tema-natal .chip-item:nth-child(2n+2) { background: #e3f1ff; color: #2f5fd0; }
+[data-theme='dark'] body.tema-natal .chip-item:nth-child(2n+1) { background: #4a2445; color: #ffd0d6; }
+[data-theme='dark'] body.tema-natal .chip-item:nth-child(2n+2) { background: #1d3c7a; color: #d6ecff; }
+body.tema-natal .gt-cab { background: linear-gradient(135deg, #e3f1ff, #ffffff); }
+[data-theme='dark'] body.tema-natal .gt-cab { background: linear-gradient(135deg, #1b3a86, #0f2558); }
 body.tema-natal .gt-kicker { color: var(--accent-strong); }
 body.tema-natal .gt-tit { font-size: 24px; }
 body.tema-natal .pf-abas { background: var(--surface); border: 1px solid var(--line); }
-body.tema-natal .pf-aba.ativo { background: var(--nt-grad); color: #fff; box-shadow: 0 6px 16px rgba(255, 107, 138, 0.3); }
+body.tema-natal .pf-aba.ativo { background: var(--nt-grad); color: #fff; box-shadow: 0 6px 16px rgba(227, 48, 74, 0.3); }
 body.tema-natal .pf-aba-novo, body.tema-natal .nav-badge.nav-badge-novo { background: var(--nt-azul-forte); color: #fff; }
-body.tema-natal .pft-hero { position: relative; overflow: hidden; border: 1px solid color-mix(in srgb, var(--nt-rosa) 45%, var(--line)); padding-top: 30px;
-  background: radial-gradient(circle at 85% 20%, rgba(255, 236, 190, 0.26), transparent 30%), radial-gradient(circle at 10% 80%, rgba(255, 143, 171, 0.2), transparent 36%), var(--surface); }
-body.tema-natal .pft-hero-tit { font-size: 34px; color: var(--accent-strong); }
-[data-theme='dark'] body.tema-natal .pft-hero-tit { color: var(--nt-creme); text-shadow: 0 2px 0 rgba(255, 107, 138, 0.45), 0 0 18px rgba(255, 211, 110, 0.25); }
+body.tema-natal .pft-hero { position: relative; overflow: hidden; border: 1px solid color-mix(in srgb, var(--nt-azul) 40%, var(--line));
+  background: radial-gradient(circle at 85% 20%, rgba(190, 220, 255, 0.24), transparent 32%), var(--surface); }
+body.tema-natal .pft-hero-tit { font-size: 38px; color: #1d3f94; text-shadow: var(--nt-tit-sombra); }
+[data-theme='dark'] body.tema-natal .pft-hero-tit { color: #ffffff; }
 body.tema-natal .chips { border: 1.5px solid var(--line); border-radius: 16px; }
-body.tema-natal .chips:focus-within { border-color: var(--nt-rosa); box-shadow: 0 0 0 4px rgba(255, 143, 171, 0.2); }
+body.tema-natal .chips:focus-within { border-color: var(--nt-vermelho); box-shadow: 0 0 0 4px rgba(255, 93, 114, 0.2); }
 body.tema-natal .chips-sug button { border-color: var(--line-strong); }
 body.tema-natal .pf-secao { border-top: 1px dashed var(--line-strong); }
-body.tema-natal .galeria-add:hover { border-color: var(--nt-rosa); color: var(--nt-rosa); }
+body.tema-natal .galeria-add:hover { border-color: var(--nt-vermelho); color: var(--nt-vermelho); }
 
-/* Faixa "Noite Feliz" no topo do feed: céu com lua, neve e o boneco de neve acenando */
+/* Faixa "Noite Feliz" no topo do feed: cartão da noite meio transparente (no celular a lua aparece atrás,
+   como no Halloween), neve caindo e a vila nevada no canto; tocar na vila faz nevar */
 html.sem-banner-tema .tema-banner { display: none; }
 .tema-banner.tb-natal {
-  position: relative; overflow: hidden; display: flex; align-items: center; gap: 12px;
-  margin: 0 0 18px; padding: 28px 20px 20px; border-radius: 24px; color: var(--nt-creme);
-  background:
-    radial-gradient(circle at 84% 22%, rgba(255, 236, 190, 0.35), transparent 26%),
-    linear-gradient(165deg, #4f72d9 0%, #2c4396 100%);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  box-shadow: 0 14px 34px rgba(20, 35, 90, 0.3);
+  position: relative; overflow: hidden; display: block; min-height: 196px;
+  margin: 0 0 18px; padding: 18px 20px 20px; border-radius: 24px; color: #ffffff;
+  background: radial-gradient(circle at 84% 18%, rgba(190, 220, 255, 0.14), transparent 34%), rgba(16, 36, 88, 0.55);
+  border: 1px solid #2a4a8f;
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+  box-shadow: 0 14px 34px rgba(2, 8, 28, 0.35);
   animation: tb-entra 0.6s var(--ease-spring) both;
 }
+[data-theme='light'] .tema-banner.tb-natal { background: radial-gradient(circle at 84% 18%, rgba(190, 220, 255, 0.2), transparent 34%), linear-gradient(165deg, #183a8a, #0c1f52); box-shadow: 0 14px 34px rgba(20, 50, 120, 0.25); }
+.tema-banner.tb-natal.tb-compacta { min-height: 0; }
 @keyframes tb-entra { from { opacity: 0; transform: translateY(-10px) scale(0.98); } to { opacity: 1; transform: none; } }
 .tb-natal .tb-deco { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 body.tema-natal .tb-floco { position: absolute; top: -12px; left: var(--x, 50%); width: calc(var(--t, 4px) * 1.6); height: calc(var(--t, 4px) * 1.6); border-radius: 50%; background: rgba(255, 255, 255, 0.9); animation: tb-floco-cai var(--d, 6s) linear infinite; }
 @keyframes tb-floco-cai { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-14px, 280px, 0); } }
-/* Montinho de neve no pé da faixa */
-.tb-natal .tb-deco::after { content: ''; position: absolute; left: -10%; right: -10%; bottom: -26px; height: 54px; background: radial-gradient(ellipse 30% 60% at 18% 100%, rgba(255, 255, 255, 0.95) 0 70%, transparent 71%), radial-gradient(ellipse 34% 70% at 62% 100%, rgba(255, 255, 255, 0.9) 0 70%, transparent 71%), radial-gradient(ellipse 26% 55% at 96% 100%, rgba(255, 255, 255, 0.95) 0 70%, transparent 71%); opacity: 0.3; }
-.tb-natal .tb-txt { position: relative; flex: 1; min-width: 0; }
-.tb-natal .tb-kicker { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; background: rgba(255, 255, 255, 0.2); color: #fff; padding: 4px 11px; border-radius: 999px; margin-bottom: 8px; }
-.tb-natal .tb-tit { margin: 0 0 4px; font-size: 32px; line-height: 1.08; color: var(--nt-creme); text-shadow: 0 2px 0 rgba(255, 107, 138, 0.55), 0 0 22px rgba(255, 211, 110, 0.35); }
-.tb-natal .tb-sub { margin: 0; font-size: 14px; line-height: 1.5; max-width: 50ch; color: #e8efff; }
-.tb-natal .tb-btn { margin-top: 12px; background: var(--nt-grad) !important; color: #fff !important; box-shadow: 0 8px 22px rgba(255, 107, 138, 0.42) !important; }
+/* O texto fica por cima da vila, mas deixa o toque passar para ela (só o botão e o texto pegam o toque) */
+.tb-natal .tb-txt { position: relative; z-index: 2; min-width: 0; pointer-events: none; }
+.tb-natal .tb-txt > * { pointer-events: auto; }
+.tb-natal .tb-kicker { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; background: rgba(160, 210, 255, 0.18); color: #cfe8ff; padding: 5px 11px; border-radius: 999px; }
+.tb-natal .tb-kicker svg { width: 13px; height: 13px; }
+.tb-natal .tb-tit { margin: 8px 0 6px; font-size: 42px; line-height: 1; color: #ffffff; text-shadow: 0 0 18px rgba(160, 210, 255, 0.7), 0 2px 0 rgba(10, 30, 80, 0.6); }
+.tb-natal .tb-sub { margin: 0 0 14px; font-size: 14px; line-height: 1.45; max-width: 34ch; color: #c9d7f5; }
+.tb-natal .tb-btn { margin: 0; background: var(--nt-grad) !important; color: #fff !important; border-color: transparent !important; box-shadow: 0 6px 18px rgba(255, 70, 95, 0.4) !important; }
 .tb-natal .tb-btn:hover { filter: brightness(1.05) !important; transform: translateY(-1px) scale(1.03); }
-.tb-natal .tb-arte { position: relative; flex-shrink: 0; width: 96px; align-self: flex-end; margin-bottom: -10px; }
-.tb-natal .tb-boneco { display: block; width: 96px; height: 128px; cursor: pointer; animation: nt-flutua 3.4s ease-in-out infinite; filter: drop-shadow(0 8px 12px rgba(10, 20, 60, 0.35)); overflow: visible; }
-.tb-natal .tb-boneco.pula { animation: nt-pula-boneco 0.7s var(--ease-spring); }
-.tb-natal .tb-boneco.pula .nt-braco { animation-duration: 0.7s; }
+/* Vila nevada no canto de baixo: morro, casinha de telhado vermelho com fumacinha e dois pinheiros */
+.tb-natal .tb-arte { position: absolute; right: 0; bottom: 0; width: 170px; height: 100px; z-index: 1; margin: 0; }
+.tb-natal .tb-vila { display: block; width: 100%; height: 100%; cursor: pointer; overflow: visible; transform-origin: 100% 100%; }
+.tb-natal .tb-vila.pula { animation: nt-vila-pula 0.6s var(--ease-spring); }
+@keyframes nt-vila-pula { 0% { transform: scale(1); } 40% { transform: scale(1.06); } 100% { transform: scale(1); } }
 @keyframes nt-flutua { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-5px) rotate(2deg); } }
-@keyframes nt-pula-boneco { 0% { transform: scale(1); } 35% { transform: scale(1.12) translateY(-8px); } 70% { transform: scale(0.96); } 100% { transform: scale(1); } }
-.tb-natal .tb-x { position: absolute; top: 16px; right: 10px; width: 30px; height: 30px; border: none; border-radius: 50%; background: rgba(255, 255, 255, 0.18); color: #fff; font-size: 20px; line-height: 1; cursor: pointer; display: grid; place-items: center; z-index: 4; }
-.tb-natal .tb-x:hover { background: rgba(255, 255, 255, 0.3); }
+.tb-natal .tb-x { position: absolute; top: 14px; right: 12px; width: 30px; height: 30px; border: none; border-radius: 50%; background: rgba(255, 255, 255, 0.16); color: #fff; font-size: 20px; line-height: 1; cursor: pointer; display: grid; place-items: center; z-index: 4; }
+.tb-natal .tb-x:hover { background: rgba(255, 255, 255, 0.28); }
 @media (max-width: 640px) {
-  .tema-banner.tb-natal { padding: 26px 14px 16px 16px; gap: 6px; border-radius: 20px; }
-  .tb-natal .tb-tit { font-size: 27px; }
-  .tb-natal .tb-sub { font-size: 13px; }
-  .tb-natal .tb-arte { width: 78px; }
-  .tb-natal .tb-boneco { width: 78px; height: 104px; }
-  .tb-natal .tb-btn { width: 100%; }
+  .tema-banner.tb-natal { padding: 16px 14px 18px 16px; border-radius: 20px; }
+  .tb-natal .tb-tit { font-size: 38px; }
+  .tb-natal .tb-sub { font-size: 13px; max-width: 26ch; }
+  .tb-natal .tb-arte { width: 140px; height: 82px; }
 }
 
 /* ---------- DIRECT ---------- */
 body.tema-natal .direct { border: 1px solid var(--line); border-radius: 24px; background: var(--surface); backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: 0 14px 40px rgba(10, 20, 60, 0.3); }
 body.tema-natal .direct-lista { border-right: 1px dashed var(--line-strong); }
-body.tema-natal .direct-lista-topo { background: linear-gradient(165deg, #5b80e6 0%, #3a56b8 100%); border-bottom: none; position: relative; overflow: hidden; }
+body.tema-natal .direct-lista-topo { background: linear-gradient(165deg, #1b3a86 0%, #0f2558 100%); border-bottom: none; position: relative; overflow: hidden; }
 body.tema-natal .direct-lista-topo::after { content: ''; position: absolute; right: 58px; top: 12px; width: 30px; height: 30px; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27%23ffffff%27%20stroke-width%3D%272.4%27%20stroke-linecap%3D%27round%27%3E%3Cpath%20d%3D%27M12%203v18M4.2%207.5l15.6%209M4.2%2016.5l15.6-9%27%2F%3E%3Cpath%20d%3D%27M12%206.6l-2.3-2M12%206.6l2.3-2M12%2017.4l-2.3%202M12%2017.4l2.3%202M7.3%209.3l-3-.6M7.3%209.3l.8-3M16.7%2014.7l3%20.6M16.7%2014.7l-.8%203M7.3%2014.7l-.8%203M7.3%2014.7l-3%20.6M16.7%209.3l.8-3M16.7%209.3l3-.6%27%2F%3E%3Ccircle%20cx%3D%2712%27%20cy%3D%2712%27%20r%3D%271.8%27%20fill%3D%27%23ffffff%27%20stroke%3D%27none%27%2F%3E%3C%2Fsvg%3E") center / contain no-repeat; animation: nt-gira 8s linear infinite; opacity: 0.9; }
-body.tema-natal .direct-lista-topo h1 { color: var(--nt-creme); font-size: 30px; text-shadow: 0 2px 0 rgba(255, 107, 138, 0.45); }
+body.tema-natal .direct-lista-topo h1 { color: #ffffff; font-size: 34px; text-shadow: 0 0 16px rgba(160, 210, 255, 0.6), 0 2px 0 rgba(10, 30, 80, 0.5); }
 body.tema-natal .direct-lista-sub { color: rgba(255, 255, 255, 0.85); }
 body.tema-natal .direct-novo-grupo { color: #fff; }
 body.tema-natal .direct-busca input { background: var(--surface-2); }
 body.tema-natal .notas { border-bottom: 1px dashed var(--line-strong); }
-body.tema-natal .nota-bolha { background: color-mix(in srgb, var(--nt-rosa) 22%, var(--surface-2)); }
-body.tema-natal .nota-bolha::before, body.tema-natal .nota-bolha::after { background: color-mix(in srgb, var(--nt-rosa) 22%, var(--surface-2)); }
+body.tema-natal .nota-bolha { background: color-mix(in srgb, var(--nt-vermelho) 22%, var(--surface-2)); }
+body.tema-natal .nota-bolha::before, body.tema-natal .nota-bolha::after { background: color-mix(in srgb, var(--nt-vermelho) 22%, var(--surface-2)); }
 body.tema-natal .nota-bolha.vazia { color: var(--accent-strong); }
 body.tema-natal .conv { border-radius: 16px; }
 body.tema-natal .conv.ativa { background: var(--accent-soft); }
@@ -461,7 +412,7 @@ body.tema-natal .conv-secreto { border-left: 3px solid var(--nt-azul); backgroun
 body.tema-natal .conv-secreto:hover { background: color-mix(in srgb, var(--nt-azul) 18%, transparent); }
 body.tema-natal .conv-secreto.ativa { background: color-mix(in srgb, var(--nt-azul) 26%, transparent); }
 body.tema-natal .tag-secreto { background: var(--nt-azul-forte); color: #fff; }
-body.tema-natal .tag-tirei, body.tema-natal .tag-grupo { background: var(--nt-rosa-forte); color: #fff; }
+body.tema-natal .tag-tirei, body.tema-natal .tag-grupo { background: var(--nt-vermelho-forte); color: #fff; }
 body.tema-natal .dm-cab { border-bottom: 1px dashed var(--line-strong); }
 body.tema-natal .dm-secreto { background: radial-gradient(120% 60% at 50% 0%, color-mix(in srgb, var(--nt-azul) 18%, transparent), transparent 60%); }
 body.tema-natal .dm-secreto .dm-cab { box-shadow: inset 0 3px 0 var(--nt-azul); }
@@ -474,27 +425,27 @@ body.tema-natal .direct-conversa:not([data-tema]) .dm-msgs, body.tema-natal .dir
 [data-theme='light'] body.tema-natal .direct-conversa:not([data-tema]) .dm-msgs { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160' fill='none' stroke='%236d95f0' stroke-opacity='0.14' stroke-width='2.2' stroke-linecap='round'%3E%3Cg transform='translate(40 40)'%3E%3Cpath d='M0-12V12M-10.4-6 10.4 6M-10.4 6 10.4-6'/%3E%3C/g%3E%3Cg transform='translate(118 112) scale(.7)'%3E%3Cpath d='M0-12V12M-10.4-6 10.4 6M-10.4 6 10.4-6'/%3E%3C/g%3E%3C/svg%3E"); }
 body.tema-natal .dm-bolha-txt { border-radius: 20px; border: 1px solid var(--line); background: var(--surface-2); font-size: 14.5px; }
 body.tema-natal .dm-bolha.deles .dm-bolha-txt { border-bottom-left-radius: 6px; }
-body.tema-natal .dm-bolha.minha .dm-bolha-txt { background: var(--nt-grad); color: #fff; border-color: transparent; border-bottom-right-radius: 6px; box-shadow: 0 6px 18px rgba(255, 107, 138, 0.28); }
+body.tema-natal .dm-bolha.minha .dm-bolha-txt { background: var(--nt-grad); color: #fff; border-color: transparent; border-bottom-right-radius: 6px; box-shadow: 0 6px 18px rgba(227, 48, 74, 0.28); }
 body.tema-natal .dm-secreto .dm-bolha.minha .dm-bolha-txt { background: var(--nt-grad-azul); color: #fff; box-shadow: 0 6px 18px rgba(109, 149, 240, 0.32); }
 body.tema-natal .dm-bolha-img { border-radius: 18px; }
 body.tema-natal .dm-inicio, body.tema-natal .dm-aviso { border: 1px dashed var(--line-strong); background: var(--surface); border-radius: 999px; }
 body.tema-natal .dm-sistema { background: color-mix(in srgb, var(--nt-azul) 18%, var(--surface-2)); }
 body.tema-natal .dm-campo { border: 1.5px solid var(--line-strong); border-radius: 24px; background: var(--surface); }
-body.tema-natal .dm-campo:focus-within { border-color: var(--nt-rosa); box-shadow: 0 0 0 4px rgba(255, 143, 171, 0.2); }
+body.tema-natal .dm-campo:focus-within { border-color: var(--nt-vermelho); box-shadow: 0 0 0 4px rgba(255, 93, 114, 0.2); }
 body.tema-natal .dm-composer { border-top: 1px dashed var(--line-strong); }
-body.tema-natal .dm-enviar { background: var(--nt-grad); color: #fff; box-shadow: 0 6px 16px rgba(255, 107, 138, 0.32); }
+body.tema-natal .dm-enviar { background: var(--nt-grad); color: #fff; box-shadow: 0 6px 16px rgba(227, 48, 74, 0.32); }
 body.tema-natal .dm-secreto .dm-enviar { background: var(--nt-grad-azul); color: #fff; box-shadow: 0 6px 16px rgba(109, 149, 240, 0.32); }
-body.tema-natal .dm-filtro-op.sel { background: var(--nt-rosa-forte); color: #fff; }
+body.tema-natal .dm-filtro-op.sel { background: var(--nt-vermelho-forte); color: #fff; }
 body.tema-natal .dm-acao-in { color: var(--accent); }
-body.tema-natal .direct-placeholder-ic { border: 2px dashed var(--nt-rosa); color: var(--nt-rosa); animation: nt-flutua 3s ease-in-out infinite; }
-body.tema-natal .direct-placeholder h2 { font-size: 30px; color: var(--accent-strong); }
-[data-theme='dark'] body.tema-natal .direct-placeholder h2 { color: var(--nt-creme); text-shadow: 0 2px 0 rgba(255, 107, 138, 0.45); }
+body.tema-natal .direct-placeholder-ic { border: 2px dashed var(--nt-azul); color: var(--nt-azul); animation: nt-flutua 3s ease-in-out infinite; }
+body.tema-natal .direct-placeholder h2 { font-size: 34px; color: #1d3f94; text-shadow: var(--nt-tit-sombra); }
+[data-theme='dark'] body.tema-natal .direct-placeholder h2 { color: #ffffff; }
 body.tema-natal .grupo-av-m { background: var(--nt-azul-forte); color: #fff; }
 
 /* ---------- MODAIS, NOTIFICAÇÕES, BUSCA, TUTORIAL ---------- */
 body.tema-natal .modal-card { border: 2px solid transparent; border-radius: 24px; background: linear-gradient(var(--surface), var(--surface)) padding-box, var(--nt-faixa) border-box; }
 body.tema-natal .conf-card .conf-ok:not(.conf-perigo) { background: var(--nt-grad); color: #fff; }
-body.tema-natal .notif-item.nova { background: color-mix(in srgb, var(--nt-rosa) 12%, transparent); }
+body.tema-natal .notif-item.nova { background: color-mix(in srgb, var(--nt-vermelho) 12%, transparent); }
 body.tema-natal .notif-item { border-radius: 16px; }
 body.tema-natal .busca-tela { background: var(--bg); }
 body.tema-natal .busca-campo { border: 1.5px solid var(--line); border-radius: 999px; }
@@ -503,44 +454,43 @@ body.tema-natal .comp-mais-ic { background: color-mix(in srgb, var(--nt-azul) 24
 
 /* ---------- LOADER (tela do anjo) ---------- */
 body.tema-natal #loader {
-  color: var(--nt-creme);
+  color: #ffffff;
   background:
-    radial-gradient(circle at 84% 14%, rgba(255, 236, 190, 0.32), transparent 24%),
-    radial-gradient(circle at 12% 88%, rgba(255, 143, 171, 0.22), transparent 36%),
-    linear-gradient(180deg, #3a59bd 0%, #1c2b61 100%);
+    radial-gradient(circle at 84% 14%, rgba(190, 220, 255, 0.28), transparent 26%),
+    linear-gradient(180deg, #0f2558 0%, #060f2b 100%);
 }
 body.tema-natal .loader-ceu span { background: #ffffff; }
-body.tema-natal .loader-ceu span.g { background: #ffd36e; }
-body.tema-natal .loader-wordmark .sub { color: var(--nt-rosa); letter-spacing: 0.3em; }
-body.tema-natal .loader-progresso::after { background: linear-gradient(90deg, transparent, #ff8fab, #ffd36e); }
-html.mini body.tema-natal #loader { background: color-mix(in srgb, #1c2b61 50%, transparent); }
+body.tema-natal .loader-ceu span.g { background: #8fd0ff; }
+body.tema-natal .loader-wordmark .sub { color: var(--nt-azul); letter-spacing: 0.3em; }
+body.tema-natal .loader-progresso::after { background: linear-gradient(90deg, transparent, #8fd0ff, #ffffff); }
+html.mini body.tema-natal #loader { background: color-mix(in srgb, #0a1a45 50%, transparent); }
 
 /* ---------- LOGIN / REGISTRO ---------- */
 body.tema-natal .auth-tela, [data-theme='light'] body.tema-natal .auth-tela { background: transparent !important; position: relative; z-index: 1; }
-body.tema-natal .auth-tela { color: var(--nt-creme); }
-[data-theme='light'] body.tema-natal .auth-tela { color: #26325f; }
+body.tema-natal .auth-tela { color: #ffffff; }
+[data-theme='light'] body.tema-natal .auth-tela { color: #142a5c; }
 body.tema-natal .auth-ceu, [data-theme='light'] body.tema-natal .auth-ceu { display: none; }
 body.tema-natal .auth-molduras { display: none; }
-/* Moldura em degradê rosa → azul-bebê; a camada de dentro é OPACA para o degradê não vazar */
+/* Moldura em degradê branco → azul-gelo; a camada de dentro é OPACA para o degradê não vazar */
 body.tema-natal .auth-plate {
   position: relative; z-index: 2;
   border: 2px solid transparent; border-radius: 28px;
-  background: linear-gradient(175deg, #2c4190, #1f2f6a) padding-box, var(--nt-faixa) border-box;
-  box-shadow: 0 40px 90px -34px rgba(8, 14, 40, 0.7), 0 0 60px -10px rgba(255, 143, 171, 0.22);
+  background: linear-gradient(175deg, #12285f, #0a1a45) padding-box, var(--nt-faixa) border-box;
+  box-shadow: 0 40px 90px -34px rgba(2, 8, 28, 0.8), 0 0 60px -10px rgba(160, 210, 255, 0.28);
   backdrop-filter: none; -webkit-backdrop-filter: none;
 }
-[data-theme='light'] body.tema-natal .auth-plate { background: linear-gradient(180deg, #ffffff, #f3f8ff) padding-box, var(--nt-faixa) border-box; box-shadow: 0 30px 70px -34px rgba(40, 70, 140, 0.3); }
-body.tema-natal .auth-kicker { color: var(--nt-rosa); }
+[data-theme='light'] body.tema-natal .auth-plate { background: linear-gradient(180deg, #ffffff, #f3f8ff) padding-box, var(--nt-faixa) border-box; box-shadow: 0 30px 70px -34px rgba(20, 50, 120, 0.3); }
+body.tema-natal .auth-kicker { color: var(--nt-azul); }
 [data-theme='light'] body.tema-natal .auth-kicker { color: var(--accent); }
 body.tema-natal .auth-kicker .fio { background: rgba(255, 255, 255, 0.4); }
-body.tema-natal .auth-wordmark { font-size: 46px; color: var(--nt-creme); text-shadow: 0 3px 0 rgba(255, 107, 138, 0.55), 0 0 26px rgba(255, 211, 110, 0.35); }
-[data-theme='light'] body.tema-natal .auth-wordmark { color: var(--accent); text-shadow: 0 3px 0 rgba(143, 184, 255, 0.45); }
+body.tema-natal .auth-wordmark { font-size: 50px; color: #ffffff; text-shadow: 0 0 22px rgba(160, 210, 255, 0.75), 0 3px 0 rgba(10, 30, 80, 0.6); }
+[data-theme='light'] body.tema-natal .auth-wordmark { color: #1d3f94; text-shadow: 0 3px 0 rgba(143, 208, 255, 0.55); }
 body.tema-natal .auth-sub { color: var(--nt-azul); letter-spacing: 0.3em; }
 [data-theme='light'] body.tema-natal .auth-sub { color: var(--nt-azul-forte); }
-body.tema-natal .auth-losango .d { background: var(--nt-rosa); }
+body.tema-natal .auth-losango .d { background: var(--nt-vermelho); }
 body.tema-natal .auth-tela .campo input { border: 1.5px solid rgba(255, 255, 255, 0.28); border-radius: 14px; background: rgba(255, 255, 255, 0.08); }
 [data-theme='light'] body.tema-natal .auth-tela .campo input { background: #fff; border-color: var(--line-strong); }
-body.tema-natal .auth-tela .campo input:focus { border-color: var(--nt-rosa); box-shadow: 0 0 0 4px rgba(255, 143, 171, 0.28); }
+body.tema-natal .auth-tela .campo input:focus { border-color: var(--nt-vermelho); box-shadow: 0 0 0 4px rgba(255, 93, 114, 0.28); }
 body.tema-natal .auth-anjo { animation: nt-flutua 3.5s ease-in-out infinite; filter: drop-shadow(0 0 14px rgba(255, 211, 110, 0.45)); }
 
 /* ---------- NEVE DE PRESENTES (JS: ao salvar a cartinha / toque no boneco) ---------- */
@@ -556,7 +506,7 @@ body.tema-natal .auth-anjo { animation: nt-flutua 3.5s ease-in-out infinite; fil
 /* ---------- MOBILE ---------- */
 @media (max-width: 899px) {
   .nt-luzes { display: none; }
-  .nt-lua { width: 84px; height: 84px; top: 68px; right: 5%; }
+  .nt-lua { width: 150px; height: 150px; top: 66px; right: -30px; }
   .nt-estrelinha { width: calc(var(--t, 10px) * 1.4); height: calc(var(--t, 10px) * 1.4); }
   .nt-floco.cristal { width: calc(var(--t, 16px) * 0.85); height: calc(var(--t, 16px) * 0.85); opacity: 0.8; }
   .nt-treno { width: 128px; height: 41px; }
@@ -564,14 +514,14 @@ body.tema-natal .auth-anjo { animation: nt-flutua 3.5s ease-in-out infinite; fil
   .nt-nevoa { display: block; }
   body:has(.auth-tela) .nt-cena { display: block; }
   body:has(.auth-tela) .nt-nevoa { display: none; }
-  body.tema-natal .pagina-cabecalho h1, body.tema-natal .adm-cab-txt h1 { font-size: 26px; }
+  body.tema-natal .pagina-cabecalho h1, body.tema-natal .adm-cab-txt h1 { font-size: 30px; }
 }
 
 /* ---------- MENOS MOVIMENTO ---------- */
 @media (prefers-reduced-motion: reduce) {
   .nt-deco .nt-floco, .nt-deco .nt-treno, .nt-deco .nt-nuvem, .nt-chuva, body.tema-natal .tb-floco { display: none !important; }
-  .nt-lua, .nt-estrelinha, .nt-luzes i, .nt-janela, .nt-fumaca circle, .nt-braco, .tb-boneco, .tema-banner,
-  body.tema-natal .sidebar::before, body.tema-natal .barra-inferior::before, body.tema-natal .barra-inferior::after, body.tema-natal .topo-mobile::before, body.tema-natal .topo-mobile::after,
+  .nt-lua::before, .nt-estrelinha, .nt-luzes i, .nt-janela, .nt-fumaca circle, .nt-braco, .tb-vila, .tema-banner,
+  body.tema-natal .sidebar::before, body.tema-natal .barra-inferior::before, body.tema-natal .barra-inferior::after,
   body.tema-natal .story-ring.tem, body.tema-natal .story-ring.tem .story-ring-in,
   body.tema-natal .post-compositor, body.tema-natal .direct-lista-topo::after,
   body.tema-natal .direct-placeholder-ic, body.tema-natal .auth-anjo, body.tema-natal .bi-item.ativo svg,
@@ -580,10 +530,9 @@ body.tema-natal .auth-anjo { animation: nt-flutua 3.5s ease-in-out infinite; fil
 }
 
 /* Login: a assinatura fica numa pílula para não sumir em cima da neve da cena */
-body.tema-natal .auth-colofao { position: relative; z-index: 2; align-self: center; width: max-content; margin-left: auto; margin-right: auto; padding: 6px 14px; border-radius: 999px; background: rgba(28, 43, 97, 0.62); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); color: #e8efff; }
-[data-theme='light'] body.tema-natal .auth-colofao { background: rgba(255, 255, 255, 0.85); color: #4f5d8c; box-shadow: 0 4px 14px rgba(40, 70, 140, 0.12); }
+body.tema-natal .auth-colofao { position: relative; z-index: 2; align-self: center; width: max-content; margin-left: auto; margin-right: auto; padding: 6px 14px; border-radius: 999px; background: rgba(10, 26, 69, 0.62); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); color: #e8efff; }
+[data-theme='light'] body.tema-natal .auth-colofao { background: rgba(255, 255, 255, 0.85); color: #3e5488; box-shadow: 0 4px 14px rgba(20, 50, 120, 0.12); }
 /* Tema claro: as lampadinhas ganham contorno de sombra para não sumirem no fundo branco */
-[data-theme='light'] body.tema-natal .topo-mobile::before, [data-theme='light'] body.tema-natal .topo-mobile::after,
 [data-theme='light'] body.tema-natal .barra-inferior::before, [data-theme='light'] body.tema-natal .barra-inferior::after {
   filter: drop-shadow(0 1px 1.2px rgba(38, 50, 95, 0.45)) drop-shadow(0 0 5px rgba(255, 170, 120, 0.55));
 }

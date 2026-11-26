@@ -7582,7 +7582,31 @@
     window.__festejar = function () { chuva(56); };
     // Cartinha: ao salvar, o carimbo "Enviada" do Polo Norte bate em cima do selo
     var formCarta = document.getElementById('formPrefsTema'), carimbo = document.querySelector('[data-carimbo]');
+    // Ao salvar a cartinha, um envelopinho sai do botão e voa para o Polo Norte (canto de cima), deixando um rastro
+    // de brilho (lê a posição do envelope a cada passo para o brilho seguir o voo)
+    function envelopeVoa() {
+      if (reduz || !formCarta) return;
+      var b = formCarta.querySelector('.pf-salvar [data-fluido-salvar]');
+      var r = b ? b.getBoundingClientRect() : null;
+      var x0 = r ? r.left + r.width / 2 : innerWidth / 2, y0 = r ? r.top + r.height / 2 : innerHeight * 0.7;
+      if (y0 > innerHeight - 20 || y0 < 20) { x0 = innerWidth / 2; y0 = innerHeight * 0.7; }
+      var env = document.createElement('span'); env.className = 'nt-envelope'; env.setAttribute('aria-hidden', 'true');
+      env.innerHTML = '<svg viewBox="0 0 46 32"><rect x="1" y="1" width="44" height="30" rx="3" fill="#fffaf0" stroke="#c9d6f0" stroke-width="1.5"/><path d="M2.5 3.5 23 18 43.5 3.5" fill="none" stroke="#c9d6f0" stroke-width="1.8" stroke-linejoin="round"/><circle cx="23" cy="18" r="4.6" fill="#e3304a"/><path d="M21.3 17.6l1.2 1.2 2.3-2.4" fill="none" stroke="#fff" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      env.style.left = x0 + 'px'; env.style.top = y0 + 'px';
+      env.style.setProperty('--dx', (innerWidth + 70 - x0) + 'px'); env.style.setProperty('--dy', (-80 - y0) + 'px');
+      document.body.appendChild(env);
+      var passos = 0, rastro = setInterval(function () {
+        if (++passos > 13) { clearInterval(rastro); return; }
+        var p = env.getBoundingClientRect(); if (!p.width) return;
+        var s = document.createElement('i'); s.className = 'nt-envelope-brilho'; s.setAttribute('aria-hidden', 'true');
+        s.style.left = (p.left + p.width * 0.15) + 'px'; s.style.top = (p.top + p.height * 0.7) + 'px';
+        document.body.appendChild(s);
+        setTimeout(function () { s.remove(); }, 750);
+      }, 90);
+      setTimeout(function () { env.remove(); }, 1450);
+    }
     if (formCarta && carimbo) formCarta.addEventListener('fluido:salvo', function () {
+      setTimeout(envelopeVoa, 300);
       carimbo.classList.remove('bate'); void carimbo.getBoundingClientRect(); carimbo.classList.add('visivel', 'bate');
     });
     document.addEventListener('click', function (e) {

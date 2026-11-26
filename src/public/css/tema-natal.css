@@ -444,6 +444,16 @@ body.tema-natal .erro-pagina { margin: 24px 16px 0; padding: 34px 20px 30px; bor
    preferências num trilho cor de papel */
 .nt-carta-prog { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; font-size: 12.5px; font-weight: 700; color: #5a6a92; }
 [data-theme] body.tema-natal .nt-carta-prog .pr-barra { height: 8px; background: #efe4cc; }
+/* Cartinha: ao salvar, o envelopinho voa do botão para o Polo Norte (canto de cima) com rastro de brilho */
+.nt-envelope { position: fixed; z-index: 960; width: 46px; height: 32px; margin: -16px 0 0 -23px; pointer-events: none; filter: drop-shadow(0 6px 10px rgba(2, 8, 28, 0.45)); animation: nt-envelope-voa 1.3s cubic-bezier(0.5, 0, 0.75, 0.4) forwards; }
+.nt-envelope svg { display: block; width: 100%; height: 100%; }
+@keyframes nt-envelope-voa {
+  0% { transform: translate(0, 0) scale(0.3) rotate(0); opacity: 0; }
+  18% { transform: translate(calc(var(--dx) * 0.04), -34px) scale(1.05) rotate(-6deg); opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(0.5) rotate(-22deg); opacity: 0.9; }
+}
+.nt-envelope-brilho { position: fixed; z-index: 959; width: 9px; height: 9px; margin: -4px 0 0 -4px; border-radius: 50%; pointer-events: none; background: radial-gradient(circle, #ffffff 0 30%, rgba(255, 211, 110, 0.9) 45%, transparent 70%); animation: nt-brilho-some 0.7s ease-out forwards; }
+@keyframes nt-brilho-some { from { transform: scale(1.2); opacity: 1; } to { transform: scale(0.2) translateY(6px); opacity: 0; } }
 /* Filtros escolhidos do admin (Usuários, Logs) em vermelho, como os outros filtros do tema (eram roxos) */
 body.tema-natal .chip.ativo { background: var(--nt-grad); border-color: transparent; color: #fff; }
 body.tema-natal .chip.ativo .chip-n { background: rgba(255, 255, 255, 0.22); color: #fff; }

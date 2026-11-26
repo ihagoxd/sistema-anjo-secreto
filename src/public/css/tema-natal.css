@@ -347,12 +347,13 @@ body.tema-natal .comp-acao:hover { background: color-mix(in srgb, var(--nt-verme
   body.tema-natal .ed .pr-intro { margin-top: 6px; padding: 14px 16px 12px; }
   body.tema-natal .ed .ed-campos > .ed-campo:last-child { border-bottom: none; }
 }
-/* Admin: as listas (rodadas, quem participa…) ficavam soltas no céu, com a neve passando atrás do texto:
-   ganham um cartão da noite. */
-body.tema-natal .adm-lista {
+/* Admin: as listas (rodadas, quem participa…) ficavam soltas no céu, com a neve passando atrás do texto, e o
+   cabeçalho da página da campanha passava por cima da lua. Os dois ganham um cartão da noite. */
+body.tema-natal .adm-lista, body.tema-natal .adm-camp-topo.adm-cp-quem {
   border: 1px solid var(--line); border-radius: 18px; background: color-mix(in srgb, var(--surface) 94%, transparent);
 }
 body.tema-natal .adm-lista { padding: 6px 12px; }
+body.tema-natal .adm-camp-topo.adm-cp-quem { padding: 12px 14px; }
 /* Dentro do cartão sobra menos largura: o nome (campanha ou pessoa) quebra em até duas linhas em vez de ser cortado */
 body.tema-natal .adm-lista .adm-pessoa-txt strong { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.25; }
 /* Quadradinhos de ícone (escrever post, atalhos do "Meu painel", campos das preferências, números do admin): azul-gelo do

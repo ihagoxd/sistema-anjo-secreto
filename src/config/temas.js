@@ -160,7 +160,7 @@ const TEMAS = [
     cor: '#0f2558',
     classe: 'tema-natal',
     css: 'tema-natal.css',
-    placeholderPost: 'Conta pra turma: como está o clima de Natal por aí?',
+    placeholderPost: 'Como está o seu Natal?', // curta: na letra de Natal a frase longa cortava no celular
     mudancas: [
       'Céu azul da meia-noite com a lua cheia, estrelas e neve caindo; o trenó cruza o céu de vez em quando',
       'Vila nevada com casinhas de janela acesa, fumacinha na chaminé e pinheiros (na faixa, no login e no chão do computador)',

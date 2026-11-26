@@ -8441,6 +8441,19 @@
     }
     window.__admMostrarSenha = mostrarSenha;
 
+    /* Filtros do admin (Usuários, Logs) que não cabem na tela: marca se ainda há filtro escondido à direita
+       ou à esquerda, para o tema esmaecer só a ponta que continua */
+    document.querySelectorAll('.adm-chips').forEach(function (nav) {
+      function marcar() {
+        var max = nav.scrollWidth - nav.clientWidth;
+        nav.classList.toggle('tem-mais-dir', nav.scrollLeft < max - 2);
+        nav.classList.toggle('tem-mais-esq', nav.scrollLeft > 2);
+      }
+      nav.addEventListener('scroll', marcar, { passive: true });
+      window.addEventListener('resize', marcar);
+      marcar();
+    });
+
     /* --- Lista de usuários: busca e filtros sem recarregar --- */
     var tela = document.querySelector('[data-adm-usuarios]');
     var buscaIn = tela && tela.querySelector('[data-adm-busca]');

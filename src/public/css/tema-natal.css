@@ -368,6 +368,11 @@ body.tema-natal .adm-cab-btn:not(.adm-cab-voltar) {
   box-shadow: 0 8px 18px -10px rgba(2, 8, 28, 0.7);
 }
 body.tema-natal .adm-cab-btn:not(.adm-cab-voltar):hover { background: var(--surface-2); }
+/* Filtros do admin que não cabem na tela: a ponta que continua esmaece, como no Instagram, mostrando que dá
+   para arrastar (o ui.js marca tem-mais-dir / tem-mais-esq conforme a rolagem) */
+body.tema-natal .adm-chips.tem-mais-dir { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent); }
+body.tema-natal .adm-chips.tem-mais-esq { -webkit-mask-image: linear-gradient(90deg, transparent, #000 56px); mask-image: linear-gradient(90deg, transparent, #000 56px); }
+body.tema-natal .adm-chips.tem-mais-esq.tem-mais-dir { -webkit-mask-image: linear-gradient(90deg, transparent, #000 56px, #000 calc(100% - 56px), transparent); mask-image: linear-gradient(90deg, transparent, #000 56px, #000 calc(100% - 56px), transparent); }
 /* Dentro do cartão sobra menos largura: o nome (campanha ou pessoa) quebra em até duas linhas em vez de ser cortado */
 body.tema-natal .adm-lista .adm-pessoa-txt strong { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.25; }
 /* Quadradinhos de ícone (escrever post, atalhos do "Meu painel", campos das preferências, números do admin): azul-gelo do

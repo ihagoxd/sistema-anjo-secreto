@@ -8425,9 +8425,9 @@
   })();
 
 
-  /* ---------- Fileiras de filtros que rolam de lado (admin: Usuários, Logs; Notificações): marca se ainda há
+  /* ---------- Fileiras de filtros que rolam de lado (admin: Usuários, Logs; Notificações; Pesquisa): marca se ainda há
      filtro escondido à direita ou à esquerda, para o tema esmaecer só a ponta que continua ---------- */
-  document.querySelectorAll('.adm-chips, .notif-tabs').forEach(function (nav) {
+  document.querySelectorAll('.adm-chips, .notif-tabs, .busca-chips').forEach(function (nav) {
     function marcar() {
       var max = nav.scrollWidth - nav.clientWidth;
       nav.classList.toggle('tem-mais-dir', nav.scrollLeft < max - 2);
@@ -8435,6 +8435,8 @@
     }
     nav.addEventListener('scroll', marcar, { passive: true });
     window.addEventListener('resize', marcar);
+    // a da pesquisa começa escondida e só aparece ao digitar: remarca quando o tamanho dela muda
+    if (window.ResizeObserver) new ResizeObserver(marcar).observe(nav);
     marcar();
   });
 

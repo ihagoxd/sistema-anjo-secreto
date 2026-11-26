@@ -663,27 +663,51 @@ html.mini body.tema-natal.pronto .auth-wordmark .aw-l { animation-delay: calc(0.
   .nt-fumaca circle { opacity: 0.6; }
 }
 
-/* Login: o crédito vira uma etiqueta de presente pendurada no cartão por um fio vermelho, balançando
-   devagar: "Desenvolvido por: Ihago Martins" (o nome continua levando para o Instagram). O texto
-   solto do HTML some com font-size 0 e o "Desenvolvido por:" entra pelo ::before, no estilo da etiqueta. */
-body.tema-natal .auth-colofao {
-  position: relative; z-index: 2; align-self: center; width: max-content; margin: 18px auto 0; left: auto; right: auto; bottom: auto;
-  display: flex; align-items: center; gap: 7px; padding: 6px 16px 7px 26px;
-  font-size: 0; letter-spacing: 0; text-transform: none; opacity: 1;
-  background: radial-gradient(circle at 12px 50%, #0b1d4d 0 2.2px, #d9b45a 2.7px 4px, transparent 4.5px), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 176 30' preserveAspectRatio='none'%3E%3Cpath d='M12 1 H170 a5 5 0 0 1 5 5 V24 a5 5 0 0 1 -5 5 H12 L1 15 Z' fill='%23fff6e0' stroke='%23e8cf9f' stroke-width='1.2' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
-  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.35));
-  transform-origin: 50% -18px; animation: nt-etiqueta 3s ease-in-out infinite alternate;
+/* Pé do login: plaquinha de madeira fincada na neve com o crédito e duas crianças jogando bola de
+   neve nela, revezando (ciclo de 4,4s; a da direita vai meio ciclo atrás). A criança puxa o braço,
+   arremessa, a bola voa em arco, estoura na placa (que balança) e ela se abaixa para pegar mais neve.
+   A cena fica presa no pé da tela; a .auth-tela reserva o espaço dela embaixo. */
+body.tema-natal .auth-tela { padding-bottom: 70px; }
+.nt-placa-cena { position: absolute; left: 0; right: 0; bottom: 0; height: 58px; z-index: 2; pointer-events: none; }
+.nt-placa { position: absolute; left: 50%; bottom: 0; width: 150px; height: 58px; margin-left: -75px; transform-origin: 50% 100%; animation: nt-placa-treme 4.4s ease-out -2.464s infinite; }
+.nt-placa-arte { position: absolute; inset: 0; display: block; }
+.nt-placa-txt { position: absolute; left: 6px; right: 6px; top: 12px; text-align: center; line-height: 1.02; color: #fff3d6; text-shadow: 0 1px 0 rgba(60, 30, 10, 0.55); }
+.nt-placa-txt small { display: block; font-size: 8.5px; font-weight: 700; letter-spacing: 0.05em; opacity: 0.9; }
+.nt-placa-nome { pointer-events: auto; font-family: var(--font-display); font-weight: 700; font-size: 17px; color: #fff3d6; text-decoration: none; }
+.nt-placa-nome:hover { color: #fff; text-decoration: underline; }
+@keyframes nt-placa-treme {
+  0% { transform: none; } 2.5% { transform: rotate(2.5deg); } 5.5% { transform: rotate(-1.8deg); } 8.5% { transform: rotate(0.8deg); } 12%, 50% { transform: none; }
+  52.5% { transform: rotate(-2.5deg); } 55.5% { transform: rotate(1.8deg); } 58.5% { transform: rotate(-0.8deg); } 62%, 100% { transform: none; }
 }
-body.tema-natal .auth-colofao::before { content: 'Desenvolvido por:'; font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em; color: #a07a50; }
-body.tema-natal .auth-colofao::after { content: ''; position: absolute; left: 50%; bottom: 100%; width: 1.5px; height: 18px; margin-left: -0.75px; background: #ff5d72; }
-body.tema-natal .auth-assina {
-  font-family: var(--font-display); font-size: 20px; font-weight: 700; line-height: 1; letter-spacing: 0;
-  background: none; -webkit-text-fill-color: #c8203a; color: #c8203a; animation: none;
+.nt-kid { position: absolute; bottom: 0; width: 34px; height: 44px; }
+.nt-kid svg { display: block; overflow: visible; }
+.nt-kid.e { left: calc(50% - 152px); }
+.nt-kid.d { left: calc(50% + 118px); transform: scaleX(-1); }
+.nt-kid-braco { transform-origin: 21px 23px; animation: nt-kid-braco 4.4s ease-in-out infinite; }
+.nt-kid-bolamao { animation: nt-kid-bolamao 4.4s linear infinite; }
+.nt-kid-corpo { transform-origin: 17px 44px; animation: nt-kid-corpo 4.4s ease-in-out infinite; }
+.nt-kid.d .nt-kid-braco, .nt-kid.d .nt-kid-bolamao, .nt-kid.d .nt-kid-corpo { animation-delay: -2.2s; }
+@keyframes nt-kid-braco { 0%, 18% { transform: none; } 28% { transform: rotate(-140deg); } 32% { transform: rotate(-40deg); } 42% { transform: rotate(10deg); } 55%, 100% { transform: none; } }
+@keyframes nt-kid-bolamao { 0%, 30% { opacity: 1; } 31%, 78% { opacity: 0; } 80%, 100% { opacity: 1; } }
+@keyframes nt-kid-corpo { 0%, 58% { transform: none; } 64%, 74% { transform: translateY(3px) scaleY(0.92); } 80%, 100% { transform: none; } }
+/* Bola: o de fora anda na horizontal (reto) e o de dentro sobe e desce (arco) */
+.nt-bola { position: absolute; bottom: 20px; width: 6px; height: 6px; opacity: 0; animation: nt-bola-x 4.4s linear infinite; }
+.nt-bola.e { left: calc(50% - 128px); --dx: 66px; }
+.nt-bola.d { left: calc(50% + 122px); --dx: -66px; animation-delay: -2.2s; }
+.nt-bola i { display: block; width: 6px; height: 6px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1px rgba(143, 184, 255, 0.45); animation: nt-bola-y 4.4s infinite; }
+.nt-bola.d i { animation-delay: -2.2s; }
+@keyframes nt-bola-x { 0%, 31% { transform: none; opacity: 0; } 32% { opacity: 1; } 44% { transform: translateX(var(--dx)); opacity: 1; } 45%, 100% { transform: translateX(var(--dx)); opacity: 0; } }
+@keyframes nt-bola-y { 0%, 31% { transform: none; animation-timing-function: ease-out; } 38% { transform: translateY(-30px); animation-timing-function: ease-in; } 44%, 100% { transform: translateY(-13px); } }
+/* Bolada: a neve estoura na madeira, no canto da placa (abaixo da neve de cima, senão some branco no branco) e fica um pouco antes de sumir */
+.nt-splat { position: absolute; top: 14px; width: 16px; height: 16px; opacity: 0; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 2 C9.5 4 12 2.5 12 5 C14.5 5.5 14 8 12.5 9 C14 11 11.5 12.5 10 11.5 C9.5 14 6.5 14 6.5 11.5 C4 12.5 2.5 10.5 4 9 C1.5 8 2.5 5.5 4.5 5.5 C4.5 3 7 3.5 8 2Z' fill='%23fff'/%3E%3C/svg%3E") center / contain no-repeat; animation: nt-splat 4.4s ease-out infinite; }
+.nt-splat.e { left: 8px; }
+.nt-splat.d { right: 8px; animation-delay: -2.2s; }
+@keyframes nt-splat { 0%, 43% { opacity: 0; transform: scale(0.3); } 45% { opacity: 1; transform: scale(1.15); } 48% { transform: none; } 70% { opacity: 1; } 85%, 100% { opacity: 0; transform: none; } }
+@media (max-width: 600px) { body.tema-natal .auth-tela { padding-bottom: 62px; } }
+@media (prefers-reduced-motion: reduce) {
+  .nt-placa, .nt-kid-braco, .nt-kid-bolamao, .nt-kid-corpo { animation: none; }
+  .nt-bola, .nt-splat { display: none; }
 }
-body.tema-natal .auth-assina:hover { filter: none; text-decoration: underline; }
-[data-theme='light'] body.tema-natal .auth-colofao { filter: drop-shadow(0 4px 8px rgba(20, 50, 120, 0.2)); }
-@keyframes nt-etiqueta { from { transform: rotate(-3deg); } to { transform: rotate(3deg); } }
-@media (prefers-reduced-motion: reduce) { body.tema-natal .auth-colofao { animation: none; } }
 /* Logo do anjo maior no Natal. No celular o espaço sai de margens um pouco menores, para o login
    continuar cabendo na tela sem precisar rolar. */
 body.tema-natal .auth-anjo { width: 200px; height: 200px; }
@@ -694,8 +718,6 @@ body.tema-natal .auth-anjo { width: 200px; height: 200px; }
   body.tema-natal .auth-wordmark { margin-top: 0; }
   body.tema-natal .auth-losango { margin: 6px 0; }
   body.tema-natal .auth-id { padding-bottom: 6px; }
-  body.tema-natal .auth-colofao { margin-top: 12px; transform-origin: 50% -12px; }
-  body.tema-natal .auth-colofao::after { height: 12px; }
 }
 /* Tema claro: as lampadinhas ganham contorno de sombra para não sumirem no fundo branco */
 [data-theme='light'] body.tema-natal .barra-inferior::before, [data-theme='light'] body.tema-natal .barra-inferior::after {

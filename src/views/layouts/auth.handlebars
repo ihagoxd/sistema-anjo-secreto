@@ -87,10 +87,12 @@
       </section>
     </div>
 
+    {{#if (eq tema.chave "natal")}}{{> natalPlaca}}{{else}}
     <div class="auth-colofao">Desenvolvido por
       <a class="auth-assina" href="https://instagram.com/ihagomartins1" target="_blank" rel="noopener noreferrer"
          aria-label="Instagram de Ihago Martins — @ihagomartins1">Ihago Martins</a>
     </div>
+    {{/if}}
   </main>
 
   <script src="/js/ui.js?v={{assetVer}}" defer nonce="{{cspNonce}}"></script>

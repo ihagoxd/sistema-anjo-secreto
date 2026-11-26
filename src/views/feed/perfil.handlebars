@@ -23,6 +23,7 @@
               {{#if alvo.temStory}}title="Toque: ver story · Segure: ampliar a foto"{{else}}{{#if alvo.foto_perfil}}title="Toque ou segure: ampliar a foto"{{/if}}{{/if}}>
           {{#if alvo.foto_perfil}}<img src="{{alvo.foto_perfil}}" alt="" draggable="false">{{else}}{{inicial alvo.nome}}{{/if}}
         </span>
+        {{#if (eq tema.chave "natal")}}{{! Natal: gorrinho de Papai Noel inclinado em cima do avatar }}<svg class="nt-pf-gorro" viewBox="0 0 64 52" aria-hidden="true"><path d="M8 40 C10 22 22 8 38 8 C48 8 54 12 52 18 C46 16 40 20 40 28 L44 40 Z" fill="#e3304a"/><path d="M14 30 C18 20 26 14 34 13" stroke="#ff7d8f" stroke-width="2" fill="none" stroke-linecap="round" opacity=".7"/><rect x="4" y="36" width="44" height="12" rx="6" fill="#fff"/><circle cx="52" cy="18" r="6.5" fill="#fff"/></svg>{{/if}}
       </div>
       <div class="pf-info">
         <div class="pf-nome">{{alvo.nome}}{{#if (eq alvo.tipo_usuario "ADMINISTRADOR")}} <span class="badge admin">Admin</span>{{/if}}</div>

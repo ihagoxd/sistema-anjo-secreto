@@ -448,6 +448,11 @@ body.tema-natal .pf-av-wrap:has(.pf-avatar:not(.st-tem):not(.st-visto))::before 
 [data-theme='light'] body.tema-natal .pf-av-wrap:has(.pf-avatar:not(.st-tem):not(.st-visto))::before { background: conic-gradient(from 0deg, #2f5fd0, #8fd0ff, #2f5fd0); }
 /* Perfil: o mesmo varal entre o cabeçalho e as abas (fica no pé do cabeçalho, que ganha espaço embaixo) */
 body.tema-natal .pf .pf-head { position: relative; padding-bottom: 52px; }
+/* Gorrinho de Papai Noel inclinado no alto do avatar do perfil (o mesmo da tela de carregamento). Não
+   atrapalha o toque no avatar e some quando a pessoa tem nota (o balão fica nesse lugar) */
+.nt-pf-gorro { position: absolute; z-index: 2; top: -24px; left: -12px; width: 60px; height: 49px; transform: rotate(-20deg); pointer-events: none; filter: drop-shadow(0 3px 4px rgba(2, 8, 28, 0.45)); }
+.pf-av-wrap:has(.pf-nota) .nt-pf-gorro { display: none; }
+@media (min-width: 900px) { .nt-pf-gorro { top: -30px; left: -14px; width: 86px; height: 70px; } }
 body.tema-natal .pf-head::before, body.tema-natal .pf-head::after {
   content: ''; position: absolute; left: 0; right: 0; bottom: 8px; height: 34px; pointer-events: none;
   animation: nt-pisca-pisca 1.5s infinite;

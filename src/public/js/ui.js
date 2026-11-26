@@ -7572,17 +7572,6 @@
     }
     if (document.querySelector('[data-confete]')) chuva(56);
     window.__festejar = function () { chuva(56); };
-    // Neve da barra de baixo: o montinho cresce devagar e, ao trocar de página, continua de onde parou
-    var monte = document.querySelector('[data-monte]');
-    if (monte && !reduz) {
-      var agora = Date.now(), ini = agora;
-      try {
-        var guardado = +sessionStorage.getItem('nt-neve-barra');
-        if (guardado && guardado <= agora) ini = guardado; else sessionStorage.setItem('nt-neve-barra', String(agora));
-      } catch (x) {}
-      monte.style.setProperty('--ja', (-(agora - ini) / 1000).toFixed(1) + 's');
-      monte.classList.add('cai');
-    }
     document.addEventListener('click', function (e) {
       var a = e.target.closest('[data-vila]'); if (!a) return;
       a.classList.remove('pula'); void a.getBoundingClientRect(); a.classList.add('pula');

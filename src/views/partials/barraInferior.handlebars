@@ -45,8 +45,7 @@
   </a>
   {{/unless}}
   {{#if (eq tema.chave "natal")}}
-  {{! Natal: flocos caindo em cima da barra e um montinho de neve que vai se acumulando nela
-      (desenho em tema-natal.css; o ui.js faz o montinho continuar de onde parou entre as páginas) }}
+  {{! Natal: flocos caindo em cima da barra e um montinho de neve já acumulado nela (desenho em tema-natal.css) }}
   <span class="nt-barra-neve" aria-hidden="true">
     <i style="--x:6%;--d:4.6s;--a:-0.8s;--t:4px;--s:-6px"></i>
     <i style="--x:15%;--d:5.8s;--a:-3.1s;--t:3px;--s:5px"></i>
@@ -59,6 +58,6 @@
     <i style="--x:80%;--d:4.7s;--a:-2.2s;--t:5px;--s:-3px"></i>
     <i style="--x:90%;--d:5.5s;--a:-4.9s;--t:3px;--s:5px"></i>
   </span>
-  <span class="nt-monte" data-monte aria-hidden="true"></span>
+  <span class="nt-monte" aria-hidden="true"></span>
   {{/if}}
 </nav>

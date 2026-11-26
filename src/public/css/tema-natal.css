@@ -302,7 +302,11 @@ body.tema-natal .acao-ic, body.tema-natal .stat-ic { background: var(--nt-vermel
 body.tema-natal .acoes-rapidas .acao-card:nth-child(2n) .acao-ic, body.tema-natal .painel-stats .stat:nth-child(2n) .stat-ic { background: var(--nt-azul-forte); color: #fff; }
 body.tema-natal .acao-card-tema { border: 1px dashed var(--nt-vermelho); }
 body.tema-natal .acao-card-tema .acao-ic { background: var(--nt-grad); color: #fff; }
-body.tema-natal .atv-dot { background: var(--nt-vermelho); }
+/* Bolinhas da atividade do admin (painel e logs): azul-gelo; vermelho só no que merece atenção (falha de
+   login, exclusões, inativações, recusas, desativações), que salta aos olhos na lista */
+body.tema-natal .atv-dot { background: var(--nt-azul); }
+[data-theme='light'] body.tema-natal .atv-dot { background: var(--nt-azul-forte); }
+body.tema-natal .atv-item.atv-alerta .atv-dot { background: var(--nt-vermelho); box-shadow: 0 0 0 3px color-mix(in srgb, var(--nt-vermelho) 24%, transparent); }
 body.tema-natal .tema-chip { background: var(--nt-grad); color: #fff; }
 
 /* ---------- FEED ---------- */

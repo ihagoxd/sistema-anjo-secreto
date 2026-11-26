@@ -225,6 +225,13 @@ const helpers = {
     return mapa[acao] || acao;
   },
 
+  // Ações dos logs que merecem atenção (a bolinha fica de alerta): falha de login, exclusões, inativações,
+  // recusas e desativações
+  logAlerta(acao) {
+    return ['LOGIN_FALHA', 'USUARIO_EXCLUIDO', 'USUARIO_INATIVADO', 'CADASTRO_RECUSADO', 'CAMPANHA_APAGADA',
+      'PARTICIPANTE_REMOVIDO', 'AVISO_EXCLUIDO', 'AVISO_DESATIVADO'].includes(acao);
+  },
+
   // Classe de badge Bootstrap conforme status da campanha
   badgeStatus(status) {
     const mapa = {

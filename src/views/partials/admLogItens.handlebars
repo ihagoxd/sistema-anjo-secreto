@@ -1,6 +1,6 @@
 {{! Itens da lista de logs (a página inicial e cada "carregar mais"/filtro por fetch usam este mesmo trecho) }}
 {{#each logs}}
-  <li class="atv-item adm-log">
+  <li class="atv-item adm-log{{#if (logAlerta this.acao)}} atv-alerta{{/if}}">
     <span class="atv-dot"></span>
     <div class="atv-txt">
       <span><span class="atv-acao">{{rotuloAcao this.acao}}</span>{{#if this.nome_usuario}} <span class="atv-quem">· {{this.nome_usuario}}</span>{{/if}}</span>

@@ -29,7 +29,7 @@
       <strong>{{resumo.aprovados}}</strong>
       <small>Usuários ativos{{#if resumo.inativos}} · {{resumo.inativos}} inativo{{#unless (eq resumo.inativos 1)}}s{{/unless}}{{/if}}</small>
     </a>
-    <a class="adm-stat{{#if pendentes}} alerta{{/if}}" href="/admin/aprovacoes">
+    <a class="adm-stat{{#if pendentes}} atv-alerta{{/if}}" href="/admin/aprovacoes">
       <span class="adm-stat-ic" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg></span>
       <strong data-adm-n="pendentes">{{pendentes}}</strong>
       <small>Aguardando aprovação</small>
@@ -108,7 +108,7 @@
       {{#if logs.length}}
         <ul class="atividade">
           {{#each logs}}
-            <li class="atv-item">
+            <li class="atv-item{{#if (logAlerta this.acao)}} atv-alerta{{/if}}">
               <span class="atv-dot"></span>
               <div class="atv-txt">
                 <span class="atv-acao">{{rotuloAcao this.acao}}</span>

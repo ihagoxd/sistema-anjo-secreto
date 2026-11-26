@@ -518,7 +518,6 @@ body.tema-natal .pft-form .chip-item { font-family: var(--font-body); font-size:
 /* Nas telas com o botão de salvar grudado no pé, os flocos que caem em cima da barra de baixo ficavam
    por cima do botão: lá eles não caem */
 body.tema-natal:has(.pf-salvar) .nt-barra-neve { display: none; }
-body.tema-natal .pft-form .chip-item { background: #ffe1e6; color: #b3203a; }
 [data-theme] body.tema-natal .pft-form .chips-sug button { background: #fff; border-color: var(--linha-papel); color: var(--tinta); }
 [data-theme] body.tema-natal .pft-form .chips-sug button:hover { border-color: #e3304a; color: #b3203a; background: #fff5f6; }
 .nt-carta-assina { margin: 22px 6px 0; text-align: right; font-family: var(--font-display); font-weight: 700; font-size: 19px; line-height: 1.1; color: #1d2f66; }
@@ -528,6 +527,30 @@ body.tema-natal .pft-form .chip-item { background: #ffe1e6; color: #b3203a; }
   [data-theme] body.tema-natal .pft-form .pf-salvar { background: color-mix(in srgb, #fffaf0 92%, transparent); border-top-color: #e6dcc6; }
 }
 @media (prefers-reduced-motion: reduce) { .nt-carimbo.bate { animation: none; } }
+/* Etiquetas dos presentes no papel (cartinha e carta vista pelo anjo): vermelho e azul claros também no
+   modo escuro (a regra geral do escuro deixava as etiquetas escuras em cima do papel creme) */
+[data-theme] body.tema-natal .pft-form .chip-item:nth-child(2n+1), [data-theme] body.tema-natal .gt-natal .chip-item:nth-child(2n+1) { background: #ffe1e6; color: #b3203a; }
+[data-theme] body.tema-natal .pft-form .chip-item:nth-child(2n+2), [data-theme] body.tema-natal .gt-natal .chip-item:nth-child(2n+2) { background: #e3ecff; color: #2f5fd0; }
+/* Carta do protegido vista pelo anjo (no "Meu painel", na página do protegido e na aba Gostos do perfil):
+   o mesmo papel da cartinha, com selo, carimbo "Enviada", o que a pessoa escreveu na letra de Natal (como
+   escrito à mão) e "Com carinho" no fim */
+[data-theme] body.tema-natal .gt-natal {
+  border: 7px solid transparent; border-radius: 16px; color: #1d2f66;
+  background: linear-gradient(#fffaf0, #fffaf0) padding-box, repeating-linear-gradient(-45deg, #e3304a 0 9px, #fffaf0 9px 15px, #2f5fd0 15px 24px, #fffaf0 24px 30px) border-box;
+  box-shadow: 0 18px 40px -18px rgba(2, 8, 28, 0.65);
+}
+body.tema-natal .gt-natal .gt-deco { display: none; }
+[data-theme] body.tema-natal .gt-natal .gt-cab { position: relative; align-items: flex-start; background: none; border-bottom: 1px dashed #e3d6bb; padding: 18px 96px 16px 18px; min-height: 104px; }
+body.tema-natal .gt-natal .gt-emoji, body.tema-natal .gt-natal .gt-item-emoji { color: #e3304a; }
+body.tema-natal .gt-natal .gt-kicker { color: #c8203a; }
+[data-theme] body.tema-natal .gt-natal .gt-tit { color: #1d2f66; font-size: 26px; line-height: 1.1; text-shadow: none; }
+body.tema-natal .gt-natal .gt-item { border-bottom: 1px dashed #e8dcc2; }
+body.tema-natal .gt-natal .gt-item-rotulo { color: #6a789c; }
+body.tema-natal .gt-natal .gt-item-valor { font-family: var(--font-display); font-weight: 700; font-size: 21px; line-height: 1.25; color: #1d2f66; }
+body.tema-natal .gt-natal .chip-item { font-family: var(--font-body); }
+.gt-natal .nt-selo { top: 12px; right: 12px; }
+.gt-natal .nt-carimbo { top: 40px; right: 22px; }
+.gt-natal .nt-carta-assina { margin: 6px 18px 18px; }
 body.tema-natal .galeria-add:hover { border-color: var(--nt-vermelho); color: var(--nt-vermelho); }
 
 /* Faixa "Feliz Natal!" no topo do feed: cartão da noite meio transparente (no celular a lua aparece atrás,

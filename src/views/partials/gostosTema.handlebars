@@ -10,6 +10,7 @@
       <div class="gt-kicker">{{tema.prefs.titulo}}</div>
       <div class="gt-tit">{{#if tema.prefs.gostosTitulo}}{{tema.prefs.gostosTitulo}} {{nome}}{{else}}O que {{nome}} quer ganhar{{/if}}</div>
     </div>
+    {{#if (eq tema.chave "natal")}}{{> natalSelo}}{{> natalCarimbo visivel=true}}{{/if}}
   </div>
   {{#each gostosTema}}
     <div class="gt-item">
@@ -24,5 +25,6 @@
       </div>
     </div>
   {{/each}}
+  {{#if (eq tema.chave "natal")}}<p class="nt-carta-assina">Com carinho,<b>{{nome}}</b></p>{{/if}}
 </div>
 {{/if}}

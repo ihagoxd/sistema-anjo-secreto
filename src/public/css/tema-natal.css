@@ -1,5 +1,5 @@
 /* ============================================================
-   TEMA DA REDE: NATAL (Noite Feliz), noite azul de neve.
+   TEMA DA REDE: NATAL (Feliz Natal!), noite azul de neve.
    Carregado só quando o admin ativa o tema. Entra DEPOIS do estilo.css e
    repinta o app inteiro como uma noite de Natal: azul da meia-noite, lua
    cheia atrás da faixa, neve caindo, o trenó cruzando o céu e, no chão
@@ -408,7 +408,7 @@ body.tema-natal .tw-reply input:focus { border-color: var(--nt-vermelho); box-sh
 body.tema-natal .feed-novas { background: var(--nt-grad); color: #fff; }
 body.tema-natal .lado-titulo { color: var(--nt-azul-forte); }
 [data-theme='dark'] body.tema-natal .lado-titulo { color: var(--nt-azul); }
-body.tema-natal .lado-rodape::after { content: ' · Noite Feliz'; }
+body.tema-natal .lado-rodape::after { content: ' · Feliz Natal!'; }
 body.tema-natal .tw-banner { background: linear-gradient(120deg, #0f2558 0%, #3e6fd8 100%); }
 body.tema-natal .tw-tab.ativo::after { background: var(--nt-grad); width: 64px; }
 body.tema-natal .tw-avatar.st-tem { box-shadow: 0 0 0 3px var(--surface), 0 0 0 7px var(--nt-vermelho); }
@@ -435,7 +435,7 @@ body.tema-natal .chips-sug button { border-color: var(--line-strong); }
 body.tema-natal .pf-secao { border-top: 1px dashed var(--line-strong); }
 body.tema-natal .galeria-add:hover { border-color: var(--nt-vermelho); color: var(--nt-vermelho); }
 
-/* Faixa "Noite Feliz" no topo do feed: cartão da noite meio transparente (no celular a lua aparece atrás,
+/* Faixa "Feliz Natal!" no topo do feed: cartão da noite meio transparente (no celular a lua aparece atrás,
    como no Halloween), neve caindo e a vila nevada no canto; tocar na vila faz nevar */
 html.sem-banner-tema .tema-banner { display: none; }
 .tema-banner.tb-natal {

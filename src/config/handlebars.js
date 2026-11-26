@@ -205,6 +205,12 @@ const helpers = {
     return Number.isNaN(d.getTime()) ? '' : d.toLocaleTimeString(PT, tz({ hour: '2-digit', minute: '2-digit' }));
   },
 
+  // Quanto a é de b, em % inteiro de 0 a 100 (barras de progresso)
+  porcento(a, b) {
+    const x = Number(a) || 0, y = Number(b) || 0;
+    return y > 0 ? Math.max(0, Math.min(100, Math.round((x / y) * 100))) : 0;
+  },
+
   // Formata TIMESTAMP para pt-BR (dd/mm/aaaa hh:mm)
   formatarData(data) {
     if (!data) return '-';

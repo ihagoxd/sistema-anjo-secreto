@@ -15,7 +15,8 @@
   {{#if atual.temPrefs}}
     <div class="tema-atual-stat" title="Participantes aptos que já preencheram a aba “{{atual.prefs.titulo}}”">
       <div class="numero">{{preenchidos}}<small>/{{aptos}}</small></div>
-      <div class="stat-lbl">já contaram o que querem ganhar</div>
+      <div class="stat-lbl">{{#if (eq atual.chave "natal")}}já escreveram a cartinha{{else}}já contaram o que querem ganhar{{/if}}</div>
+      <div class="tema-atual-barra" role="progressbar" aria-label="Quem já preencheu" aria-valuemin="0" aria-valuemax="{{aptos}}" aria-valuenow="{{preenchidos}}"><span style="width:{{porcento preenchidos aptos}}%"></span></div>
     </div>
   {{/if}}
 </div>

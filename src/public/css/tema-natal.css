@@ -404,6 +404,8 @@ body.tema-natal .adm-sortear-ic:not(.adm-rev-ic), body.tema-natal .comp-op-ic, b
 /* Botão de perigo (Revelar e registrar, excluir…): o vermelho de status do escuro é claro (feito para texto) e
    o branco quase não se lia nele; usa o vermelho forte do Papai Noel */
 body.tema-natal .btn-perigo { background: var(--nt-vermelho-forte); color: #fff; }
+/* Revelar: a pessoa tocada fica em azul-gelo (o vermelho a 16% sobre o azul-marinho virava roxo) */
+body.tema-natal button.adm-par-p.sel { background: color-mix(in srgb, var(--nt-azul) 20%, transparent); box-shadow: 0 0 0 5px color-mix(in srgb, var(--nt-azul) 20%, transparent); }
 /* Filtros escolhidos do admin (Usuários, Logs) em vermelho, como os outros filtros do tema (eram roxos) */
 body.tema-natal .chip.ativo { background: var(--nt-grad); border-color: transparent; color: #fff; }
 body.tema-natal .chip.ativo .chip-n { background: rgba(255, 255, 255, 0.22); color: #fff; }

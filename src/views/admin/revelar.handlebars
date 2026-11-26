@@ -15,18 +15,19 @@
       <input type="search" placeholder="Pesquisar por nome ou @usuário" enterkeyhint="search" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Pesquisar nos pares" data-pares-busca>
       <button type="button" class="direct-busca-x" data-pares-busca-x aria-label="Limpar" hidden>&times;</button>
     </div>
+    <p class="adm-pares-dica">Toque numa pessoa para ver quem é o anjo dela e de quem ela é anjo.</p>
     <div class="adm-pares" data-adm-pares>
       {{#each pares}}
         <div class="adm-par" data-busca="{{this.anjo_nome}} {{this.anjo_usuario}} {{this.protegido_nome}} {{this.protegido_usuario}}">
-          <div class="adm-par-p{{#unless this.anjo_ativo}} inativa{{/unless}}">
+          <button type="button" class="adm-par-p{{#unless this.anjo_ativo}} inativa{{/unless}}" data-pessoa="{{this.anjo_usuario}}" aria-pressed="false">
             <span class="adm-av" aria-hidden="true">{{#if this.anjo_foto}}<img src="{{this.anjo_foto}}" alt="" loading="lazy">{{else}}{{inicial this.anjo_nome}}{{/if}}</span>
             <span class="adm-par-txt"><strong>{{this.anjo_nome}}</strong><small>@{{this.anjo_usuario}}{{#unless this.anjo_ativo}} · inativo{{/unless}}</small></span>
-          </div>
+          </button>
           <span class="adm-par-seta" aria-label="é anjo de"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
-          <div class="adm-par-p{{#unless this.protegido_ativo}} inativa{{/unless}}">
+          <button type="button" class="adm-par-p{{#unless this.protegido_ativo}} inativa{{/unless}}" data-pessoa="{{this.protegido_usuario}}" aria-pressed="false">
             <span class="adm-av" aria-hidden="true">{{#if this.protegido_foto}}<img src="{{this.protegido_foto}}" alt="" loading="lazy">{{else}}{{inicial this.protegido_nome}}{{/if}}</span>
             <span class="adm-par-txt"><strong>{{this.protegido_nome}}</strong><small>@{{this.protegido_usuario}}{{#unless this.protegido_ativo}} · inativo{{/unless}}</small></span>
-          </div>
+          </button>
         </div>
       {{else}}
         <div class="adm-vazio"><strong>Sem pares</strong></div>

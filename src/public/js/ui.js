@@ -8764,6 +8764,30 @@
       if (xB) xB.addEventListener('click', function () { paresBusca.value = ''; filtrar(); paresBusca.focus(); });
     })();
 
+    /* --- Revelar: tocar numa pessoa destaca as duas linhas dela (quem é o anjo dela e de quem ela é
+       anjo) e apaga as outras; tocar de novo, ou fora das pessoas, desfaz --- */
+    if (paresEl) (function () {
+      var atual = null, linhas = [].slice.call(paresEl.querySelectorAll('.adm-par'));
+      function destacar(quem) {
+        atual = quem;
+        paresEl.classList.toggle('destacando', !!quem);
+        linhas.forEach(function (l) {
+          var ps = l.querySelectorAll('.adm-par-p'), tem = false;
+          ps.forEach(function (p) {
+            var eu = !!quem && p.getAttribute('data-pessoa') === quem;
+            p.classList.toggle('sel', eu); p.setAttribute('aria-pressed', eu ? 'true' : 'false');
+            if (eu) tem = true;
+          });
+          l.classList.toggle('destaque', tem);
+        });
+      }
+      document.addEventListener('click', function (e) {
+        var p = e.target.closest('.adm-par-p');
+        if (p && paresEl.contains(p)) { var quem = p.getAttribute('data-pessoa'); destacar(quem === atual ? null : quem); return; }
+        if (atual && !e.target.closest('.adm-busca')) destacar(null);
+      });
+    })();
+
     /* --- Logs: busca (com pausa curta), filtro por ação e "carregar mais" ao chegar no fim --- */
     var logs = document.querySelector('[data-adm-logs]');
     if (logs) (function () {

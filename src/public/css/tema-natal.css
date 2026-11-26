@@ -334,7 +334,9 @@ body.tema-natal .compositor-topo textarea::placeholder { font-family: var(--font
 [data-theme='light'] body.tema-natal .compositor-topo textarea::placeholder { color: #5b7fc4; }
 body.tema-natal .comp-acao { color: var(--accent); }
 body.tema-natal .comp-acao:hover { background: color-mix(in srgb, var(--nt-vermelho) 16%, transparent); transform: scale(1.1); }
-body.tema-natal .comp-op-ic { background: color-mix(in srgb, var(--nt-azul) 24%, var(--surface-2)); color: var(--accent-strong); }
+/* Quadradinhos de ícone (escrever post, atalhos do "Meu painel", campos das preferências): azul-gelo do
+   tema com o ícone em vermelho (o accent-soft do escuro é roxo) */
+body.tema-natal .comp-op-ic, body.tema-natal .pn-linha-ic, body.tema-natal .ed-ic { background: color-mix(in srgb, var(--nt-azul) 24%, var(--surface-2)); color: var(--accent-strong); }
 body.tema-natal .comp-op.ativo .comp-switch { background: var(--nt-vermelho-forte); }
 body.tema-natal .tw-post { border-radius: 22px; border-color: var(--line); }
 /* Varal de luzinhas entre os posts do feed: os posts ficam sem moldura, como no Instagram, e no

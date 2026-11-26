@@ -334,6 +334,17 @@ body.tema-natal .compositor-topo textarea::placeholder { font-family: var(--font
 [data-theme='light'] body.tema-natal .compositor-topo textarea::placeholder { color: #5b7fc4; }
 body.tema-natal .comp-acao { color: var(--accent); }
 body.tema-natal .comp-acao:hover { background: color-mix(in srgb, var(--nt-vermelho) 16%, transparent); transform: scale(1.1); }
+/* Telas de editar no celular (Preferências, editar perfil…): elas não têm fundo, e no Natal a lua e a neve
+   ficavam atrás do texto (a lua apagava a frase do progresso). O progresso, cada lista de campos e as
+   linhas soltas ganham um cartão da noite, como nos ajustes do iPhone; os títulos das seções ficam fora. */
+@media (max-width: 899px) {
+  body.tema-natal .ed .pr-intro, body.tema-natal .ed .ed-campos, body.tema-natal .ed .ed-linha {
+    margin-inline: 12px; border: 1px solid var(--line); border-radius: 18px; overflow: hidden;
+    background: color-mix(in srgb, var(--surface) 94%, transparent);
+  }
+  body.tema-natal .ed .pr-intro { margin-top: 6px; padding: 14px 16px 12px; }
+  body.tema-natal .ed .ed-campos > .ed-campo:last-child { border-bottom: none; }
+}
 /* Quadradinhos de ícone (escrever post, atalhos do "Meu painel", campos das preferências): azul-gelo do
    tema com o ícone em vermelho (o accent-soft do escuro é roxo) */
 body.tema-natal .comp-op-ic, body.tema-natal .pn-linha-ic, body.tema-natal .ed-ic { background: color-mix(in srgb, var(--nt-azul) 24%, var(--surface-2)); color: var(--accent-strong); }

@@ -683,23 +683,26 @@ body.tema-natal .auth-tela { padding-bottom: 70px; }
 .nt-kid svg { display: block; overflow: visible; }
 .nt-kid.e { left: calc(50% - 152px); }
 .nt-kid.d { left: calc(50% + 118px); transform: scaleX(-1); }
-.nt-kid-braco { transform-origin: 18px 24px; animation: nt-kid-braco 4.4s ease-in-out infinite; }
+.nt-kid-braco { transform-origin: 18px 23px; animation: nt-kid-braco 4.4s ease-in-out infinite; }
 .nt-kid-bolamao { animation: nt-kid-bolamao 4.4s linear infinite; }
 .nt-kid-corpo { transform-origin: 17px 44px; animation: nt-kid-corpo 4.4s ease-in-out infinite; }
 .nt-kid.d .nt-kid-braco, .nt-kid.d .nt-kid-bolamao, .nt-kid.d .nt-kid-corpo { animation-delay: -2.2s; }
-/* O ombro fica dentro do casaco: o braço puxa para trás, passa por baixo e solta a bola lá na frente,
-   apontando para cima (nunca cruza a cabeça) */
-@keyframes nt-kid-braco { 0%, 16% { transform: none; } 26% { transform: rotate(100deg); } 32% { transform: rotate(-105deg); } 38% { transform: rotate(-85deg); } 50%, 100% { transform: none; } }
+/* Arremesso por cima do ombro, como quem joga uma bola: o braço (atrás do corpo e da cabeça, com o
+   ombro escondido no casaco) leva a bola para trás e para o alto, segura um instante, passa por cima
+   do ombro e solta lá na frente (315°), terminando para baixo. Sempre girando no mesmo sentido: a volta
+   completa (360°) é igual ao repouso, então o ciclo emenda sem pulo. */
+@keyframes nt-kid-braco { 0%, 14% { transform: none; } 26%, 29% { transform: rotate(185deg); } 32% { transform: rotate(275deg); } 36% { transform: rotate(340deg); } 48%, 100% { transform: rotate(360deg); } }
 @keyframes nt-kid-bolamao { 0%, 31.5% { opacity: 1; } 32%, 78% { opacity: 0; } 80%, 100% { opacity: 1; } }
-@keyframes nt-kid-corpo { 0%, 58% { transform: none; } 64%, 74% { transform: translateY(3px) scaleY(0.92); } 80%, 100% { transform: none; } }
+/* O corpo inclina para trás ao armar e para a frente ao soltar; depois se abaixa para pegar neve */
+@keyframes nt-kid-corpo { 0%, 14% { transform: none; } 26%, 29% { transform: rotate(-7deg); } 33% { transform: rotate(7deg); } 42%, 58% { transform: none; } 64%, 74% { transform: translateY(3px) scaleY(0.92); } 80%, 100% { transform: none; } }
 /* Bola: o de fora anda na horizontal (reto) e o de dentro sobe e desce (arco) */
-.nt-bola { position: absolute; bottom: 26px; width: 6px; height: 6px; opacity: 0; animation: nt-bola-x 4.4s linear infinite; }
-.nt-bola.e { left: calc(50% - 130px); --dx: 68px; }
-.nt-bola.d { left: calc(50% + 124px); --dx: -68px; animation-delay: -2.2s; }
+.nt-bola { position: absolute; bottom: 28px; width: 6px; height: 6px; opacity: 0; animation: nt-bola-x 4.4s linear infinite; }
+.nt-bola.e { left: calc(50% - 124px); --dx: 62px; }
+.nt-bola.d { left: calc(50% + 118px); --dx: -62px; animation-delay: -2.2s; }
 .nt-bola i { display: block; width: 6px; height: 6px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1px rgba(143, 184, 255, 0.45); animation: nt-bola-y 4.4s infinite; }
 .nt-bola.d i { animation-delay: -2.2s; }
 @keyframes nt-bola-x { 0%, 32% { transform: none; opacity: 0; } 32.5% { opacity: 1; } 44% { transform: translateX(var(--dx)); opacity: 1; } 45%, 100% { transform: translateX(var(--dx)); opacity: 0; } }
-@keyframes nt-bola-y { 0%, 32% { transform: none; animation-timing-function: ease-out; } 38% { transform: translateY(-24px); animation-timing-function: ease-in; } 44%, 100% { transform: translateY(-7px); } }
+@keyframes nt-bola-y { 0%, 32% { transform: none; animation-timing-function: ease-out; } 38% { transform: translateY(-14px); animation-timing-function: ease-in; } 44%, 100% { transform: translateY(-5px); } }
 /* Bolada: a neve estoura na madeira, no canto da placa (abaixo da neve de cima, senão some branco no branco) e fica um pouco antes de sumir */
 .nt-splat { position: absolute; top: 14px; width: 16px; height: 16px; opacity: 0; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 2 C9.5 4 12 2.5 12 5 C14.5 5.5 14 8 12.5 9 C14 11 11.5 12.5 10 11.5 C9.5 14 6.5 14 6.5 11.5 C4 12.5 2.5 10.5 4 9 C1.5 8 2.5 5.5 4.5 5.5 C4.5 3 7 3.5 8 2Z' fill='%23fff'/%3E%3C/svg%3E") center / contain no-repeat; animation: nt-splat 4.4s ease-out infinite; }
 .nt-splat.e { left: 8px; }

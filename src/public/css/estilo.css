@@ -4983,6 +4983,7 @@ div.adm-stat:active { transform: none; }
 .adm-par-txt strong { font-size: 13.5px; line-height: 1.2; overflow: hidden; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .adm-par-txt small { font-size: 11.5px; color: var(--text-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .adm-par-seta { color: var(--accent-strong); display: grid; place-items: center; }
+.adm-par[hidden] { display: none; }
 .adm-cab-voltar { margin-left: -10px; }
 .adm-cab-largo { max-width: 1080px; }
 .adm-tema-atual { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }

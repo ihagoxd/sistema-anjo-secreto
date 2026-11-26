@@ -8744,6 +8744,26 @@
       document.addEventListener('focusin', function (e) { if (e.target.closest && e.target.closest('#admNovoUsuario')) setTimeout(ajustarFolha, 80); });
     }
 
+    /* --- Revelar: a busca filtra os pares na hora (pelo nome ou @ do anjo e do protegido) --- */
+    var paresEl = document.querySelector('[data-adm-pares]');
+    var paresBusca = document.querySelector('[data-pares-busca]');
+    if (paresEl && paresBusca) (function () {
+      var xB = document.querySelector('[data-pares-busca-x]'), vazio = document.querySelector('[data-pares-vazio]');
+      var linhas = [].slice.call(paresEl.querySelectorAll('.adm-par'));
+      function filtrar() {
+        var t = semAcento(paresBusca.value.trim()).replace(/^@/, ''), n = 0;
+        linhas.forEach(function (l) {
+          var ok = !t || semAcento(l.getAttribute('data-busca')).indexOf(t) >= 0;
+          l.hidden = !ok; if (ok) n++;
+        });
+        if (vazio) vazio.hidden = n > 0;
+        if (xB) xB.hidden = !paresBusca.value;
+      }
+      paresBusca.addEventListener('input', filtrar);
+      paresBusca.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); paresBusca.blur(); } });
+      if (xB) xB.addEventListener('click', function () { paresBusca.value = ''; filtrar(); paresBusca.focus(); });
+    })();
+
     /* --- Logs: busca (com pausa curta), filtro por ação e "carregar mais" ao chegar no fim --- */
     var logs = document.querySelector('[data-adm-logs]');
     if (logs) (function () {

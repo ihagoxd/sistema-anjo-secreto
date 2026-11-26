@@ -10,9 +10,14 @@
       <span class="adm-at-ic" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg></span>
       <span class="adm-at-txt">{{campanha.nome}} · {{pares.length}} par{{#unless (eq pares.length 1)}}es{{/unless}}. Este acesso foi registrado em log: não compartilhe a lista.</span>
     </div>
-    <div class="adm-pares">
+    <div class="direct-busca adm-busca">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="search" placeholder="Pesquisar por nome ou @usuário" enterkeyhint="search" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Pesquisar nos pares" data-pares-busca>
+      <button type="button" class="direct-busca-x" data-pares-busca-x aria-label="Limpar" hidden>&times;</button>
+    </div>
+    <div class="adm-pares" data-adm-pares>
       {{#each pares}}
-        <div class="adm-par">
+        <div class="adm-par" data-busca="{{this.anjo_nome}} {{this.anjo_usuario}} {{this.protegido_nome}} {{this.protegido_usuario}}">
           <div class="adm-par-p{{#unless this.anjo_ativo}} inativa{{/unless}}">
             <span class="adm-av" aria-hidden="true">{{#if this.anjo_foto}}<img src="{{this.anjo_foto}}" alt="" loading="lazy">{{else}}{{inicial this.anjo_nome}}{{/if}}</span>
             <span class="adm-par-txt"><strong>{{this.anjo_nome}}</strong><small>@{{this.anjo_usuario}}{{#unless this.anjo_ativo}} · inativo{{/unless}}</small></span>
@@ -27,5 +32,6 @@
         <div class="adm-vazio"><strong>Sem pares</strong></div>
       {{/each}}
     </div>
+    <div class="adm-vazio" data-pares-vazio hidden><strong>Ninguém com esse nome</strong><small>Confira a grafia ou pesquise pelo @usuário.</small></div>
   </div>
 </div>

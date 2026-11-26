@@ -343,11 +343,17 @@ body.tema-natal .tw-post { border-radius: 22px; border-color: var(--line); }
    O fio vai nos dois pseudo-elementos, então ele fica sempre aceso enquanto as lâmpadas piscam. */
 body.tema-natal .feed > .tw-post.ig-post { border-bottom: none; }
 body.tema-natal .feed > .tw-post.ig-post + .tw-post.ig-post { margin-top: 36px; }
+/* Perfil: o mesmo varal entre o cabeçalho e as abas (fica no pé do cabeçalho, que ganha espaço embaixo) */
+body.tema-natal .pf .pf-head { position: relative; padding-bottom: 52px; }
+body.tema-natal .pf-head::before, body.tema-natal .pf-head::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 8px; height: 34px; pointer-events: none;
+  animation: nt-pisca-pisca 1.5s infinite;
+}
 body.tema-natal .feed > .tw-post.ig-post + .tw-post.ig-post::before, body.tema-natal .feed > .tw-post.ig-post + .tw-post.ig-post::after {
   content: ''; position: absolute; left: 0; right: 0; top: -38px; height: 34px; pointer-events: none;
   animation: nt-pisca-pisca 1.5s infinite;
 }
-body.tema-natal .feed > .tw-post.ig-post + .tw-post.ig-post::before {
+body.tema-natal .feed > .tw-post.ig-post + .tw-post.ig-post::before, body.tema-natal .pf-head::before {
   background:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 22'%3E%3Cdefs%3E%3CradialGradient id='h'%3E%3Cstop offset='0' stop-color='%23ffd36e' stop-opacity='.6'/%3E%3Cstop offset='1' stop-color='%23ffd36e' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='10' cy='11' r='10' fill='url(%23h)'/%3E%3Crect x='7.4' y='0' width='5.2' height='4.6' rx='1.2' fill='%2333508f'/%3E%3Cellipse cx='10' cy='9.4' rx='3.8' ry='5.4' fill='%23ffd36e'/%3E%3Cellipse cx='8.7' cy='7.6' rx='1.1' ry='1.7' fill='%23fff' fill-opacity='.9'/%3E%3C/svg%3E") calc(6.25% - 8.75px) 5.9px / 20px 22px no-repeat,
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 22'%3E%3Cdefs%3E%3CradialGradient id='h'%3E%3Cstop offset='0' stop-color='%23ffe7a8' stop-opacity='.6'/%3E%3Cstop offset='1' stop-color='%23ffe7a8' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='10' cy='11' r='10' fill='url(%23h)'/%3E%3Crect x='7.4' y='0' width='5.2' height='4.6' rx='1.2' fill='%2333508f'/%3E%3Cellipse cx='10' cy='9.4' rx='3.8' ry='5.4' fill='%23fff3d1'/%3E%3Cellipse cx='8.7' cy='7.6' rx='1.1' ry='1.7' fill='%23fff' fill-opacity='.9'/%3E%3C/svg%3E") calc(31.25% - 3.75px) 10.4px / 20px 22px no-repeat,
@@ -358,7 +364,7 @@ body.tema-natal .feed > .tw-post.ig-post + .tw-post.ig-post::before {
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Ccircle cx='4' cy='4' r='3' fill='%23d9b45a'/%3E%3Ccircle cx='3.2' cy='3.2' r='1' fill='%23fff6d8'/%3E%3C/svg%3E") calc(100% + 4px) -1px / 8px 8px no-repeat,
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 24' preserveAspectRatio='none'%3E%3Cpath d='M0 3 Q50 21 100 3 Q150 21 200 3' fill='none' stroke='rgba(255,255,255,.6)' stroke-width='1.4' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") 0 0 / 100% 24px no-repeat;
 }
-body.tema-natal .feed > .tw-post.ig-post + .tw-post.ig-post::after {
+body.tema-natal .feed > .tw-post.ig-post + .tw-post.ig-post::after, body.tema-natal .pf-head::after {
   background:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 22'%3E%3Cdefs%3E%3CradialGradient id='h'%3E%3Cstop offset='0' stop-color='%23ff5d72' stop-opacity='.6'/%3E%3Cstop offset='1' stop-color='%23ff5d72' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='10' cy='11' r='10' fill='url(%23h)'/%3E%3Crect x='7.4' y='0' width='5.2' height='4.6' rx='1.2' fill='%2333508f'/%3E%3Cellipse cx='10' cy='9.4' rx='3.8' ry='5.4' fill='%23ff5d72'/%3E%3Cellipse cx='8.7' cy='7.6' rx='1.1' ry='1.7' fill='%23fff' fill-opacity='.9'/%3E%3C/svg%3E") calc(18.75% - 6.25px) 10.4px / 20px 22px no-repeat,
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 22'%3E%3Cdefs%3E%3CradialGradient id='h'%3E%3Cstop offset='0' stop-color='%23ff4d63' stop-opacity='.6'/%3E%3Cstop offset='1' stop-color='%23ff4d63' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='10' cy='11' r='10' fill='url(%23h)'/%3E%3Crect x='7.4' y='0' width='5.2' height='4.6' rx='1.2' fill='%2333508f'/%3E%3Cellipse cx='10' cy='9.4' rx='3.8' ry='5.4' fill='%23ff4d63'/%3E%3Cellipse cx='8.7' cy='7.6' rx='1.1' ry='1.7' fill='%23fff' fill-opacity='.9'/%3E%3C/svg%3E") calc(43.75% - 1.25px) 5.9px / 20px 22px no-repeat,
@@ -367,7 +373,7 @@ body.tema-natal .feed > .tw-post.ig-post + .tw-post.ig-post::after {
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 24' preserveAspectRatio='none'%3E%3Cpath d='M0 3 Q50 21 100 3 Q150 21 200 3' fill='none' stroke='rgba(255,255,255,.6)' stroke-width='1.4' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") 0 0 / 100% 24px no-repeat;
   animation-delay: -0.75s;
 }
-[data-theme='light'] body.tema-natal .feed > .tw-post.ig-post + .tw-post.ig-post::before {
+[data-theme='light'] body.tema-natal .feed > .tw-post.ig-post + .tw-post.ig-post::before, [data-theme='light'] body.tema-natal .pf-head::before {
   background:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 22'%3E%3Cdefs%3E%3CradialGradient id='h'%3E%3Cstop offset='0' stop-color='%23ffc24a' stop-opacity='.6'/%3E%3Cstop offset='1' stop-color='%23ffc24a' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='10' cy='11' r='10' fill='url(%23h)'/%3E%3Crect x='7.4' y='0' width='5.2' height='4.6' rx='1.2' fill='%2333508f'/%3E%3Cellipse cx='10' cy='9.4' rx='3.8' ry='5.4' fill='%23ffd36e' stroke='%23b07a1f' stroke-width='.9'/%3E%3Cellipse cx='8.7' cy='7.6' rx='1.1' ry='1.7' fill='%23fff' fill-opacity='.9'/%3E%3C/svg%3E") calc(6.25% - 8.75px) 5.9px / 20px 22px no-repeat,
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 22'%3E%3Cdefs%3E%3CradialGradient id='h'%3E%3Cstop offset='0' stop-color='%23ffc24a' stop-opacity='.6'/%3E%3Cstop offset='1' stop-color='%23ffc24a' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='10' cy='11' r='10' fill='url(%23h)'/%3E%3Crect x='7.4' y='0' width='5.2' height='4.6' rx='1.2' fill='%2333508f'/%3E%3Cellipse cx='10' cy='9.4' rx='3.8' ry='5.4' fill='%23fff3d1' stroke='%23b07a1f' stroke-width='.9'/%3E%3Cellipse cx='8.7' cy='7.6' rx='1.1' ry='1.7' fill='%23fff' fill-opacity='.9'/%3E%3C/svg%3E") calc(31.25% - 3.75px) 10.4px / 20px 22px no-repeat,
@@ -378,7 +384,7 @@ body.tema-natal .feed > .tw-post.ig-post + .tw-post.ig-post::after {
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Ccircle cx='4' cy='4' r='3' fill='%23d9b45a'/%3E%3Ccircle cx='3.2' cy='3.2' r='1' fill='%23fff6d8'/%3E%3C/svg%3E") calc(100% + 4px) -1px / 8px 8px no-repeat,
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 24' preserveAspectRatio='none'%3E%3Cpath d='M0 3 Q50 21 100 3 Q150 21 200 3' fill='none' stroke='rgba(47,95,208,.55)' stroke-width='1.4' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") 0 0 / 100% 24px no-repeat;
 }
-[data-theme='light'] body.tema-natal .feed > .tw-post.ig-post + .tw-post.ig-post::after {
+[data-theme='light'] body.tema-natal .feed > .tw-post.ig-post + .tw-post.ig-post::after, [data-theme='light'] body.tema-natal .pf-head::after {
   background:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 22'%3E%3Cdefs%3E%3CradialGradient id='h'%3E%3Cstop offset='0' stop-color='%23ff5d72' stop-opacity='.6'/%3E%3Cstop offset='1' stop-color='%23ff5d72' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='10' cy='11' r='10' fill='url(%23h)'/%3E%3Crect x='7.4' y='0' width='5.2' height='4.6' rx='1.2' fill='%2333508f'/%3E%3Cellipse cx='10' cy='9.4' rx='3.8' ry='5.4' fill='%23ff5d72' stroke='%23b3203a' stroke-width='.9'/%3E%3Cellipse cx='8.7' cy='7.6' rx='1.1' ry='1.7' fill='%23fff' fill-opacity='.9'/%3E%3C/svg%3E") calc(18.75% - 6.25px) 10.4px / 20px 22px no-repeat,
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 22'%3E%3Cdefs%3E%3CradialGradient id='h'%3E%3Cstop offset='0' stop-color='%23ff4d63' stop-opacity='.6'/%3E%3Cstop offset='1' stop-color='%23ff4d63' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='10' cy='11' r='10' fill='url(%23h)'/%3E%3Crect x='7.4' y='0' width='5.2' height='4.6' rx='1.2' fill='%2333508f'/%3E%3Cellipse cx='10' cy='9.4' rx='3.8' ry='5.4' fill='%23ff4d63' stroke='%23b3203a' stroke-width='.9'/%3E%3Cellipse cx='8.7' cy='7.6' rx='1.1' ry='1.7' fill='%23fff' fill-opacity='.9'/%3E%3C/svg%3E") calc(43.75% - 1.25px) 5.9px / 20px 22px no-repeat,
@@ -406,7 +412,7 @@ body.tema-natal .feed > .tw-post.ig-post + .tw-post.ig-post::after {
   body.tema-natal .mural-centro .feed > .tw-post.ig-post + .tw-post.ig-post::after { left: -20px; right: -20px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  body.tema-natal .feed > .tw-post.ig-post + .tw-post.ig-post::before, body.tema-natal .feed > .tw-post.ig-post + .tw-post.ig-post::after { animation: none !important; }
+  body.tema-natal .feed > .tw-post.ig-post + .tw-post.ig-post::before, body.tema-natal .feed > .tw-post.ig-post + .tw-post.ig-post::after, body.tema-natal .pf-head::before, body.tema-natal .pf-head::after { animation: none !important; }
 }
 body.tema-natal .tw-post-av, body.tema-natal .tw-coment-av, body.tema-natal .tw-reply-av, body.tema-natal .post-avatar, body.tema-natal .sug-av, body.tema-natal .lado-eu-av, body.tema-natal .nota-av, body.tema-natal .ig-av { background: var(--nt-azul-forte); color: #fff; }
 body.tema-natal .ig-acoes button:hover { transform: scale(1.12); }

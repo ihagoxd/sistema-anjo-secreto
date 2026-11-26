@@ -197,7 +197,7 @@ const TEMAS = [
         { campo: 'ceia', tipo: 'texto', rotulo: 'Prato favorito da ceia', emoji: '🍗', icone: IC.talheres, placeholder: 'Ex.: peru, farofa, salpicão, bacalhau…' },
         { campo: 'doce', tipo: 'texto', rotulo: 'Doce de Natal favorito', emoji: '🍪', icone: IC.biscoito, placeholder: 'Ex.: panetone, chocotone, rabanada, pavê…' },
         { campo: 'filme', tipo: 'texto', rotulo: 'Filme de Natal que não pode faltar', emoji: '🎬', icone: IC.filme, placeholder: 'Ex.: Esqueceram de Mim, O Grinch, Simplesmente Amor…' },
-        { campo: 'tradicao', tipo: 'textarea', rotulo: 'Uma tradição de Natal que eu amo', emoji: '⭐', icone: IC.estrela, placeholder: 'Montar a árvore, o amigo secreto da família, a ceia na casa da vó…' },
+        { campo: 'tradicao', tipo: 'textarea', rotulo: 'Uma tradição de Natal que eu gosto', emoji: '⭐', icone: IC.estrela, placeholder: 'Montar a árvore, o amigo secreto da família, a ceia na casa da vó…' },
         { campo: 'recado', tipo: 'textarea', rotulo: 'Recadinho pro meu anjo', emoji: '💌', icone: IC.carta, placeholder: 'Qualquer dica extra para o seu anjo acertar no presente' },
       ],
     },

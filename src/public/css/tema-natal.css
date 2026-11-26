@@ -400,7 +400,7 @@ body.tema-natal .adm-chips.tem-mais-esq.tem-mais-dir { -webkit-mask-image: linea
 body.tema-natal .adm-lista .adm-pessoa-txt strong { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.25; }
 /* Quadradinhos de ícone (escrever post, atalhos do "Meu painel", campos das preferências, números do admin): azul-gelo do
    tema com o ícone em vermelho (o accent-soft do escuro é roxo) */
-body.tema-natal .comp-op-ic, body.tema-natal .pn-linha-ic, body.tema-natal .ed-ic, body.tema-natal .adm-stat-ic, body.tema-natal .adm-camp-ic, body.tema-natal .tema-atual-ic, body.tema-natal .eu-tag { background: color-mix(in srgb, var(--nt-azul) 24%, var(--surface-2)); color: var(--accent-strong); }
+body.tema-natal .adm-sortear-ic:not(.adm-rev-ic), body.tema-natal .comp-op-ic, body.tema-natal .pn-linha-ic, body.tema-natal .ed-ic, body.tema-natal .adm-stat-ic, body.tema-natal .adm-camp-ic, body.tema-natal .tema-atual-ic, body.tema-natal .eu-tag { background: color-mix(in srgb, var(--nt-azul) 24%, var(--surface-2)); color: var(--accent-strong); }
 /* Botão de perigo (Revelar e registrar, excluir…): o vermelho de status do escuro é claro (feito para texto) e
    o branco quase não se lia nele; usa o vermelho forte do Papai Noel */
 body.tema-natal .btn-perigo { background: var(--nt-vermelho-forte); color: #fff; }

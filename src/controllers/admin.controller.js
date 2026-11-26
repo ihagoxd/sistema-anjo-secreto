@@ -287,6 +287,9 @@ async function postRevelar(req, res, next) {
       idReferencia: campanha.id_campanha,
       ip: req.ip,
     });
+    // Esta tela sai direto da resposta do POST (não é página aberta por link) e o middleware do tema só roda
+    // em GET: carrega o tema aqui, senão a lista abria sem a cara da rede (sem classe no body nem CSS do tema)
+    res.locals.tema = await temaService.ativo();
     res.render('admin/revelar', { titulo: 'Sorteio revelado', pagina: 'adm-cp', campanha, pares });
   } catch (err) {
     next(err);

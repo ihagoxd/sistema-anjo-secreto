@@ -218,8 +218,8 @@ const helpers = {
       PARTICIPANTE_ADICIONADO: 'Adicionou participante', PARTICIPANTE_REMOVIDO: 'Removeu participante',
       SORTEIO_INICIADO: 'Iniciou sorteio', SORTEIO_REFEITO: 'Refez sorteio', SORTEIO_REVELADO: 'Revelou sorteio',
       ANJO_REVELADO: 'Revelou o anjo de alguém',
-      AVISO_CRIADO: 'Publicou aviso', AVISO_EDITADO: 'Editou aviso', AVISO_EXCLUIDO: 'Excluiu aviso',
-      AVISO_PUBLICADO: 'Publicou aviso', AVISO_DESATIVADO: 'Desativou aviso',
+      AVISO_CRIADO: 'Criou aviso', AVISO_EDITADO: 'Editou aviso', AVISO_EXCLUIDO: 'Excluiu aviso',
+      AVISO_PUBLICADO: 'Republicou aviso', AVISO_DESATIVADO: 'Desativou aviso',
       TEMA_ALTERADO: 'Trocou o tema da rede',
     };
     return mapa[acao] || acao;

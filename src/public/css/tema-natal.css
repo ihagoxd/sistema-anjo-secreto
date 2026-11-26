@@ -234,6 +234,37 @@ body.tema-natal .barra-inferior::after {
   animation-delay: -0.75s;
 }
 @keyframes nt-pisca-pisca { 0%, 46% { opacity: 1; } 54%, 96% { opacity: 0.3; } 100% { opacity: 1; } }
+/* Neve na barra de baixo: flocos caindo em cima dela e um montinho de neve que vai se acumulando
+   devagar por cima do fio do pisca-pisca (as lâmpadas ficam aparecendo embaixo). O ui.js guarda
+   quando a neve começou, para o montinho continuar de onde parou ao trocar de página. */
+body.tema-natal .nt-barra-neve {
+  position: absolute; left: 16px; right: 16px; bottom: calc(100% - 2px); height: 130px;
+  pointer-events: none; overflow: hidden; z-index: 1;
+}
+body.tema-natal .nt-barra-neve i {
+  position: absolute; top: calc(var(--t) * -1); left: var(--x); width: var(--t); height: var(--t); border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #fff 0 45%, rgba(255, 255, 255, 0.7) 70%, transparent 72%);
+  opacity: 0; animation: nt-cai-na-barra var(--d) linear var(--a) infinite;
+}
+[data-theme='light'] body.tema-natal .nt-barra-neve i { box-shadow: 0 0 0 1px rgba(143, 184, 255, 0.45); }
+@keyframes nt-cai-na-barra {
+  0% { transform: translate3d(0, 0, 0); opacity: 0; }
+  12%, 86% { opacity: 0.95; }
+  100% { transform: translate3d(var(--s), 130px, 0); opacity: 0; }
+}
+body.tema-natal .nt-monte {
+  position: absolute; left: 20px; right: 20px; bottom: calc(100% - 1px); height: 17px; z-index: 3; pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 16' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23fff'/%3E%3Cstop offset='1' stop-color='%23d6e6ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M0 16 C8 15 12 10 24 9 C34 8 40 5 52 5 C64 5 70 8 82 8 C96 8 100 3 114 3 C128 3 132 7 146 7 C158 7 164 4 178 4 C192 4 196 8 210 8 C222 8 228 5 242 5 C256 5 262 9 276 10 C288 11 292 15 300 16 Z' fill='url(%23g)'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+  transform-origin: 50% 100%; transform: scaleY(0.12);
+  filter: drop-shadow(0 -1px 3px rgba(190, 220, 255, 0.35));
+}
+[data-theme='light'] body.tema-natal .nt-monte { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 16' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23fff'/%3E%3Cstop offset='1' stop-color='%23d6e6ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M0 16 C8 15 12 10 24 9 C34 8 40 5 52 5 C64 5 70 8 82 8 C96 8 100 3 114 3 C128 3 132 7 146 7 C158 7 164 4 178 4 C192 4 196 8 210 8 C222 8 228 5 242 5 C256 5 262 9 276 10 C288 11 292 15 300 16 Z' fill='url(%23g)'/%3E%3Cpath d='M0 16 C8 15 12 10 24 9 C34 8 40 5 52 5 C64 5 70 8 82 8 C96 8 100 3 114 3 C128 3 132 7 146 7 C158 7 164 4 178 4 C192 4 196 8 210 8 C222 8 228 5 242 5 C256 5 262 9 276 10 C288 11 292 15 300 16' fill='none' stroke='rgba(47,95,208,.4)' stroke-width='1' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E"); filter: none; }
+body.tema-natal .nt-monte.cai { animation: nt-acumula 150s cubic-bezier(0.25, 0.6, 0.4, 1) var(--ja, 0s) forwards; }
+@keyframes nt-acumula { from { transform: scaleY(0.12); } to { transform: scaleY(1); } }
+@media (prefers-reduced-motion: reduce) {
+  body.tema-natal .nt-barra-neve { display: none; }
+  body.tema-natal .nt-monte { transform: none; }
+}
 body.tema-natal .bi-item.ativo { color: var(--accent-strong); }
 body.tema-natal .bi-item.ativo svg { animation: nt-pula 0.5s var(--ease-spring); filter: drop-shadow(0 0 6px rgba(255, 93, 114, 0.6)); }
 @keyframes nt-pula { 0% { transform: scale(0.8); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }

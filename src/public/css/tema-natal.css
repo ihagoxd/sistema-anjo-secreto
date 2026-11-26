@@ -397,6 +397,8 @@ body.tema-natal .comp-op-ic, body.tema-natal .pn-linha-ic, body.tema-natal .ed-i
 /* Filtros escolhidos do admin (Usuários, Logs) em vermelho, como os outros filtros do tema (eram roxos) */
 body.tema-natal .chip.ativo { background: var(--nt-grad); border-color: transparent; color: #fff; }
 body.tema-natal .chip.ativo .chip-n { background: rgba(255, 255, 255, 0.22); color: #fff; }
+/* Avisos publicados: o ícone volta a mostrar a cor escolhida para o card (a regra dos avatares azuis apagava) */
+body.tema-natal .adm-av.adm-aviso-ic { background: linear-gradient(135deg, var(--av-a, var(--nt-azul-forte)), var(--av-b, var(--nt-azul-forte))); }
 /* Avisos: o emoji escolhido no "Novo aviso" ficava num quadradinho roxo; vira azul-gelo com o contorno vermelho */
 body.tema-natal .adm-av-emojis button.sel { background: color-mix(in srgb, var(--nt-azul) 24%, var(--surface-2)); }
 /* No celular a lua fica fixa no alto à direita: o subtítulo do topo das páginas quebra a linha antes dela,

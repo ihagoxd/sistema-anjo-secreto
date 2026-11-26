@@ -459,6 +459,8 @@ body.tema-natal .erro-pagina { margin: 24px 16px 0; padding: 34px 20px 30px; bor
 .nt-hero-av { position: relative; display: block; width: 92px; margin: 36px auto 0; }
 .nt-hero-av .pn-hero-av { margin: 0; }
 .nt-hero-gorro { position: absolute; z-index: 2; top: -32px; left: 16px; width: 60px; height: 49px; transform: rotate(-10deg); pointer-events: none; filter: drop-shadow(0 3px 4px rgba(2, 8, 28, 0.45)); }
+/* Meu painel: a barrinha de "Minhas preferências" nos atalhos também em bengala doce */
+body.tema-natal .pn-mini-barra i { background: repeating-linear-gradient(-45deg, #e3304a 0 4px, #ffffff 4px 8px); }
 /* Filtros escolhidos do admin (Usuários, Logs) em vermelho, como os outros filtros do tema (eram roxos) */
 body.tema-natal .chip.ativo { background: var(--nt-grad); border-color: transparent; color: #fff; }
 body.tema-natal .chip.ativo .chip-n { background: rgba(255, 255, 255, 0.22); color: #fff; }

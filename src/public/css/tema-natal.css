@@ -436,7 +436,7 @@ body.tema-natal .stbar i { background: repeating-linear-gradient(-45deg, #ff5d72
 /* Stories: o mesmo gorrinho do perfil no avatar do alto (fica no link do autor, porque o avatar corta o que
    passa da borda) */
 body.tema-natal .stview-autor { position: relative; }
-body.tema-natal .stview-autor::before { content: ''; position: absolute; z-index: 1; top: -12px; left: 1px; width: 27px; height: 22px; transform: rotate(-14deg); pointer-events: none; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 52'%3E%3Cpath d='M8 40 C10 22 22 8 38 8 C48 8 54 12 52 18 C46 16 40 20 40 28 L44 40 Z' fill='%23e3304a'/%3E%3Cpath d='M14 30 C18 20 26 14 34 13' stroke='%23ff7d8f' stroke-width='2' fill='none' stroke-linecap='round' opacity='.7'/%3E%3Crect x='4' y='36' width='44' height='12' rx='6' fill='%23fff'/%3E%3Ccircle cx='52' cy='18' r='6.5' fill='%23fff'/%3E%3C/svg%3E") center / contain no-repeat; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.4)); }
+body.tema-natal .stview-autor::before { content: ''; position: absolute; z-index: 1; top: -14px; left: 5px; width: 27px; height: 22px; transform: rotate(-10deg); pointer-events: none; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 52'%3E%3Cpath d='M8 40 C10 22 22 8 38 8 C48 8 54 12 52 18 C46 16 40 20 40 28 L44 40 Z' fill='%23e3304a'/%3E%3Cpath d='M14 30 C18 20 26 14 34 13' stroke='%23ff7d8f' stroke-width='2' fill='none' stroke-linecap='round' opacity='.7'/%3E%3Crect x='4' y='36' width='44' height='12' rx='6' fill='%23fff'/%3E%3Ccircle cx='52' cy='18' r='6.5' fill='%23fff'/%3E%3C/svg%3E") center / contain no-repeat; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.4)); }
 /* Páginas de erro (404 e afins): o texto ficava solto no céu e "se perdeu entre as nuvens" sumia na lua; vai
    para um cartão da noite */
 body.tema-natal .erro-pagina { margin: 24px 16px 0; padding: 34px 20px 30px; border: 1px solid var(--line); border-radius: 22px; background: color-mix(in srgb, var(--surface) 94%, transparent); }
@@ -489,9 +489,9 @@ body.tema-natal .pf-av-wrap:has(.pf-avatar:not(.st-tem):not(.st-visto))::before 
 body.tema-natal .pf .pf-head { position: relative; padding-bottom: 52px; }
 /* Gorrinho de Papai Noel inclinado no alto do avatar do perfil (o mesmo da tela de carregamento). Não
    atrapalha o toque no avatar e some quando a pessoa tem nota (o balão fica nesse lugar) */
-.nt-pf-gorro { position: absolute; z-index: 2; top: -27px; left: 4px; width: 58px; height: 47px; transform: rotate(-14deg); pointer-events: none; filter: drop-shadow(0 3px 4px rgba(2, 8, 28, 0.45)); }
+.nt-pf-gorro { position: absolute; z-index: 2; top: -31px; left: 14px; width: 58px; height: 47px; transform: rotate(-10deg); pointer-events: none; filter: drop-shadow(0 3px 4px rgba(2, 8, 28, 0.45)); }
 .pf-av-wrap:has(.pf-nota) .nt-pf-gorro { display: none; }
-@media (min-width: 900px) { .nt-pf-gorro { top: -40px; left: 10px; width: 92px; height: 75px; } }
+@media (min-width: 900px) { .nt-pf-gorro { top: -48px; left: 29px; width: 92px; height: 75px; } }
 body.tema-natal .pf-head::before, body.tema-natal .pf-head::after {
   content: ''; position: absolute; left: 0; right: 0; bottom: 8px; height: 34px; pointer-events: none;
   animation: nt-pisca-pisca 1.5s infinite;

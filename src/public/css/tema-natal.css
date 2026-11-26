@@ -347,9 +347,9 @@ body.tema-natal .comp-acao:hover { background: color-mix(in srgb, var(--nt-verme
   body.tema-natal .ed .pr-intro { margin-top: 6px; padding: 14px 16px 12px; }
   body.tema-natal .ed .ed-campos > .ed-campo:last-child { border-bottom: none; }
 }
-/* Quadradinhos de ícone (escrever post, atalhos do "Meu painel", campos das preferências): azul-gelo do
+/* Quadradinhos de ícone (escrever post, atalhos do "Meu painel", campos das preferências, números do admin): azul-gelo do
    tema com o ícone em vermelho (o accent-soft do escuro é roxo) */
-body.tema-natal .comp-op-ic, body.tema-natal .pn-linha-ic, body.tema-natal .ed-ic { background: color-mix(in srgb, var(--nt-azul) 24%, var(--surface-2)); color: var(--accent-strong); }
+body.tema-natal .comp-op-ic, body.tema-natal .pn-linha-ic, body.tema-natal .ed-ic, body.tema-natal .adm-stat-ic, body.tema-natal .adm-camp-ic, body.tema-natal .tema-atual-ic, body.tema-natal .eu-tag { background: color-mix(in srgb, var(--nt-azul) 24%, var(--surface-2)); color: var(--accent-strong); }
 body.tema-natal .comp-op.ativo .comp-switch { background: var(--nt-vermelho-forte); }
 body.tema-natal .tw-post { border-radius: 22px; border-color: var(--line); }
 /* Varal de luzinhas entre os posts do feed: os posts ficam sem moldura, como no Instagram, e no

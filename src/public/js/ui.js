@@ -3366,6 +3366,7 @@
       enviando = true;
       form.classList.add('enviando');
       var otim = (!temMidia && texto) ? bolhaOtimista(texto) : null;
+      if (otim) document.dispatchEvent(new CustomEvent('dm:enviada', { detail: otim }));
       if (otim) { ta.value = ''; ta.style.height = ''; ta.dispatchEvent(new Event('input', { bubbles: true })); }
       var xhr = new XMLHttpRequest();
       xhr.open('POST', form.getAttribute('action'));
@@ -3386,7 +3387,8 @@
           return;
         }
         if (otim) otim.remove();
-        anexar(d.html, true);
+        var nova = anexar(d.html, true);
+        if (!otim && nova) document.dispatchEvent(new CustomEvent('dm:enviada', { detail: nova }));
         limparCompositor();
       });
       xhr.addEventListener('error', function () {
@@ -7614,6 +7616,12 @@
       obs.observe(b, { attributes: true, attributeFilter: ['class'] });
       setTimeout(function () { obs.disconnect(); }, 3000);
     }, true); // captura: o coração do story vira .ativo no próprio clique, antes de o evento chegar aqui
+    // Direct: ao enviar uma mensagem, sai um estourinho de floquinhos da bolha
+    document.addEventListener('dm:enviada', function (e) {
+      if (reduz || !e.detail) return;
+      var b = e.detail.querySelector('.dm-bolha-txt') || e.detail;
+      flocosNaCurtida(b, { n: 10, dist: 2, sx: 1.5 });
+    });
     // Aprovações: ao tocar em Aprovar, sai um estouro de floquinhos do botão (a pessoa sai da lista em seguida)
     document.addEventListener('click', function (e) {
       if (reduz) return;

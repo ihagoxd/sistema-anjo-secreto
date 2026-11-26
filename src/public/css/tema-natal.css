@@ -368,6 +368,22 @@ body.tema-natal .adm-cab-btn:not(.adm-cab-voltar) {
   box-shadow: 0 8px 18px -10px rgba(2, 8, 28, 0.7);
 }
 body.tema-natal .adm-cab-btn:not(.adm-cab-voltar):hover { background: var(--surface-2); }
+/* Lista vazia (Usuários sem ninguém no filtro ou na busca): no lugar da lupa, um globo de neve com o
+   bonequinho acenando e a neve caindo */
+body.tema-natal .adm-vazio-ic.nt-globo {
+  position: relative; width: 92px; height: 92px; margin-bottom: 10px; overflow: hidden; border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--nt-azul) 20%, var(--surface)); box-shadow: 0 12px 26px -14px rgba(2, 8, 28, 0.7);
+}
+body.tema-natal .adm-vazio-ic.nt-globo::after { content: ''; position: absolute; inset: 0; border-radius: 50%; pointer-events: none; background: radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.22), transparent 38%); }
+.nt-globo .nt-globo-cena { display: block; width: 100%; height: 100%; }
+/* No claro o chão sumia no fundo: o globo ganha um céu azul mais forte e o chão fica branco */
+[data-theme='light'] body.tema-natal .adm-vazio-ic.nt-globo { background: linear-gradient(180deg, #c3d7fb, #e6efff); }
+[data-theme='light'] .nt-globo-chao { fill: #fff; }
+.nt-globo-braco { transform-box: view-box; transform-origin: 59px 57px; animation: nt-globo-acena 2.6s ease-in-out infinite; }
+@keyframes nt-globo-acena { 0%, 60%, 100% { transform: rotate(0); } 15% { transform: rotate(-16deg); } 30% { transform: rotate(6deg); } 45% { transform: rotate(-12deg); } }
+.nt-globo-floco { opacity: 0; animation: nt-globo-neve var(--t, 3s) linear var(--d, 0s) infinite; }
+@keyframes nt-globo-neve { 0% { transform: translateY(-4px); opacity: 0; } 12% { opacity: 0.95; } 85% { opacity: 0.9; } 100% { transform: translateY(80px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .nt-globo-braco, .nt-globo-floco { animation: none; } }
 /* Filtros do admin que não cabem na tela: a ponta que continua esmaece, como no Instagram, mostrando que dá
    para arrastar (o ui.js marca tem-mais-dir / tem-mais-esq conforme a rolagem) */
 body.tema-natal .adm-chips.tem-mais-dir { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent); }

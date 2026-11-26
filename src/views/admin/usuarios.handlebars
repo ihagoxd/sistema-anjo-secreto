@@ -27,7 +27,7 @@
     {{#each usuarios}}{{> admUsuario}}{{/each}}
   </div>
   <div class="adm-vazio" data-adm-vazio{{#if algumVisivel}} hidden{{/if}}>
-    <span class="adm-vazio-ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+    {{#if (eq tema.chave "natal")}}<span class="adm-vazio-ic nt-globo">{{> natalGlobo}}</span>{{else}}<span class="adm-vazio-ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>{{/if}}
     <strong>Ninguém por aqui</strong>
     <small>Nenhuma pessoa nesta lista{{#if busca}} com essa pesquisa{{/if}}.</small>
   </div>

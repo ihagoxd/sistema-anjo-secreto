@@ -5104,17 +5104,17 @@ form.treme { animation: auth-treme 0.42s ease; }
 .grupo-av-ic { display: grid; place-items: center; color: var(--text-soft); }
 
 /* Admin → Tema da rede: prévia do Natal (fica aqui porque a folha do tema só carrega quando ele está ativo) */
-@font-face { font-family: 'Fredoka'; src: url('/fonts/Fredoka-latin.woff2') format('woff2'); font-weight: 300 700; font-style: normal; font-display: swap; }
-.tc-natal { --tp-fundo: radial-gradient(circle at 84% 14%, rgba(255, 236, 190, 0.4), transparent 26%), linear-gradient(180deg, #2d4596, #1a2858); --tp-bg: #1c2b61; --tp-surface: #24356f; --tp-linha: #3a4f95; --tp-texto: #f6f8ff; --tp-accent: #ff8fab; --tp-accent2: #8fb8ff; }
-.tc-natal .tp-stories i:nth-child(odd) { border-color: #ff8fab; }
-.tc-natal .tp-stories i:nth-child(even) { border-color: #9ad0ff; }
+@font-face { font-family: 'Mountains of Christmas'; src: url('/fonts/MountainsOfChristmas-700.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+.tc-natal { --tp-fundo: radial-gradient(circle at 84% 14%, rgba(190, 220, 255, 0.35), transparent 26%), linear-gradient(180deg, #0f2558, #060f2b); --tp-bg: #0a1a45; --tp-surface: #10235a; --tp-linha: #24437f; --tp-texto: #f3f7ff; --tp-accent: #ff5d72; --tp-accent2: #8fd0ff; }
+.tc-natal .tp-stories i:nth-child(odd) { border-color: #ffffff; }
+.tc-natal .tp-stories i:nth-child(even) { border-color: #8fd0ff; }
 .tp-luzes { position: absolute; left: 0; right: 0; top: 0; height: 10px; z-index: 3; pointer-events: none;
   background:
     radial-gradient(circle at 50% 60%, #ffd36e 0 2px, transparent 3px) 0 0 / 24px 10px repeat-x,
-    radial-gradient(circle at 50% 60%, #ff8fab 0 2px, transparent 3px) 12px 0 / 24px 10px repeat-x;
+    radial-gradient(circle at 50% 60%, #ff5d72 0 2px, transparent 3px) 12px 0 / 24px 10px repeat-x;
   filter: drop-shadow(0 0 3px rgba(255, 220, 150, 0.8)); animation: tp-luzes 1.8s steps(3) infinite; }
 @keyframes tp-luzes { to { background-position: 24px 0, 36px 0; } }
 .tp-floco { position: absolute; top: -6px; width: 4px; height: 4px; border-radius: 50%; background: #fff; opacity: 0.9; z-index: 3; animation: tp-floco var(--d, 5s) linear infinite; }
 @keyframes tp-floco { to { transform: translate3d(-6px, 240px, 0); } }
-.tema-card.tc-natal .tema-card-tit h2 { font-family: 'Fredoka', inherit; font-weight: 700; font-size: 24px; color: #ff6b8a; }
+.tema-card.tc-natal .tema-card-tit h2 { font-family: 'Mountains of Christmas', inherit; font-weight: 700; font-size: 28px; color: #2f5fd0; }
 @media (prefers-reduced-motion: reduce) { .tp-luzes, .tp-floco { animation: none !important; } }

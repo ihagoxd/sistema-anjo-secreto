@@ -346,6 +346,11 @@ body.tema-natal .comp-acao:hover { background: color-mix(in srgb, var(--nt-verme
   }
   body.tema-natal .ed .pr-intro { margin-top: 6px; padding: 14px 16px 12px; }
   body.tema-natal .ed .ed-campos > .ed-campo:last-child { border-bottom: none; }
+  /* Editar usuário (admin): o nome, o "cadastro em" e o atalho do perfil passavam por cima da lua */
+  body.tema-natal .adm-ed-quem {
+    margin: 6px 12px 4px; padding: 14px; border: 1px solid var(--line); border-radius: 18px;
+    background: color-mix(in srgb, var(--surface) 94%, transparent);
+  }
 }
 /* Admin: as listas (rodadas, quem participa…) ficavam soltas no céu, com a neve passando atrás do texto, e o
    cabeçalho da página da campanha passava por cima da lua. Os dois ganham um cartão da noite. */

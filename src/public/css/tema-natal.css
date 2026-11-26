@@ -465,8 +465,8 @@ body.tema-natal .chips-sug button { border-color: var(--line-strong); }
 body.tema-natal .pf-secao { border-top: 1px dashed var(--line-strong); }
 
 /* ---------- CARTINHA (aba Natal das preferências): uma carta de papel de verdade ----------
-   Papel creme com a borda de correio aéreo (listras vermelhas e azuis), pautas azul-claras e margem
-   vermelha; a saudação e os títulos na letra de Natal em tinta azul; selo do Polo Norte no canto e o
+   Papel creme liso com a borda de correio aéreo (listras vermelhas e azuis); os campos são linhas de
+   preencher e o que a pessoa escreve sai na letra de Natal, como escrito à mão; a saudação e os títulos na letra de Natal em tinta azul; selo do Polo Norte no canto e o
    carimbo "Enviada" que bate em cima dele ao salvar; assinatura "Com carinho" no fim. É papel: fica
    igual nos modos claro e escuro. [data-theme] só para ganhar das regras gerais de cartão do tema. */
 [data-theme] body.tema-natal .pft-hero, [data-theme] body.tema-natal .pft-form {
@@ -482,8 +482,6 @@ body.tema-natal .pf-secao { border-top: 1px dashed var(--line-strong); }
 [data-theme] body.tema-natal .pft-form {
   border-top: 0; border-radius: 0 0 16px 16px; margin-top: 0;
   background:
-    linear-gradient(90deg, transparent 14px, rgba(227, 48, 74, 0.32) 14px 15.5px, transparent 15.5px) padding-box,
-    repeating-linear-gradient(180deg, transparent 0 33px, var(--pauta) 33px 34px) padding-box,
     linear-gradient(#fffaf0, #fffaf0) padding-box, repeating-linear-gradient(-45deg, #e3304a 0 9px, #fffaf0 9px 15px, #2f5fd0 15px 24px, #fffaf0 24px 30px) border-box;
 }
 body.tema-natal .pft-hero-deco, body.tema-natal .pft-hero-emojis { display: none; }
@@ -497,17 +495,29 @@ body.tema-natal .pft-hero-txt { color: var(--tinta-suave); margin: 0; max-width:
 .nt-carimbo.bate { animation: nt-carimbo-bate 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
 @keyframes nt-carimbo-bate { from { opacity: 0; transform: rotate(-14deg) scale(1.9); } to { opacity: 0.82; transform: rotate(-14deg) scale(1); } }
 /* Campos escritos "à mão" no papel */
-[data-theme] body.tema-natal .pft-form label { color: var(--tinta); font-family: var(--font-display); font-size: 20px; font-weight: 700; }
+[data-theme] body.tema-natal .pft-form label { display: flex; align-items: flex-start; gap: 8px; color: var(--tinta); font-family: var(--font-display); font-size: 20px; font-weight: 700; line-height: 1.15; }
+body.tema-natal .pft-form label .lbl-ic { flex-shrink: 0; margin-top: 2px; }
 body.tema-natal .pft-form .lbl-ic { color: #e3304a; }
 body.tema-natal .pft-form .pf-secao-dica, body.tema-natal .pft-form .chips-cont, body.tema-natal .pft-form .chips-sug-rot { color: var(--tinta-suave); }
-[data-theme] body.tema-natal .pft-form .campo input, [data-theme] body.tema-natal .pft-form .campo textarea, [data-theme] body.tema-natal .pft-form .chips {
-  background: rgba(255, 255, 255, 0.78); border: 1.5px solid var(--linha-papel); color: var(--tinta);
+[data-theme] body.tema-natal .pft-form .campo input, [data-theme] body.tema-natal .pft-form .chips {
+  background: transparent; border: 0; border-bottom: 2px dotted #b3c2e3; border-radius: 0; box-shadow: none; padding: 6px 2px;
+  color: var(--tinta); font-family: var(--font-display); font-weight: 700; font-size: 19px;
 }
-[data-theme] body.tema-natal .pft-form .chips input { background: transparent; border: none; color: var(--tinta); }
-body.tema-natal .pft-form input::placeholder, body.tema-natal .pft-form textarea::placeholder { color: #8a9ac0; }
-[data-theme] body.tema-natal .pft-form .campo input:focus, [data-theme] body.tema-natal .pft-form .campo textarea:focus, [data-theme] body.tema-natal .pft-form .chips:focus-within {
-  border-color: #e3304a; box-shadow: 0 0 0 4px rgba(227, 48, 74, 0.15);
+[data-theme] body.tema-natal .pft-form .chips { min-height: 46px; padding: 6px 0; gap: 6px; }
+[data-theme] body.tema-natal .pft-form .chips input { background: transparent; border: none; color: var(--tinta); font: inherit; padding: 2px; }
+/* Caixas de texto maiores: pautas só ali, alinhadas com a altura da linha do que se escreve */
+[data-theme] body.tema-natal .pft-form .campo textarea {
+  border: 0; border-radius: 0; box-shadow: none; padding: 0 2px; resize: none; min-height: 90px; color: var(--tinta);
+  font-family: var(--font-display); font-weight: 700; font-size: 19px; line-height: 30px;
+  background: repeating-linear-gradient(180deg, transparent 0 29px, #c9d6f0 29px 30px) local;
 }
+body.tema-natal .pft-form input::placeholder, body.tema-natal .pft-form textarea::placeholder { color: #9aa8c8; font-family: var(--font-display); font-weight: 700; }
+[data-theme] body.tema-natal .pft-form .campo input:focus, [data-theme] body.tema-natal .pft-form .chips:focus-within { border-bottom-color: #e3304a; box-shadow: none; outline: none; }
+[data-theme] body.tema-natal .pft-form .campo textarea:focus { box-shadow: none; outline: none; background-image: repeating-linear-gradient(180deg, transparent 0 29px, #f0a3af 29px 30px); }
+body.tema-natal .pft-form .chip-item { font-family: var(--font-body); font-size: 13.5px; }
+/* Nas telas com o botão de salvar grudado no pé, os flocos que caem em cima da barra de baixo ficavam
+   por cima do botão: lá eles não caem */
+body.tema-natal:has(.pf-salvar) .nt-barra-neve { display: none; }
 body.tema-natal .pft-form .chip-item { background: #ffe1e6; color: #b3203a; }
 [data-theme] body.tema-natal .pft-form .chips-sug button { background: #fff; border-color: var(--linha-papel); color: var(--tinta); }
 [data-theme] body.tema-natal .pft-form .chips-sug button:hover { border-color: #e3304a; color: #b3203a; background: #fff5f6; }

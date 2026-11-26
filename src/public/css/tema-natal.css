@@ -375,8 +375,8 @@ body.tema-natal .adm-cab-btn:not(.adm-cab-voltar) {
   box-shadow: 0 8px 18px -10px rgba(2, 8, 28, 0.7);
 }
 body.tema-natal .adm-cab-btn:not(.adm-cab-voltar):hover { background: var(--surface-2); }
-/* Lista vazia (Usuários sem ninguém no filtro ou na busca): no lugar da lupa, um globo de neve com o
-   bonequinho acenando e a neve caindo */
+/* Lista vazia (Usuários sem ninguém no filtro ou na busca, Aprovações em dia): no lugar do ícone, um globo de
+   neve com o bonequinho acenando e a neve caindo */
 body.tema-natal .adm-vazio-ic.nt-globo {
   position: relative; width: 92px; height: 92px; margin-bottom: 10px; overflow: hidden; border: 1px solid var(--line);
   background: color-mix(in srgb, var(--nt-azul) 20%, var(--surface)); box-shadow: 0 12px 26px -14px rgba(2, 8, 28, 0.7);

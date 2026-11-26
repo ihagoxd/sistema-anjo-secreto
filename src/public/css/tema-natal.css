@@ -313,7 +313,13 @@ body.tema-natal .comp-op.ativo .comp-switch { background: var(--nt-vermelho-fort
 body.tema-natal .tw-post { border-radius: 22px; border-color: var(--line); }
 body.tema-natal .tw-post-av, body.tema-natal .tw-coment-av, body.tema-natal .tw-reply-av, body.tema-natal .post-avatar, body.tema-natal .sug-av, body.tema-natal .lado-eu-av, body.tema-natal .nota-av, body.tema-natal .ig-av { background: var(--nt-azul-forte); color: #fff; }
 body.tema-natal .ig-acoes button:hover { transform: scale(1.12); }
-body.tema-natal .tw-acao.curtir.ativo { color: var(--nt-vermelho-forte); }
+/* Curtida: coração vermelho vivo de uma cor só (borda e recheio iguais) com um brilho leve, como no
+   Instagram; sem a bolha do hover, que no celular fica grudada depois do toque */
+body.tema-natal .tw-acao.curtir:hover { color: #ff4058; background: none; }
+body.tema-natal .tw-acao.curtir.ativo { color: #ff4058; }
+body.tema-natal .tw-acao.curtir.ativo svg { fill: #ff4058; stroke: #ff4058; filter: drop-shadow(0 0 6px rgba(255, 64, 88, 0.45)); }
+[data-theme='light'] body.tema-natal .tw-acao.curtir:hover, [data-theme='light'] body.tema-natal .tw-acao.curtir.ativo { color: #e3243f; }
+[data-theme='light'] body.tema-natal .tw-acao.curtir.ativo svg { fill: #e3243f; stroke: #e3243f; filter: none; }
 body.tema-natal .tw-reply input { border: 1.5px solid var(--line); background: var(--surface); }
 body.tema-natal .tw-reply input:focus { border-color: var(--nt-vermelho); box-shadow: 0 0 0 4px rgba(255, 93, 114, 0.2); }
 body.tema-natal .feed-novas { background: var(--nt-grad); color: #fff; }

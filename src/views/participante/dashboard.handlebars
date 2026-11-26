@@ -9,7 +9,7 @@
   {{#if protegido}}
   <section class="pn-hero">
     <div class="pn-hero-rot">{{campanhaAtiva.nome}}</div>
-    <a class="pn-hero-av" href="/u/{{protegido.usuario}}" aria-label="Ver o perfil de {{protegido.nome}}">{{#if protegido.foto_perfil}}<img src="{{protegido.foto_perfil}}" alt="">{{else}}{{inicial protegido.nome}}{{/if}}</a>
+    {{#if (eq tema.chave "natal")}}<span class="nt-hero-av">{{/if}}<a class="pn-hero-av" href="/u/{{protegido.usuario}}" aria-label="Ver o perfil de {{protegido.nome}}">{{#if protegido.foto_perfil}}<img src="{{protegido.foto_perfil}}" alt="">{{else}}{{inicial protegido.nome}}{{/if}}</a>{{#if (eq tema.chave "natal")}}<svg class="nt-hero-gorro" viewBox="0 0 64 52" aria-hidden="true"><path d="M8 40 C10 22 22 8 38 8 C48 8 54 12 52 18 C46 16 40 20 40 28 L44 40 Z" fill="#e3304a"/><path d="M14 30 C18 20 26 14 34 13" stroke="#ff7d8f" stroke-width="2" fill="none" stroke-linecap="round" opacity=".7"/><rect x="4" y="36" width="44" height="12" rx="6" fill="#fff"/><circle cx="52" cy="18" r="6.5" fill="#fff"/></svg></span>{{/if}}
     <p class="pn-hero-sub">Você é o anjo de</p>
     <h1 class="pn-hero-nome">{{protegido.nome}}</h1>
     <div class="pn-hero-prazo"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> {{#if (eq diasRestantes 0)}}Último dia do mês{{else}}{{#if (eq diasRestantes 1)}}Falta 1 dia{{else}}Faltam {{diasRestantes}} dias{{/if}} para o fim do mês{{/if}}</div>

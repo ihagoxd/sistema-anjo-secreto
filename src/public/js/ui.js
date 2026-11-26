@@ -3163,7 +3163,7 @@
       if (!s) return;
       var chave = conv.getAttribute('href');
       if (!s.hasAttribute('data-digitando')) { s.setAttribute('data-antes', s.textContent); s.setAttribute('data-digitando', '1'); }
-      s.textContent = (nome ? nome + ' ' : '') + 'digitando…';
+      s.innerHTML = (nome ? esc(nome) + ' ' : '') + 'digitando<i class="dm-pontos"><i></i><i></i><i></i></i>';
       s.classList.add('digitando');
       clearTimeout(tLista[chave]);
       tLista[chave] = setTimeout(function () {

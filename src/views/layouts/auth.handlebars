@@ -70,9 +70,11 @@
             <circle class="l cabeca" cx="88" cy="62" r="13" pathLength="1"/>
           </svg>
           <img src="/img/logo.png" alt="">
+          {{#if (eq tema.chave "natal")}}{{> natalEntrega}}{{/if}}
         </div>
 
-        <div class="auth-wordmark">Anjo Secreto</div>
+        {{! Letras em spans: no tema de Natal elas caem pulando uma a uma (nos outros temas não muda nada) }}
+        <div class="auth-wordmark" role="img" aria-label="Anjo Secreto"><span class="aw-l" style="--i:0">A</span><span class="aw-l" style="--i:1">n</span><span class="aw-l" style="--i:2">j</span><span class="aw-l" style="--i:3">o</span> <span class="aw-l" style="--i:5">S</span><span class="aw-l" style="--i:6">e</span><span class="aw-l" style="--i:7">c</span><span class="aw-l" style="--i:8">r</span><span class="aw-l" style="--i:9">e</span><span class="aw-l" style="--i:10">t</span><span class="aw-l" style="--i:11">o</span></div>
         <div class="auth-sub">{{#if tema.slogan}}{{tema.slogan}}{{else}}Cuide em segredo{{/if}}</div>
 
         <div class="auth-losango"><span class="fio"></span><span class="d"></span><span class="fio"></span></div>

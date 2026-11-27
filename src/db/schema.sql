@@ -107,6 +107,9 @@ CREATE TABLE IF NOT EXISTS sorteios (
   UNIQUE (id_campanha, id_protegido),
   CHECK (id_anjo <> id_protegido)
 );
+-- Quando o anjo viu a roleta que revela o protegido (vale em qualquer aparelho; ao refazer o sorteio
+-- os pares são regravados e a roleta aparece de novo com o par novo)
+ALTER TABLE sorteios ADD COLUMN IF NOT EXISTS roleta_vista_em TIMESTAMPTZ;
 
 -- ---------- PREFERÊNCIAS DO USUÁRIO ----------
 -- Uma linha por usuário (preferências globais, não por campanha).

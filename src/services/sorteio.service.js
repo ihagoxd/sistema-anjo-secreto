@@ -190,6 +190,9 @@ function buscarAnjoDoProtegido(idCampanha, idUsuario) {
 function listarPares(idCampanha) {
   return sorteioModel.listarPares(idCampanha);
 }
+function marcarRoletaVista(idCampanha, idUsuario) {
+  return sorteioModel.marcarRoletaVista(idCampanha, idUsuario);
+}
 
 module.exports = {
   MIN_PARTICIPANTES,
@@ -200,4 +203,5 @@ module.exports = {
   buscarProtegidoDoAnjo,
   buscarAnjoDoProtegido,
   listarPares,
+  marcarRoletaVista,
 };

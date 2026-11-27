@@ -99,10 +99,11 @@ async function carregarContextoApp(req, res, next) {
       res.locals.primeiroNome = primeiroNome(u.nome);
     }
 
-    // Roleta (modal, 1x por sessão) — só participante que já tem protegido sorteado.
+    // Roleta (modal) — só participante que já tem protegido sorteado e ainda não viu a revelação
+    // (guardado no banco: quem viu no celular não vê de novo no computador, e vice-versa).
     if (campanha && u.tipo_usuario === 'PARTICIPANTE') {
       const protegido = await sorteioService.buscarProtegidoDoAnjo(campanha.id_campanha, me);
-      if (protegido) {
+      if (protegido && !protegido.roleta_vista_em) {
         const pf = await usuarioModel.buscarPorId(protegido.id_usuario);
         const eq = await participanteService.listarPorCampanha(campanha.id_campanha);
         res.locals.roleta = {

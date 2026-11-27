@@ -39,6 +39,8 @@ router.post('/perfil/fotos/:id_foto/legenda', ctrl.postLegendaFoto);
 
 // Tutorial passo a passo do app (feed): marca como visto ao terminar/pular
 router.post('/tutorial/visto', ctrl.postTutorialVisto);
+// Roleta que revela o protegido: marca como vista (vale em todos os aparelhos)
+router.post('/roleta/vista', ctrl.postRoletaVista);
 
 // Mensagens migraram para o "Direct" compartilhado em /mensagens.
 router.get('/mensagens', (req, res) => res.redirect('/mensagens'));

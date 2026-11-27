@@ -14,7 +14,7 @@ async function existeSorteio(idCampanha) {
 // Quem o usuário (como ANJO) tirou — ou seja, seu protegido.
 async function buscarProtegidoDoAnjo(idCampanha, idUsuario) {
   const res = await db.query(
-    `SELECT u.id_usuario, u.nome, u.usuario, u.foto_perfil
+    `SELECT u.id_usuario, u.nome, u.usuario, u.foto_perfil, s.roleta_vista_em
        FROM sorteios s
        JOIN participantes pa ON pa.id_participante = s.id_anjo
        JOIN participantes pp ON pp.id_participante = s.id_protegido
@@ -59,4 +59,15 @@ async function listarPares(idCampanha) {
   return res.rows;
 }
 
-module.exports = { existeSorteio, buscarProtegidoDoAnjo, buscarAnjoDoProtegido, listarPares };
+// O anjo viu a roleta que revela o protegido: não aparece mais, em nenhum aparelho
+async function marcarRoletaVista(idCampanha, idUsuario) {
+  await db.query(
+    `UPDATE sorteios s SET roleta_vista_em = now()
+       FROM participantes pa
+      WHERE pa.id_participante = s.id_anjo AND s.id_campanha = $1 AND pa.id_usuario = $2
+        AND s.roleta_vista_em IS NULL`,
+    [idCampanha, idUsuario]
+  );
+}
+
+module.exports = { existeSorteio, buscarProtegidoDoAnjo, buscarAnjoDoProtegido, listarPares, marcarRoletaVista };

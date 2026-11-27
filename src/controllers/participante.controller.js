@@ -272,6 +272,18 @@ async function postLegendaFoto(req, res, next) {
   }
 }
 
+// Roleta do sorteio vista (fechou, X, Esc, clicou fora ou foi ver os gostos): não aparece mais. AJAX → JSON.
+async function postRoletaVista(req, res, next) {
+  try {
+    const campanha = await campanhaService.buscarCampanhaAtiva();
+    if (campanha) await sorteioService.marcarRoletaVista(campanha.id_campanha, req.session.usuario.id_usuario);
+    if (ehFetch(req)) return res.json({ ok: true });
+    res.redirect('/feed');
+  } catch (err) {
+    next(err);
+  }
+}
+
 // Tutorial concluído (ou pulado): não aparece mais sozinho. AJAX → JSON.
 async function postTutorialVisto(req, res, next) {
   try {
@@ -286,5 +298,5 @@ async function postTutorialVisto(req, res, next) {
 
 module.exports = {
   getDashboard, getProtegido, getPreferencias, getPreferenciasTema, postPreferenciasTema,
-  postPerfil, postRemoverFotoPerfil, postRemoverFoto, postLegendaFoto, postTutorialVisto,
+  postPerfil, postRemoverFotoPerfil, postRemoverFoto, postLegendaFoto, postTutorialVisto, postRoletaVista,
 };

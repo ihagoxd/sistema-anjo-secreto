@@ -4962,10 +4962,21 @@
     var display = modal.querySelector('[data-roleta-display]');
     if (!palco || !resultado || !display) return;
 
+    // "Já vi" fica no banco (o servidor nem manda a roleta para quem já viu, em qualquer aparelho).
+    // Quem já tinha visto neste navegador (marca antiga, ou o aviso ao servidor falhou sem internet)
+    // só avisa o servidor, sem rever.
     var chave = 'roletaVista_' + modal.getAttribute('data-camp');
+    var metaCsrfRol = document.querySelector('meta[name="csrf-token"]');
+    var CSRF_ROL = metaCsrfRol ? metaCsrfRol.getAttribute('content') : '';
+    var avisada = false;
+    function marcarVista() {
+      if (avisada) return; avisada = true;
+      try { localStorage.setItem(chave, '1'); } catch (e) {}
+      fetch('/participante/roleta/vista', { method: 'POST', keepalive: true, headers: { 'X-CSRF-Token': CSRF_ROL, 'X-Requested-With': 'fetch' } }).catch(function () {});
+    }
     var jaViu = false;
     try { jaViu = !!localStorage.getItem(chave); } catch (e) {}
-    if (jaViu) return; // já viu e interagiu antes — não mostra mais
+    if (jaViu) { marcarVista(); return; }
 
     var alvo = (modal.getAttribute('data-alvo') || '').trim();
     if (!alvo) return;
@@ -4976,7 +4987,6 @@
 
     // Só marca como "vista" quando a pessoa INTERAGE (fecha, X, clica fora, Esc, ou vai ver
     // o que o protegido gosta). Se fechar o navegador sem clicar, aparece de novo.
-    function marcarVista() { try { localStorage.setItem(chave, '1'); } catch (e) {} }
     modal.addEventListener('click', function (e) {
       if (e.target.closest('[data-fechar-modal]') || e.target.closest('.aniv-acoes a') || e.target === modal) marcarVista();
     });
